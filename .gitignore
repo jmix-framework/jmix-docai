@@ -29,3 +29,9 @@ vite.generated.ts
 webpack.generated.js
 
 .DS_Store
+
+.superpowers/
+/docs/superpowers/
+compose.override.yaml
+.claude/worktrees/
+.claude/settings.local.json
