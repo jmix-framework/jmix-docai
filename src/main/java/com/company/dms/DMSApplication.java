@@ -1,8 +1,10 @@
 package com.company.dms;
 
 import com.google.common.base.Strings;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.ColorScheme;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.aura.Aura;
@@ -25,6 +27,8 @@ import javax.sql.DataSource;
 @StyleSheet(Aura.STYLESHEET)
 @StyleSheet(JmixAura.STYLESHEET)
 @StyleSheet("themes/jmix-dms-aura/styles.css")
+@ColorScheme(ColorScheme.Value.LIGHT_DARK)
+@JsModule("./src/theme/color-scheme-switching-support.js")
 @PWA(name = "Jmix DMS", shortName = "Jmix DMS", offline = false)
 @SpringBootApplication
 public class DMSApplication implements AppShellConfigurator {

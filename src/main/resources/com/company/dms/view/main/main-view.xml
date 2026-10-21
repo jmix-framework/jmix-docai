@@ -19,6 +19,12 @@
                         <actionItem id="profileMenuItem" themeNames="non-checkable">
                             <action id="profileAction" text="msg://profileAction.text" icon="USER"/>
                         </actionItem>
+                        <actionItem id="themeMenuItem" themeNames="non-checkable">
+                            <action id="themeAction" type="userMenu_themeSwitch"/>
+                        </actionItem>
+                        <actionItem id="languageMenuItem" themeNames="non-checkable">
+                            <action id="languageAction" type="userMenu_languageSwitch"/>
+                        </actionItem>
                         <actionItem id="substituteUserMenuItem"
                                     themeNames="non-checkable">
                             <action id="substituteUserAction" type="sec_userMenuSubstituteUser"/>
