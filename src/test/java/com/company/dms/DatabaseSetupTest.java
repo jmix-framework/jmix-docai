@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -15,7 +14,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@ActiveProfiles("test")
 class DatabaseSetupTest {
 
     @Autowired
@@ -47,6 +45,17 @@ class DatabaseSetupTest {
 
         assertThat(changeSets)
                 .containsExactly("1", "2", "3", "4");
+    }
+
+    @Test
+    void theAdminIsActive() {
+        List<Boolean> active = new JdbcTemplate(dataSource).queryForList(
+                "select ACTIVE from USER_ where USERNAME = ?",
+                Boolean.class,
+                "admin");
+
+        assertThat(active)
+                .containsExactly(true);
     }
 
     @Test

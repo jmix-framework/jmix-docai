@@ -43,7 +43,7 @@ Right now the application has the skeleton: users, login, the main view, the Eng
 
 ## 🧩 Add-ons
 
-- [Data Tools](https://docs.jmix.io/jmix/datatools/index.html)
+- [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html)
 - [Local File Storage](https://docs.jmix.io/jmix/files/file-storage.html)
 - Russian translation of the framework (`jmix-translations-ru`)
 
@@ -63,7 +63,7 @@ Further add-ons come with the modules that need them.
 
 Open <http://localhost:8080/dms> and log in as `admin` / `admin`.
 
-The `local` profile is active by default. It keeps the data in the HSQLDB file database `.jmix/hsqldb/dms` and pre-fills the login form.
+By default the application keeps its data in the HSQLDB file database `.jmix/hsqldb/dms` and runs with the `local` profile, which pre-fills the login form.
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -79,7 +79,7 @@ The `local` profile is active by default. It keeps the data in the HSQLDB file d
 ./gradlew test
 ```
 
-The tests run on an in-memory HSQLDB database, so every run starts from an empty schema.
+Gradle runs the tests with the `test` profile on an in-memory HSQLDB database, so every run starts from an empty schema.
 
 ### Use another database
 
@@ -108,7 +108,7 @@ Not available yet: demo document sets in English and Russian arrive with the dem
 |---|---|---|
 | `admin` | `admin` | Full Access |
 
-> **Warning:** these are development credentials. Change the `admin` password before you deploy the application anywhere.
+> **Warning:** these are development credentials, and the `local` profile pre-fills them in the login form. Before you deploy the application anywhere, change the `admin` password and set `DMS_ACTIVE_PROFILE` to another value, for example `prod`.
 
 ## ⚙️ Domain Model
 
