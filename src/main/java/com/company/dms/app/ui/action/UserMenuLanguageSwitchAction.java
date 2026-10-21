@@ -14,12 +14,16 @@ import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.component.usermenu.UserMenuItem;
 import io.jmix.flowui.kit.component.usermenu.UserMenuItem.HasSubMenu;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
+import io.jmix.flowui.view.StandardDetailView;
+import io.jmix.flowui.view.ViewValidation;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 @ActionType(UserMenuLanguageSwitchAction.ID)
 public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguageSwitchAction, UserMenu> {
@@ -29,8 +33,10 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
     private CoreProperties coreProperties;
     private CurrentAuthentication currentAuthentication;
     private MessageTools messageTools;
+    private ViewValidation viewValidation;
 
     private HasSubMenu.SubMenu subMenu;
+    private final Map<Locale, UserMenuItem> localeItems = new HashMap<>();
 
     public UserMenuLanguageSwitchAction() {
         this(ID);
@@ -65,6 +71,11 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
         this.messageTools = messageTools;
     }
 
+    @Autowired
+    public void setViewValidation(ViewValidation viewValidation) {
+        this.viewValidation = viewValidation;
+    }
+
     @Override
     protected void setMenuItemInternal(@Nullable UserMenuItem menuItem) {
         super.setMenuItemInternal(menuItem);
@@ -72,6 +83,7 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
         if (subMenu != null) {
             subMenu.removeAll();
             subMenu = null;
+            localeItems.clear();
         }
 
         if (menuItem == null) {
@@ -84,17 +96,38 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
         }
 
         subMenu = hasSubMenu.getSubMenu();
-        Locale currentLocale = currentAuthentication.getLocale();
         for (Locale locale : coreProperties.getAvailableLocales()) {
             UserMenuItem item = subMenu.addTextItem("%s_%sUserMenuItem".formatted(ID, locale.toLanguageTag()),
                     messageTools.getLocaleDisplayName(locale),
                     event -> switchTo(locale));
             item.setCheckable(true);
-            item.setChecked(locale.equals(currentLocale));
+            localeItems.put(locale, item);
         }
+
+        updateCheckedItems();
     }
 
     public void switchTo(Locale locale) {
+        // a click toggles the check mark, the language in use stays checked until the page reloads
+        updateCheckedItems();
+
+        if (locale.equals(currentAuthentication.getLocale())) {
+            return;
+        }
+
+        // reloading the page would lose the changes of an open editor
+        if (UI.getCurrent().getCurrentView() instanceof StandardDetailView<?> detailView
+                && detailView.hasUnsavedChanges()) {
+            viewValidation.showUnsavedChangesDialog(detailView)
+                    .onDiscard(() -> detailView.closeWithDiscard()
+                            .then(() -> applyLocale(locale)));
+            return;
+        }
+
+        applyLocale(locale);
+    }
+
+    private void applyLocale(Locale locale) {
         VaadinSession.getCurrent().setLocale(locale);
 
         Authentication authentication = currentAuthentication.getAuthentication();
@@ -106,6 +139,11 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
         }
 
         UI.getCurrent().getPage().reload();
+    }
+
+    private void updateCheckedItems() {
+        Locale currentLocale = currentAuthentication.getLocale();
+        localeItems.forEach((locale, item) -> item.setChecked(locale.equals(currentLocale)));
     }
 
     @Override
