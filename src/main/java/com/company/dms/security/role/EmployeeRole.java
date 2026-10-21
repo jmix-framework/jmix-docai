@@ -7,6 +7,7 @@ import io.jmix.security.model.SecurityScope;
 import io.jmix.security.role.annotation.EntityAttributePolicy;
 import io.jmix.security.role.annotation.EntityPolicy;
 import io.jmix.security.role.annotation.ResourceRole;
+import io.jmix.securityflowui.role.annotation.ViewPolicy;
 
 @ResourceRole(name = "msg://EmployeeRole.name", code = EmployeeRole.CODE,
         description = "msg://EmployeeRole.description", scope = SecurityScope.UI)
@@ -19,4 +20,7 @@ public interface EmployeeRole extends UiMinimalRole {
             attributes = {"username", "firstName", "lastName", "email", "timeZoneId"},
             action = EntityAttributePolicyAction.VIEW)
     void user();
+
+    @ViewPolicy(viewIds = "ProfileReadView")
+    void profile();
 }

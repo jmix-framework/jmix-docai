@@ -22,12 +22,14 @@ class RoleViewAccessTest {
     @ParameterizedTest
     @CsvSource({
             "peter, MainView, true",
+            "peter, ProfileReadView, true",
             "peter, User.list, false",
             "peter, User.detail, false",
             "peter, roleAssignmentView, false",
             "peter, sec_ResourceRoleModel.list, false",
             "peter, datatl_entityInspectorListView, false",
             "admin, MainView, true",
+            "admin, ProfileReadView, true",
             "admin, User.list, true",
             "admin, roleAssignmentView, true",
             "admin, datatl_entityInspectorListView, true"

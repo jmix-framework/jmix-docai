@@ -16,6 +16,9 @@
                           themeNames="tertiary" classNames="jmix-main-view-user-menu">
                     <items>
                         <separator/>
+                        <actionItem id="profileMenuItem" themeNames="non-checkable">
+                            <action id="profileAction" text="msg://profileAction.text" icon="USER"/>
+                        </actionItem>
                         <actionItem id="substituteUserMenuItem"
                                     themeNames="non-checkable">
                             <action id="substituteUserAction" type="sec_userMenuSubstituteUser"/>
