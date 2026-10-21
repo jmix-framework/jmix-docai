@@ -6,7 +6,8 @@ import io.jmix.security.role.annotation.SpecificPolicy;
 import io.jmix.securityflowui.role.UiMinimalPolicies;
 import io.jmix.securityflowui.role.annotation.ViewPolicy;
 
-@ResourceRole(name = "UI: minimal access", code = UiMinimalRole.CODE, scope = SecurityScope.UI)
+@ResourceRole(name = "msg://UiMinimalRole.name", code = UiMinimalRole.CODE,
+        description = "msg://UiMinimalRole.description", scope = SecurityScope.UI)
 public interface UiMinimalRole extends UiMinimalPolicies {
 
     String CODE = "ui-minimal";
