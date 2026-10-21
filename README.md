@@ -31,7 +31,6 @@ The application grows in this order:
 7. Semantic search
 8. Demo data in English and Russian
 
-Right now the application has the skeleton: users, login, the main view, the English and Russian UI, and the test setup.
 
 ## 🛠️ Technical Stack
 
@@ -104,9 +103,16 @@ Not available yet: demo document sets in English and Russian arrive with the dem
 
 ## 👥 Application Accounts
 
-| Login | Password | Roles |
-|---|---|---|
-| `admin` | `admin` | Full Access |
+| Login | Password | Name | Role |
+|---|---|---|---|
+| `admin` | `admin` | | Full Access |
+| `peter` | `peter` | Peter Wilson | Employee |
+| `alice` | `alice` | Alice Morgan | Employee |
+| `helen` | `helen` | Helen Carter | Employee |
+| `maria` | `maria` | Maria Lopez | Employee |
+| `john` | `john` | John Doe | Employee |
+
+The employees come from the demo changelog `020-demo-users.xml`. Delete it before the first start of a real deployment.
 
 > **Warning:** these are development credentials, and the `local` profile pre-fills them in the login form. Before you deploy the application anywhere, change the `admin` password and set `DMS_ACTIVE_PROFILE` to another value, for example `prod`.
 
@@ -128,5 +134,8 @@ classDiagram
 
 | Role | Code | Purpose |
 |---|---|---|
-| Full Access | `system-full-access` | Everything; assigned to `admin` |
-| UI: minimal access | `ui-minimal` | Login and the main view; the base of every UI role |
+| Full Access | `system-full-access` | All data, views and actions; assigned to `admin` |
+| Employee | `employee` | Signs in and views their own profile; includes UI: minimal access |
+| UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
+
+A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.
