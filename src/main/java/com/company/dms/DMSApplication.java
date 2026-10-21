@@ -25,7 +25,7 @@ import javax.sql.DataSource;
 @StyleSheet(Aura.STYLESHEET)
 @StyleSheet(JmixAura.STYLESHEET)
 @StyleSheet("themes/jmix-dms-aura/styles.css")
-@PWA(name = "Jmix Dms", shortName = "Jmix Dms", offline = false)
+@PWA(name = "Jmix DMS", shortName = "Jmix DMS", offline = false)
 @SpringBootApplication
 public class DMSApplication implements AppShellConfigurator {
 
