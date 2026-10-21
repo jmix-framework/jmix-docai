@@ -1,34 +1,132 @@
-# Jmix Dms
+# Jmix DMS
 
-This is a web application based on the [Jmix](https://www.jmix.io) framework.
+A reference document management system built on [Jmix](https://www.jmix.io).
 
-## Getting Started
+> **Status:** under construction. The application is assembled module by module, and this README describes only what is already in place.
 
-The newly created project requires Java 21 and uses the embedded HSQL database.
+## 📑 Table of Contents
 
-Use the following resources to learn more about Jmix:
-* [Jmix Documentation](https://docs.jmix.io)
-* [Online Demo Applications](https://www.jmix.io/live-demo)
-* [Jmix AI Assistant](https://ai-assistant.jmix.io) (also available in the **Jmix AI** tool window of IntelliJ IDEA)
+- [Overview](#-overview)
+- [Technical Stack](#️-technical-stack)
+- [Add-ons](#-add-ons)
+- [Build and Run](#-build-and-run)
+- [AI Assistant](#-ai-assistant)
+- [Demo Data](#-demo-data)
+- [Application Accounts](#-application-accounts)
+- [Domain Model](#️-domain-model)
+- [Role Model](#-role-model)
 
-## Development
+## 📖 Overview
 
-- [Setup](https://docs.jmix.io/jmix/setup.html) your development environment.
-- [Open](https://docs.jmix.io/jmix/studio/project.html#opening-existing-project) the project in the IDE.
-- If you want to use AI agents to develop the application, check out the [Jmix AI Agent Guidelines](https://github.com/jmix-framework/jmix-agent-guidelines) repository.
+Jmix DMS shows how to build a document management system on Jmix and how to add AI to it. You can clone it, run it locally, and read the code as an example.
 
-## Running
+The application grows in this order:
 
-To start the application, use the **Jmix Dms Jmix Application** run configuration in your IDE, or run the following command in the project root directory:
+1. Users, roles and login
+2. Folders, documents, revisions, files and preview
+3. Access rights with inheritance
+4. Document types on dynamic attributes
+5. AI classification and the assistant
+6. Full-text search
+7. Semantic search
+8. Demo data in English and Russian
+
+Right now the application has the skeleton: users, login, the main view, the English and Russian UI, and the test setup.
+
+## 🛠️ Technical Stack
+
+- Java 21, Gradle
+- [Jmix](https://www.jmix.io) 3.1 (3.1.0-RC1 until the release), Spring Boot 4, Vaadin 25 with the Aura theme
+- HSQLDB, Liquibase
+- OpenSearch 2.17 (used from the full-text search module on)
+- JUnit 5
+
+## 🧩 Add-ons
+
+- [Data Tools](https://docs.jmix.io/jmix/datatools/index.html)
+- [Local File Storage](https://docs.jmix.io/jmix/files/file-storage.html)
+- Russian translation of the framework (`jmix-translations-ru`)
+
+Further add-ons come with the modules that need them.
+
+## 🚀 Build and Run
+
+### Prerequisites
+
+- Java 21
+
+### Run the application
 
 ```bash
 ./gradlew bootRun
 ```
 
-The application will be available at <http://localhost:8080>.
+Open <http://localhost:8080/dms> and log in as `admin` / `admin`.
 
-The default user credentials are:
-* Login: `admin`
-* Password: `admin`
+The `local` profile is active by default. It keeps the data in the HSQLDB file database `.jmix/hsqldb/dms` and pre-fills the login form.
 
-**WARNING**: Change admin password and remove `ui.login.defaultUsername` and `ui.login.defaultPassword` application properties when deploying the application to production.
+| Variable | Default | Meaning |
+|---|---|---|
+| `DMS_ACTIVE_PROFILE` | `local` | Spring profile |
+| `DMS_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/dms` | JDBC URL of the database |
+| `DMS_DB_USERNAME` | `sa` | Database user |
+| `DMS_DB_PASSWORD` | empty | Database password |
+| `SERVER_PORT` | `8080` | HTTP port |
+
+### Run the tests
+
+```bash
+./gradlew test
+```
+
+The tests run on an in-memory HSQLDB database, so every run starts from an empty schema.
+
+### Use another database
+
+Add the JDBC driver of your database to `build.gradle` and set `DMS_DB_URL`, `DMS_DB_USERNAME` and `DMS_DB_PASSWORD`. The Liquibase changelogs keep the branches Jmix Studio writes for different databases.
+
+### Develop with AI agents
+
+The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/jmix-agent-toolkit). Its Jmix skills live in `.skills/` and are linked for:
+
+- Claude Code (`.claude/skills`);
+- Codex and OpenCode (`.agents/skills`).
+
+[AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) point the agents to the toolkit's `jmix` skill.
+
+## 🤖 AI Assistant
+
+Not available yet: it arrives with the AI classification and semantic search modules.
+
+## 🎲 Demo Data
+
+Not available yet: demo document sets in English and Russian arrive with the demo data module.
+
+## 👥 Application Accounts
+
+| Login | Password | Roles |
+|---|---|---|
+| `admin` | `admin` | Full Access |
+
+> **Warning:** these are development credentials. Change the `admin` password before you deploy the application anywhere.
+
+## ⚙️ Domain Model
+
+```mermaid
+classDiagram
+    class User {
+        username
+        firstName
+        lastName
+        email
+        active
+        timeZoneId
+    }
+```
+
+## 🔐 Role Model
+
+| Role | Code | Purpose |
+|---|---|---|
+| Full Access | `system-full-access` | Everything; assigned to `admin` |
+| UI: minimal access | `ui-minimal` | Login and the main view; the base of every UI role |

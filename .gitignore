@@ -32,6 +32,7 @@ webpack.generated.js
 
 .superpowers/
 /docs/superpowers/
+/docs/adr/
 compose.override.yaml
 .claude/worktrees/
 .claude/settings.local.json
