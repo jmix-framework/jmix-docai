@@ -70,4 +70,10 @@ public interface EmployeeRole extends UiMinimalRole {
     @EntityAttributePolicy(entityClass = DocumentRevision.class, attributes = "*",
             action = EntityAttributePolicyAction.MODIFY)
     void documentRevision();
+
+    /**
+     * Opens the views of the document repository.
+     */
+    @ViewPolicy(viewIds = "Document.detail")
+    void repository();
 }

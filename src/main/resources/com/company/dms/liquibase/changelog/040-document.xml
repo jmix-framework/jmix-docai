@@ -69,8 +69,10 @@
         <createIndex indexName="IDX_DOCUMENT_CURRENT_REVISION" tableName="DOCUMENT">
             <column name="CURRENT_REVISION_ID"/>
         </createIndex>
-        <addUniqueConstraint tableName="DOCUMENT" columnNames="FOLDER_ID, NAME_KEY"
-                             constraintName="UK_DOCUMENT_NAME_KEY"/>
+        <createIndex indexName="UK_DOCUMENT_NAME_KEY" tableName="DOCUMENT" unique="true">
+            <column name="FOLDER_ID"/>
+            <column name="NAME_KEY"/>
+        </createIndex>
         <addForeignKeyConstraint baseTableName="DOCUMENT" baseColumnNames="FOLDER_ID"
                                  referencedTableName="FOLDER" referencedColumnNames="ID"
                                  constraintName="FK_DOCUMENT_ON_FOLDER"/>
@@ -78,8 +80,10 @@
         <createIndex indexName="IDX_DOCUMENT_REVISION_DOCUMENT" tableName="DOCUMENT_REVISION">
             <column name="DOCUMENT_ID"/>
         </createIndex>
-        <addUniqueConstraint tableName="DOCUMENT_REVISION" columnNames="DOCUMENT_ID, NUMBER_"
-                             constraintName="UK_DOCUMENT_REVISION_NUMBER"/>
+        <createIndex indexName="UK_DOCUMENT_REVISION_NUMBER" tableName="DOCUMENT_REVISION" unique="true">
+            <column name="DOCUMENT_ID"/>
+            <column name="NUMBER_"/>
+        </createIndex>
         <addForeignKeyConstraint baseTableName="DOCUMENT_REVISION" baseColumnNames="DOCUMENT_ID"
                                  referencedTableName="DOCUMENT" referencedColumnNames="ID"
                                  constraintName="FK_DOCUMENT_REVISION_ON_DOCUMENT"/>

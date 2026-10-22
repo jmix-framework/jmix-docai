@@ -32,8 +32,10 @@
         <createIndex indexName="IDX_FOLDER_PARENT" tableName="FOLDER">
             <column name="PARENT_ID"/>
         </createIndex>
-        <addUniqueConstraint tableName="FOLDER" columnNames="PARENT_ID, NAME_KEY"
-                             constraintName="UK_FOLDER_NAME_KEY"/>
+        <createIndex indexName="UK_FOLDER_NAME_KEY" tableName="FOLDER" unique="true">
+            <column name="PARENT_ID"/>
+            <column name="NAME_KEY"/>
+        </createIndex>
         <addForeignKeyConstraint baseTableName="FOLDER" baseColumnNames="PARENT_ID"
                                  referencedTableName="FOLDER" referencedColumnNames="ID"
                                  constraintName="FK_FOLDER_ON_PARENT"/>

@@ -1,0 +1,70 @@
+/* Repository, document preview and document card */
+
+.document-preview-message,
+.document-card-pending {
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* The upload component keeps its frame and padding without a drop zone, so a toolbar upload drops them */
+vaadin-upload.upload-button {
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+vaadin-upload.upload-button > [slot^='drop-label'] {
+    display: none;
+}
+
+/* The tab sheet border is drawn outside its width */
+.document-card-tabs {
+    box-sizing: border-box;
+}
+
+.document-card-actions {
+    margin-inline-start: auto;
+}
+
+/* The form and the preview share the row; when both do not fit, the preview moves under the form */
+.document-card-form {
+    flex: 1 1 20em;
+}
+
+.document-card-preview {
+    flex: 1 1 28em;
+}
+
+.document-preview {
+    border: 1px solid var(--vaadin-border-color);
+    border-radius: var(--vaadin-radius-m);
+}
+
+.document-preview-empty {
+    margin: auto;
+}
+
+.document-preview-icon {
+    color: var(--vaadin-text-color-secondary);
+}
+
+.document-preview-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.document-preview-frame {
+    width: 100%;
+    flex: 1;
+    min-height: 24rem;
+    border: none;
+}
+
+.document-preview-text {
+    width: 100%;
+    flex: 1;
+    margin: 0;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
