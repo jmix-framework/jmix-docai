@@ -1,5 +1,6 @@
 package com.company.dms;
 
+import com.company.dms.app.config.FilesProperties;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.StyleSheet;
@@ -15,6 +16,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -31,6 +33,7 @@ import javax.sql.DataSource;
 @JsModule("./src/theme/color-scheme-switching-support.js")
 @PWA(name = "Jmix DMS", shortName = "Jmix DMS", offline = false)
 @SpringBootApplication
+@EnableConfigurationProperties(FilesProperties.class)
 public class DMSApplication implements AppShellConfigurator {
 
     @Autowired

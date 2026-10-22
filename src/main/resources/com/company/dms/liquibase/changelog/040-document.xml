@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        logicalFilePath="com/company/dms/liquibase/changelog/040-document.xml">
+
+    <changeSet id="1" author="jmix-dms" context="!cuba">
+        <createTable tableName="DOCUMENT">
+            <column name="ID" type="${uuid.type}">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_DOCUMENT"/>
+            </column>
+            <column name="VERSION" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME_KEY" type="varchar(255)"/>
+            <column name="FOLDER_ID" type="${uuid.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CURRENT_REVISION_ID" type="${uuid.type}"/>
+            <column name="STATUS" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DOCUMENT_DATE" type="date"/>
+            <column name="CREATED_BY" type="varchar(255)"/>
+            <column name="CREATED_DATE" type="timestamp with time zone"/>
+            <column name="LAST_MODIFIED_BY" type="varchar(255)"/>
+            <column name="LAST_MODIFIED_DATE" type="timestamp with time zone"/>
+            <column name="DELETED_BY" type="varchar(255)"/>
+            <column name="DELETED_DATE" type="timestamp with time zone"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="jmix-dms" context="!cuba">
+        <createTable tableName="DOCUMENT_REVISION">
+            <column name="ID" type="${uuid.type}">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_DOCUMENT_REVISION"/>
+            </column>
+            <column name="DOCUMENT_ID" type="${uuid.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NUMBER_" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FILE_" type="varchar(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FILE_SIZE" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CONTENT_TYPE" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED_BY" type="varchar(255)"/>
+            <column name="CREATED_DATE" type="timestamp with time zone"/>
+            <column name="DELETED_BY" type="varchar(255)"/>
+            <column name="DELETED_DATE" type="timestamp with time zone"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="3" author="jmix-dms" context="!cuba">
+        <createIndex indexName="IDX_DOCUMENT_FOLDER" tableName="DOCUMENT">
+            <column name="FOLDER_ID"/>
+        </createIndex>
+        <createIndex indexName="IDX_DOCUMENT_CURRENT_REVISION" tableName="DOCUMENT">
+            <column name="CURRENT_REVISION_ID"/>
+        </createIndex>
+        <addUniqueConstraint tableName="DOCUMENT" columnNames="FOLDER_ID, NAME_KEY"
+                             constraintName="UK_DOCUMENT_NAME_KEY"/>
+        <addForeignKeyConstraint baseTableName="DOCUMENT" baseColumnNames="FOLDER_ID"
+                                 referencedTableName="FOLDER" referencedColumnNames="ID"
+                                 constraintName="FK_DOCUMENT_ON_FOLDER"/>
+
+        <createIndex indexName="IDX_DOCUMENT_REVISION_DOCUMENT" tableName="DOCUMENT_REVISION">
+            <column name="DOCUMENT_ID"/>
+        </createIndex>
+        <addUniqueConstraint tableName="DOCUMENT_REVISION" columnNames="DOCUMENT_ID, NUMBER_"
+                             constraintName="UK_DOCUMENT_REVISION_NUMBER"/>
+        <addForeignKeyConstraint baseTableName="DOCUMENT_REVISION" baseColumnNames="DOCUMENT_ID"
+                                 referencedTableName="DOCUMENT" referencedColumnNames="ID"
+                                 constraintName="FK_DOCUMENT_REVISION_ON_DOCUMENT"/>
+
+        <addForeignKeyConstraint baseTableName="DOCUMENT" baseColumnNames="CURRENT_REVISION_ID"
+                                 referencedTableName="DOCUMENT_REVISION" referencedColumnNames="ID"
+                                 constraintName="FK_DOCUMENT_ON_CURRENT_REVISION"/>
+    </changeSet>
+
+</databaseChangeLog>

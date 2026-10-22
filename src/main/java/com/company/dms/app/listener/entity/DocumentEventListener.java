@@ -1,0 +1,80 @@
+package com.company.dms.app.listener.entity;
+
+import com.company.dms.app.service.OperationRejectedException;
+import com.company.dms.model.document.Document;
+import com.company.dms.model.document.DocumentStatus;
+import io.jmix.core.DataManager;
+import io.jmix.core.FetchPlan;
+import io.jmix.core.FetchPlanBuilder;
+import io.jmix.core.Messages;
+import io.jmix.core.event.AttributeChanges;
+import io.jmix.core.event.EntityChangedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+/**
+ * Keeps document rules on every save path: a new document is a draft, the status follows
+ * its transitions, an archived document keeps its name, date and version, and the current
+ * revision belongs to the document.
+ */
+@Component
+public class DocumentEventListener {
+
+    private static final List<String> ARCHIVE_LOCKED_ATTRIBUTES = List.of("name", "documentDate", "currentRevision");
+
+    private final DataManager dataManager;
+    private final Messages messages;
+
+    public DocumentEventListener(DataManager dataManager, Messages messages) {
+        this.dataManager = dataManager;
+        this.messages = messages;
+    }
+
+    @EventListener
+    public void onDocumentChanged(EntityChangedEvent<Document> event) {
+        if (event.getType() == EntityChangedEvent.Type.DELETED) {
+            return;
+        }
+
+        Document document = dataManager.load(event.getEntityId())
+                .fetchPlan(DocumentEventListener::fetchPlan)
+                .one();
+
+        AttributeChanges changes = event.getChanges();
+
+        if (event.getType() == EntityChangedEvent.Type.CREATED) {
+            if (document.getStatus() != DocumentStatus.DRAFT) {
+                throw reject("newDocumentNotDraft");
+            }
+        } else {
+            DocumentStatus oldStatus = changes.isChanged("status")
+                    ? changes.getOldValue("status")
+                    : document.getStatus();
+
+            if (changes.isChanged("status") && !oldStatus.canTransitionTo(document.getStatus())) {
+                throw reject("statusTransitionNotAllowed");
+            }
+
+            if (oldStatus == DocumentStatus.ARCHIVED
+                    && ARCHIVE_LOCKED_ATTRIBUTES.stream().anyMatch(changes::isChanged)) {
+                throw reject("archivedDocumentLocked");
+            }
+        }
+
+        if (document.getCurrentRevision() != null && !document.getCurrentRevision().getDocument().equals(document)) {
+            throw reject("currentRevisionOfAnotherDocument");
+        }
+    }
+
+    private OperationRejectedException reject(String key) {
+        return new OperationRejectedException(messages.getMessage(getClass(), key));
+    }
+
+    private static void fetchPlan(FetchPlanBuilder fetchPlan) {
+        fetchPlan.addFetchPlan(FetchPlan.BASE)
+                .add("currentRevision",
+                        revision -> revision.add("document", FetchPlan.INSTANCE_NAME));
+    }
+}
