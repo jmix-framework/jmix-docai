@@ -4,6 +4,7 @@ import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.document.NewVersion;
 import com.company.dms.app.service.document.UploadReport;
+import com.company.dms.app.service.document.UploadedFile;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
@@ -104,6 +105,20 @@ class DocumentServiceTest {
     }
 
     @Test
+    void aFileThatFailsToUploadIsReportedAndTheRestAreCreated() {
+        UploadReport report = documentService.upload(sandbox, List.of(
+                TestFiles.file(tempDir, "a.txt", "first"),
+                new UploadedFile("b.txt", tempDir.resolve("gone.txt")),
+                TestFiles.file(tempDir, "c.txt", "third")));
+
+        assertThat(report.created()).extracting(Document::getName).containsExactly("a.txt", "c.txt");
+        assertThat(report.skipped()).singleElement().satisfies(skipped -> {
+            assertThat(skipped.fileName()).isEqualTo("b.txt");
+            assertThat(skipped.reason()).contains("b.txt");
+        });
+    }
+
+    @Test
     void theContentTypeComesFromTheBytes() {
         Document document = upload("report.pdf", "plain text, not a PDF");
 
@@ -135,6 +150,17 @@ class DocumentServiceTest {
     }
 
     @Test
+    void aVersionOfAnotherDocumentCannotBeRestored() {
+        Document document = upload("a.txt");
+        DocumentRevision foreign = reload(upload("b.txt")).getCurrentRevision();
+
+        assertThatThrownBy(() -> documentService.save(reload(document), new NewVersion.FromRevision(foreign), null))
+                .isInstanceOf(OperationRejectedException.class);
+
+        assertThat(reload(document).getCurrentRevision().getNumber()).isEqualTo(1);
+    }
+
+    @Test
     void theStatusFollowsItsTransitions() {
         Document document = upload("a.txt");
 
@@ -146,6 +172,19 @@ class DocumentServiceTest {
         documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
 
         assertThat(reload(document).getStatus()).isEqualTo(DocumentStatus.ACTIVE);
+    }
+
+    @Test
+    void severalDocumentsChangeTheirStatusAllOrNone() {
+        Document draft = upload("draft.txt");
+        Document active = upload("active.txt");
+        documentService.changeStatus(List.of(active), DocumentStatus.ACTIVE);
+
+        // the active document goes first, so its change is ready when the draft is rejected
+        assertThatThrownBy(() -> documentService.changeStatus(List.of(active, draft), DocumentStatus.ARCHIVED))
+                .isInstanceOf(OperationRejectedException.class);
+
+        assertThat(reload(active).getStatus()).isEqualTo(DocumentStatus.ACTIVE);
     }
 
     @Test

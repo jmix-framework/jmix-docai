@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -95,6 +96,20 @@ class FolderTreeFragmentTest {
         TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
         assertThat(tree.getItems().getItems()).contains(contracts, invoices);
         assertThat(tree.getSelectedItems()).containsExactly(contracts);
+    }
+
+    @Test
+    void filteringDoesNotShowTheSameFolderAgain() {
+        folder(sandbox, "Contracts");
+        FolderTreeFragment folderTree = open(sandbox);
+        List<Folder> shown = new ArrayList<>();
+        folderTree.setSelectionHandler(shown::add);
+        TypedTextField<String> filterField = component(folderTree, "folderFilterField");
+
+        filterField.setValue("Contracts");
+        filterField.clear();
+
+        assertThat(shown).isEmpty();
     }
 
     @Test

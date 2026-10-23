@@ -31,6 +31,7 @@ The application grows in this order:
 7. Semantic search
 8. Demo data in English and Russian
 
+Steps 1 and 2 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, and preview images, PDF and text.
 
 ## 🛠️ Technical Stack
 
@@ -70,7 +71,10 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 | `DMS_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/dms` | JDBC URL of the database |
 | `DMS_DB_USERNAME` | `sa` | Database user |
 | `DMS_DB_PASSWORD` | empty | Database password |
+| `DMS_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
 | `SERVER_PORT` | `8080` | HTTP port |
+
+The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together.
 
 ### Run the tests
 
@@ -78,7 +82,7 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 ./gradlew test
 ```
 
-Gradle runs the tests with the `test` profile on an in-memory HSQLDB database, so every run starts from an empty schema.
+Gradle runs the tests with the `test` profile on an in-memory HSQLDB database, so every run starts from an empty schema. The tests write files to `build/test-filestorage`, and `./gradlew clean` removes them.
 
 ### Use another database
 
@@ -128,14 +132,44 @@ classDiagram
         active
         timeZoneId
     }
+    class Folder {
+        name
+    }
+    class Document {
+        name
+        status
+        documentDate
+    }
+    class DocumentRevision {
+        number
+        file
+        fileSize
+        contentType
+    }
+    class DocumentStatus {
+        <<enumeration>>
+        DRAFT
+        ACTIVE
+        ARCHIVED
+    }
+    Folder "0..1" <-- "*" Folder : parent
+    Folder "1" <-- "*" Document : folder
+    Document "1" *-- "1..*" DocumentRevision : revisions
+    Document --> DocumentRevision : currentRevision
+    Document --> DocumentStatus : status
 ```
+
+- One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
+- A revision never changes. A new file or a restored version adds a revision, and the document points to its current one.
+- A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date and versions until it returns to Active.
+- Folders, documents and revisions are deleted softly. Deleting a folder takes its subtree; the administrator restores records in Data Tools.
 
 ## 🔐 Role Model
 
 | Role | Code | Purpose |
 |---|---|---|
 | Full Access | `system-full-access` | All data, views and actions; assigned to `admin` |
-| Employee | `employee` | Signs in and views their own profile; includes UI: minimal access |
+| Employee | `employee` | Works with folders and documents and views their own profile; includes UI: minimal access |
 | UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
 
 A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.

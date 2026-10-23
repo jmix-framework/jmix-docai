@@ -67,6 +67,14 @@ class FolderInvariantsTest {
     }
 
     @Test
+    void theRootCannotBeRenamedDirectly() {
+        Folder root = folderService.getRoot();
+        root.setName("Renamed");
+
+        assertThatThrownBy(() -> dataManager.save(root)).isInstanceOf(OperationRejectedException.class);
+    }
+
+    @Test
     void theRootCannotBeDeleted() {
         assertThatThrownBy(() -> dataManager.remove(folderService.getRoot()))
                 .isInstanceOf(OperationRejectedException.class);

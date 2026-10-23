@@ -15,6 +15,7 @@
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>
+        <settings auto="true"/>
     </facets>
     <actions>
         <action id="saveAction" type="detail_saveClose"/>

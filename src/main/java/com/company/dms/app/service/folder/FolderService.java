@@ -126,7 +126,8 @@ public class FolderService {
     /**
      * Soft-deletes the folder with all its subfolders, documents and their revisions. The folder
      * row is locked first, so a document or a folder being placed into it at the same time is
-     * either deleted with it or rejected.
+     * either deleted with it or rejected. The same holds for its subfolders only while the database
+     * locks whole tables, as HSQLDB does by default.
      *
      * @throws OperationRejectedException if the folder is the root
      */

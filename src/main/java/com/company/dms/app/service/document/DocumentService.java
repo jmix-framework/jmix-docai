@@ -19,6 +19,8 @@ import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +47,8 @@ import java.util.function.Supplier;
  */
 @Service
 public class DocumentService {
+
+    private static final Logger log = LoggerFactory.getLogger(DocumentService.class);
 
     private static final int MAX_NAME_LENGTH = 255;
 
@@ -73,7 +77,7 @@ public class DocumentService {
 
     /**
      * Creates a document from every file, each in its own transaction. A file that breaks
-     * a rule is skipped and reported; the others are created.
+     * a rule or fails to save is skipped and reported; the others are created.
      */
     public UploadReport upload(Folder folder, List<UploadedFile> files) {
         List<Document> created = new ArrayList<>();
@@ -88,6 +92,10 @@ public class DocumentService {
                 created.add(create(draft, file, null));
             } catch (OperationRejectedException e) {
                 skipped.add(new UploadReport.SkippedFile(file.fileName(), e.getMessage()));
+            } catch (RuntimeException e) {
+                log.error("Failed to upload {}", file.fileName(), e);
+                skipped.add(new UploadReport.SkippedFile(file.fileName(),
+                        messages.formatMessage(getClass(), "uploadFailed", file.fileName())));
             }
         }
 
@@ -279,7 +287,6 @@ public class DocumentService {
                 FileRef fileRef = fileStorageLocator.getDefault().saveStream(file.fileName(), content);
                 return new StoredFile(fileRef, size, contentType);
             }
-
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

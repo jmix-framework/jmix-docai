@@ -25,6 +25,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.AllFinishedEvent;
 import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
+import com.vaadin.flow.component.upload.StartedEvent;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
@@ -120,6 +121,10 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Folder folder;
     @Nullable
     private Document focusedDocument;
+    @Nullable
+    private Folder uploadFolder;
+    @Nullable
+    private Document versionDocument;
 
     private final Map<UUID, UploadedFile> uploadedFiles = new LinkedHashMap<>();
     private Consumer<@Nullable Document> focusHandler = document -> {
@@ -142,6 +147,9 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
         // the upload creates its button itself, so the descriptor cannot give the button a variant
         ((Button) documentsUpload.getUploadButton()).addThemeVariants(ButtonVariant.PRIMARY);
+
+        // a page reload or a session timeout removes the list before the rest of the batch arrives
+        addDetachListener(detachEvent -> discardUploadedFiles());
     }
 
     private void configureDocumentsGridContextMenu() {
@@ -392,6 +400,14 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     // ---- upload of new documents and of a new version
 
+    // the files go into the folder shown when the upload began, even if another folder is opened meanwhile
+    @Subscribe("documentsUpload")
+    public void onDocumentsUploadStarted(final StartedEvent event) {
+        if (uploadFolder == null) {
+            uploadFolder = folder;
+        }
+    }
+
     @Subscribe("documentsUpload")
     public void onDocumentsUploadSucceeded(final UploadSucceededEvent<TemporaryStorage.FileInfo> event) {
         uploadedFiles.put(event.getData().getId(),
@@ -400,23 +416,33 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @Subscribe("documentsUpload")
     public void onDocumentsUploadAllFinished(final AllFinishedEvent event) {
-        if (folder == null || uploadedFiles.isEmpty()) {
+        Folder target = uploadFolder;
+        uploadFolder = null;
+
+        if (target == null || uploadedFiles.isEmpty()) {
+            discardUploadedFiles();
             return;
         }
 
         try {
-            showUploadReport(documentService.upload(folder, new ArrayList<>(uploadedFiles.values())));
+            showUploadReport(documentService.upload(target, new ArrayList<>(uploadedFiles.values())));
         } finally {
-            uploadedFiles.keySet().forEach(temporaryStorage::deleteFile);
-            uploadedFiles.clear();
-            documentsUpload.clearFileList();
+            discardUploadedFiles();
             contentsChanged();
         }
     }
 
+    // the version goes to the document selected when the upload began, even if the selection changes meanwhile
+    @Subscribe("versionUpload")
+    public void onVersionUploadStarted(final StartedEvent event) {
+        versionDocument = documentsGrid.getSingleSelectedItem();
+    }
+
     @Subscribe("versionUpload")
     public void onVersionUploadSucceeded(final UploadSucceededEvent<TemporaryStorage.FileInfo> event) {
-        Document document = documentsGrid.getSingleSelectedItem();
+        Document document = versionDocument;
+        versionDocument = null;
+
         try {
             if (document != null) {
                 documentService.uploadRevision(document,
@@ -446,6 +472,18 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         notifications.create(messageBundle.formatMessage("uploadFailed", event.getFileName()))
                 .withType(Notifications.Type.ERROR)
                 .show();
+    }
+
+    @Subscribe("versionUpload")
+    public void onVersionUploadFailed(final FailedEvent event) {
+        versionDocument = null;
+        onDocumentsUploadFailed(event);
+    }
+
+    private void discardUploadedFiles() {
+        uploadedFiles.keySet().forEach(temporaryStorage::deleteFile);
+        uploadedFiles.clear();
+        documentsUpload.clearFileList();
     }
 
     private void showUploadReport(UploadReport report) {

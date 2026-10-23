@@ -18,6 +18,7 @@ import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
@@ -205,6 +206,13 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     public void onNewVersionUploadFileRejected(final FileRejectedEvent event) {
         notifications.create(event.getFileName() + ": " + event.getErrorMessage())
                 .withType(Notifications.Type.WARNING)
+                .show();
+    }
+
+    @Subscribe("newVersionUpload")
+    public void onNewVersionUploadFailed(final FailedEvent event) {
+        notifications.create(messageBundle.formatMessage("uploadFailed", event.getFileName()))
+                .withType(Notifications.Type.ERROR)
                 .show();
     }
 

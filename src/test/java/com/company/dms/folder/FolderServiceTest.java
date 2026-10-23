@@ -120,6 +120,15 @@ class FolderServiceTest {
     }
 
     @Test
+    void aSaveCannotChangeTheParent() {
+        Folder target = folder(sandbox, "Target");
+        Folder moved = folder(sandbox, "Moved");
+        moved.setParent(target);
+
+        assertThatThrownBy(() -> folderService.save(moved)).isInstanceOf(OperationRejectedException.class);
+    }
+
+    @Test
     void aFolderCannotMoveIntoItselfOrItsSubfolder() {
         Folder parent = folder(sandbox, "Parent");
         Folder child = folder(parent, "Child");

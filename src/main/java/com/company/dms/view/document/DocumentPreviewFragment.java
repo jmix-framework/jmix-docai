@@ -69,8 +69,14 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
 
     /**
      * Shows the revision, or a hint when there is no revision or its file is gone from the storage.
+     * The revision already shown is left as it is: a revision never changes, so the browser need not
+     * load its file again.
      */
     public void showRevision(@Nullable DocumentRevision revision) {
+        if (revision != null && revision.equals(this.revision)) {
+            return;
+        }
+
         this.revision = revision;
         hideContent();
 

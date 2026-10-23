@@ -93,7 +93,9 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
      * so the folder is in sight.
      */
     public void loadAndSelect(@Nullable UUID folderId) {
-        // the folder is selected below, so clearing the filter must not select the previous one
+        // the folder is selected below, once allFolders is rebuilt: neither the reload nor clearing the filter
+        // may select the previous one, or the breadcrumbs would show its old path
+        foldersTree.deselectAll();
         selectedFolder = null;
         folderFilterField.clear();
 
@@ -153,7 +155,8 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     public void onFoldersTreeSelection(final SelectionEvent<TreeDataGrid<Folder>, Folder> event) {
         Folder folder = foldersTree.getSingleSelectedItem();
 
-        if (folder != null) {
+        // the filter makes the tree select the shown folder again, and its documents are on screen already
+        if (folder != null && !folder.equals(selectedFolder)) {
             selectedFolder = folder;
             selectionHandler.accept(folder);
         }

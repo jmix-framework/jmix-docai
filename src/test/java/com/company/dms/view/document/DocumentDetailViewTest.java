@@ -33,6 +33,7 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
+import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.DialogWindow;
 import org.junit.jupiter.api.AfterEach;
@@ -191,6 +192,17 @@ class DocumentDetailViewTest {
         card.getElement().removeFromParent();
 
         assertThat(temporaryStorage.getFile(staged.getId())).isNull();
+    }
+
+    @Test
+    void aBrokenUploadIsReported() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        TestUploads.fail(component(card, "newVersionUpload"), "a-v2.txt");
+
+        assertThat(UiTestUtils.getOpenedNotifications())
+                .extracting(NotificationInfo::getText)
+                .anyMatch(text -> text.contains("a-v2.txt"));
     }
 
     @Test
