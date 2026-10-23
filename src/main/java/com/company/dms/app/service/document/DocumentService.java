@@ -2,6 +2,8 @@ package com.company.dms.app.service.document;
 
 import com.company.dms.app.config.FilesProperties;
 import com.company.dms.app.service.OperationRejectedException;
+import com.company.dms.app.service.access.AccessChecker;
+import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
@@ -10,14 +12,13 @@ import com.company.dms.model.folder.Folder;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntitySet;
 import io.jmix.core.FetchPlan;
-import io.jmix.core.FetchPlanBuilder;
 import io.jmix.core.FileRef;
 import io.jmix.core.FileStorage;
 import io.jmix.core.FileStorageLocator;
-import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
+import io.jmix.core.UnconstrainedDataManager;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -44,6 +44,7 @@ import java.util.function.Supplier;
  * Creates, versions, moves and deletes documents. A document gets its files as revisions:
  * a revision never changes, and the document points to its current one. The file of a new
  * revision is stored before the data and removed again if the data cannot be saved.
+ * A change needs edit access to the document, a new document to its folder.
  */
 @Service
 public class DocumentService {
@@ -53,7 +54,10 @@ public class DocumentService {
     private static final int MAX_NAME_LENGTH = 255;
 
     private final DataManager dataManager;
+    private final UnconstrainedDataManager unconstrainedDataManager;
     private final FolderService folderService;
+    private final AccessChecker accessChecker;
+    private final AccessService accessService;
     private final FileStorageLocator fileStorageLocator;
     private final ContentTypeDetector contentTypeDetector;
     private final FilesProperties filesProperties;
@@ -61,12 +65,16 @@ public class DocumentService {
     private final MetadataTools metadataTools;
     private final TransactionTemplate transaction;
 
-    public DocumentService(DataManager dataManager, FolderService folderService,
+    public DocumentService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager,
+                           FolderService folderService, AccessChecker accessChecker, AccessService accessService,
                            FileStorageLocator fileStorageLocator, ContentTypeDetector contentTypeDetector,
                            FilesProperties filesProperties, Messages messages, MetadataTools metadataTools,
                            PlatformTransactionManager transactionManager) {
         this.dataManager = dataManager;
+        this.unconstrainedDataManager = unconstrainedDataManager;
         this.folderService = folderService;
+        this.accessChecker = accessChecker;
+        this.accessService = accessService;
         this.fileStorageLocator = fileStorageLocator;
         this.contentTypeDetector = contentTypeDetector;
         this.filesProperties = filesProperties;
@@ -78,8 +86,13 @@ public class DocumentService {
     /**
      * Creates a document from every file, each in its own transaction. A file that breaks
      * a rule or fails to save is skipped and reported; the others are created.
+     *
+     * @throws OperationRejectedException if the folder is unavailable or only viewed by the user
      */
     public UploadReport upload(Folder folder, List<UploadedFile> files) {
+        // one refusal for the whole upload instead of one for every file
+        folderService.checkEditable(folder);
+
         List<Document> created = new ArrayList<>();
         List<UploadReport.SkippedFile> skipped = new ArrayList<>();
 
@@ -106,8 +119,9 @@ public class DocumentService {
      * Creates a document with its first revision. The document starts as a draft and then
      * moves to the target status, if one is given.
      *
-     * @throws OperationRejectedException if the folder is deleted, the name is taken or too long,
-     *                                    the file is too large, or the status cannot be reached
+     * @throws OperationRejectedException if the folder is unavailable or only viewed by the user, the name
+     *                                    is taken or too long, the file is too large, or the status cannot
+     *                                    be reached
      */
     public Document create(Document draft, UploadedFile file, @Nullable DocumentStatus targetStatus) {
         String name = checkName(draft.getName());
@@ -115,7 +129,9 @@ public class DocumentService {
 
         return inTransaction(stored, () -> {
             Folder folder = folderService.lockLive(draft.getFolder());
+            folderService.checkEditable(folder);
             checkNameFree(folder, name, null);
+
             draft.setFolder(folder);
             draft.setName(name);
             draft.setStatus(DocumentStatus.DRAFT);
@@ -139,9 +155,9 @@ public class DocumentService {
      * Saves the changes of the document card: the edited fields, a new version, and the status
      * transition last, because an archived document accepts no other change.
      *
-     * @throws OperationRejectedException if the document is archived and its content changes,
-     *                                    the name is taken or too long, the file is too large,
-     *                                    or the status cannot be reached
+     * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is
+     *                                    archived and its content changes, the name is taken or too long, the file
+     *                                    is too large, or the status cannot be reached
      */
     public Document save(Document document, @Nullable NewVersion newVersion, @Nullable DocumentStatus targetStatus) {
         String name = checkName(document.getName());
@@ -150,10 +166,7 @@ public class DocumentService {
                 : null;
 
         return inTransaction(stored, () -> {
-            Document persisted = dataManager.load(Document.class)
-                    .id(document.getId())
-                    .fetchPlan(DocumentService::withFolder)
-                    .one();
+            Document persisted = loadEditable(document);
 
             boolean contentChanged = !name.equals(persisted.getName())
                     || !Objects.equals(document.getDocumentDate(), persisted.getDocumentDate())
@@ -191,22 +204,24 @@ public class DocumentService {
     /**
      * Adds a new version from the repository, outside the card.
      *
-     * @throws OperationRejectedException if the document is archived or the file is too large
+     * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is
+     *                                    archived, or the file is too large
      */
     public Document uploadRevision(Document document, UploadedFile file) {
-        Document persisted = dataManager.load(Id.of(document)).one();
+        Document persisted = loadEditable(document);
         return save(persisted, new NewVersion.FromFile(file), null);
     }
 
     /**
      * Moves the documents to the target status, all of them or none.
      *
-     * @throws OperationRejectedException if the transition is not allowed for one of the documents
+     * @throws OperationRejectedException if one of the documents is unavailable or only viewed by the user,
+     *                                    or the transition is not allowed for it
      */
     public void changeStatus(Collection<Document> documents, DocumentStatus target) {
         List<Document> changed = new ArrayList<>();
         for (Document document : documents) {
-            Document persisted = dataManager.load(Id.of(document)).one();
+            Document persisted = loadEditable(document);
             if (persisted.getStatus() != target) {
                 persisted.setStatus(checkTransition(persisted, persisted.getStatus(), target));
                 changed.add(persisted);
@@ -218,15 +233,18 @@ public class DocumentService {
 
     /**
      * Moves the documents into the target folder, all of them or none. The folder row stays locked
-     * until the transaction ends, so the taken names cannot change before the save.
+     * until the transaction ends, so the taken names cannot change before the save. A document that
+     * inherits its access takes the access of the target.
      *
-     * @throws OperationRejectedException if the target is deleted or already has documents
-     *                                    with these names; the message lists all of them
+     * @throws OperationRejectedException if the target or one of the documents is unavailable or only viewed
+     *                                    by the user, or the target already has documents with these names;
+     *                                    the message lists all of them
      */
     @Transactional
     public void move(Collection<Document> documents, Folder target) {
         Folder destination = folderService.lockLive(target);
-        Set<String> takenNames = new HashSet<>(dataManager.loadValues(
+        folderService.checkEditable(destination);
+        Set<String> takenNames = new HashSet<>(unconstrainedDataManager.loadValues(
                         "select d.nameKey from Document d where d.folder = :folder")
                 .properties("name")
                 .parameter("folder", destination)
@@ -237,11 +255,7 @@ public class DocumentService {
         List<Document> moved = new ArrayList<>();
         List<String> clashes = new ArrayList<>();
         for (Document document : documents) {
-            Document persisted = dataManager.load(Document.class)
-                    .id(document.getId())
-                    .fetchPlan(DocumentService::withFolder)
-                    .one();
-
+            Document persisted = loadEditable(document);
             if (persisted.getFolder().equals(destination)) {
                 continue;
             }
@@ -259,20 +273,44 @@ public class DocumentService {
                     String.join(", ", clashes));
         }
 
-        dataManager.save(new SaveContext().saving(moved));
+        SaveContext saveContext = new SaveContext().saving(moved);
+        accessService.followMove(moved, destination, saveContext);
+        dataManager.save(saveContext);
     }
 
     /**
      * Soft-deletes the documents together with their revisions.
+     *
+     * @throws OperationRejectedException if one of the documents is unavailable or only viewed by the user
      */
     public void delete(Collection<Document> documents) {
         SaveContext saveContext = new SaveContext();
         documents.stream()
-                .map(document -> dataManager.load(Id.of(document)).optional())
-                .flatMap(Optional::stream)
+                .map(this::loadEditable)
                 .forEach(saveContext::removing);
 
         dataManager.save(saveContext);
+    }
+
+    /**
+     * Loads the document for a change by the current user.
+     *
+     * @throws OperationRejectedException if the document is deleted or hidden from the user, or the user only
+     *                                    views it
+     */
+    private Document loadEditable(Document document) {
+        Document persisted = dataManager.load(Document.class)
+                .id(document.getId())
+                .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("folder", FetchPlan.BASE))
+                .optional()
+                .orElseThrow(() -> reject("documentUnavailable", metadataTools.getInstanceName(document)));
+
+        if (!accessChecker.canEdit(persisted)) {
+            throw reject("documentReadOnly", metadataTools.getInstanceName(persisted));
+        }
+
+        return persisted;
     }
 
     private StoredFile store(UploadedFile file) {
@@ -352,7 +390,7 @@ public class DocumentService {
     }
 
     private void checkNameFree(Folder folder, String name, @Nullable UUID ownId) {
-        List<Document> namesakes = dataManager.load(Document.class)
+        List<Document> namesakes = unconstrainedDataManager.load(Document.class)
                 .query("select d from Document d where d.folder = :folder and d.nameKey = :name")
                 .parameter("folder", folder)
                 .parameter("name", name)
@@ -374,11 +412,6 @@ public class DocumentService {
 
     private OperationRejectedException reject(String key, Object... args) {
         return new OperationRejectedException(messages.formatMessage(getClass(), key, args));
-    }
-
-    private static void withFolder(FetchPlanBuilder fetchPlan) {
-        fetchPlan.addFetchPlan(FetchPlan.BASE)
-                .add("folder", FetchPlan.BASE);
     }
 
     private record StoredFile(FileRef fileRef, long size, String contentType) {

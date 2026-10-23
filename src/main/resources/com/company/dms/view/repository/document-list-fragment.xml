@@ -4,6 +4,7 @@
         <collection id="documentsDc" class="com.company.dms.model.document.Document">
             <fetchPlan extends="_base">
                 <property name="currentRevision" fetchPlan="_base"/>
+                <property name="accessSet" fetchPlan="_instance_name"/>
             </fetchPlan>
             <loader id="documentsDl">
                 <query>
@@ -23,19 +24,25 @@
                             uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="20" dropAllowed="true"
                             uploadText="msg://documentsUpload.uploadText" uploadIcon="UPLOAD"/>
                     <button id="createDocumentButton" text="msg://createDocumentButton.text" icon="FILE_ADD"/>
-                    <button id="openButton" action="documentsGrid.openAction"/>
+                    <button id="openButton" action="documentsGrid.openAction" text=""
+                            title="msg://openAction.text"/>
                     <upload id="versionUpload" classNames="upload-button"
                             uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="1" dropAllowed="false" enabled="false"
-                            uploadText="msg://versionUpload.uploadText" uploadIcon="REFRESH"/>
-                    <button id="moveButton" action="documentsGrid.moveAction"/>
-                    <dropdownButton id="statusButton" text="msg://statusButton.text" icon="FLAG" enabled="false">
+                            uploadIcon="REFRESH"/>
+                    <button id="moveButton" action="documentsGrid.moveAction" text=""
+                            title="msg://moveAction.text"/>
+                    <dropdownButton id="statusButton" title="msg://statusButton.text" icon="FLAG"
+                                    themeNames="no-dropdown-indicators" enabled="false">
                         <items>
                             <actionItem id="activateItem" ref="documentsGrid.activateAction"/>
                             <actionItem id="archiveItem" ref="documentsGrid.archiveAction"/>
                             <actionItem id="unarchiveItem" ref="documentsGrid.unarchiveAction"/>
                         </items>
                     </dropdownButton>
-                    <button id="deleteButton" action="documentsGrid.deleteAction"/>
+                    <button id="accessButton" action="documentsGrid.accessAction" text=""
+                            title="msg://accessAction.text"/>
+                    <button id="deleteButton" action="documentsGrid.deleteAction" text=""
+                            title="msg://deleteAction.text"/>
                 </hbox>
                 <button id="previewButton" text="msg://previewButton.text" icon="EYE"/>
             </hbox>
@@ -54,6 +61,8 @@
                             text="msg://archiveAction.text" icon="ARCHIVE"/>
                     <action id="unarchiveAction" type="list_itemTracking"
                             text="msg://unarchiveAction.text" icon="UNDO"/>
+                    <action id="accessAction" type="list_itemTracking"
+                            text="msg://accessAction.text" icon="KEY"/>
                     <action id="deleteAction" type="list_itemTracking" actionVariant="DANGER"
                             text="msg://deleteAction.text" icon="TRASH"/>
                 </actions>

@@ -1,18 +1,24 @@
 package com.company.dms.view.repository;
 
 import com.company.dms.app.config.FilesProperties;
+import com.company.dms.app.service.access.AccessLevels;
+import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.document.UploadReport;
 import com.company.dms.app.service.document.UploadedFile;
+import com.company.dms.model.access.AccessDraft;
+import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.view.access.AccessDetailView;
 import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.document.FileSizeFormatter;
 import com.company.dms.view.document.PreviewType;
 import com.company.dms.view.document.RevisionDownloader;
 import com.company.dms.view.folder.FolderLookupView;
+import com.company.dms.view.folder.FolderRenderers;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.badge.Badge;
@@ -32,6 +38,7 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.selection.MultiSelectionEvent;
 import com.vaadin.flow.data.selection.SelectionEvent;
 import io.jmix.core.Messages;
+import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
@@ -44,6 +51,7 @@ import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.icon.Icons;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.kit.action.ActionVariant;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -51,27 +59,17 @@ import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.upload.TemporaryStorage;
-import io.jmix.flowui.view.Install;
-import io.jmix.flowui.view.MessageBundle;
-import io.jmix.flowui.view.StandardOutcome;
-import io.jmix.flowui.view.Subscribe;
-import io.jmix.flowui.view.Supply;
-import io.jmix.flowui.view.View;
-import io.jmix.flowui.view.ViewComponent;
+import io.jmix.flowui.view.*;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * The documents of the selected folder with the document actions and the upload.
+ * The documents of the selected folder with the document actions and the upload. The actions follow
+ * the user's level in the folder and in the selected documents.
  */
 @FragmentDescriptor("document-list-fragment.xml")
 public class DocumentListFragment extends Fragment<VerticalLayout> {
@@ -82,6 +80,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private JmixUpload<TemporaryStorage.FileInfo> versionUpload;
 
     @ViewComponent
+    private JmixButton createDocumentButton;
+    @ViewComponent
     private DropdownButton statusButton;
     @ViewComponent
     private JmixButton previewButton;
@@ -90,12 +90,16 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private DataGrid<Document> documentsGrid;
     @ViewComponent
     private CollectionLoader<Document> documentsDl;
+    @ViewComponent("documentsGrid.accessAction")
+    private Action accessAction;
 
     @ViewComponent
     private MessageBundle messageBundle;
 
     @Autowired
     private DocumentService documentService;
+    @Autowired
+    private AccessService accessService;
     @Autowired
     private TemporaryStorage temporaryStorage;
     @Autowired
@@ -115,7 +119,11 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private Icons icons;
     @Autowired
+    private FolderRenderers folderRenderers;
+    @Autowired
     private Messages messages;
+    @Autowired
+    private MetadataTools metadataTools;
 
     @Nullable
     private Folder folder;
@@ -125,6 +133,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Folder uploadFolder;
     @Nullable
     private Document versionDocument;
+
+    private AccessLevels levels = new AccessLevels(Map.of(), false);
 
     private final Map<UUID, UploadedFile> uploadedFiles = new LinkedHashMap<>();
     private Consumer<@Nullable Document> focusHandler = document -> {
@@ -145,8 +155,13 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         documentsUpload.setMaxFileSize(maxFileSize);
         versionUpload.setMaxFileSize(maxFileSize);
 
-        // the upload creates its button itself, so the descriptor cannot give the button a variant
+        // the upload creates its button itself, so the descriptor cannot give the button a variant or a name
         ((Button) documentsUpload.getUploadButton()).addThemeVariants(ButtonVariant.PRIMARY);
+
+        String newVersion = messageBundle.getMessage("versionUpload.uploadText");
+        Button versionButton = (Button) versionUpload.getUploadButton();
+        versionButton.setAriaLabel(newVersion);
+        versionButton.getElement().setAttribute("title", newVersion);
 
         // a page reload or a session timeout removes the list before the rest of the batch arrives
         addDetachListener(detachEvent -> discardUploadedFiles());
@@ -215,11 +230,17 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
      */
     public void reload() {
         UUID focusedId = focusedDocument == null ? null : focusedDocument.getId();
+        levels = accessService.levels();
 
         if (folder != null) {
             documentsDl.setParameter("folder", folder);
             documentsDl.load();
         }
+
+        // a folder the user only views, or only passes through, takes no new documents
+        boolean folderEditable = folder != null && levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
+        documentsUpload.setEnabled(folderEditable);
+        createDocumentButton.setEnabled(folderEditable);
 
         Set<Document> selected = documentsGrid.getSelectedItems();
         focus(selected.stream()
@@ -229,6 +250,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
         updateVersionUpload();
         updateStatusButton();
+        updateAccessAction();
     }
 
     // a click selects only its row, and a click with Ctrl or Cmd adds or removes the row, as in a file manager
@@ -305,9 +327,19 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         Set<Document> documents = documentsGrid.getSelectedItems();
         dialogWindows.lookup(hostView(), Folder.class)
                 .withViewClass(FolderLookupView.class)
-                .withSelectHandler(targets -> {
-                    documentService.move(documents, targets.iterator().next());
-                    contentsChanged();
+                .withSelectHandler(targets -> move(documents, targets.iterator().next()))
+                .open();
+    }
+
+    @Subscribe("documentsGrid.accessAction")
+    public void onAccessAction(final ActionPerformedEvent event) {
+        dialogWindows.detail(hostView(), AccessDraft.class)
+                .withViewClass(AccessDetailView.class)
+                .editEntity(accessService.describe(documentsGrid.getSingleSelectedItem()))
+                .withAfterCloseListener(closeEvent -> {
+                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
+                        contentsChanged();
+                    }
                 })
                 .open();
     }
@@ -356,19 +388,35 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         return documentsGrid.getSelectedItems().size() == 1;
     }
 
+    @Install(to = "documentsGrid.moveAction", subject = "enabledRule")
+    private boolean moveActionEnabledRule() {
+        return allSelectedEditable();
+    }
+
     @Install(to = "documentsGrid.activateAction", subject = "enabledRule")
     private boolean activateActionEnabledRule() {
-        return allSelectedHave(DocumentStatus.DRAFT);
+        return allSelectedHave(DocumentStatus.DRAFT) && allSelectedEditable();
     }
 
     @Install(to = "documentsGrid.archiveAction", subject = "enabledRule")
     private boolean archiveActionEnabledRule() {
-        return allSelectedHave(DocumentStatus.ACTIVE);
+        return allSelectedHave(DocumentStatus.ACTIVE) && allSelectedEditable();
     }
 
     @Install(to = "documentsGrid.unarchiveAction", subject = "enabledRule")
     private boolean unarchiveActionEnabledRule() {
-        return allSelectedHave(DocumentStatus.ARCHIVED);
+        return allSelectedHave(DocumentStatus.ARCHIVED) && allSelectedEditable();
+    }
+
+    @Install(to = "documentsGrid.accessAction", subject = "enabledRule")
+    private boolean accessActionEnabledRule() {
+        return documentsGrid.getSelectedItems().size() == 1
+                && levels.allows(documentsGrid.getSingleSelectedItem().getAccessSet(), AccessLevel.MANAGE);
+    }
+
+    @Install(to = "documentsGrid.deleteAction", subject = "enabledRule")
+    private boolean deleteActionEnabledRule() {
+        return allSelectedEditable();
     }
 
     @Supply(to = "documentsGrid.name", subject = "renderer")
@@ -377,6 +425,11 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
             Span name = uiComponents.create(Span.class);
             name.addClassName("name-with-icon");
             name.add(icons.get(fileIcon(document)), new Text(document.getName()));
+
+            if (showsOwnAccess(document)) {
+                folderRenderers.markOwnAccess(name);
+            }
+
             return name;
         });
     }
@@ -558,9 +611,51 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         return !selected.isEmpty() && selected.stream().allMatch(document -> document.getStatus() == status);
     }
 
+    private boolean allSelectedEditable() {
+        Set<Document> selected = documentsGrid.getSelectedItems();
+        return !selected.isEmpty() && selected.stream()
+                .allMatch(document -> levels.allows(document.getAccessSet(), AccessLevel.EDIT));
+    }
+
     private void updateVersionUpload() {
         Document document = documentsGrid.getSelectedItems().size() == 1 ? documentsGrid.getSingleSelectedItem() : null;
-        versionUpload.setEnabled(document != null && document.getStatus() != DocumentStatus.ARCHIVED);
+        versionUpload.setEnabled(document != null
+                && document.getStatus() != DocumentStatus.ARCHIVED
+                && levels.allows(document.getAccessSet(), AccessLevel.EDIT));
+    }
+
+    // the key tells a manager that the document does not inherit the access of its folder
+    private boolean showsOwnAccess(Document document) {
+        return folder != null
+                && !document.getAccessSet().equals(folder.getAccessSet())
+                && levels.allows(document.getAccessSet(), AccessLevel.MANAGE);
+    }
+
+    // the key is only for those who manage anything, and stays put as the folder and the selection change
+    private void updateAccessAction() {
+        accessAction.setVisible(accessService.managesAnything());
+    }
+
+    private void move(Set<Document> documents, Folder target) {
+        Runnable move = () -> {
+            documentService.move(documents, target);
+            contentsChanged();
+        };
+
+        if (!accessService.changesOnMove(documents, target)) {
+            move.run();
+            return;
+        }
+
+        dialogs.createOptionDialog()
+                .withHeader(messageBundle.getMessage("moveChangesAccessDialog.header"))
+                .withText(messageBundle.formatMessage("moveDocumentsChangeAccessDialog.text",
+                        metadataTools.getInstanceName(target)))
+                .withActions(
+                        new DialogAction(DialogAction.Type.YES).withVariant(ActionVariant.PRIMARY)
+                                .withHandler(actionEvent -> move.run()),
+                        new DialogAction(DialogAction.Type.NO))
+                .open();
     }
 
     // with no transition that fits every selected document, the menu would hold only disabled items

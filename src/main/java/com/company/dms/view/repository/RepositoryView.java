@@ -107,16 +107,19 @@ public class RepositoryView extends StandardView {
 
             Folder step = path.get(i);
 
-            if (i < path.size() - 1) {
+            if (i == path.size() - 1) {
+                Span current = text(metadataTools.getInstanceName(step));
+                current.addClassName("breadcrumb-current");
+                breadcrumbs.add(current);
+            } else if (folderTree.isGreyed(step)) {
+                // a greyed folder is only the way here, so it is named but not opened
+                breadcrumbs.add(text(metadataTools.getInstanceName(step)));
+            } else {
                 JmixButton link = uiComponents.create(JmixButton.class);
                 link.setText(metadataTools.getInstanceName(step));
                 link.addThemeVariants(ButtonVariant.TERTIARY);
                 link.addClickListener(click -> folderTree.select(step));
                 breadcrumbs.add(link);
-            } else {
-                Span current = text(metadataTools.getInstanceName(step));
-                current.addClassName("breadcrumb-current");
-                breadcrumbs.add(current);
             }
         }
     }

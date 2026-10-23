@@ -6,6 +6,7 @@
         <instance id="documentDc" class="com.company.dms.model.document.Document">
             <fetchPlan extends="_base">
                 <property name="folder" fetchPlan="_base"/>
+                <property name="accessSet" fetchPlan="_instance_name"/>
                 <property name="currentRevision" fetchPlan="_base"/>
                 <property name="revisions" fetchPlan="_base"/>
             </fetchPlan>
@@ -34,6 +35,7 @@
                 <button id="activateButton" text="msg://activateButton.text" icon="CHECK"/>
                 <button id="archiveButton" text="msg://archiveButton.text" icon="ARCHIVE"/>
                 <button id="unarchiveButton" text="msg://unarchiveButton.text" icon="UNDO"/>
+                <button id="accessButton" text="msg://accessButton.text" icon="KEY"/>
             </hbox>
         </hbox>
         <tabSheet id="cardTabs" classNames="document-card-tabs" width="100%" height="100%">

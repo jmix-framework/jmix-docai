@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://accessDetailView.title">
+    <data>
+        <instance id="accessDc" class="com.company.dms.model.access.AccessDraft">
+            <collection id="entriesDc" property="entries"/>
+            <collection id="inheritedEntriesDc" property="inheritedEntries"/>
+        </instance>
+    </data>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <checkbox id="inheritField" dataContainer="accessDc" property="inherit"/>
+        <dataGrid id="inheritedEntriesGrid" dataContainer="inheritedEntriesDc" width="100%"
+                  allRowsVisible="true"
+                  emptyStateText="msg://entriesGrid.emptyStateText">
+            <columns>
+                <column property="subjectName" header="msg://subjectColumn.header" sortable="false"/>
+                <column property="accessLevel" header="msg://levelColumn.header" sortable="false"/>
+            </columns>
+        </dataGrid>
+        <dataGrid id="entriesGrid" dataContainer="entriesDc" width="100%"
+                  allRowsVisible="true"
+                  emptyStateText="msg://entriesGrid.emptyStateText">
+            <columns>
+                <column property="subjectName" header="msg://subjectColumn.header" sortable="false"/>
+                <column property="accessLevel" header="msg://levelColumn.header" sortable="false"/>
+                <column key="remove" width="4em" flexGrow="0"/>
+            </columns>
+        </dataGrid>
+        <hbox id="addPanel" alignItems="BASELINE" width="100%" expand="subjectField">
+            <comboBox id="subjectField" label="msg://subjectField.label"/>
+            <select id="levelField" label="msg://levelField.label"
+                    itemsEnum="com.company.dms.model.access.AccessLevel"/>
+            <button id="addButton" text="msg://addButton.text" icon="PLUS"/>
+        </hbox>
+        <hbox id="detailActions">
+            <button id="saveButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+    </layout>
+</view>

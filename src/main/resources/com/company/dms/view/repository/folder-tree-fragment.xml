@@ -2,14 +2,7 @@
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <data readOnly="true">
         <collection id="foldersDc" class="com.company.dms.model.folder.Folder">
-            <fetchPlan extends="_base">
-                <property name="parent" fetchPlan="_instance_name"/>
-            </fetchPlan>
-            <loader id="foldersDl">
-                <query>
-                    <![CDATA[select f from Folder f order by f.name]]>
-                </query>
-            </loader>
+            <loader id="foldersDl"/>
         </collection>
     </data>
     <facets>
@@ -24,6 +17,7 @@
                         <actionItem id="createFolderItem" ref="foldersTree.createFolderAction"/>
                         <actionItem id="renameFolderItem" ref="foldersTree.renameFolderAction"/>
                         <actionItem id="moveFolderItem" ref="foldersTree.moveFolderAction"/>
+                        <actionItem id="accessFolderItem" ref="foldersTree.accessFolderAction"/>
                         <actionItem id="deleteFolderItem" ref="foldersTree.deleteFolderAction"/>
                     </items>
                 </dropdownButton>
@@ -53,6 +47,8 @@
                             text="msg://renameFolderAction.text" icon="PENCIL"/>
                     <action id="moveFolderAction" type="list_itemTracking"
                             text="msg://moveFolderAction.text" icon="ARROW_RIGHT"/>
+                    <action id="accessFolderAction" type="list_itemTracking"
+                            text="msg://accessAction.text" icon="KEY"/>
                     <action id="deleteFolderAction" type="list_itemTracking" actionVariant="DANGER"
                             text="msg://deleteFolderAction.text" icon="TRASH"/>
                 </actions>

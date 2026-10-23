@@ -1,5 +1,6 @@
 package com.company.dms.model.document;
 
+import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.folder.Folder;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.annotation.DeletedBy;
@@ -43,7 +44,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "DOCUMENT", indexes = {
         @Index(name = "IDX_DOCUMENT_FOLDER", columnList = "FOLDER_ID"),
-        @Index(name = "IDX_DOCUMENT_CURRENT_REVISION", columnList = "CURRENT_REVISION_ID")
+        @Index(name = "IDX_DOCUMENT_CURRENT_REVISION", columnList = "CURRENT_REVISION_ID"),
+        @Index(name = "IDX_DOCUMENT_ACCESS_SET", columnList = "ACCESS_SET_ID")
 }, uniqueConstraints = {
         @UniqueConstraint(name = "UK_DOCUMENT_NAME_KEY", columnNames = {"FOLDER_ID", "NAME_KEY"})
 })
@@ -78,6 +80,13 @@ public class Document {
     @JoinColumn(name = "CURRENT_REVISION_ID")
     @ManyToOne(fetch = FetchType.LAZY)
     private DocumentRevision currentRevision;
+
+    /**
+     * The access set in effect: the set of the folder for an inheriting document, its own set otherwise.
+     */
+    @JoinColumn(name = "ACCESS_SET_ID", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private AccessSet accessSet;
 
     @Composition
     @OnDelete(DeletePolicy.CASCADE)
@@ -167,6 +176,14 @@ public class Document {
 
     public void setCurrentRevision(DocumentRevision currentRevision) {
         this.currentRevision = currentRevision;
+    }
+
+    public AccessSet getAccessSet() {
+        return accessSet;
+    }
+
+    public void setAccessSet(AccessSet accessSet) {
+        this.accessSet = accessSet;
     }
 
     public List<DocumentRevision> getRevisions() {

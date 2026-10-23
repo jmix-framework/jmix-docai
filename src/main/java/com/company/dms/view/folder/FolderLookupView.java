@@ -1,9 +1,12 @@
 package com.company.dms.view.folder;
 
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.folder.FolderTree;
+import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.folder.Folder;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.data.renderer.Renderer;
+import io.jmix.core.LoadContext;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.model.CollectionContainer;
@@ -17,7 +20,8 @@ import java.util.stream.Collectors;
 
 /**
  * Picks the destination of a move. The moved folders and their subfolders are hidden: a folder cannot move
- * into itself. The filter finds the other folders by name.
+ * into itself. Only a folder the user may change can be picked; the others are greyed. The filter finds
+ * the other folders by name.
  */
 @ViewController(id = "Folder.lookup")
 @ViewDescriptor(path = "folder-lookup-view.xml")
@@ -37,6 +41,7 @@ public class FolderLookupView extends StandardListView<Folder> {
 
     private Set<Folder> hiddenFolders = Set.of();
     private List<Folder> availableFolders = List.of();
+    private FolderTree tree;
 
     /**
      * Hides the folders and their subfolders. Call it before the view opens: the tree is filtered on load.
@@ -45,9 +50,21 @@ public class FolderLookupView extends StandardListView<Folder> {
         hiddenFolders = Set.copyOf(folders);
     }
 
+    @Install(to = "foldersDl", target = Target.DATA_LOADER)
+    private List<Folder> foldersDlLoadDelegate(final LoadContext<Folder> loadContext) {
+        tree = folderService.loadTree();
+        return tree.folders();
+    }
+
     @Supply(to = "foldersTree.name", subject = "renderer")
     private Renderer<Folder> foldersTreeNameRenderer() {
-        return folderRenderers.treeNameRenderer(foldersTree);
+        return folderRenderers.treeNameRenderer(foldersTree, folder -> !isEditable(folder));
+    }
+
+    @Install(to = "selectAction", subject = "enabledRule")
+    private boolean selectActionEnabledRule() {
+        Folder folder = foldersTree.getSingleSelectedItem();
+        return folder != null && isEditable(folder);
     }
 
     @Subscribe(id = "foldersDl", target = Target.DATA_LOADER)
@@ -76,6 +93,10 @@ public class FolderLookupView extends StandardListView<Folder> {
         if (event.getValue() != null && !event.getValue().isBlank()) {
             foldersTree.expand(foldersDc.getItems());
         }
+    }
+
+    private boolean isEditable(Folder folder) {
+        return tree.levels().allows(folder.getAccessSet(), AccessLevel.EDIT);
     }
 
     private boolean isHidden(Folder folder, Map<UUID, Folder> byId) {

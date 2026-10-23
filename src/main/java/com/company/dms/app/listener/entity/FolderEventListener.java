@@ -2,9 +2,9 @@ package com.company.dms.app.listener.entity;
 
 import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.model.folder.Folder;
-import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Messages;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.event.EntityChangedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -16,10 +16,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class FolderEventListener {
 
-    private final DataManager dataManager;
+    // the rules hold whoever saves, also when the save hides the item from them
+    private final UnconstrainedDataManager dataManager;
     private final Messages messages;
 
-    public FolderEventListener(DataManager dataManager, Messages messages) {
+    public FolderEventListener(UnconstrainedDataManager dataManager, Messages messages) {
         this.dataManager = dataManager;
         this.messages = messages;
     }

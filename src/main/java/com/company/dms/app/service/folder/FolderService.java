@@ -1,12 +1,20 @@
 package com.company.dms.app.service.folder;
 
 import com.company.dms.app.service.OperationRejectedException;
+import com.company.dms.app.service.access.AccessChecker;
+import com.company.dms.app.service.access.AccessLevels;
+import com.company.dms.app.service.access.AccessService;
+import com.company.dms.model.access.AccessLevel;
+import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.folder.Folder;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
+import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
+import io.jmix.core.SaveContext;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.KeyValueEntity;
 import jakarta.persistence.LockModeType;
 import org.jspecify.annotations.Nullable;
@@ -22,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -30,28 +39,40 @@ import java.util.stream.Collectors;
 /**
  * Changes the folder tree: creates, renames, moves and deletes folders. The root stays as
  * the changelog created it, and names are unique among the live folders of one parent.
+ * A change needs {@link AccessLevel#EDIT} on the folders it touches. The structure of the tree
+ * is read past the access rules: locks, paths and taken names are the same for everyone.
  */
 @Service
 public class FolderService {
 
     private final DataManager dataManager;
+    private final UnconstrainedDataManager unconstrainedDataManager;
+    private final AccessChecker accessChecker;
+    private final AccessService accessService;
     private final EntityStates entityStates;
     private final Messages messages;
     private final MetadataTools metadataTools;
 
-    public FolderService(DataManager dataManager, EntityStates entityStates, Messages messages,
-                         MetadataTools metadataTools) {
+    public FolderService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager,
+                         AccessChecker accessChecker, AccessService accessService, EntityStates entityStates,
+                         Messages messages, MetadataTools metadataTools) {
         this.dataManager = dataManager;
+        this.unconstrainedDataManager = unconstrainedDataManager;
+        this.accessChecker = accessChecker;
+        this.accessService = accessService;
         this.entityStates = entityStates;
         this.messages = messages;
         this.metadataTools = metadataTools;
     }
 
     /**
-     * Returns the root folder, which the changelog creates with {@link Folder#ROOT_ID}.
+     * Returns the root folder, which the changelog creates with {@link Folder#ROOT_ID}. Every user gets it,
+     * also one without access to it.
      */
     public Folder getRoot() {
-        return dataManager.load(Folder.class).id(Folder.ROOT_ID).one();
+        return unconstrainedDataManager.load(Folder.class)
+                .id(Folder.ROOT_ID)
+                .one();
     }
 
     /**
@@ -59,8 +80,8 @@ public class FolderService {
      * folder changes only through {@link #move(Folder, Folder)}. The parent row stays locked
      * until the transaction ends, so a delete of the parent waits for this save.
      *
-     * @throws OperationRejectedException if the folder is the root, the parent is deleted
-     *                                    or the name is taken
+     * @throws OperationRejectedException if the folder is the root, the parent of a new folder or the renamed
+     *                                    folder is unavailable or only viewed by the user, or the name is taken
      */
     @Transactional
     public Folder save(Folder folder) {
@@ -68,6 +89,7 @@ public class FolderService {
 
         if (entityStates.isNew(folder)) {
             Folder parent = lockLive(folder.getParent());
+            checkEditable(parent);
             checkNameFree(parent, name, null);
             folder.setParent(parent);
         } else {
@@ -75,6 +97,7 @@ public class FolderService {
                 throw reject("rootFolderLocked");
             }
 
+            checkEditable(folder);
             Folder stored = loadWithParent(folder.getId());
             if (!Objects.equals(stored.getParent(), folder.getParent())) {
                 throw reject("folderParentChangedBySave");
@@ -88,16 +111,17 @@ public class FolderService {
     }
 
     /**
-     * Moves a folder with its subtree into another folder.
+     * Moves a folder with its subtree into another folder. A folder that inherits its access takes the access
+     * of the target, together with the folders and documents below it that inherit from it.
      *
-     * @throws OperationRejectedException if the folder is the root, the target is deleted, the target
-     *                                    is the folder itself or one of its subfolders, or the target
-     *                                    already has a folder with the same name
+     * @throws OperationRejectedException if the folder is the root, the folder or the target is unavailable or only
+     *                                    viewed by the user, the target is the folder itself or one of its
+     *                                    subfolders, or the target already has a folder with the same name
      */
     @Transactional
     public Folder move(Folder folder, Folder target) {
         // moves wait for each other, otherwise two crossing moves pass the cycle check and build a loop
-        dataManager.load(Folder.class)
+        unconstrainedDataManager.load(Folder.class)
                 .id(Folder.ROOT_ID)
                 .lockMode(LockModeType.PESSIMISTIC_WRITE)
                 .one();
@@ -106,8 +130,10 @@ public class FolderService {
             throw reject("rootFolderLocked");
         }
 
+        checkEditable(folder);
         Folder moved = loadWithParent(folder.getId());
         Folder destination = lockLive(target);
+        checkEditable(destination);
         if (destination.equals(moved.getParent())) {
             return moved;
         }
@@ -120,16 +146,21 @@ public class FolderService {
 
         checkNameFree(destination, moved.getName(), moved.getId());
         moved.setParent(destination);
-        return dataManager.save(moved);
+
+        SaveContext saveContext = new SaveContext().saving(moved);
+        accessService.followMove(moved, destination, saveContext);
+
+        return dataManager.save(saveContext).get(moved);
     }
 
     /**
      * Soft-deletes the folder with all its subfolders, documents and their revisions. The folder
      * row is locked first, so a document or a folder being placed into it at the same time is
      * either deleted with it or rejected. The same holds for its subfolders only while the database
-     * locks whole tables, as HSQLDB does by default.
+     * locks whole tables, as HSQLDB does by default. A folder deleted already is left as it is.
      *
-     * @throws OperationRejectedException if the folder is the root
+     * @throws OperationRejectedException if the folder is the root, is unavailable or only viewed by the user,
+     *                                    or holds something the user may not change
      */
     @Transactional
     public void delete(Folder folder) {
@@ -137,36 +168,87 @@ public class FolderService {
             throw reject("rootFolderLocked");
         }
 
-        dataManager.load(Folder.class)
+        Optional<Folder> locked = unconstrainedDataManager.load(Folder.class)
                 .id(folder.getId())
                 .lockMode(LockModeType.PESSIMISTIC_WRITE)
-                .optional()
-                .ifPresent(dataManager::remove);
+                .optional();
+
+        if (locked.isPresent()) {
+            checkEditable(locked.get());
+            checkContentEditable(locked.get(), subtree(locked.get()));
+            dataManager.remove(locked.get());
+        }
     }
 
     /**
      * Counts what deleting the folder takes with it, for the confirmation dialog.
+     *
+     * @throws OperationRejectedException if the folder is unavailable or only viewed by the user, or holds
+     *                                    something the user may not change: the delete would be rejected
      */
     public FolderContents countContents(Folder folder) {
-        List<UUID> subtree = new ArrayList<>(List.of(folder.getId()));
-        List<UUID> level = List.of(folder.getId());
+        checkEditable(folder);
+        List<UUID> subtree = subtree(folder);
+        checkContentEditable(folder, subtree);
 
-        while (!level.isEmpty()) {
-            level = dataManager.loadValues("select f.id from Folder f where f.parent.id in :parents")
-                    .properties("id")
-                    .parameter("parents", level)
-                    .list().stream()
-                    .map(value -> value.<UUID>getValue("id"))
-                    .toList();
-            subtree.addAll(level);
-        }
-
-        long documents = dataManager.loadValue("select count(d) from Document d where d.folder.id in :folders",
-                        Long.class)
+        long documents = unconstrainedDataManager.loadValue(
+                        "select count(d) from Document d where d.folder.id in :folders", Long.class)
                 .parameter("folders", subtree)
                 .one();
 
         return new FolderContents(subtree.size() - 1, documents);
+    }
+
+    /**
+     * Returns the folders the tree shows to the current user: the folders they have access to and, greyed,
+     * the folders on the way to them and to the documents they have access to. The names on the way are shown
+     * to everyone who has access below them; that is how the user finds what was shared with them.
+     */
+    public FolderTree loadTree() {
+        AccessLevels levels = accessService.levels();
+        List<Folder> folders = unconstrainedDataManager.load(Folder.class)
+                .query("select f from Folder f order by f.name")
+                .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("parent", FetchPlan.INSTANCE_NAME)
+                        .add("accessSet", FetchPlan.INSTANCE_NAME))
+                .list();
+
+        if (levels.full()) {
+            return new FolderTree(folders, Set.of(), levels);
+        }
+
+        Set<UUID> visible = folders.stream()
+                .filter(folder -> levels.of(folder.getAccessSet()) != null)
+                .map(Folder::getId)
+                .collect(Collectors.toSet());
+
+        // a document with its own access may be the only thing the user sees in its folder
+        List<UUID> reached = new ArrayList<>(visible);
+        reached.add(Folder.ROOT_ID);
+        dataManager.loadValues("select distinct d.folder.id from Document d")
+                .properties("folderId")
+                .list()
+                .forEach(value -> reached.add(value.getValue("folderId")));
+
+        Map<UUID, Folder> byId = folders.stream()
+                .collect(Collectors.toMap(Folder::getId, Function.identity()));
+
+        Set<UUID> shown = new HashSet<>();
+        for (UUID id : reached) {
+            Folder current = byId.get(id);
+            while (current != null && shown.add(current.getId())) {
+                current = current.getParent() == null ? null : byId.get(current.getParent().getId());
+            }
+        }
+
+        return new FolderTree(
+                folders.stream()
+                        .filter(folder -> shown.contains(folder.getId()))
+                        .toList(),
+                shown.stream()
+                        .filter(id -> !visible.contains(id))
+                        .collect(Collectors.toSet()),
+                levels);
     }
 
     /**
@@ -226,7 +308,8 @@ public class FolderService {
     }
 
     /**
-     * Returns the folders from the root down to the given one, for breadcrumbs and paths.
+     * Returns the folders from the root down to the given one, for breadcrumbs and paths. The folders on the way
+     * are named also when the user has no access to them.
      */
     public List<Folder> getPath(Folder folder) {
         LinkedList<Folder> path = new LinkedList<>();
@@ -239,22 +322,77 @@ public class FolderService {
     }
 
     /**
-     * Locks the folder row until the transaction ends and returns the live folder. Anything placed
-     * into a folder takes this lock, so it waits for a delete of the same branch. Call it inside
-     * a transaction: outside one, the lock ends together with the load.
+     * Checks that the current user may change the folder and place items into it.
+     *
+     * @throws OperationRejectedException if the folder is deleted or hidden from the user, or the user only views it
+     */
+    public void checkEditable(Folder folder) {
+        Folder visible = dataManager.load(Id.of(folder))
+                .optional()
+                .orElseThrow(() -> reject("folderUnavailable", metadataTools.getInstanceName(folder)));
+
+        if (!accessChecker.canEdit(visible)) {
+            throw reject("folderReadOnly", metadataTools.getInstanceName(visible));
+        }
+    }
+
+    /**
+     * Locks the folder row until the transaction ends and returns the live folder, whether the user has access
+     * to it or not. Anything placed into a folder takes this lock, so it waits for a delete of the same branch.
+     * Call it inside a transaction: outside one, the lock ends together with the load.
      *
      * @throws OperationRejectedException if the folder is deleted
      */
     public Folder lockLive(Folder folder) {
-        return dataManager.load(Folder.class)
+        return unconstrainedDataManager.load(Folder.class)
                 .id(folder.getId())
                 .lockMode(LockModeType.PESSIMISTIC_WRITE)
                 .optional()
-                .orElseThrow(() -> reject("folderDeleted", metadataTools.getInstanceName(folder)));
+                .orElseThrow(() -> reject("folderUnavailable", metadataTools.getInstanceName(folder)));
+    }
+
+    /**
+     * Checks that the user may change everything a delete of the folder takes with it. The message names no item:
+     * the user may not see them.
+     */
+    private void checkContentEditable(Folder folder, List<UUID> subtree) {
+        AccessLevels levels = accessService.levels();
+        boolean restricted = unconstrainedDataManager.load(AccessSet.class)
+                .query("select s from AccessSet s"
+                        + " where exists (select f from Folder f where f.accessSet = s and f.id in :folders)"
+                        + " or exists (select d from Document d where d.accessSet = s and d.folder.id in :folders)")
+                .parameter("folders", subtree)
+                .list()
+                .stream()
+                .anyMatch(accessSet -> !levels.allows(accessSet, AccessLevel.EDIT));
+
+        if (restricted) {
+            throw reject("folderContentNotDeletable", metadataTools.getInstanceName(folder));
+        }
+    }
+
+    /**
+     * Returns the ids of the folder and of its live subfolders at any depth.
+     */
+    private List<UUID> subtree(Folder folder) {
+        List<UUID> subtree = new ArrayList<>(List.of(folder.getId()));
+        List<UUID> level = List.of(folder.getId());
+
+        while (!level.isEmpty()) {
+            level = unconstrainedDataManager.loadValues("select f.id from Folder f where f.parent.id in :parents")
+                    .properties("id")
+                    .parameter("parents", level)
+                    .list().stream()
+                    .map(value -> value.<UUID>getValue("id"))
+                    .toList();
+            subtree.addAll(level);
+        }
+
+        return subtree;
     }
 
     private Folder loadWithParent(UUID id) {
-        return dataManager.load(Folder.class)
+        return unconstrainedDataManager.load(Folder.class)
                 .id(id)
                 .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
                         .add("parent", FetchPlan.BASE))
@@ -262,7 +400,7 @@ public class FolderService {
     }
 
     private void checkNameFree(Folder parent, String name, @Nullable UUID ownId) {
-        List<Folder> namesakes = dataManager.load(Folder.class)
+        List<Folder> namesakes = unconstrainedDataManager.load(Folder.class)
                 .query("select f from Folder f where f.parent = :parent and f.nameKey = :name")
                 .parameter("parent", parent)
                 .parameter("name", name)

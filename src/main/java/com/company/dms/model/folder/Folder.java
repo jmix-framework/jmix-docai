@@ -1,5 +1,6 @@
 package com.company.dms.model.folder;
 
+import com.company.dms.model.access.AccessSet;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.Messages;
 import io.jmix.core.annotation.DeletedBy;
@@ -37,7 +38,8 @@ import java.util.UUID;
 @JmixEntity
 @Entity
 @Table(name = "FOLDER", indexes = {
-        @Index(name = "IDX_FOLDER_PARENT", columnList = "PARENT_ID")
+        @Index(name = "IDX_FOLDER_PARENT", columnList = "PARENT_ID"),
+        @Index(name = "IDX_FOLDER_ACCESS_SET", columnList = "ACCESS_SET_ID")
 }, uniqueConstraints = {
         @UniqueConstraint(name = "UK_FOLDER_NAME_KEY", columnNames = {"PARENT_ID", "NAME_KEY"})
 })
@@ -72,6 +74,13 @@ public class Folder {
      */
     @Column(name = "NAME_KEY")
     private String nameKey;
+
+    /**
+     * The access set in effect: the set of the parent for an inheriting folder, its own set otherwise.
+     */
+    @JoinColumn(name = "ACCESS_SET_ID", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private AccessSet accessSet;
 
     @CreatedBy
     @Column(name = "CREATED_BY")
@@ -157,6 +166,14 @@ public class Folder {
 
     public void setNameKey(String nameKey) {
         this.nameKey = nameKey;
+    }
+
+    public AccessSet getAccessSet() {
+        return accessSet;
+    }
+
+    public void setAccessSet(AccessSet accessSet) {
+        this.accessSet = accessSet;
     }
 
     public String getCreatedBy() {

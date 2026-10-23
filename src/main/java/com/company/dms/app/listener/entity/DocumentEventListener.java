@@ -3,12 +3,13 @@ package com.company.dms.app.listener.entity;
 import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
-import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FetchPlanBuilder;
 import io.jmix.core.Messages;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.event.AttributeChanges;
 import io.jmix.core.event.EntityChangedEvent;
+import io.jmix.data.PersistenceHints;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -24,10 +25,11 @@ public class DocumentEventListener {
 
     private static final List<String> ARCHIVE_LOCKED_ATTRIBUTES = List.of("name", "documentDate", "currentRevision");
 
-    private final DataManager dataManager;
+    // the rules hold whoever saves, also when the save hides the item from them
+    private final UnconstrainedDataManager dataManager;
     private final Messages messages;
 
-    public DocumentEventListener(DataManager dataManager, Messages messages) {
+    public DocumentEventListener(UnconstrainedDataManager dataManager, Messages messages) {
         this.dataManager = dataManager;
         this.messages = messages;
     }
@@ -38,8 +40,10 @@ public class DocumentEventListener {
             return;
         }
 
+        // a document in the trash changes too: access changes move it with the live ones
         Document document = dataManager.load(event.getEntityId())
                 .fetchPlan(DocumentEventListener::fetchPlan)
+                .hint(PersistenceHints.SOFT_DELETION, false)
                 .one();
 
         AttributeChanges changes = event.getChanges();

@@ -4,6 +4,7 @@ import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
+import com.company.dms.test_support.TestAccess;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.data.exception.UniqueConstraintViolationException;
@@ -83,6 +84,8 @@ class FolderInvariantsTest {
     @Test
     void onlyTheRootHasNoParent() {
         Folder orphan = dataManager.create(Folder.class);
+        // without a parent there is no set to inherit, and the folder would fail on the column first
+        orphan.setAccessSet(TestAccess.setOf(dataManager, sandbox));
         orphan.setName("orphan-" + UUID.randomUUID());
 
         assertThatThrownBy(() -> dataManager.save(orphan)).isInstanceOf(OperationRejectedException.class);

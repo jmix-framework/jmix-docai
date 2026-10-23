@@ -4,14 +4,7 @@
       focusComponent="foldersTree">
     <data readOnly="true">
         <collection id="foldersDc" class="com.company.dms.model.folder.Folder">
-            <fetchPlan extends="_base">
-                <property name="parent" fetchPlan="_instance_name"/>
-            </fetchPlan>
-            <loader id="foldersDl">
-                <query>
-                    <![CDATA[select f from Folder f order by f.name]]>
-                </query>
-            </loader>
+            <loader id="foldersDl"/>
         </collection>
     </data>
     <facets>

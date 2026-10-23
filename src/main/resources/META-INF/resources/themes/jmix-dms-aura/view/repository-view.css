@@ -31,6 +31,12 @@
     color: var(--vaadin-text-color-secondary);
 }
 
+/* A greyed folder is only the way to folders and documents the user has access to */
+.folder-greyed,
+.own-access {
+    color: var(--vaadin-text-color-secondary);
+}
+
 /* Menu items take no action variant, so the folder menu marks its main and its dangerous item here */
 vaadin-menu-bar-item#createFolderItem:not([disabled]) {
     color: var(--aura-accent-text-color);

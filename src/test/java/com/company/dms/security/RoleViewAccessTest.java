@@ -27,6 +27,7 @@ class RoleViewAccessTest {
             "peter, Document.detail, true",
             "peter, Folder.detail, true",
             "peter, Folder.lookup, true",
+            "peter, AccessDraft.detail, true",
             "peter, User.list, false",
             "peter, User.detail, false",
             "peter, roleAssignmentView, false",

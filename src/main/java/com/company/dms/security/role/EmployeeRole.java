@@ -1,5 +1,9 @@
 package com.company.dms.security.role;
 
+import com.company.dms.model.access.AccessDraft;
+import com.company.dms.model.access.AccessEntry;
+import com.company.dms.model.access.AccessEntryDraft;
+import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
@@ -71,6 +75,29 @@ public interface EmployeeRole extends UiMinimalRole {
     @EntityAttributePolicy(entityClass = DocumentRevision.class, attributes = "*",
             action = EntityAttributePolicyAction.MODIFY)
     void documentRevision();
+
+    /**
+     * Reads access sets and their entries; {@link AccessRowLevelRole} leaves the sets the user manages.
+     * Only the access service writes them.
+     */
+    @EntityPolicy(entityClass = AccessSet.class, actions = EntityPolicyAction.READ)
+    @EntityAttributePolicy(entityClass = AccessSet.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
+    @EntityPolicy(entityClass = AccessEntry.class, actions = EntityPolicyAction.READ)
+    @EntityAttributePolicy(entityClass = AccessEntry.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
+    void access();
+
+    /**
+     * Edits the access dialog, whose drafts are never stored: the access service checks the right to manage
+     * the item and writes the access itself. Without these policies the dialog opens empty and read-only.
+     */
+    @EntityPolicy(entityClass = AccessDraft.class, actions = EntityPolicyAction.ALL)
+    @EntityAttributePolicy(entityClass = AccessDraft.class, attributes = "*",
+            action = EntityAttributePolicyAction.MODIFY)
+    @EntityPolicy(entityClass = AccessEntryDraft.class, actions = EntityPolicyAction.ALL)
+    @EntityAttributePolicy(entityClass = AccessEntryDraft.class, attributes = "*",
+            action = EntityAttributePolicyAction.MODIFY)
+    @ViewPolicy(viewIds = "AccessDraft.detail")
+    void accessDialog();
 
     /**
      * Opens the views of the document repository.

@@ -15,6 +15,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Application Accounts](#-application-accounts)
 - [Domain Model](#️-domain-model)
 - [Role Model](#-role-model)
+- [Access](#-access)
 
 ## 📖 Overview
 
@@ -31,12 +32,12 @@ The application grows in this order:
 7. Semantic search
 8. Demo data in English and Russian
 
-Steps 1 and 2 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, and preview images, PDF and text.
+Steps 1 to 3 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, and share folders and documents with users and roles.
 
 ## 🛠️ Technical Stack
 
 - Java 21, Gradle
-- [Jmix](https://www.jmix.io) 3.1 (3.1.0-RC1 until the release), Spring Boot 4, Vaadin 25 with the Aura theme
+- [Jmix](https://www.jmix.io) 3.1, Spring Boot 4, Vaadin 25 with the Aura theme
 - HSQLDB, Liquibase
 - OpenSearch 2.17 (used from the full-text search module on)
 - JUnit 5
@@ -152,17 +153,34 @@ classDiagram
         ACTIVE
         ARCHIVED
     }
+    class AccessSet
+    class AccessEntry {
+        username
+        roleCode
+        accessLevel
+    }
+    class AccessLevel {
+        <<enumeration>>
+        VIEW
+        EDIT
+        MANAGE
+    }
     Folder "0..1" <-- "*" Folder : parent
     Folder "1" <-- "*" Document : folder
     Document "1" *-- "1..*" DocumentRevision : revisions
     Document --> DocumentRevision : currentRevision
     Document --> DocumentStatus : status
+    Folder --> AccessSet : accessSet
+    Document --> AccessSet : accessSet
+    AccessSet "1" *-- "*" AccessEntry : entries
+    AccessEntry --> AccessLevel : accessLevel
 ```
 
 - One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
 - A revision never changes. A new file or a restored version adds a revision, and the document points to its current one.
 - A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date and versions until it returns to Active.
 - Folders, documents and revisions are deleted softly. Deleting a folder takes its subtree; the administrator restores records in Data Tools.
+- A folder and a document point to the access set in effect: their parent's or their own. An access set belongs to one folder or document, and each of its entries gives a user or a role a level.
 
 ## 🔐 Role Model
 
@@ -171,5 +189,25 @@ classDiagram
 | Full Access | `system-full-access` | All data, views and actions; assigned to `admin` |
 | Employee | `employee` | Works with folders and documents and views their own profile; includes UI: minimal access |
 | UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
+| Folder and document access | `access-rl` | Row-level role: a user sees and changes folders and documents by their access entries; assigned to everyone without Full Access |
 
 A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.
+
+## 🔑 Access
+
+Access works as in SharePoint. A folder or a document either inherits the access of its parent or has its own, set in the **Access** dialog. For a folder, it opens from the folder menu and the folder's context menu; for a document, from the key on the documents toolbar, the document's context menu and the document card. Only those who manage something see the action.
+
+| Level | Allows |
+|---|---|
+| View | See the folder or the document, open the card read-only, preview and download |
+| Edit | Also upload, create, add versions, change the status, rename, move and delete |
+| Manage | Also change who has access |
+
+- An entry gives a level to a user or to a resource role, and a user gets the highest level among their entries. The root gives the Employee role the Edit level.
+- Roles stand for departments. The administrator creates a resource role without policies, for example "HR", assigns it to the department in the role views and gives the role access to the department's folders. A change of roles applies from the user's next sign-in.
+- Clearing **Inherit access** copies the inherited entries as a start; checking it again removes the own entries. A folder or a document that inherits takes the access of its new place when it is moved, and the move asks first.
+- A user sees, greyed, the folders on the way to what they have access to, with their names. A key after the name marks a folder or a document with its own access for those who manage it.
+- The administrator has every level everywhere, without entries.
+- With LDAP or Active Directory, map each department group to its resource role and keep the access entries on roles rather than on users.
+
+> **Warning:** the `access-rl` role comes from the Jmix role assignments. If users sign in through LDAP or SSO and get their roles from a group mapper, add `access-rl` in the mapper, or they will see every folder and document.

@@ -1,8 +1,12 @@
 package com.company.dms.security;
 
+import com.company.dms.security.role.AccessRowLevelRole;
 import io.jmix.security.model.ResourceRole;
+import io.jmix.security.model.RowLevelRole;
 import io.jmix.security.role.ResourceRoleRepository;
 import io.jmix.security.role.RoleLocalizationSupport;
+import io.jmix.security.role.RowLevelRoleRepository;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -20,6 +24,9 @@ class RoleLocalizationTest {
 
     @Autowired
     private ResourceRoleRepository resourceRoleRepository;
+
+    @Autowired
+    private RowLevelRoleRepository rowLevelRoleRepository;
 
     @Autowired
     private RoleLocalizationSupport roleLocalizationSupport;
@@ -47,6 +54,18 @@ class RoleLocalizationTest {
         assertThat(roleLocalizationSupport.getLocalizedDescription(role, Locale.ENGLISH))
                 .isNotBlank()
                 .doesNotContain(".description");
+        assertThat(roleLocalizationSupport.getLocalizedDescription(role, RUSSIAN))
+                .matches(".*\\p{IsCyrillic}.*");
+    }
+
+    @Test
+    void theAccessRowLevelRoleIsTranslated() {
+        RowLevelRole role = rowLevelRoleRepository.getRoleByCode(AccessRowLevelRole.CODE);
+
+        assertThat(roleLocalizationSupport.getLocalizedName(role, Locale.ENGLISH))
+                .isEqualTo("Folder and document access");
+        assertThat(roleLocalizationSupport.getLocalizedName(role, RUSSIAN))
+                .matches(".*\\p{IsCyrillic}.*");
         assertThat(roleLocalizationSupport.getLocalizedDescription(role, RUSSIAN))
                 .matches(".*\\p{IsCyrillic}.*");
     }

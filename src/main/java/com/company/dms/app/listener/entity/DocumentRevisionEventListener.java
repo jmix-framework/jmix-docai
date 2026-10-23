@@ -3,9 +3,9 @@ package com.company.dms.app.listener.entity;
 import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
-import io.jmix.core.DataManager;
 import io.jmix.core.Id;
 import io.jmix.core.Messages;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.event.EntityChangedEvent;
 import io.jmix.data.PersistenceHints;
 import org.springframework.context.event.EventListener;
@@ -21,10 +21,11 @@ public class DocumentRevisionEventListener {
 
     private static final Set<String> DELETION_ATTRIBUTES = Set.of("deletedDate", "deletedBy");
 
-    private final DataManager dataManager;
+    // the rules hold whoever saves, also when the save hides the item from them
+    private final UnconstrainedDataManager dataManager;
     private final Messages messages;
 
-    public DocumentRevisionEventListener(DataManager dataManager, Messages messages) {
+    public DocumentRevisionEventListener(UnconstrainedDataManager dataManager, Messages messages) {
         this.dataManager = dataManager;
         this.messages = messages;
     }

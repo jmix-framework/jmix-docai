@@ -1,13 +1,18 @@
 package com.company.dms.view.document;
 
 import com.company.dms.app.config.FilesProperties;
+import com.company.dms.app.service.access.AccessChecker;
+import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.document.NewVersion;
 import com.company.dms.app.service.document.UploadedFile;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.model.access.AccessDraft;
+import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
+import com.company.dms.view.access.AccessDetailView;
 import com.company.dms.view.main.MainView;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.ClickEvent;
@@ -23,11 +28,14 @@ import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
+import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
+import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
 import io.jmix.core.metamodel.datatype.DatatypeFormatter;
+import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Fragments;
 import io.jmix.flowui.Notifications;
@@ -54,7 +62,8 @@ import java.util.stream.Collectors;
 
 /**
  * The document card. A new version, a restored version and a status transition wait for OK
- * together with the edited fields, and are saved by one service call.
+ * together with the edited fields, and are saved by one service call. A user who only views
+ * the document gets the card read-only.
  */
 @Route(value = "documents/:id", layout = MainView.class)
 @ViewController(id = "Document.detail")
@@ -81,6 +90,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private JmixButton archiveButton;
     @ViewComponent
     private JmixButton unarchiveButton;
+    @ViewComponent
+    private JmixButton accessButton;
 
     @ViewComponent
     private TypedTextField<String> nameField;
@@ -109,9 +120,15 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private MessageBundle messageBundle;
 
     @Autowired
+    private DataManager dataManager;
+    @Autowired
     private DocumentService documentService;
     @Autowired
     private FolderService folderService;
+    @Autowired
+    private AccessService accessService;
+    @Autowired
+    private AccessChecker accessChecker;
     @Autowired
     private TemporaryStorage temporaryStorage;
     @Autowired
@@ -130,6 +147,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private Notifications notifications;
     @Autowired
     private Dialogs dialogs;
+    @Autowired
+    private DialogWindows dialogWindows;
     @Autowired
     private Fragments fragments;
     @Autowired
@@ -236,6 +255,27 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         toggleTransition(DocumentStatus.ACTIVE);
     }
 
+    @Subscribe("accessButton")
+    public void onAccessButtonClick(final ClickEvent<JmixButton> event) {
+        // the access dialog saves the document at once and the card takes it again, so its own changes go first
+        if (hasUnsavedChanges()) {
+            notifications.create(messageBundle.getMessage("saveBeforeAccess"))
+                    .withType(Notifications.Type.WARNING)
+                    .show();
+            return;
+        }
+
+        dialogWindows.detail(this, AccessDraft.class)
+                .withViewClass(AccessDetailView.class)
+                .editEntity(accessService.describe(getEditedEntity()))
+                .withAfterCloseListener(closeEvent -> {
+                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
+                        takeDocumentAgain();
+                    }
+                })
+                .open();
+    }
+
     @Subscribe("revisionsGrid.downloadRevisionAction")
     public void onDownloadRevisionAction(final ActionPerformedEvent event) {
         revisionDownloader.download(revisionsGrid.getSingleSelectedItem());
@@ -262,7 +302,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @Install(to = "revisionsGrid.restoreRevisionAction", subject = "enabledRule")
     private boolean restoreRevisionActionEnabledRule() {
         DocumentRevision revision = revisionsGrid.getSingleSelectedItem();
-        return revision != null && !isArchived() && !revision.equals(getEditedEntity().getCurrentRevision());
+        return revision != null
+                && !isArchived()
+                && !isReadOnly()
+                && !revision.equals(getEditedEntity().getCurrentRevision());
     }
 
     @Supply(to = "revisionsGrid.fileSize", subject = "renderer")
@@ -285,6 +328,26 @@ public class DocumentDetailView extends StandardDetailView<Document> {
                 .withResizable(true)
                 .withDraggable(true)
                 .open();
+    }
+
+    /**
+     * The access dialog saved the document, so the card takes it again: OK then does not collide with that save,
+     * and the card follows the new level of the user. A user who gave the document up sees the card close.
+     */
+    private void takeDocumentAgain() {
+        if (dataManager.load(Id.of(getEditedEntity())).optional().isEmpty()) {
+            notifications.create(messageBundle.getMessage("documentUnavailable"))
+                    .withType(Notifications.Type.WARNING)
+                    .show();
+            // the repository reloads its list after a card that saved
+            close(StandardOutcome.SAVE);
+            return;
+        }
+
+        getViewData().loadAll();
+        setReadOnly(!accessChecker.canEdit(getEditedEntity()));
+
+        showDocument();
     }
 
     private void toggleTransition(DocumentStatus target) {
@@ -312,13 +375,15 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         Document document = getEditedEntity();
         DocumentStatus status = document.getStatus();
         boolean archived = isArchived();
+        // the view turns read-only before it is shown when the user only views the document
+        boolean locked = archived || isReadOnly();
 
         updateTitle();
         statusBadge.addClassName(statusColor(status));
 
-        nameField.setReadOnly(archived);
-        documentDateField.setReadOnly(archived);
-        newVersionUpload.setVisible(!archived);
+        nameField.setReadOnly(locked);
+        documentDateField.setReadOnly(locked);
+        newVersionUpload.setVisible(!locked);
 
         if (isNew() && newVersionUpload.getUploadButton() instanceof Button uploadButton) {
             uploadButton.setText(messageBundle.getMessage("uploadFile"));
@@ -326,9 +391,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
         downloadButton.setVisible(document.getCurrentRevision() != null);
 
-        activateButton.setVisible(status == DocumentStatus.DRAFT);
-        archiveButton.setVisible(status == DocumentStatus.ACTIVE);
-        unarchiveButton.setVisible(archived);
+        activateButton.setVisible(status == DocumentStatus.DRAFT && !isReadOnly());
+        archiveButton.setVisible(status == DocumentStatus.ACTIVE && !isReadOnly());
+        unarchiveButton.setVisible(archived && !isReadOnly());
+        accessButton.setVisible(!isNew() && accessChecker.getLevel(document.getAccessSet()) == AccessLevel.MANAGE);
 
         folderField.setValue(folderService.getPath(document.getFolder()).stream()
                 .map(metadataTools::getInstanceName)

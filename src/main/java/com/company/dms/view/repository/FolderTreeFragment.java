@@ -1,8 +1,14 @@
 package com.company.dms.view.repository;
 
+import com.company.dms.app.service.access.AccessLevels;
+import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.folder.FolderContents;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.folder.FolderTree;
+import com.company.dms.model.access.AccessDraft;
+import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.view.access.AccessDetailView;
 import com.company.dms.view.folder.FolderDetailView;
 import com.company.dms.view.folder.FolderLookupView;
 import com.company.dms.view.folder.FolderRenderers;
@@ -11,15 +17,18 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.selection.SelectionEvent;
+import io.jmix.core.LoadContext;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
+import io.jmix.flowui.Notifications;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.fragment.FragmentUtils;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.kit.action.ActionVariant;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -31,6 +40,7 @@ import io.jmix.flowui.view.MessageBundle;
 import io.jmix.flowui.view.StandardOutcome;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.Supply;
+import io.jmix.flowui.view.Target;
 import io.jmix.flowui.view.View;
 import io.jmix.flowui.view.ViewComponent;
 import org.jspecify.annotations.Nullable;
@@ -40,6 +50,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,6 +59,8 @@ import java.util.stream.Collectors;
 
 /**
  * The folder tree of the repository with the folder actions, the folder filter and the document counts.
+ * The folders on the way to what the user has access to are greyed, and the actions follow the user's level
+ * in the selected folder.
  */
 @FragmentDescriptor("folder-tree-fragment.xml")
 public class FolderTreeFragment extends Fragment<VerticalLayout> {
@@ -59,6 +73,10 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     private CollectionContainer<Folder> foldersDc;
     @ViewComponent
     private CollectionLoader<Folder> foldersDl;
+    @ViewComponent("foldersTree.createFolderAction")
+    private Action createFolderAction;
+    @ViewComponent("foldersTree.accessFolderAction")
+    private Action accessFolderAction;
 
     @ViewComponent
     private MessageBundle messageBundle;
@@ -66,13 +84,19 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     @Autowired
     private FolderService folderService;
     @Autowired
+    private AccessService accessService;
+    @Autowired
     private DialogWindows dialogWindows;
     @Autowired
     private Dialogs dialogs;
     @Autowired
+    private Notifications notifications;
+    @Autowired
     private MetadataTools metadataTools;
     @Autowired
     private FolderRenderers folderRenderers;
+
+    private FolderTree tree = new FolderTree(List.of(), Set.of(), new AccessLevels(Map.of(), false));
 
     private Map<UUID, Folder> allFolders = Map.of();
     private Map<UUID, Long> documentCounts = Map.of();
@@ -89,10 +113,16 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Reloads the tree and selects the folder, or the root if the folder is gone. The filter is cleared,
-     * so the folder is in sight.
+     * Reloads the tree and selects the folder. A folder that is gone or no longer available to the user gives way
+     * to the nearest folder above it that the tree still shows, or to the root, with a notification. The filter
+     * is cleared, so the folder is in sight.
      */
     public void loadAndSelect(@Nullable UUID folderId) {
+        // the way up as the tree showed it before the reload, the folder itself first
+        List<Folder> way = folderId == null || !allFolders.containsKey(folderId)
+                ? List.of()
+                : getPath(allFolders.get(folderId)).reversed();
+
         // the folder is selected below, once allFolders is rebuilt: neither the reload nor clearing the filter
         // may select the previous one, or the breadcrumbs would show its old path
         foldersTree.deselectAll();
@@ -108,8 +138,20 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
 
         documentCounts = folderService.countDocuments(allFolders.values());
 
-        Folder folder = folderId == null ? null : allFolders.get(folderId);
-        select(folder != null ? folder : allFolders.get(Folder.ROOT_ID));
+        Folder folder = allFolders.get(folderId == null ? Folder.ROOT_ID : folderId);
+        if (folder == null) {
+            notifications.create(messageBundle.getMessage("folderUnavailable"))
+                    .withType(Notifications.Type.WARNING)
+                    .show();
+
+            folder = way.stream()
+                    .map(step -> allFolders.get(step.getId()))
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(allFolders.get(Folder.ROOT_ID));
+        }
+
+        select(folder);
     }
 
     /**
@@ -140,6 +182,13 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
+     * Tells whether the folder is shown only as the way to folders and documents the user has access to.
+     */
+    public boolean isGreyed(Folder folder) {
+        return tree.greyed().contains(folder.getId());
+    }
+
+    /**
      * The folders from the root down to the given one.
      */
     public List<Folder> getPath(Folder folder) {
@@ -151,8 +200,19 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         return path;
     }
 
+    @Install(to = "foldersDl", target = Target.DATA_LOADER)
+    private List<Folder> foldersDlLoadDelegate(final LoadContext<Folder> loadContext) {
+        tree = folderService.loadTree();
+        return tree.folders();
+    }
+
     @Subscribe("foldersTree")
     public void onFoldersTreeSelection(final SelectionEvent<TreeDataGrid<Folder>, Folder> event) {
+        // unlike the item tracking actions, a new folder is not refreshed by the selection
+        createFolderAction.refreshState();
+        // only those who manage the folder learn that its access can be changed
+        accessFolderAction.setVisible(accessFolderActionEnabledRule());
+
         Folder folder = foldersTree.getSingleSelectedItem();
 
         // the filter makes the tree select the shown folder again, and its documents are on screen already
@@ -190,7 +250,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
 
     @Subscribe("foldersTree.createFolderAction")
     public void onCreateFolderAction(final ActionPerformedEvent event) {
-        Folder parent = getSelectedFolder() != null ? getSelectedFolder() : allFolders.get(Folder.ROOT_ID);
+        Folder parent = parentForNew();
         dialogWindows.detail(hostView(), Folder.class)
                 .withViewClass(FolderDetailView.class)
                 .newEntity()
@@ -222,14 +282,25 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         Folder folder = getSelectedFolder();
         DialogWindow<FolderLookupView> window = dialogWindows.lookup(hostView(), Folder.class)
                 .withViewClass(FolderLookupView.class)
-                .withSelectHandler(targets -> {
-                    folderService.move(folder, targets.iterator().next());
-                    loadAndSelect(folder.getId());
-                })
+                .withSelectHandler(targets -> move(folder, targets.iterator().next()))
                 .build();
 
         window.getView().setHiddenFolders(List.of(folder));
         window.open();
+    }
+
+    @Subscribe("foldersTree.accessFolderAction")
+    public void onAccessFolderAction(final ActionPerformedEvent event) {
+        Folder folder = getSelectedFolder();
+        dialogWindows.detail(hostView(), AccessDraft.class)
+                .withViewClass(AccessDetailView.class)
+                .editEntity(accessService.describe(folder))
+                .withAfterCloseListener(closeEvent -> {
+                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
+                        loadAndSelect(folder.getId());
+                    }
+                })
+                .open();
     }
 
     @Subscribe("foldersTree.deleteFolderAction")
@@ -252,28 +323,81 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
 
     @Supply(to = "foldersTree.name", subject = "renderer")
     private Renderer<Folder> foldersTreeNameRenderer() {
-        return folderRenderers.treeNameRenderer(foldersTree, folder -> documentCounts.getOrDefault(folder.getId(), 0L));
+        return folderRenderers.treeNameRenderer(foldersTree, this::isGreyed, this::showsOwnAccess,
+                folder -> documentCounts.getOrDefault(folder.getId(), 0L));
+    }
+
+    @Install(to = "foldersTree.createFolderAction", subject = "enabledRule")
+    private boolean createFolderActionEnabledRule() {
+        return allows(parentForNew(), AccessLevel.EDIT);
     }
 
     @Install(to = "foldersTree.renameFolderAction", subject = "enabledRule")
     private boolean renameFolderActionEnabledRule() {
-        return isNotRootSelected();
+        return isNotRootSelected() && allows(foldersTree.getSingleSelectedItem(), AccessLevel.EDIT);
     }
 
     @Install(to = "foldersTree.moveFolderAction", subject = "enabledRule")
     private boolean moveFolderActionEnabledRule() {
-        return isNotRootSelected();
+        return isNotRootSelected() && allows(foldersTree.getSingleSelectedItem(), AccessLevel.EDIT);
+    }
+
+    @Install(to = "foldersTree.accessFolderAction", subject = "enabledRule")
+    private boolean accessFolderActionEnabledRule() {
+        return allows(foldersTree.getSingleSelectedItem(), AccessLevel.MANAGE);
     }
 
     @Install(to = "foldersTree.deleteFolderAction", subject = "enabledRule")
     private boolean deleteFolderActionEnabledRule() {
-        return isNotRootSelected();
+        return isNotRootSelected() && allows(foldersTree.getSingleSelectedItem(), AccessLevel.EDIT);
     }
 
     // the actions refresh before onFoldersTreeSelection runs, so they read the tree's selection, not selectedFolder
     private boolean isNotRootSelected() {
         Folder folder = foldersTree.getSingleSelectedItem();
         return folder != null && !folder.isRoot();
+    }
+
+    // a new folder goes into the selected folder; while the filter hides it, into the shown one
+    @Nullable
+    private Folder parentForNew() {
+        Folder selected = foldersTree.getSingleSelectedItem();
+        Folder folder = selected != null ? selected : selectedFolder;
+        return folder != null ? folder : allFolders.get(Folder.ROOT_ID);
+    }
+
+    private boolean allows(@Nullable Folder folder, AccessLevel level) {
+        return folder != null && tree.levels().allows(folder.getAccessSet(), level);
+    }
+
+    // the key tells a manager where access stops being inherited
+    private boolean showsOwnAccess(Folder folder) {
+        Folder parent = parentOf(folder);
+        return parent != null
+                && !folder.getAccessSet().equals(parent.getAccessSet())
+                && allows(folder, AccessLevel.MANAGE);
+    }
+
+    private void move(Folder folder, Folder target) {
+        Runnable move = () -> {
+            folderService.move(folder, target);
+            loadAndSelect(folder.getId());
+        };
+
+        if (!accessService.changesOnMove(folder, target)) {
+            move.run();
+            return;
+        }
+
+        dialogs.createOptionDialog()
+                .withHeader(messageBundle.getMessage("moveChangesAccessDialog.header"))
+                .withText(messageBundle.formatMessage("moveFolderChangesAccessDialog.text",
+                        metadataTools.getInstanceName(folder), metadataTools.getInstanceName(target)))
+                .withActions(
+                        new DialogAction(DialogAction.Type.YES).withVariant(ActionVariant.PRIMARY)
+                                .withHandler(actionEvent -> move.run()),
+                        new DialogAction(DialogAction.Type.NO))
+                .open();
     }
 
     @Nullable
