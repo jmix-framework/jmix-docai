@@ -2,6 +2,7 @@
 <menu-config xmlns="http://jmix.io/schema/flowui/menu">
 
     <menu id="application" title="msg://com.company.dms/menu.application.title" opened="true">
+        <item view="RepositoryView" title="msg://com.company.dms.view.repository/repositoryView.title"/>
         <item view="User.list" title="msg://com.company.dms.view.user/UserListView.title"/>
     </menu>
 

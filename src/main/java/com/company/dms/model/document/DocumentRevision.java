@@ -7,6 +7,7 @@ import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.DependsOnProperties;
 import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
+import io.jmix.core.metamodel.annotation.JmixProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -79,6 +80,15 @@ public class DocumentRevision {
     @DependsOnProperties({"number", "file"})
     public String getDisplayName() {
         return number + " · " + (file == null ? "" : file.getFileName());
+    }
+
+    /**
+     * The name of the revision's file, as an attribute of its own so that lists can sort by it.
+     */
+    @JmixProperty
+    @DependsOnProperties("file")
+    public String getFileName() {
+        return file == null ? null : file.getFileName();
     }
 
     public UUID getId() {

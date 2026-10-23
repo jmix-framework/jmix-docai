@@ -9,10 +9,12 @@ import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestGrids;
 import com.company.dms.test_support.TestUploads;
 import com.company.dms.view.main.MainView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Pre;
@@ -20,6 +22,7 @@ import com.vaadin.flow.component.html.Span;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Messages;
+import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -69,6 +72,9 @@ class DocumentDetailViewTest {
 
     @Autowired
     private Messages messages;
+
+    @Autowired
+    private MetadataTools metadataTools;
 
     @TempDir
     private Path tempDir;
@@ -157,6 +163,14 @@ class DocumentDetailViewTest {
     }
 
     @Test
+    void theFolderFieldShowsThePathAsTheBreadcrumbsDo() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        assertThat(this.<TypedTextField<String>>component(card, "folderField").getValue())
+                .isEqualTo(metadataTools.getInstanceName(folderService.getRoot()) + " / " + sandbox.getName());
+    }
+
+    @Test
     void okDeletesTheTemporaryFile() {
         DocumentDetailView card = openCard(upload("a.txt"));
         TemporaryStorage.FileInfo staged = TestUploads.succeed(component(card, "newVersionUpload"),
@@ -188,6 +202,7 @@ class DocumentDetailViewTest {
         assertThat(card.hasUnsavedChanges()).isTrue();
         assertThat(this.<Span>component(card, "pendingChanges").getText())
                 .isEqualTo("→ " + messages.getMessage(DocumentStatus.ACTIVE));
+
         assertThat(this.<JmixButton>component(card, "activateButton").getThemeNames())
                 .contains(ButtonVariant.PRIMARY.getVariantName());
 
@@ -240,6 +255,75 @@ class DocumentDetailViewTest {
     }
 
     @Test
+    void everyVersionColumnCanBeSorted() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
+
+        assertThat(revisionsGrid.getColumns())
+                .allSatisfy(column -> assertThat(column.isSortable()).as(column.getKey()).isTrue());
+    }
+
+    @Test
+    void anUploadedFileShowsInThePreviewBeforeOk() {
+        DocumentDetailView card = openCard(upload("a.txt", "first"));
+
+        TestUploads.succeed(component(card, "newVersionUpload"), temporaryStorage, "a-v2.txt", "second");
+
+        assertThat(previewText(component(card, "preview"))).isEqualTo("second");
+    }
+
+    @Test
+    void aRestoredVersionShowsInThePreviewBeforeOk() {
+        Document document = upload("a.txt", "first");
+        DocumentRevision first = reload(document).getCurrentRevision();
+        documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "second"));
+        DocumentDetailView card = openCard(reload(document));
+        DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
+
+        revisionsGrid.select(first);
+        revisionsGrid.getAction("restoreRevisionAction").actionPerform(revisionsGrid);
+
+        assertThat(previewText(component(card, "preview"))).isEqualTo("first");
+    }
+
+    @Test
+    void showingAVersionOpensItInADialogAndKeepsTheCardPreview() {
+        Document document = upload("a.txt", "first");
+        DocumentRevision first = reload(document).getCurrentRevision();
+        documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "second"));
+        DocumentDetailView card = openCard(reload(document));
+        DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
+
+        revisionsGrid.select(first);
+        revisionsGrid.getAction("showRevisionAction").actionPerform(revisionsGrid);
+
+        assertThat(previewText(lastDialogPreview())).isEqualTo("first");
+        assertThat(previewText(component(card, "preview"))).isEqualTo("second");
+    }
+
+    @Test
+    void aDoubleClickOnAVersionOpensItInADialog() {
+        Document document = upload("a.txt", "first");
+        DocumentRevision first = reload(document).getCurrentRevision();
+        documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "second"));
+        DocumentDetailView card = openCard(reload(document));
+
+        TestGrids.doubleClickRow(component(card, "revisionsGrid"), first);
+
+        assertThat(previewText(lastDialogPreview())).isEqualTo("first");
+    }
+
+    @Test
+    void aNewDocumentAsksForAFileAndAnExistingOneForANewVersion() {
+        Button newCardUpload = uploadButton(openNewCard());
+        Button existingCardUpload = uploadButton(openCard(upload("a.txt")));
+
+        assertThat(newCardUpload.getText()).isEqualTo(messages.getMessage("com.company.dms.view.document/uploadFile"));
+        assertThat(existingCardUpload.getText())
+                .isEqualTo(messages.getMessage("com.company.dms.view.document/newVersionUpload.uploadText"));
+    }
+
+    @Test
     void aLongTextShowsItsBeginningWithANote() {
         DocumentDetailView card = openCard(upload("long.txt", "a".repeat(300 * 1024)));
 
@@ -275,6 +359,22 @@ class DocumentDetailViewTest {
 
     private <T> T component(DocumentDetailView card, String id) {
         return UiTestUtils.getComponent(card, id);
+    }
+
+    private Button uploadButton(DocumentDetailView card) {
+        return (Button) this.<JmixUpload<?>>component(card, "newVersionUpload").getUploadButton();
+    }
+
+    private String previewText(DocumentPreviewFragment preview) {
+        return ((Pre) FragmentUtils.getComponent(preview, "previewText")).getText();
+    }
+
+    private DocumentPreviewFragment lastDialogPreview() {
+        return UiTestUtils.getLastOpenedDialog().getContentComponents().stream()
+                .filter(DocumentPreviewFragment.class::isInstance)
+                .map(DocumentPreviewFragment.class::cast)
+                .findFirst()
+                .orElseThrow();
     }
 
     private Document upload(String fileName) {

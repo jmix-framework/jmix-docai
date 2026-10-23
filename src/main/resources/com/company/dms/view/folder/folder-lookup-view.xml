@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://folderLookupView.title"
+      focusComponent="foldersTree">
+    <data readOnly="true">
+        <collection id="foldersDc" class="com.company.dms.model.folder.Folder">
+            <fetchPlan extends="_base">
+                <property name="parent" fetchPlan="_instance_name"/>
+            </fetchPlan>
+            <loader id="foldersDl">
+                <query>
+                    <![CDATA[select f from Folder f order by f.name]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout>
+        <textField id="folderFilterField" width="100%" clearButtonVisible="true" valueChangeMode="LAZY"
+                   placeholder="msg://folderFilterField.placeholder" ariaLabel="msg://folderFilterField.placeholder">
+            <prefix>
+                <icon icon="SEARCH"/>
+            </prefix>
+        </textField>
+        <treeDataGrid id="foldersTree" dataContainer="foldersDc" hierarchyProperty="parent"
+                      width="100%" height="100%">
+            <columns>
+                <column property="name" header="msg://foldersColumn.header" sortable="false"/>
+            </columns>
+        </treeDataGrid>
+        <hbox id="lookupActions" visible="false">
+            <button id="selectButton" action="selectAction"/>
+            <button id="discardButton" action="discardAction"/>
+        </hbox>
+    </layout>
+</view>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <fragment xmlns="http://jmix.io/schema/flowui/fragment">
     <content>
-        <vbox id="previewRoot" classNames="document-preview" width="100%" height="100%">
+        <vbox id="previewRoot" classNames="document-preview" width="100%">
             <vbox id="previewEmpty" classNames="document-preview-empty" width="AUTO" padding="false"
                   alignItems="CENTER">
-                <icon icon="FILE_O" classNames="document-preview-icon"/>
+                <icon icon="FILE" classNames="document-preview-icon"/>
                 <span id="previewMessage" classNames="document-preview-message" text="msg://noDocument"/>
                 <button id="downloadButton" text="msg://downloadButton.text" icon="DOWNLOAD" visible="false"/>
             </vbox>

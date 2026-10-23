@@ -2,7 +2,7 @@ package com.company.dms.view.login;
 
 import com.company.dms.DMSApplication;
 import com.company.dms.test_support.AnonymousUiTestAuthenticator;
-import com.company.dms.view.main.MainView;
+import com.company.dms.view.repository.RepositoryView;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
 import io.jmix.core.security.CurrentAuthentication;
@@ -28,7 +28,7 @@ class LoginViewTest {
     void anEmployeeSignsInWithTheDemoPassword() {
         login("peter", "peter");
 
-        assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(MainView.class);
+        assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(RepositoryView.class);
         assertThat(currentAuthentication.getUser().getUsername()).isEqualTo("peter");
     }
 

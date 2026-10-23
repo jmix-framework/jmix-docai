@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <data readOnly="true">
+        <collection id="documentsDc" class="com.company.dms.model.document.Document">
+            <fetchPlan extends="_base">
+                <property name="currentRevision" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="documentsDl">
+                <query>
+                    <![CDATA[select d from Document d where d.folder = :folder order by d.name]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <fragmentSettings auto="true"/>
+    </facets>
+    <content>
+        <vbox id="documentListRoot" width="100%" height="100%" padding="false">
+            <hbox id="documentToolbar" width="100%" alignItems="START">
+                <hbox id="documentActions" classNames="buttons-panel" alignItems="CENTER" width="100%">
+                    <upload id="documentsUpload" classNames="upload-button"
+                            uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="20" dropAllowed="true"
+                            uploadText="msg://documentsUpload.uploadText" uploadIcon="UPLOAD"/>
+                    <button id="createDocumentButton" text="msg://createDocumentButton.text" icon="FILE_ADD"/>
+                    <button id="openButton" action="documentsGrid.openAction"/>
+                    <upload id="versionUpload" classNames="upload-button"
+                            uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="1" dropAllowed="false" enabled="false"
+                            uploadText="msg://versionUpload.uploadText" uploadIcon="REFRESH"/>
+                    <button id="moveButton" action="documentsGrid.moveAction"/>
+                    <dropdownButton id="statusButton" text="msg://statusButton.text" icon="FLAG" enabled="false">
+                        <items>
+                            <actionItem id="activateItem" ref="documentsGrid.activateAction"/>
+                            <actionItem id="archiveItem" ref="documentsGrid.archiveAction"/>
+                            <actionItem id="unarchiveItem" ref="documentsGrid.unarchiveAction"/>
+                        </items>
+                    </dropdownButton>
+                    <button id="deleteButton" action="documentsGrid.deleteAction"/>
+                </hbox>
+                <button id="previewButton" text="msg://previewButton.text" icon="EYE"/>
+            </hbox>
+            <dataGrid id="documentsGrid" dataContainer="documentsDc" selectionMode="MULTI"
+                      width="100%" height="100%" minHeight="12em" emptyStateText="msg://documentsGrid.emptyStateText">
+                <actions showInContextMenuEnabled="true">
+                    <action id="openAction" type="list_itemTracking"
+                            text="msg://openAction.text" icon="FILE_TEXT"/>
+                    <action id="downloadAction" type="list_itemTracking"
+                            text="msg://downloadAction.text" icon="DOWNLOAD"/>
+                    <action id="moveAction" type="list_itemTracking"
+                            text="msg://moveAction.text" icon="ARROW_RIGHT"/>
+                    <action id="activateAction" type="list_itemTracking"
+                            text="msg://activateAction.text" icon="CHECK"/>
+                    <action id="archiveAction" type="list_itemTracking"
+                            text="msg://archiveAction.text" icon="ARCHIVE"/>
+                    <action id="unarchiveAction" type="list_itemTracking"
+                            text="msg://unarchiveAction.text" icon="UNDO"/>
+                    <action id="deleteAction" type="list_itemTracking" actionVariant="DANGER"
+                            text="msg://deleteAction.text" icon="TRASH"/>
+                </actions>
+                <columns resizable="true">
+                    <column property="name"/>
+                    <column property="status" autoWidth="true" flexGrow="0"/>
+                    <column property="documentDate" autoWidth="true" flexGrow="0"/>
+                    <column key="fileSize" property="currentRevision.fileSize" autoWidth="true" flexGrow="0"/>
+                    <column property="lastModifiedBy" autoWidth="true" flexGrow="0"/>
+                    <column property="lastModifiedDate" autoWidth="true" flexGrow="0"/>
+                </columns>
+            </dataGrid>
+        </vbox>
+    </content>
+</fragment>

@@ -23,7 +23,10 @@ class RoleViewAccessTest {
     @CsvSource({
             "peter, MainView, true",
             "peter, ProfileReadView, true",
+            "peter, RepositoryView, true",
             "peter, Document.detail, true",
+            "peter, Folder.detail, true",
+            "peter, Folder.lookup, true",
             "peter, User.list, false",
             "peter, User.detail, false",
             "peter, roleAssignmentView, false",

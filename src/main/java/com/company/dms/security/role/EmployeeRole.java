@@ -10,6 +10,7 @@ import io.jmix.security.model.SecurityScope;
 import io.jmix.security.role.annotation.EntityAttributePolicy;
 import io.jmix.security.role.annotation.EntityPolicy;
 import io.jmix.security.role.annotation.ResourceRole;
+import io.jmix.securityflowui.role.annotation.MenuPolicy;
 import io.jmix.securityflowui.role.annotation.ViewPolicy;
 
 /**
@@ -74,6 +75,7 @@ public interface EmployeeRole extends UiMinimalRole {
     /**
      * Opens the views of the document repository.
      */
-    @ViewPolicy(viewIds = "Document.detail")
+    @ViewPolicy(viewIds = {"RepositoryView", "Document.detail", "Folder.detail", "Folder.lookup"})
+    @MenuPolicy(menuIds = "RepositoryView")
     void repository();
 }

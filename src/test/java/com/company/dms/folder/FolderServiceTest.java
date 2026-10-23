@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -62,6 +63,14 @@ class FolderServiceTest {
     @AfterEach
     void deleteSandbox() {
         folderService.delete(sandbox);
+    }
+
+    @Test
+    void theRootIsStoredAsTheRepository() {
+        Folder root = folderService.getRoot();
+
+        assertThat(root.getName()).isEqualTo("Repository");
+        assertThat(root.getNameKey()).isEqualTo("Repository");
     }
 
     @Test
@@ -167,6 +176,60 @@ class FolderServiceTest {
 
         assertThat(contents.subfolders()).isEqualTo(2);
         assertThat(contents.documents()).isEqualTo(2);
+    }
+
+    @Test
+    void aFolderCountsTheDocumentsOfItsSubfolders() {
+        Folder parent = folder(sandbox, "Parent");
+        Folder child = folder(parent, "Child");
+        upload(parent, "a.txt");
+        upload(child, "b.txt");
+        upload(child, "c.txt");
+
+        Map<UUID, Long> counts = folderService.countDocuments(List.of(sandbox, parent, child));
+
+        assertThat(counts)
+                .containsEntry(sandbox.getId(), 3L)
+                .containsEntry(parent.getId(), 3L)
+                .containsEntry(child.getId(), 2L);
+    }
+
+    @Test
+    void aFolderWithoutDocumentsCountsZero() {
+        Folder empty = folder(sandbox, "Empty");
+
+        assertThat(folderService.countDocuments(List.of(empty))).containsEntry(empty.getId(), 0L);
+    }
+
+    @Test
+    void deletedDocumentsAreNotCounted() {
+        Document deleted = upload(sandbox, "a.txt");
+        upload(sandbox, "b.txt");
+
+        documentService.delete(List.of(deleted));
+
+        assertThat(folderService.countDocuments(List.of(sandbox))).containsEntry(sandbox.getId(), 1L);
+    }
+
+    @Test
+    void filteringByNameKeepsTheMatchesWithTheirParents() {
+        Folder contracts = folder(sandbox, "Contracts");
+        Folder signed = folder(contracts, "Signed 2026");
+        Folder invoices = folder(sandbox, "Invoices");
+
+        List<Folder> shown = folderService.filterByName(List.of(sandbox, contracts, signed, invoices), "SIGNED");
+
+        assertThat(shown).containsExactly(sandbox, contracts, signed);
+    }
+
+    @Test
+    void onlyTheGivenFoldersAddTheirDocumentsToTheParent() {
+        Folder parent = folder(sandbox, "Parent");
+        Folder hidden = folder(parent, "Hidden");
+        upload(hidden, "a.txt");
+
+        // a folder the user does not see must not reveal its documents through the count of its parent
+        assertThat(folderService.countDocuments(List.of(parent))).containsEntry(parent.getId(), 0L);
     }
 
     @Test

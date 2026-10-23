@@ -45,14 +45,14 @@
         <insert tableName="FOLDER" dbms="postgresql, mssql, hsqldb, h2">
             <column name="ID" value="1a6e3c0e-5b0f-4c55-9a3e-6f1d2c7b8e01"/>
             <column name="VERSION" valueNumeric="1"/>
-            <column name="NAME" value="Documents"/>
-            <column name="NAME_KEY" value="Documents"/>
+            <column name="NAME" value="Repository"/>
+            <column name="NAME_KEY" value="Repository"/>
         </insert>
         <insert tableName="FOLDER" dbms="oracle, mysql, mariadb">
             <column name="ID" value="1a6e3c0e5b0f4c559a3e6f1d2c7b8e01"/>
             <column name="VERSION" valueNumeric="1"/>
-            <column name="NAME" value="Documents"/>
-            <column name="NAME_KEY" value="Documents"/>
+            <column name="NAME" value="Repository"/>
+            <column name="NAME_KEY" value="Repository"/>
         </insert>
     </changeSet>
 

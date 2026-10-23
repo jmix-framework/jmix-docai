@@ -12,7 +12,9 @@ import com.company.dms.view.main.MainView;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
@@ -25,10 +27,11 @@ import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
 import io.jmix.core.metamodel.datatype.DatatypeFormatter;
+import io.jmix.flowui.Dialogs;
+import io.jmix.flowui.Fragments;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.datepicker.TypedDatePicker;
 import io.jmix.flowui.component.grid.DataGrid;
-import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.component.upload.UploadSucceededEvent;
@@ -38,17 +41,7 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.InstanceContainer;
 import io.jmix.flowui.upload.TemporaryStorage;
-import io.jmix.flowui.view.DialogMode;
-import io.jmix.flowui.view.EditedEntityContainer;
-import io.jmix.flowui.view.Install;
-import io.jmix.flowui.view.MessageBundle;
-import io.jmix.flowui.view.StandardDetailView;
-import io.jmix.flowui.view.Subscribe;
-import io.jmix.flowui.view.Supply;
-import io.jmix.flowui.view.Target;
-import io.jmix.flowui.view.ViewComponent;
-import io.jmix.flowui.view.ViewController;
-import io.jmix.flowui.view.ViewDescriptor;
+import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
@@ -66,7 +59,7 @@ import java.util.stream.Collectors;
 @ViewController(id = "Document.detail")
 @ViewDescriptor(path = "document-detail-view.xml")
 @EditedEntityContainer("documentDc")
-@DialogMode(width = "64em", height = "44em", resizable = true)
+@DialogMode(width = "76em", height = "52em", resizable = true)
 public class DocumentDetailView extends StandardDetailView<Document> {
 
     @ViewComponent
@@ -102,10 +95,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private TypedTextField<String> modifiedField;
 
     @ViewComponent
-    private JmixTabSheet cardTabs;
-    @ViewComponent
-    private Tab generalTab;
-    @ViewComponent
     private Tab versionsTab;
 
     @ViewComponent
@@ -138,6 +127,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private Messages messages;
     @Autowired
     private Notifications notifications;
+    @Autowired
+    private Dialogs dialogs;
+    @Autowired
+    private Fragments fragments;
     @Autowired
     private RevisionDownloader revisionDownloader;
 
@@ -196,14 +189,15 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @Subscribe("newVersionUpload")
     public void onNewVersionUploadSucceeded(final UploadSucceededEvent<TemporaryStorage.FileInfo> event) {
-        changes.uploadVersion(event.getData().getId(),
-                new UploadedFile(event.getFileName(), event.getData().getFile().toPath()));
+        UploadedFile file = new UploadedFile(event.getFileName(), event.getData().getFile().toPath());
+        changes.uploadVersion(event.getData().getId(), file);
 
         if (isNew() && Strings.isNullOrEmpty(nameField.getValue())) {
             nameField.setValue(event.getFileName());
         }
 
         newVersionUpload.clearFileList();
+        preview.showFile(file);
         afterStaging();
     }
 
@@ -241,13 +235,19 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @Subscribe("revisionsGrid.showRevisionAction")
     public void onShowRevisionAction(final ActionPerformedEvent event) {
-        preview.showRevision(revisionsGrid.getSingleSelectedItem());
-        cardTabs.setSelectedTab(generalTab);
+        openRevision(revisionsGrid.getSingleSelectedItem());
+    }
+
+    @Subscribe("revisionsGrid")
+    public void onRevisionsGridItemDoubleClick(final ItemDoubleClickEvent<DocumentRevision> event) {
+        openRevision(event.getItem());
     }
 
     @Subscribe("revisionsGrid.restoreRevisionAction")
     public void onRestoreRevisionAction(final ActionPerformedEvent event) {
-        changes.restoreVersion(revisionsGrid.getSingleSelectedItem());
+        DocumentRevision revision = revisionsGrid.getSingleSelectedItem();
+        changes.restoreVersion(revision);
+        preview.showRevision(revision);
         afterStaging();
     }
 
@@ -257,14 +257,26 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         return revision != null && !isArchived() && !revision.equals(getEditedEntity().getCurrentRevision());
     }
 
-    @Supply(to = "revisionsGrid.fileName", subject = "renderer")
-    private Renderer<DocumentRevision> revisionFileNameRenderer() {
-        return new TextRenderer<>(revision -> revision.getFile().getFileName());
-    }
-
-    @Supply(to = "revisionsGrid.size", subject = "renderer")
+    @Supply(to = "revisionsGrid.fileSize", subject = "renderer")
     private Renderer<DocumentRevision> revisionSizeRenderer() {
         return new TextRenderer<>(revision -> fileSizeFormatter.format(revision.getFileSize()));
+    }
+
+    // a version opens over the card, so showing it does not replace the card's own preview
+    private void openRevision(DocumentRevision revision) {
+        DocumentPreviewFragment revisionPreview = fragments.create(this, DocumentPreviewFragment.class);
+        revisionPreview.showRevision(revision);
+
+        dialogs.createMessageDialog()
+                .withHeader(messageBundle.formatMessage("revisionDialog.header",
+                        revision.getNumber(), revision.getFileName()))
+                .withContent(revisionPreview)
+                .withClassName("revision-dialog")
+                .withWidth("56em")
+                .withHeight("40em")
+                .withResizable(true)
+                .withDraggable(true)
+                .open();
     }
 
     private void toggleTransition(DocumentStatus target) {
@@ -299,6 +311,11 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         nameField.setReadOnly(archived);
         documentDateField.setReadOnly(archived);
         newVersionUpload.setVisible(!archived);
+
+        if (isNew() && newVersionUpload.getUploadButton() instanceof Button uploadButton) {
+            uploadButton.setText(messageBundle.getMessage("uploadFile"));
+        }
+
         downloadButton.setVisible(document.getCurrentRevision() != null);
 
         activateButton.setVisible(status == DocumentStatus.DRAFT);
@@ -307,13 +324,13 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
         folderField.setValue(folderService.getPath(document.getFolder()).stream()
                 .map(metadataTools::getInstanceName)
-                .collect(Collectors.joining(" › ")));
+                .collect(Collectors.joining(" / ")));
 
         DocumentRevision current = document.getCurrentRevision();
         currentVersionField.setValue(current == null
                 ? ""
                 : "%d · %s · %s".formatted(current.getNumber(), current.getFile().getFileName(),
-                        fileSizeFormatter.format(current.getFileSize())));
+                fileSizeFormatter.format(current.getFileSize())));
 
         createdField.setValue(describeChange(document.getCreatedBy(), document.getCreatedDate()));
         modifiedField.setValue(describeChange(document.getLastModifiedBy(), document.getLastModifiedDate()));

@@ -1,18 +1,58 @@
 /* Repository, document preview and document card */
 
+.breadcrumbs {
+    gap: var(--vaadin-gap-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* A link is as tall as its text, so the row keeps its height in the root folder, whose path has no link */
+.breadcrumbs vaadin-button {
+    padding-block: 0;
+    border-block-width: 0;
+}
+
+.breadcrumb-current {
+    color: var(--vaadin-text-color);
+    font-weight: var(--aura-font-weight-medium);
+}
+
+/* A grid cell name with its icon. A click anywhere inside goes to the name itself, so in a folder tree it selects the folder */
+.name-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+}
+
+.name-with-icon > * {
+    pointer-events: none;
+}
+
+.folder-document-count {
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* Menu items take no action variant, so the folder menu marks its main and its dangerous item here */
+vaadin-menu-bar-item#createFolderItem:not([disabled]) {
+    color: var(--aura-accent-text-color);
+}
+
+vaadin-menu-bar-item#deleteFolderItem:not([disabled]) {
+    color: var(--aura-red-text);
+}
+
 .document-preview-message,
 .document-card-pending {
     color: var(--vaadin-text-color-secondary);
 }
 
-/* The upload component keeps its frame and padding without a drop zone, so a toolbar upload drops them */
+/* The upload component keeps its frame, padding and drop label without a drop zone, so a toolbar upload drops them */
 vaadin-upload.upload-button {
     padding: 0;
     border: none;
     background: none;
 }
 
-vaadin-upload.upload-button > [slot^='drop-label'] {
+vaadin-upload.upload-button::part(drop-label) {
     display: none;
 }
 
@@ -21,7 +61,8 @@ vaadin-upload.upload-button > [slot^='drop-label'] {
     box-sizing: border-box;
 }
 
-.document-card-actions {
+.document-card-actions,
+.folder-tree-buttons {
     margin-inline-start: auto;
 }
 
@@ -30,8 +71,31 @@ vaadin-upload.upload-button > [slot^='drop-label'] {
     flex: 1 1 20em;
 }
 
+/* Sized without its content, the preview stretches to the height of the row, and a long text scrolls inside it */
 .document-card-preview {
     flex: 1 1 28em;
+    contain: size;
+    min-height: 30em;
+}
+
+/* The side panel shrinks the preview to the rest of its height, so a long text scrolls inside the preview */
+.repository-preview {
+    min-height: 0;
+}
+
+/* An open preview panel keeps the gap that splitter-spacing gives the tree's splitter; the side panel has no such theme */
+.repository-preview-layout[side-panel-opened]::part(content) {
+    padding-inline-end: var(--vaadin-gap-s);
+}
+
+/* The version dialog gives the preview its whole height, so a long text scrolls inside the preview */
+.revision-dialog .document-preview {
+    height: 100%;
+}
+
+/* In a low window the document table keeps its minimum height, and the pane scrolls instead of cutting it */
+.repository-documents {
+    overflow: auto;
 }
 
 .document-preview {

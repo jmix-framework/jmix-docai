@@ -1,5 +1,7 @@
 package com.company.dms.view.document;
 
+import com.company.dms.app.service.document.ContentTypeDetector;
+import com.company.dms.app.service.document.UploadedFile;
 import com.company.dms.model.document.DocumentRevision;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.html.IFrame;
@@ -26,9 +28,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 /**
- * Shows one revision of a document in the browser: images, PDF and text from an allow-list,
+ * Shows one file of a document in the browser: images, PDF and text from an allow-list,
  * and a download button for anything else.
  */
 @FragmentDescriptor("document-preview-fragment.xml")
@@ -58,6 +61,9 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
     private FileStorageLocator fileStorageLocator;
     @Autowired
     private RevisionDownloader revisionDownloader;
+    @Autowired
+    private ContentTypeDetector contentTypeDetector;
+
     @Nullable
     private DocumentRevision revision;
 
@@ -66,12 +72,7 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
      */
     public void showRevision(@Nullable DocumentRevision revision) {
         this.revision = revision;
-
-        previewImage.setVisible(false);
-        previewFrame.setVisible(false);
-        previewText.setVisible(false);
-        truncatedNote.setVisible(false);
-        downloadButton.setVisible(false);
+        hideContent();
 
         if (revision == null) {
             showMessage(messageBundle.getMessage("noDocument"));
@@ -85,21 +86,22 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
             return;
         }
 
-        previewEmpty.setVisible(false);
-        switch (PreviewType.of(revision.getContentType())) {
-            case IMAGE -> {
-                previewImage.setSrc(inlineHandler(revision));
-                previewImage.setVisible(true);
-            }
-            case PDF -> {
-                previewFrame.setSrc(inlineHandler(revision));
-                previewFrame.setVisible(true);
-            }
-            case TEXT -> showText(storage, revision);
-            case NONE -> {
-                showMessage(messageBundle.getMessage("noPreview"));
-                downloadButton.setVisible(true);
-            }
+        show(file.getFileName(), revision.getContentType(), revision.getFileSize(), () -> storage.openStream(file));
+    }
+
+    /**
+     * Shows a file that is not saved yet, such as a new version that waits for OK in the document card.
+     * The type is detected from the content, as on save.
+     */
+    public void showFile(UploadedFile file) {
+        this.revision = null;
+        hideContent();
+
+        try {
+            show(file.fileName(), contentTypeDetector.detect(file.content(), file.fileName()),
+                    Files.size(file.content()), () -> Files.newInputStream(file.content()));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -110,21 +112,49 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
         }
     }
 
+    private void hideContent() {
+        previewImage.setVisible(false);
+        previewFrame.setVisible(false);
+        previewText.setVisible(false);
+        truncatedNote.setVisible(false);
+        downloadButton.setVisible(false);
+    }
+
+    private void show(String fileName, String contentType, long size, Content content) {
+        previewEmpty.setVisible(false);
+        switch (PreviewType.of(contentType)) {
+            case IMAGE -> {
+                previewImage.setSrc(inlineHandler(fileName, contentType, size, content));
+                previewImage.setVisible(true);
+            }
+            case PDF -> {
+                previewFrame.setSrc(inlineHandler(fileName, contentType, size, content));
+                previewFrame.setVisible(true);
+            }
+            case TEXT -> showText(content, size);
+            case NONE -> {
+                showMessage(messageBundle.getMessage("noPreview"));
+                // a file that waits for OK is the user's own upload, there is nothing to download yet
+                downloadButton.setVisible(revision != null);
+            }
+        }
+    }
+
     private void showMessage(String message) {
         previewMessage.setText(message);
         previewEmpty.setVisible(true);
     }
 
-    private void showText(FileStorage storage, DocumentRevision revision) {
-        try (InputStream content = storage.openStream(revision.getFile())) {
-            previewText.setText(new String(content.readNBytes(TEXT_LIMIT), StandardCharsets.UTF_8));
+    private void showText(Content content, long size) {
+        try (InputStream stream = content.open()) {
+            previewText.setText(new String(stream.readNBytes(TEXT_LIMIT), StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
         previewText.setVisible(true);
 
-        if (revision.getFileSize() > TEXT_LIMIT) {
+        if (size > TEXT_LIMIT) {
             truncatedNote.setText(messageBundle.formatMessage("textTruncated", TEXT_LIMIT / 1024));
             truncatedNote.setVisible(true);
         }
@@ -135,12 +165,9 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
      * on a row opens the card before the fetch arrives. Vaadin answers such a fetch with 403 unless the
      * handler allows it.
      */
-    private DownloadHandler inlineHandler(DocumentRevision revision) {
-        FileRef file = revision.getFile();
-        DownloadHandler handler = DownloadHandler.fromInputStream(event -> new DownloadResponse(
-                        fileStorageLocator.getByName(file.getStorageName()).openStream(file),
-                        file.getFileName(), revision.getContentType(), revision.getFileSize()),
-                file.getFileName()).inline();
+    private DownloadHandler inlineHandler(String fileName, String contentType, long size, Content content) {
+        DownloadHandler handler = DownloadHandler.fromInputStream(
+                event -> new DownloadResponse(content.open(), fileName, contentType, size), fileName).inline();
 
         return new DownloadHandler() {
             @Override
@@ -158,5 +185,11 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
                 return true;
             }
         };
+    }
+
+    @FunctionalInterface
+    private interface Content {
+
+        InputStream open() throws IOException;
     }
 }

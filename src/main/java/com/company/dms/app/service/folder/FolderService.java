@@ -7,16 +7,25 @@ import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
+import io.jmix.core.entity.KeyValueEntity;
 import jakarta.persistence.LockModeType;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Changes the folder tree: creates, renames, moves and deletes folders. The root stays as
@@ -157,6 +166,62 @@ public class FolderService {
                 .one();
 
         return new FolderContents(subtree.size() - 1, documents);
+    }
+
+    /**
+     * Counts the documents of each folder together with its subfolders, for the folder tree. A document adds to
+     * its folder and to the ancestors among the given folders only, so a folder the user does not see reveals
+     * nothing through its parent. A folder without documents gets 0.
+     */
+    public Map<UUID, Long> countDocuments(Collection<Folder> folders) {
+        Map<UUID, Folder> byId = folders.stream()
+                .collect(Collectors.toMap(Folder::getId, Function.identity()));
+
+        Map<UUID, Long> counts = new HashMap<>();
+        byId.keySet().forEach(id -> counts.put(id, 0L));
+
+        List<KeyValueEntity> ownCounts = dataManager.loadValues(
+                        "select d.folder.id, count(d) from Document d group by d.folder.id")
+                .properties("folderId", "documents")
+                .list();
+
+        for (KeyValueEntity ownCount : ownCounts) {
+            long documents = ownCount.<Long>getValue("documents");
+            for (Folder current = byId.get(ownCount.<UUID>getValue("folderId")); current != null;
+                 current = current.getParent() == null ? null : byId.get(current.getParent().getId())) {
+                counts.merge(current.getId(), documents, Long::sum);
+            }
+        }
+
+        return counts;
+    }
+
+    /**
+     * Returns the folders whose shown name contains the text, ignoring case, together with their parents among
+     * the given folders, in the given order. An empty text keeps every folder.
+     */
+    public List<Folder> filterByName(Collection<Folder> folders, @Nullable String text) {
+        if (text == null || text.isBlank()) {
+            return List.copyOf(folders);
+        }
+
+        String part = text.strip().toLowerCase(Locale.ROOT);
+        Map<UUID, Folder> byId = folders.stream()
+                .collect(Collectors.toMap(Folder::getId, Function.identity()));
+
+        Set<Folder> shown = new HashSet<>();
+        for (Folder folder : folders) {
+            if (metadataTools.getInstanceName(folder).toLowerCase(Locale.ROOT).contains(part)) {
+                Folder current = folder;
+                while (current != null && shown.add(current)) {
+                    current = current.getParent() == null ? null : byId.get(current.getParent().getId());
+                }
+            }
+        }
+
+        return folders.stream()
+                .filter(shown::contains)
+                .toList();
     }
 
     /**
