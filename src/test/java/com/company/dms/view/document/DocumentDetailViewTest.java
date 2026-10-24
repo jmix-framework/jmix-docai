@@ -21,8 +21,10 @@ import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
+import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -44,6 +46,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,6 +71,9 @@ class DocumentDetailViewTest {
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private UnconstrainedDataManager unconstrainedDataManager;
 
     @Autowired
     private TemporaryStorage temporaryStorage;
@@ -346,6 +353,18 @@ class DocumentDetailViewTest {
         assertThat(text.getText()).hasSize(256 * 1024);
         assertThat(note.isVisible()).isTrue();
         assertThat(emptyPreview.isVisible()).isFalse();
+    }
+
+    @Test
+    void theCardShowsWhoChangedTheDocumentItself() {
+        Document document = unconstrainedDataManager.load(Id.of(upload("a.txt"))).one();
+        document.setChangedBy("maria");
+        document.setChangedDate(OffsetDateTime.of(2020, 1, 15, 9, 30, 0, 0, ZoneOffset.UTC));
+        unconstrainedDataManager.save(document);
+
+        DocumentDetailView card = openCard(reload(document));
+
+        assertThat(this.<TypedTextField<String>>component(card, "modifiedField").getValue()).startsWith("maria, ");
     }
 
     private DocumentDetailView openNewCard() {

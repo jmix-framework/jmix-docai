@@ -14,7 +14,7 @@
         </collection>
     </data>
     <facets>
-        <fragmentSettings auto="true"/>
+        <fragmentSettings id="settings" auto="true"/>
     </facets>
     <content>
         <vbox id="documentListRoot" width="100%" height="100%" padding="false">
@@ -67,12 +67,12 @@
                             text="msg://deleteAction.text" icon="TRASH"/>
                 </actions>
                 <columns resizable="true">
-                    <column property="name"/>
+                    <column property="name" width="15em"/>
                     <column property="status" autoWidth="true" flexGrow="0"/>
                     <column property="documentDate" autoWidth="true" flexGrow="0"/>
                     <column key="fileSize" property="currentRevision.fileSize" autoWidth="true" flexGrow="0"/>
-                    <column property="lastModifiedBy" autoWidth="true" flexGrow="0"/>
-                    <column property="lastModifiedDate" autoWidth="true" flexGrow="0"/>
+                    <column property="changedBy" autoWidth="true" flexGrow="0"/>
+                    <column property="changedDate" autoWidth="true" flexGrow="0"/>
                 </columns>
             </dataGrid>
         </vbox>

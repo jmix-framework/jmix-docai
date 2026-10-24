@@ -21,6 +21,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.Query;
 import io.jmix.core.DataManager;
+import io.jmix.core.MessageTools;
+import io.jmix.core.Metadata;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.action.DialogAction;
@@ -76,6 +78,12 @@ class AccessDetailViewTest {
 
     @Autowired
     private DialogWindows dialogWindows;
+
+    @Autowired
+    private MessageTools messageTools;
+
+    @Autowired
+    private Metadata metadata;
 
     private Folder sandbox;
     private Folder shared;
@@ -217,6 +225,22 @@ class AccessDetailViewTest {
         dialog.closeWithDiscard();
 
         assertThat(setOf(team)).isEqualTo(setOf(shared));
+    }
+
+    @Test
+    void theRootHasNoBoxToInherit() {
+        systemAuthenticator.runWithUser(ADMIN, () -> {
+            JmixCheckbox inheritField = inheritField(open(folderService.getRoot()));
+
+            assertThat(inheritField.isVisible()).isFalse();
+            assertThat(inheritField.getLabel()).isNull();
+        });
+    }
+
+    @Test
+    void aLevelHasTheSameNameInTheDialogAndInDataTools() {
+        assertThat(messageTools.getPropertyCaption(metadata.getClass(AccessEntry.class), "accessLevel"))
+                .isEqualTo(messageTools.getPropertyCaption(metadata.getClass(AccessEntryDraft.class), "accessLevel"));
     }
 
     private AccessDetailView open(Folder folder) {

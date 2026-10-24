@@ -18,7 +18,9 @@ import io.jmix.core.FileStorageLocator;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
+import io.jmix.core.TimeSource;
 import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.security.CurrentAuthentication;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +46,8 @@ import java.util.function.Supplier;
  * Creates, versions, moves and deletes documents. A document gets its files as revisions:
  * a revision never changes, and the document points to its current one. The file of a new
  * revision is stored before the data and removed again if the data cannot be saved.
- * A change needs edit access to the document, a new document to its folder.
+ * A change needs edit access to the document, a new document to its folder. A change of the
+ * document itself, its file, name, date or status, stamps who made it and when; a move does not.
  */
 @Service
 public class DocumentService {
@@ -63,12 +66,15 @@ public class DocumentService {
     private final FilesProperties filesProperties;
     private final Messages messages;
     private final MetadataTools metadataTools;
+    private final CurrentAuthentication currentAuthentication;
+    private final TimeSource timeSource;
     private final TransactionTemplate transaction;
 
     public DocumentService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager,
                            FolderService folderService, AccessChecker accessChecker, AccessService accessService,
                            FileStorageLocator fileStorageLocator, ContentTypeDetector contentTypeDetector,
                            FilesProperties filesProperties, Messages messages, MetadataTools metadataTools,
+                           CurrentAuthentication currentAuthentication, TimeSource timeSource,
                            PlatformTransactionManager transactionManager) {
         this.dataManager = dataManager;
         this.unconstrainedDataManager = unconstrainedDataManager;
@@ -80,6 +86,8 @@ public class DocumentService {
         this.filesProperties = filesProperties;
         this.messages = messages;
         this.metadataTools = metadataTools;
+        this.currentAuthentication = currentAuthentication;
+        this.timeSource = timeSource;
         this.transaction = new TransactionTemplate(transactionManager);
     }
 
@@ -135,6 +143,7 @@ public class DocumentService {
             draft.setFolder(folder);
             draft.setName(name);
             draft.setStatus(DocumentStatus.DRAFT);
+            stamp(draft);
 
             // the document and its revision refer to each other, so the current revision is set in a second save
             DocumentRevision revision = newRevision(draft, 1, stored.fileRef(), stored.size(), stored.contentType());
@@ -171,6 +180,7 @@ public class DocumentService {
             boolean contentChanged = !name.equals(persisted.getName())
                     || !Objects.equals(document.getDocumentDate(), persisted.getDocumentDate())
                     || newVersion != null;
+            boolean statusChanged = targetStatus != null && targetStatus != persisted.getStatus();
 
             if (contentChanged && persisted.getStatus() == DocumentStatus.ARCHIVED) {
                 throw reject("documentArchived", persisted.getName());
@@ -181,6 +191,10 @@ public class DocumentService {
             }
 
             document.setName(name);
+            if (contentChanged || statusChanged) {
+                stamp(document);
+            }
+
             SaveContext saveContext = new SaveContext().saving(document);
             if (newVersion != null) {
                 DocumentRevision revision = switch (newVersion) {
@@ -193,7 +207,7 @@ public class DocumentService {
                 saveContext.saving(revision);
             }
 
-            if (targetStatus != null && targetStatus != persisted.getStatus()) {
+            if (statusChanged) {
                 document.setStatus(checkTransition(persisted, persisted.getStatus(), targetStatus));
             }
 
@@ -224,6 +238,7 @@ public class DocumentService {
             Document persisted = loadEditable(document);
             if (persisted.getStatus() != target) {
                 persisted.setStatus(checkTransition(persisted, persisted.getStatus(), target));
+                stamp(persisted);
                 changed.add(persisted);
             }
         }
@@ -311,6 +326,11 @@ public class DocumentService {
         }
 
         return persisted;
+    }
+
+    private void stamp(Document document) {
+        document.setChangedBy(currentAuthentication.getUser().getUsername());
+        document.setChangedDate(timeSource.now().toOffsetDateTime());
     }
 
     private StoredFile store(UploadedFile file) {

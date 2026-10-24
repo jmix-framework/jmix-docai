@@ -140,6 +140,8 @@ classDiagram
         name
         status
         documentDate
+        changedBy
+        changedDate
     }
     class DocumentRevision {
         number
@@ -179,6 +181,7 @@ classDiagram
 - One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
 - A revision never changes. A new file or a restored version adds a revision, and the document points to its current one.
 - A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date and versions until it returns to Active.
+- "Modified by" and "Modified" show who changed the document itself and when: a new version, name, date or status. A move or an access change leaves them as they are, while the Jmix audit stamps of the record change with every save.
 - Folders, documents and revisions are deleted softly. Deleting a folder takes its subtree; the administrator restores records in Data Tools.
 - A folder and a document point to the access set in effect: their parent's or their own. An access set belongs to one folder or document, and each of its entries gives a user or a role a level.
 

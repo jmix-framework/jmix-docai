@@ -45,8 +45,12 @@ import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.component.upload.UploadSucceededEvent;
+import io.jmix.flowui.facet.FragmentSettingsFacet;
+import io.jmix.flowui.facet.SettingsFacet;
+import io.jmix.flowui.facet.settings.FragmentSettings;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.fragment.FragmentUtils;
@@ -95,6 +99,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @ViewComponent
     private MessageBundle messageBundle;
+    @ViewComponent
+    private FragmentSettingsFacet settings;
 
     @Autowired
     private DocumentService documentService;
@@ -143,6 +149,19 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     };
     private Runnable contentsChangeHandler = () -> {
     };
+
+    // Jmix takes a saved width other than 100px for one the user dragged and stops the column from growing,
+    // so the name takes its share of the free space again unless the user has changed its width
+    @Install(to = "settings", subject = "applySettingsDelegate")
+    private void settingsApplySettingsDelegate(final SettingsFacet.SettingsContext<FragmentSettings> context) {
+        DataGridColumn<Document> nameColumn = documentsGrid.getColumnByKey("name");
+        String declaredWidth = nameColumn.getWidth();
+        settings.applySettings();
+
+        if (Objects.equals(declaredWidth, nameColumn.getWidth())) {
+            nameColumn.setFlexGrow(1);
+        }
+    }
 
     @Subscribe
     public void onReady(final ReadyEvent event) {

@@ -15,6 +15,7 @@ import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.ViewNavigators;
+import io.jmix.flowui.Views;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.fragment.FragmentUtils;
@@ -42,6 +43,9 @@ class FolderDialogsTest {
 
     @Autowired
     private ViewNavigators viewNavigators;
+
+    @Autowired
+    private Views views;
 
     @Autowired
     private FolderService folderService;
@@ -219,6 +223,17 @@ class FolderDialogsTest {
         assertThat(lookupTree.getItems().getItems())
                 .contains(other)
                 .doesNotContain(moved, movedChild);
+    }
+
+    @Test
+    void theMoveDialogOffersNoFolderBeforeItsFoldersLoad() {
+        FolderLookupView lookup = views.create(FolderLookupView.class);
+        TreeDataGrid<Folder> lookupTree = UiTestUtils.getComponent(lookup, "foldersTree");
+
+        Component name = TestGrids.render(lookupTree, "name", sandbox);
+
+        assertThat(name.getChildren()).singleElement()
+                .satisfies(label -> assertThat(label.getElement().getClassList()).contains("folder-greyed"));
     }
 
     private FolderTreeFragment openTree(Folder folder) {

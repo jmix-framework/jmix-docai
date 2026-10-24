@@ -101,8 +101,12 @@ public class AccessDetailView extends StandardDetailView<AccessDraft> {
         setPageTitle(messageBundle.formatMessage("accessTitle", itemName()));
 
         // the root has no parent to inherit from
-        inheritField.setVisible(access.getInheritedFrom() != null);
-        inheritField.setLabel(messageBundle.formatMessage("inheritField.label", access.getInheritedFrom()));
+        if (access.getInheritedFrom() != null) {
+            inheritField.setLabel(messageBundle.formatMessage("inheritField.label", access.getInheritedFrom()));
+        } else {
+            inheritField.setVisible(false);
+        }
+
         showInheritance();
     }
 

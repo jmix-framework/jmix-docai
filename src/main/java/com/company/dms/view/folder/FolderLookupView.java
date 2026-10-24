@@ -1,5 +1,6 @@
 package com.company.dms.view.folder;
 
+import com.company.dms.app.service.access.AccessLevels;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.app.service.folder.FolderTree;
 import com.company.dms.model.access.AccessLevel;
@@ -41,7 +42,8 @@ public class FolderLookupView extends StandardListView<Folder> {
 
     private Set<Folder> hiddenFolders = Set.of();
     private List<Folder> availableFolders = List.of();
-    private FolderTree tree;
+    // nothing can be picked until the folders load
+    private AccessLevels levels = new AccessLevels(Map.of(), false);
 
     /**
      * Hides the folders and their subfolders. Call it before the view opens: the tree is filtered on load.
@@ -52,7 +54,8 @@ public class FolderLookupView extends StandardListView<Folder> {
 
     @Install(to = "foldersDl", target = Target.DATA_LOADER)
     private List<Folder> foldersDlLoadDelegate(final LoadContext<Folder> loadContext) {
-        tree = folderService.loadTree();
+        FolderTree tree = folderService.loadTree();
+        levels = tree.levels();
         return tree.folders();
     }
 
@@ -96,7 +99,7 @@ public class FolderLookupView extends StandardListView<Folder> {
     }
 
     private boolean isEditable(Folder folder) {
-        return tree.levels().allows(folder.getAccessSet(), AccessLevel.EDIT);
+        return levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
     }
 
     private boolean isHidden(Folder folder, Map<UUID, Folder> byId) {

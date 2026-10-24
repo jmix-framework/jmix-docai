@@ -100,6 +100,19 @@ public class Document {
     @Column(name = "DOCUMENT_DATE")
     private LocalDate documentDate;
 
+    /**
+     * Who changed the document itself last: its file, name, date or status. The audit stamps below change with
+     * every save of the row, an access change and a move included.
+     */
+    @Column(name = "CHANGED_BY")
+    private String changedBy;
+
+    /**
+     * When the document itself was changed last, see {@link #changedBy}.
+     */
+    @Column(name = "CHANGED_DATE")
+    private OffsetDateTime changedDate;
+
     @CreatedBy
     @Column(name = "CREATED_BY")
     private String createdBy;
@@ -208,6 +221,22 @@ public class Document {
 
     public void setDocumentDate(LocalDate documentDate) {
         this.documentDate = documentDate;
+    }
+
+    public String getChangedBy() {
+        return changedBy;
+    }
+
+    public void setChangedBy(String changedBy) {
+        this.changedBy = changedBy;
+    }
+
+    public OffsetDateTime getChangedDate() {
+        return changedDate;
+    }
+
+    public void setChangedDate(OffsetDateTime changedDate) {
+        this.changedDate = changedDate;
     }
 
     public String getCreatedBy() {

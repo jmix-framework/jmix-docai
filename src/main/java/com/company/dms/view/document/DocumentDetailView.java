@@ -407,7 +407,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
                 fileSizeFormatter.format(current.getFileSize())));
 
         createdField.setValue(describeChange(document.getCreatedBy(), document.getCreatedDate()));
-        modifiedField.setValue(describeChange(document.getLastModifiedBy(), document.getLastModifiedDate()));
+        modifiedField.setValue(describeChange(document.getChangedBy(), document.getChangedDate()));
         versionsTab.setLabel(messageBundle.formatMessage("versionsTab.label", revisionsDc.getItems().size()));
     }
 

@@ -259,6 +259,29 @@ class AccessServiceTest {
     }
 
     @Test
+    void anEntryWithoutALevelIsRejectedWithItsSubject() {
+        AccessDraft draft = accessService.describe(hr);
+        draft.setInherit(false);
+        draft.setEntries(List.of(entry(EMPLOYEE, null, null)));
+
+        assertThatThrownBy(() -> accessService.save(draft))
+                .isInstanceOf(OperationRejectedException.class)
+                .hasMessageContaining(EMPLOYEE);
+    }
+
+    @Test
+    void aTechnicalRoleGetsNoAccess() {
+        AccessDraft draft = accessService.describe(hr);
+        draft.setInherit(false);
+        draft.setEntries(List.of(entry(null, FullAccessRole.CODE, AccessLevel.VIEW)));
+
+        assertThatThrownBy(() -> accessService.save(draft))
+                .isInstanceOf(OperationRejectedException.class)
+                .hasMessageContaining(FullAccessRole.CODE);
+        assertThat(accessService.describe(hr).getInherit()).isTrue();
+    }
+
+    @Test
     void aManagerIsWarnedBeforeTheyTakeTheManagementFromThemselves() {
         ownAccess(hr, entry(null, hrDepartment.code(), AccessLevel.MANAGE));
 

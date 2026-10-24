@@ -34,11 +34,6 @@ import java.util.UUID;
 })
 public class AccessSet {
 
-    /**
-     * The set of the root folder, created by the Liquibase changelog.
-     */
-    public static final UUID ROOT_ID = UUID.fromString("2bf6f55e-0ad3-4afc-94bc-1a0915e3c932");
-
     @JmixGeneratedValue
     @Column(name = "ID", nullable = false)
     @Id

@@ -120,8 +120,8 @@ public class AccessService {
      * move while its access changes.
      *
      * @throws OperationRejectedException if the item is deleted or hidden from the user, the user does not manage
-     *                                    its access, the access changed since the dialog opened, or a user or
-     *                                    a role is listed twice
+     *                                    its access, the access changed since the dialog opened, a user or a role
+     *                                    is listed twice, an entry has no level, or a technical role gets access
      */
     @Transactional
     public void save(AccessDraft draft) {
@@ -362,6 +362,15 @@ public class AccessService {
 
         Set<String> wanted = new HashSet<>();
         for (AccessEntryDraft draft : drafts) {
+            // the dialog never sends these; a draft that comes another way gets a reason, not a database error
+            if (draft.getAccessLevel() == null) {
+                throw reject("accessLevelMissing", draft.getSubjectName());
+            }
+
+            if (draft.getRoleCode() != null && TECHNICAL_ROLES.contains(draft.getRoleCode())) {
+                throw reject("accessTechnicalRole", draft.getRoleCode());
+            }
+
             String key = subjectKey(draft.getUsername(), draft.getRoleCode());
             if (!wanted.add(key)) {
                 throw reject("accessSubjectTwice", draft.getSubjectName());

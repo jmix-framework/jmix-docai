@@ -26,6 +26,8 @@
                 <constraints nullable="false"/>
             </column>
             <column name="DOCUMENT_DATE" type="date"/>
+            <column name="CHANGED_BY" type="varchar(255)"/>
+            <column name="CHANGED_DATE" type="timestamp with time zone"/>
             <column name="CREATED_BY" type="varchar(255)"/>
             <column name="CREATED_DATE" type="timestamp with time zone"/>
             <column name="LAST_MODIFIED_BY" type="varchar(255)"/>

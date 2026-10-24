@@ -36,6 +36,7 @@ import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
+import io.jmix.flowui.settings.UserSettingsCache;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
@@ -77,6 +78,9 @@ class RepositoryViewTest {
     @Autowired
     private TemporaryStorage temporaryStorage;
 
+    @Autowired
+    private UserSettingsCache userSettingsCache;
+
     @TempDir
     private Path tempDir;
 
@@ -90,6 +94,8 @@ class RepositoryViewTest {
     @AfterEach
     void deleteSandbox() {
         folderService.delete(sandbox);
+        // leaving the view saves the column settings of the document list for the user
+        userSettingsCache.delete("RepositoryView.documentList");
     }
 
     @Test
@@ -409,6 +415,47 @@ class RepositoryViewTest {
                 .contains(ButtonVariant.PRIMARY.getVariantName());
 
         assertThat(deleteButton.getThemeNames()).contains(ButtonVariant.ERROR.getVariantName());
+    }
+
+    @Test
+    void theDocumentListShowsWhoChangedTheDocumentItself() {
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+
+        assertThat(grid.getColumnByKey("changedBy")).isNotNull();
+        assertThat(grid.getColumnByKey("changedDate")).isNotNull();
+        // the record stamps change with an access change and a move too
+        assertThat(grid.getColumnByKey("lastModifiedBy")).isNull();
+        assertThat(grid.getColumnByKey("lastModifiedDate")).isNull();
+    }
+
+    @Test
+    void theNameKeepsTakingTheFreeSpaceWhenTheSavedSettingsComeBack() {
+        open(sandbox, false);
+        // leaving the view saves the settings of its fragments, and the next visit applies them
+        viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
+
+        RepositoryView view = open(sandbox, false);
+
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        assertThat(grid.getColumnByKey("name").getWidth()).isEqualTo("15em");
+        assertThat(grid.getColumnByKey("name").getFlexGrow()).isEqualTo(1);
+    }
+
+    @Test
+    void theNameKeepsTheWidthTheUserGaveIt() {
+        RepositoryView first = open(sandbox, false);
+        // a drag of the column border leaves the new width on the server
+        this.<DataGrid<Document>>fragmentComponent(first, "documentList", "documentsGrid")
+                .getColumnByKey("name")
+                .setWidth("300px");
+        viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
+
+        RepositoryView view = open(sandbox, false);
+
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        assertThat(grid.getColumnByKey("name").getWidth()).isEqualTo("300px");
+        assertThat(grid.getColumnByKey("name").getFlexGrow()).isZero();
     }
 
     private RepositoryView open(Folder folder, boolean preview) {
