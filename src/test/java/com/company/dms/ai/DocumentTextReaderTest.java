@@ -132,13 +132,16 @@ class DocumentTextReaderTest {
     }
 
     @Test
-    void aLongTextIsCutToTheLengthTheModelReads() {
+    void aLongTextIsCutToTheLengthTheModelReadsAndSaysSo() {
         UploadedFile file = TestFiles.file(tempDir, "long.txt", "word ".repeat(10_000));
+        String note = "\n\n[The text stops here: only its first %d characters are read.]"
+                .formatted(aiSettings.getMaxTextLength());
 
         assertThat(documentTextReader.read(new NewVersion.FromFile(file)))
                 .hasValueSatisfying(text -> assertThat(text)
                         .startsWith("word word")
-                        .hasSizeLessThanOrEqualTo(aiSettings.getMaxTextLength()));
+                        .endsWith(note)
+                        .hasSizeLessThanOrEqualTo(aiSettings.getMaxTextLength() + note.length()));
     }
 
     private static byte[] leasePdf() {

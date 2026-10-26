@@ -86,6 +86,14 @@
                     </dataGrid>
                 </vbox>
             </tab>
+            <tab id="assistantTab" label="msg://assistantTab.label">
+                <hbox id="assistantContent" width="100%" minHeight="100%" wrap="true">
+                    <fragment id="assistant" classNames="document-card-assistant"
+                              class="com.company.dms.view.document.DocumentAssistantFragment"/>
+                    <fragment id="assistantPreview" classNames="document-card-preview"
+                              class="com.company.dms.view.document.DocumentPreviewFragment"/>
+                </hbox>
+            </tab>
         </tabSheet>
         <hbox id="detailActions">
             <button id="saveButton" action="saveAction"/>

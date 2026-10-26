@@ -19,6 +19,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.tabs.Tab;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
@@ -166,6 +167,13 @@ class DocumentDetailViewTest {
         DocumentDetailView card = openCard(upload("a.txt"));
 
         assertThat(this.<JmixButton>component(card, "fillWithAiButton").isVisible()).isFalse();
+    }
+
+    @Test
+    void withoutTheKeyOfTheModelTheCardHasNoAssistant() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        assertThat(this.<Tab>component(card, "assistantTab").isVisible()).isFalse();
     }
 
     @Test

@@ -34,7 +34,7 @@ The application grows in this order:
 7. Semantic search
 8. Demo data in English and Russian
 
-Steps 1 to 5 are in place, and step 6 has begun: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files, and let the AI fill the type and the fields of a document from its file.
+Steps 1 to 5 are in place, and step 6 has begun: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files, let the AI fill the type and the fields of a document from its file, and ask the AI about a document in its card.
 
 ## 🛠️ Technical Stack
 
@@ -47,6 +47,7 @@ Steps 1 to 5 are in place, and step 6 has begun: employees sign in, keep documen
 
 ## 🧩 Add-ons
 
+- AI Chat: the chat of the assistant in the document card; an experimental add-on of the Jmix Enterprise subscription
 - [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html)
 - [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html)
 - [Local File Storage](https://docs.jmix.io/jmix/files/file-storage.html)
@@ -62,6 +63,14 @@ Further add-ons come with the modules that need them.
 
 - Java 21
 - Docker with Docker Compose, for OpenSearch
+- Credentials of the Jmix premium repository, for the AI Chat add-on: they come with a Jmix Enterprise subscription or its trial
+
+The build takes the AI Chat add-on from the premium repository of Jmix. Put the credentials into `~/.gradle/gradle.properties`: the part of your license key before the dash is the user name, and the part after it is the password.
+
+```properties
+premiumRepoUser=123456123456
+premiumRepoPass=abcdefabcdef
+```
 
 ### Run the application
 
@@ -106,7 +115,7 @@ docker compose up -d --wait
 ./gradlew searchTest
 ```
 
-The AI tests call the OpenAI model with the key from `OPENAI_API_KEY` and check how it classifies the English samples next to them; a run costs a few cents:
+The AI tests call the OpenAI model with the key from `OPENAI_API_KEY` and check how it classifies the English samples next to them and how the assistant answers about one of them; a run costs a few cents:
 
 ```bash
 ./gradlew aiTest
@@ -133,10 +142,11 @@ The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the appl
 
 - **Fill with AI.** The button in the header of the document card reads the file the card shows, the saved one or a file just uploaded, and fills the type of the document, the fields of the type and the document date. The values go into the form only: you check them and save the document as usual. A document that already has a type or a date asks before the AI replaces them.
 - The types and their fields come from the document types the administrator defines, so a new type or field reaches the AI without a change of the code. Fields that hold a list of values or a reference to another record are left for you to fill.
-- The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`dms.ai.max-text-length`).
-- The OpenAI model gets the text of the file, the name of the document and the document types with their fields. Only a user who may edit the document can fill it.
+- The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`dms.ai.max-text-length`), and the AI is told where the text stops.
+- **Assistant.** The Assistant tab of a saved document is a chat with the AI about the document, next to its preview. Ask in your own words or take a suggestion, "Summary" or "Dates and amounts". The AI reads the text of the saved current version with your rights: a version that waits for OK is not what it reads. While it reads, the chat shows what it does in the AI's own words, and the answer appears as the AI writes it. The conversation lasts while the card is open and is not stored.
+- To fill a document, the OpenAI model gets the text of the file, the name of the document and the document types with their fields; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it.
 
-The assistant in the card and the assistant across the documents arrive with the next parts of this step.
+The assistant across the documents arrives with the next part of this step.
 
 ## 🎲 Demo Data
 

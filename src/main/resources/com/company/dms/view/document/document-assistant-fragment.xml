@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment"
+          xmlns:aichat="http://jmix.io/schema/aichat/ui">
+    <content>
+        <vbox id="assistantRoot" width="100%" padding="false">
+            <aichat:aiChat id="chat" classNames="document-assistant-chat" width="100%">
+                <aichat:i18n>
+                    <aichat:messageInput placeholder="msg://assistantChat.placeholder"/>
+                </aichat:i18n>
+                <aichat:emptyStateHeader>
+                    <h4 id="greeting" text="msg://assistantChat.greeting"/>
+                </aichat:emptyStateHeader>
+                <aichat:emptyStateFooter>
+                    <hbox id="suggestions" width="100%" justifyContent="CENTER" wrap="true">
+                        <button id="summaryButton" text="msg://summaryButton.text" icon="FILE_TEXT_O"/>
+                        <button id="datesAndAmountsButton" text="msg://datesAndAmountsButton.text"
+                                icon="CALENDAR"/>
+                    </hbox>
+                </aichat:emptyStateFooter>
+            </aichat:aiChat>
+        </vbox>
+    </content>
+</fragment>

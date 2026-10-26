@@ -23,6 +23,13 @@ repositories {
     maven {
         url = 'https://nexus.jmix.io/repository/public'
     }
+    maven {
+        url = 'https://nexus.jmix.io/repository/premium'
+        credentials {
+            username = rootProject['premiumRepoUser']
+            password = rootProject['premiumRepoPass']
+        }
+    }
 }
 
 dependencies {
@@ -42,6 +49,7 @@ dependencies {
     implementation 'io.jmix.search:jmix-search-starter'
     implementation 'io.jmix.search:jmix-search-opensearch-starter'
     implementation 'io.jmix.quartz:jmix-quartz-starter'
+    implementation 'io.jmix.aichat:jmix-aichat-flowui-starter'
     implementation 'io.jmix.translations:jmix-translations-ru'
     implementation 'org.apache.tika:tika-core'
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'

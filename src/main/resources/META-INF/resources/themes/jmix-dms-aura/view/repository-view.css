@@ -84,6 +84,20 @@ vaadin-upload.upload-button::part(drop-label) {
     min-height: 30em;
 }
 
+/* Sized without its content like the preview, the assistant stretches to the height of the row */
+.document-card-assistant {
+    flex: 1 1 24em;
+    contain: size;
+    min-height: 30em;
+}
+
+/* A flex item keeps the height of its content by default, so the chat would grow with the answers;
+   without that minimum it fills the assistant, and its messages scroll inside it */
+.document-assistant-chat {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
 /* The side panel shrinks the preview to the rest of its height, so a long text scrolls inside the preview */
 .repository-preview {
     min-height: 0;

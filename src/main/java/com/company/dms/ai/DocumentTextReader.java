@@ -32,6 +32,7 @@ import java.util.Optional;
 public class DocumentTextReader {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentTextReader.class);
+    private static final String CUT = "\n\n[The text stops here: only its first %d characters are read.]";
 
     private final FileStorageLocator fileStorageLocator;
     private final AiSettings aiSettings;
@@ -44,22 +45,29 @@ public class DocumentTextReader {
 
     /**
      * Returns the text of the version with its whitespace tidied, at most {@link AiSettings#getMaxTextLength()}
-     * characters of it, or nothing when the file has no text to read: pictures, scanned pages, an unknown format,
-     * a broken file.
+     * characters of it and a note where a longer text is cut, or nothing when the file has no text to read:
+     * pictures, scanned pages, an unknown format, a broken file.
      */
     public Optional<String> read(NewVersion version) {
         return switch (version) {
             case NewVersion.FromFile(UploadedFile file) ->
                     read(file.fileName(), () -> Files.newInputStream(file.content()));
-            case NewVersion.FromRevision(DocumentRevision revision) ->
-                    read(revision.getFileName(), () -> open(revision.getFile()));
+            case NewVersion.FromRevision(DocumentRevision revision) -> read(revision);
         };
+    }
+
+    /**
+     * Returns the text of a saved version by the same rules as {@link #read(NewVersion)}.
+     */
+    public Optional<String> read(DocumentRevision revision) {
+        return read(revision.getFileName(), () -> open(revision.getFile()));
     }
 
     private Optional<String> read(String fileName, InputStreamSource source) {
         BodyContentHandler handler = new BodyContentHandler(aiSettings.getMaxTextLength());
         Metadata metadata = new Metadata();
         metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, fileName);
+        boolean cut = false;
 
         try (InputStream stream = source.getInputStream()) {
             parser.parse(stream, handler, metadata, new ParseContext());
@@ -68,6 +76,8 @@ public class DocumentTextReader {
             if (!WriteLimitReachedException.isWriteLimitReached(e)) {
                 return unreadable(fileName, e);
             }
+
+            cut = true;
         } catch (IOException | TikaException | RuntimeException e) {
             return unreadable(fileName, e);
         }
@@ -79,7 +89,8 @@ public class DocumentTextReader {
             return Optional.empty();
         }
 
-        return Optional.of(text);
+        // without the note the model takes the beginning for the whole document and says the rest is not there
+        return Optional.of(cut ? text + CUT.formatted(aiSettings.getMaxTextLength()) : text);
     }
 
     private InputStream open(FileRef file) {

@@ -1,5 +1,6 @@
 package com.company.dms.view.document;
 
+import com.company.dms.ai.AiSettings;
 import com.company.dms.app.config.FilesProperties;
 import com.company.dms.app.service.access.AccessChecker;
 import com.company.dms.app.service.access.AccessService;
@@ -114,11 +115,17 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private Tab propertiesTab;
     @ViewComponent
     private Tab versionsTab;
+    @ViewComponent
+    private Tab assistantTab;
 
     @ViewComponent
     private DocumentPreviewFragment preview;
     @ViewComponent
     private DocumentPropertiesFragment propertiesFragment;
+    @ViewComponent
+    private DocumentAssistantFragment assistant;
+    @ViewComponent
+    private DocumentPreviewFragment assistantPreview;
     @ViewComponent
     private DataGrid<DocumentRevision> revisionsGrid;
     @ViewComponent
@@ -164,6 +171,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private Fragments fragments;
     @Autowired
     private RevisionDownloader revisionDownloader;
+    @Autowired
+    private AiSettings aiSettings;
 
     private DocumentCardChanges changes;
 
@@ -187,6 +196,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     public void onReady(final ReadyEvent event) {
         showDocument();
         preview.showRevision(getEditedEntity().getCurrentRevision());
+        showAssistant();
     }
 
     @Subscribe
@@ -426,6 +436,17 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         modifiedField.setValue(describeChange(document.getChangedBy(), document.getChangedDate()));
         versionsTab.setLabel(messageBundle.formatMessage("versionsTab.label", revisionsDc.getItems().size()));
         fillWithAiAction.refreshState();
+    }
+
+    // the assistant reads the saved document, so a new one gets it after the first save
+    private void showAssistant() {
+        boolean shown = aiSettings.isAvailable() && !isNew();
+        assistantTab.setVisible(shown);
+
+        if (shown) {
+            assistant.show(getEditedEntity());
+            assistantPreview.showRevision(getEditedEntity().getCurrentRevision());
+        }
     }
 
     /**
