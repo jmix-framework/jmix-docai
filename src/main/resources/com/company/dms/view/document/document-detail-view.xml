@@ -6,6 +6,7 @@
         <instance id="documentDc" class="com.company.dms.model.document.Document">
             <fetchPlan extends="_base">
                 <property name="folder" fetchPlan="_base"/>
+                <property name="category" fetchPlan="_instance_name"/>
                 <property name="accessSet" fetchPlan="_instance_name"/>
                 <property name="currentRevision" fetchPlan="_base"/>
                 <property name="revisions" fetchPlan="_base"/>
@@ -52,6 +53,9 @@
                     <fragment id="preview" classNames="document-card-preview"
                               class="com.company.dms.view.document.DocumentPreviewFragment"/>
                 </hbox>
+            </tab>
+            <tab id="propertiesTab" label="msg://propertiesTab.label">
+                <fragment id="propertiesFragment" class="com.company.dms.view.document.DocumentPropertiesFragment"/>
             </tab>
             <tab id="versionsTab" label="msg://versionsTab.label">
                 <vbox id="versionsContent" width="100%" height="100%" padding="false">

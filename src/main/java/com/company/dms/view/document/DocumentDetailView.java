@@ -112,6 +112,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @ViewComponent
     private DocumentPreviewFragment preview;
     @ViewComponent
+    private DocumentPropertiesFragment propertiesFragment;
+    @ViewComponent
     private DataGrid<DocumentRevision> revisionsGrid;
     @ViewComponent
     private CollectionContainer<DocumentRevision> revisionsDc;
@@ -384,6 +386,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         nameField.setReadOnly(locked);
         documentDateField.setReadOnly(locked);
         newVersionUpload.setVisible(!locked);
+
+        if (locked) {
+            propertiesFragment.lock();
+        }
 
         if (isNew() && newVersionUpload.getUploadButton() instanceof Button uploadButton) {
             uploadButton.setText(messageBundle.getMessage("uploadFile"));

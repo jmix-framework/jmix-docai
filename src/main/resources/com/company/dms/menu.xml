@@ -5,6 +5,11 @@
         <item view="RepositoryView" title="msg://com.company.dms.view.repository/repositoryView.title"
               icon="FOLDER_OPEN"/>
         <item view="User.list" title="msg://com.company.dms.view.user/UserListView.title" icon="USERS"/>
+        <!-- the item of the add-on stays in its group under the view id, so this one needs an id of its own -->
+        <item id="documentTypes" view="dynat_CategoryView.list"
+              title="msg://com.company.dms/menu.documentTypes.title" icon="FILE_TEXT_O"/>
     </menu>
+
+    <menu id="dynat" visible="false"/>
 
 </menu-config>

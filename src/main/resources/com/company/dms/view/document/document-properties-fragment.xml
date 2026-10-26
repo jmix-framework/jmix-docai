@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment"
+          xmlns:dynattr="http://jmix.io/schema/dynattr/flowui">
+    <data>
+        <instance id="documentDc" class="com.company.dms.model.document.Document" provided="true"/>
+    </data>
+    <content>
+        <vbox id="propertiesRoot" width="100%" padding="false">
+            <formLayout id="typeForm" dataContainer="documentDc">
+                <entityComboBox id="typeField" property="category">
+                    <actions>
+                        <action id="entityClear" type="entity_clear"/>
+                    </actions>
+                </entityComboBox>
+            </formLayout>
+            <dynattr:dynamicAttributesPanel id="fieldsPanel" dataContainer="documentDc"
+                                            categoryFieldVisible="false"/>
+        </vbox>
+    </content>
+</fragment>

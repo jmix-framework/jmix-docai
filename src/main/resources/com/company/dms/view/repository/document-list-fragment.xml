@@ -4,6 +4,7 @@
         <collection id="documentsDc" class="com.company.dms.model.document.Document">
             <fetchPlan extends="_base">
                 <property name="currentRevision" fetchPlan="_base"/>
+                <property name="category" fetchPlan="_instance_name"/>
                 <property name="accessSet" fetchPlan="_instance_name"/>
             </fetchPlan>
             <loader id="documentsDl">
@@ -68,6 +69,7 @@
                 </actions>
                 <columns resizable="true">
                     <column property="name" width="15em"/>
+                    <column property="category" autoWidth="true" flexGrow="0"/>
                     <column property="status" autoWidth="true" flexGrow="0"/>
                     <column property="documentDate" autoWidth="true" flexGrow="0"/>
                     <column key="fileSize" property="currentRevision.fileSize" autoWidth="true" flexGrow="0"/>

@@ -11,6 +11,8 @@ import io.jmix.core.entity.annotation.OnDeleteInverse;
 import io.jmix.core.metamodel.annotation.Composition;
 import io.jmix.core.metamodel.annotation.InstanceName;
 import io.jmix.core.metamodel.annotation.JmixEntity;
+import io.jmix.dynattr.model.Categorized;
+import io.jmix.dynattr.model.Category;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -26,6 +28,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -38,18 +41,21 @@ import java.util.UUID;
 
 /**
  * A document in a folder. Its files are revisions, and {@code currentRevision} points to the one
- * in use. Names are unique among the live documents of one folder and are case-sensitive.
+ * in use. Names are unique among the live documents of one folder and are case-sensitive. Its type
+ * is a category of the dynamic attributes add-on, and the fields of the type are the dynamic attributes
+ * of the category, properties named {@code +code}.
  */
 @JmixEntity
 @Entity
 @Table(name = "DOCUMENT", indexes = {
         @Index(name = "IDX_DOCUMENT_FOLDER", columnList = "FOLDER_ID"),
         @Index(name = "IDX_DOCUMENT_CURRENT_REVISION", columnList = "CURRENT_REVISION_ID"),
-        @Index(name = "IDX_DOCUMENT_ACCESS_SET", columnList = "ACCESS_SET_ID")
+        @Index(name = "IDX_DOCUMENT_ACCESS_SET", columnList = "ACCESS_SET_ID"),
+        @Index(name = "IDX_DOCUMENT_CATEGORY", columnList = "CATEGORY_ID")
 }, uniqueConstraints = {
         @UniqueConstraint(name = "UK_DOCUMENT_NAME_KEY", columnNames = {"FOLDER_ID", "NAME_KEY"})
 })
-public class Document {
+public class Document implements Categorized {
 
     @JmixGeneratedValue
     @Column(name = "ID", nullable = false)
@@ -101,8 +107,18 @@ public class Document {
     private LocalDate documentDate;
 
     /**
-     * Who changed the document itself last: its file, name, date or status. The audit stamps below change with
-     * every save of the row, an access change and a move included.
+     * The type of the document. A type that documents are marked with cannot be deleted.
+     */
+    // IntelliJ counts only the project's classes as entities, not the add-on's Category
+    @SuppressWarnings("JpaAttributeTypeInspection")
+    @OnDeleteInverse(DeletePolicy.DENY)
+    @JoinColumn(name = "CATEGORY_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Category category;
+
+    /**
+     * Who changed the document itself last: its file, name, date, type, fields or status. The audit stamps below
+     * change with every save of the row, an access change and a move included.
      */
     @Column(name = "CHANGED_BY")
     private String changedBy;
@@ -221,6 +237,18 @@ public class Document {
 
     public void setDocumentDate(LocalDate documentDate) {
         this.documentDate = documentDate;
+    }
+
+    // Categorized is @NullMarked, yet a document may have no type, and the add-on itself checks for none
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public @Nullable Category getCategory() {
+        return category;
+    }
+
+    @Override
+    public void setCategory(@Nullable Category category) {
+        this.category = category;
     }
 
     public String getChangedBy() {

@@ -16,6 +16,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Domain Model](#️-domain-model)
 - [Role Model](#-role-model)
 - [Access](#-access)
+- [Document Types](#-document-types)
 
 ## 📖 Overview
 
@@ -32,7 +33,7 @@ The application grows in this order:
 7. Semantic search
 8. Demo data in English and Russian
 
-Steps 1 to 3 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, and share folders and documents with users and roles.
+Steps 1 to 4 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, and mark documents with types whose fields the administrator defines.
 
 ## 🛠️ Technical Stack
 
@@ -45,6 +46,7 @@ Steps 1 to 3 are in place: employees sign in, keep documents in a folder tree, u
 ## 🧩 Add-ons
 
 - [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html)
+- [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html)
 - [Local File Storage](https://docs.jmix.io/jmix/files/file-storage.html)
 - Russian translation of the framework (`jmix-translations-ru`)
 
@@ -143,6 +145,13 @@ classDiagram
         changedBy
         changedDate
     }
+    class Category {
+        name
+    }
+    class CategoryAttribute {
+        code
+        dataType
+    }
     class DocumentRevision {
         number
         file
@@ -174,14 +183,17 @@ classDiagram
     Document --> DocumentStatus : status
     Folder --> AccessSet : accessSet
     Document --> AccessSet : accessSet
+    Document --> Category : category
+    Category "1" *-- "*" CategoryAttribute : categoryAttrs
     AccessSet "1" *-- "*" AccessEntry : entries
     AccessEntry --> AccessLevel : accessLevel
 ```
 
 - One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
 - A revision never changes. A new file or a restored version adds a revision, and the document points to its current one.
-- A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date and versions until it returns to Active.
-- "Modified by" and "Modified" show who changed the document itself and when: a new version, name, date or status. A move or an access change leaves them as they are, while the Jmix audit stamps of the record change with every save.
+- A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date, type, fields and versions until it returns to Active.
+- "Modified by" and "Modified" show who changed the document itself and when: a new version, name, date, type, field or status. A move or an access change leaves them as they are, while the Jmix audit stamps of the record change with every save.
+- The type of a document is a category of the Dynamic Attributes add-on (`Category`), and the fields of the type are its attributes (`CategoryAttribute`), properties of the document named `+code`.
 - Folders, documents and revisions are deleted softly. Deleting a folder takes its subtree; the administrator restores records in Data Tools.
 - A folder and a document point to the access set in effect: their parent's or their own. An access set belongs to one folder or document, and each of its entries gives a user or a role a level.
 
@@ -190,11 +202,13 @@ classDiagram
 | Role | Code | Purpose |
 |---|---|---|
 | Full Access | `system-full-access` | All data, views and actions; assigned to `admin` |
-| Employee | `employee` | Works with folders and documents and views their own profile; includes UI: minimal access |
+| Employee | `employee` | Works with folders and documents, reads the document types and views their own profile; includes UI: minimal access |
 | UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
 | Folder and document access | `access-rl` | Row-level role: a user sees and changes folders and documents by their access entries; assigned to everyone without Full Access |
 
 A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.
+
+The Employee role may change every attribute of a document. The fields of document types are attributes that the administrator adds later, so a role cannot list them. Attribute policies guard only the views: what is written is decided by the document service, and the Edit level is checked there and by `access-rl`.
 
 ## 🔑 Access
 
@@ -214,3 +228,20 @@ Access works as in SharePoint. A folder or a document either inherits the access
 - With LDAP or Active Directory, map each department group to its resource role and keep the access entries on roles rather than on users.
 
 > **Warning:** the `access-rl` role comes from the Jmix role assignments. If users sign in through LDAP or SSO and get their roles from a group mapper, add `access-rl` in the mapper, or they will see every folder and document.
+
+## 📋 Document Types
+
+A document may have a type, and each type has fields of its own. Types and fields are categories and attributes of the [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html) add-on, so the administrator adds them in the application, with no code and no restart.
+
+| Type | Fields |
+|---|---|
+| Contract | Contract number, Contract kind (Supply, Lease, Work, Services, Leasing), Counterparty, Amount, Valid until |
+| Invoice | Invoice number, Supplier, Amount, Due date |
+| Completion certificate | Contractor, Amount, Work completed on, Basis contract |
+| HR document | Employee, Department, Hire date |
+
+- The four types come from the changelog `060-document-types.xml` with English and Russian names; the documents bring the values of their fields.
+- The type and its fields are on the **Properties** tab of the document card. A new type replaces the fields on the tab, and OK deletes the values of the fields that the new type does not have.
+- A type is optional. A field marked as required makes the card ask for it, once the **Properties** tab has been shown.
+- The administrator opens **Document types** in the main menu: the add-on's view of categories and their attributes. A saved type or field shows in the cards at once, with no **Apply changes**.
+- A type that documents are marked with cannot be deleted; change the type of those documents first.

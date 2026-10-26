@@ -21,6 +21,7 @@ import io.jmix.core.SaveContext;
 import io.jmix.core.TimeSource;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.CurrentAuthentication;
+import io.jmix.dynattr.DynAttrQueryHints;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,8 @@ import java.util.function.Supplier;
  * a revision never changes, and the document points to its current one. The file of a new
  * revision is stored before the data and removed again if the data cannot be saved.
  * A change needs edit access to the document, a new document to its folder. A change of the
- * document itself, its file, name, date or status, stamps who made it and when; a move does not.
+ * document itself, its file, name, date, type, fields or status, stamps who made it and when; a move
+ * does not. A document keeps only the fields of its type: the values of other types go on save.
  */
 @Service
 public class DocumentService {
@@ -59,6 +61,7 @@ public class DocumentService {
     private final DataManager dataManager;
     private final UnconstrainedDataManager unconstrainedDataManager;
     private final FolderService folderService;
+    private final DocumentFields documentFields;
     private final AccessChecker accessChecker;
     private final AccessService accessService;
     private final FileStorageLocator fileStorageLocator;
@@ -71,14 +74,15 @@ public class DocumentService {
     private final TransactionTemplate transaction;
 
     public DocumentService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager,
-                           FolderService folderService, AccessChecker accessChecker, AccessService accessService,
-                           FileStorageLocator fileStorageLocator, ContentTypeDetector contentTypeDetector,
-                           FilesProperties filesProperties, Messages messages, MetadataTools metadataTools,
-                           CurrentAuthentication currentAuthentication, TimeSource timeSource,
-                           PlatformTransactionManager transactionManager) {
+                           FolderService folderService, DocumentFields documentFields, AccessChecker accessChecker,
+                           AccessService accessService, FileStorageLocator fileStorageLocator,
+                           ContentTypeDetector contentTypeDetector, FilesProperties filesProperties, Messages messages,
+                           MetadataTools metadataTools, CurrentAuthentication currentAuthentication,
+                           TimeSource timeSource, PlatformTransactionManager transactionManager) {
         this.dataManager = dataManager;
         this.unconstrainedDataManager = unconstrainedDataManager;
         this.folderService = folderService;
+        this.documentFields = documentFields;
         this.accessChecker = accessChecker;
         this.accessService = accessService;
         this.fileStorageLocator = fileStorageLocator;
@@ -143,6 +147,8 @@ public class DocumentService {
             draft.setFolder(folder);
             draft.setName(name);
             draft.setStatus(DocumentStatus.DRAFT);
+
+            documentFields.keepOwnType(draft);
             stamp(draft);
 
             // the document and its revision refer to each other, so the current revision is set in a second save
@@ -161,8 +167,8 @@ public class DocumentService {
     }
 
     /**
-     * Saves the changes of the document card: the edited fields, a new version, and the status
-     * transition last, because an archived document accepts no other change.
+     * Saves the changes of the document card: the edited fields, the type and its fields, a new version,
+     * and the status transition last, because an archived document accepts no other change.
      *
      * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is
      *                                    archived and its content changes, the name is taken or too long, the file
@@ -179,7 +185,8 @@ public class DocumentService {
 
             boolean contentChanged = !name.equals(persisted.getName())
                     || !Objects.equals(document.getDocumentDate(), persisted.getDocumentDate())
-                    || newVersion != null;
+                    || newVersion != null
+                    || documentFields.differ(document, persisted);
             boolean statusChanged = targetStatus != null && targetStatus != persisted.getStatus();
 
             if (contentChanged && persisted.getStatus() == DocumentStatus.ARCHIVED) {
@@ -211,6 +218,8 @@ public class DocumentService {
                 document.setStatus(checkTransition(persisted, persisted.getStatus(), targetStatus));
             }
 
+            // last: a refused change leaves the card with the values of the former type
+            documentFields.keepOwnType(document);
             return dataManager.save(saveContext).get(document);
         });
     }
@@ -317,7 +326,9 @@ public class DocumentService {
         Document persisted = dataManager.load(Document.class)
                 .id(document.getId())
                 .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
-                        .add("folder", FetchPlan.BASE))
+                        .add("folder", FetchPlan.BASE)
+                        .add("category", FetchPlan.INSTANCE_NAME))
+                .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
                 .optional()
                 .orElseThrow(() -> reject("documentUnavailable", metadataTools.getInstanceName(document)));
 

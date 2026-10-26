@@ -17,6 +17,7 @@ import com.company.dms.view.main.MainView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.internal.PendingJavaScriptInvocation;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -27,12 +28,15 @@ import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.streams.ElementRequestHandler;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
+import io.jmix.core.Id;
+import io.jmix.dynattr.model.Category;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.sidepanellayout.SidePanelLayout;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
+import io.jmix.flowui.data.grid.DataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
@@ -427,6 +431,26 @@ class RepositoryViewTest {
         // the record stamps change with an access change and a move too
         assertThat(grid.getColumnByKey("lastModifiedBy")).isNull();
         assertThat(grid.getColumnByKey("lastModifiedDate")).isNull();
+    }
+
+    @Test
+    void theTypeFollowsTheNameInTheDocumentList() {
+        Category contract = dataManager.load(Category.class)
+                .query("select c from dynat_Category c where c.name = 'Contract' and c.entityType = 'Document'")
+                .one();
+
+        Document document = upload(sandbox, "contract.txt");
+        Document typed = dataManager.load(Id.of(document)).one();
+        typed.setCategory(contract);
+        documentService.save(typed, null, null);
+
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        DataGridItems<Document> items = grid.getItems();
+
+        assertThat(grid.getColumns()).extracting(Grid.Column::getKey).startsWith("name", "category");
+        assertThat(items).isNotNull();
+        assertThat(items.getItems()).extracting(Document::getCategory).containsExactly(contract);
     }
 
     @Test

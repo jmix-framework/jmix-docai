@@ -17,13 +17,14 @@ import java.util.List;
 
 /**
  * Keeps document rules on every save path: a new document is a draft, the status follows
- * its transitions, an archived document keeps its name, date and version, and the current
+ * its transitions, an archived document keeps its name, date, type and version, and the current
  * revision belongs to the document.
  */
 @Component
 public class DocumentEventListener {
 
-    private static final List<String> ARCHIVE_LOCKED_ATTRIBUTES = List.of("name", "documentDate", "currentRevision");
+    private static final List<String> ARCHIVE_LOCKED_ATTRIBUTES = List.of("name", "documentDate", "category",
+            "currentRevision");
 
     // the rules hold whoever saves, also when the save hides the item from them
     private final UnconstrainedDataManager dataManager;

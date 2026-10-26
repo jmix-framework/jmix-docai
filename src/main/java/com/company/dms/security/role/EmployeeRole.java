@@ -8,6 +8,8 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.model.user.User;
+import io.jmix.dynattr.model.Category;
+import io.jmix.dynattr.model.CategoryAttribute;
 import io.jmix.security.model.EntityAttributePolicyAction;
 import io.jmix.security.model.EntityPolicyAction;
 import io.jmix.security.model.SecurityScope;
@@ -55,16 +57,27 @@ public interface EmployeeRole extends UiMinimalRole {
 
     /**
      * Works with the documents of every folder; the document service and listener keep
-     * the status graph and the archive lock.
+     * the status graph and the archive lock. Every attribute is open for change: the fields of
+     * a document type are attributes named {@code +code} that the administrator adds later, so a role
+     * cannot list them. Attribute policies guard only the views; what is written is decided by
+     * the document service, edit access is checked there and by {@link AccessRowLevelRole}, and
+     * the views of an employee have no editable fields for the access set or the change stamps.
      */
     @EntityPolicy(entityClass = Document.class, actions = {EntityPolicyAction.READ,
             EntityPolicyAction.CREATE, EntityPolicyAction.UPDATE, EntityPolicyAction.DELETE})
-    @EntityAttributePolicy(entityClass = Document.class,
-            attributes = {"name", "folder", "status", "documentDate", "currentRevision"},
-            action = EntityAttributePolicyAction.MODIFY)
     @EntityAttributePolicy(entityClass = Document.class, attributes = "*",
-            action = EntityAttributePolicyAction.VIEW)
+            action = EntityAttributePolicyAction.MODIFY)
     void document();
+
+    /**
+     * Reads the document types and their fields. Only the administrator changes them.
+     */
+    @EntityPolicy(entityClass = Category.class, actions = EntityPolicyAction.READ)
+    @EntityAttributePolicy(entityClass = Category.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
+    @EntityPolicy(entityClass = CategoryAttribute.class, actions = EntityPolicyAction.READ)
+    @EntityAttributePolicy(entityClass = CategoryAttribute.class, attributes = "*",
+            action = EntityAttributePolicyAction.VIEW)
+    void documentTypes();
 
     /**
      * Reads and adds document versions. A saved version never changes, and it goes away only

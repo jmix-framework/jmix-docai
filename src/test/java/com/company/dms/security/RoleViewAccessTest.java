@@ -33,11 +33,13 @@ class RoleViewAccessTest {
             "peter, roleAssignmentView, false",
             "peter, sec_ResourceRoleModel.list, false",
             "peter, datatl_entityInspectorListView, false",
+            "peter, dynat_CategoryView.list, false",
             "admin, MainView, true",
             "admin, ProfileReadView, true",
             "admin, User.list, true",
             "admin, roleAssignmentView, true",
-            "admin, datatl_entityInspectorListView, true"
+            "admin, datatl_entityInspectorListView, true",
+            "admin, dynat_CategoryView.list, true"
     })
     void theUserOpensOnlyTheViewsOfTheirRoles(String username, String viewId, boolean permitted) {
         UiShowViewContext context = new UiShowViewContext(viewId);

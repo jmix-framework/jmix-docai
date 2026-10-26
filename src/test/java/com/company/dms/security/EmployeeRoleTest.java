@@ -1,14 +1,19 @@
 package com.company.dms.security;
 
+import com.company.dms.model.document.Document;
 import com.company.dms.model.user.User;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
 import io.jmix.core.AccessManager;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
 import io.jmix.core.Metadata;
+import io.jmix.core.MetadataTools;
+import io.jmix.core.accesscontext.CrudEntityContext;
 import io.jmix.core.accesscontext.EntityAttributeContext;
 import io.jmix.core.security.AccessDeniedException;
 import io.jmix.core.security.SystemAuthenticator;
+import io.jmix.dynattr.model.Category;
+import io.jmix.dynattr.model.CategoryAttribute;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +44,9 @@ class EmployeeRoleTest {
 
     @Autowired
     private Metadata metadata;
+
+    @Autowired
+    private MetadataTools metadataTools;
 
     private User colleague;
 
@@ -106,6 +114,28 @@ class EmployeeRoleTest {
         EntityAttributeContext context = attributeContext(attribute);
 
         assertThat(context.canView()).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"name", "documentDate", "category", "+counterparty", "+hireDate"})
+    void anEmployeeChangesTheAttributeOfADocument(String attribute) {
+        EntityAttributeContext context = new EntityAttributeContext(
+                metadataTools.resolveMetaPropertyPath(metadata.getClass(Document.class), attribute));
+        systemAuthenticator.runWithUser(EMPLOYEE, () -> accessManager.applyRegisteredConstraints(context));
+
+        assertThat(context.canModify()).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = {Category.class, CategoryAttribute.class})
+    void anEmployeeReadsTheDocumentTypesButDoesNotChangeThem(Class<?> entityClass) {
+        CrudEntityContext context = new CrudEntityContext(metadata.getClass(entityClass));
+        systemAuthenticator.runWithUser(EMPLOYEE, () -> accessManager.applyRegisteredConstraints(context));
+
+        assertThat(context.isReadPermitted()).isTrue();
+        assertThat(context.isCreatePermitted()).isFalse();
+        assertThat(context.isUpdatePermitted()).isFalse();
+        assertThat(context.isDeletePermitted()).isFalse();
     }
 
     private EntityAttributeContext attributeContext(String attribute) {
