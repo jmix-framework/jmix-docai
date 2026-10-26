@@ -41,6 +41,7 @@ import io.jmix.flowui.Fragments;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.datepicker.TypedDatePicker;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.component.upload.UploadSucceededEvent;
@@ -51,6 +52,7 @@ import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.InstanceContainer;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.*;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
@@ -107,6 +109,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private TypedTextField<String> modifiedField;
 
     @ViewComponent
+    private JmixTabSheet cardTabs;
+    @ViewComponent
+    private Tab propertiesTab;
+    @ViewComponent
     private Tab versionsTab;
 
     @ViewComponent
@@ -117,6 +123,9 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private DataGrid<DocumentRevision> revisionsGrid;
     @ViewComponent
     private CollectionContainer<DocumentRevision> revisionsDc;
+
+    @ViewComponent
+    private FillWithAiAction fillWithAiAction;
 
     @ViewComponent
     private MessageBundle messageBundle;
@@ -368,6 +377,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         highlightTransition(activateButton, DocumentStatus.ACTIVE);
         highlightTransition(archiveButton, DocumentStatus.ARCHIVED);
         highlightTransition(unarchiveButton, DocumentStatus.ACTIVE);
+        fillWithAiAction.refreshState();
     }
 
     /**
@@ -415,6 +425,29 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         createdField.setValue(describeChange(document.getCreatedBy(), document.getCreatedDate()));
         modifiedField.setValue(describeChange(document.getChangedBy(), document.getChangedDate()));
         versionsTab.setLabel(messageBundle.formatMessage("versionsTab.label", revisionsDc.getItems().size()));
+        fillWithAiAction.refreshState();
+    }
+
+    /**
+     * Returns the version the card shows in its preview: a version waiting for OK or the current one; null
+     * for a new document without a file.
+     */
+    public @Nullable NewVersion getShownVersion() {
+        NewVersion pending = changes.getNewVersion();
+        DocumentRevision current = getEditedEntity().getCurrentRevision();
+
+        if (pending != null || current == null) {
+            return pending;
+        }
+
+        return new NewVersion.FromRevision(current);
+    }
+
+    /**
+     * Opens the tab with the type and the fields of the document.
+     */
+    public void showProperties() {
+        cardTabs.setSelectedTab(propertiesTab);
     }
 
     private void updateTitle() {

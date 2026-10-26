@@ -44,6 +44,7 @@ dependencies {
     implementation 'io.jmix.quartz:jmix-quartz-starter'
     implementation 'io.jmix.translations:jmix-translations-ru'
     implementation 'org.apache.tika:tika-core'
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.vaadin:vaadin-dev'
@@ -64,9 +65,11 @@ configurations.implementation {
 
 test {
     useJUnitPlatform {
-        excludeTags 'search'
+        excludeTags 'search', 'ai'
     }
     systemProperty 'spring.profiles.active', 'test'
+    // a key in the environment (SPRING_AI_OPENAI_APIKEY) outranks the property files, so the tests clear it here
+    systemProperty 'spring.ai.openai.api-key', ''
 }
 
 tasks.register('searchTest', Test) {
@@ -84,6 +87,23 @@ tasks.register('searchTest', Test) {
     systemProperty 'jmix.search.enabled', 'true'
     systemProperty 'jmix.search.search-index-name-prefix', 'dms_test_'
     systemProperty 'jmix.search.server.bulk-request-refresh-policy', 'WAIT_FOR'
+    systemProperty 'spring.ai.openai.api-key', ''
+}
+
+tasks.register('aiTest', Test) {
+    description = 'Runs the AI tests against the OpenAI model with the key from OPENAI_API_KEY.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        includeTags 'ai'
+    }
+
+    systemProperty 'spring.profiles.active', 'test'
+    // Spring resolves the placeholder from the environment, so the key never appears on the command line
+    systemProperty 'spring.ai.openai.api-key', '${OPENAI_API_KEY:}'
 }
 
 idea {

@@ -162,6 +162,13 @@ class DocumentDetailViewTest {
     }
 
     @Test
+    void withoutTheKeyOfTheModelTheCardHasNoAiButton() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        assertThat(this.<JmixButton>component(card, "fillWithAiButton").isVisible()).isFalse();
+    }
+
+    @Test
     void theTitleFollowsTheName() {
         DocumentDetailView card = openCard(upload("a.txt"));
 

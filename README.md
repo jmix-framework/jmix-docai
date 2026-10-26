@@ -34,7 +34,7 @@ The application grows in this order:
 7. Semantic search
 8. Demo data in English and Russian
 
-Steps 1 to 5 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, and find documents by the words of their files.
+Steps 1 to 5 are in place, and step 6 has begun: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files, and let the AI fill the type and the fields of a document from its file.
 
 ## 🛠️ Technical Stack
 
@@ -42,6 +42,7 @@ Steps 1 to 5 are in place: employees sign in, keep documents in a folder tree, u
 - [Jmix](https://www.jmix.io) 3.1, Spring Boot 4, Vaadin 25 with the Aura theme
 - HSQLDB, Liquibase
 - OpenSearch 2.17 in Docker Compose
+- [Spring AI](https://docs.spring.io/spring-ai/reference/) 2.0 with OpenAI
 - JUnit 5
 
 ## 🧩 Add-ons
@@ -83,6 +84,9 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 | `DMS_DB_PASSWORD` | empty | Database password |
 | `DMS_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
 | `DMS_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
+| `OPENAI_API_KEY` | empty | Key of the OpenAI API; without it the application shows no AI features |
+| `DMS_AI_MODEL` | `gpt-4o-mini` | OpenAI model of the AI features |
+| `DMS_AI_TEMPERATURE` | `0` | Temperature of the model; a reasoning model takes only `1` |
 | `SERVER_PORT` | `8080` | HTTP port |
 
 The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together. The search index follows them: after the database is reset or replaced, run `docker compose down -v` to remove the index, and the application fills it again at start.
@@ -102,6 +106,14 @@ docker compose up -d --wait
 ./gradlew searchTest
 ```
 
+The AI tests call the OpenAI model with the key from `OPENAI_API_KEY` and check how it classifies the English samples next to them; a run costs a few cents:
+
+```bash
+./gradlew aiTest
+```
+
+The other tests clear the key, so they never call the model.
+
 ### Use another database
 
 Add the JDBC driver of your database to `build.gradle` and set `DMS_DB_URL`, `DMS_DB_USERNAME` and `DMS_DB_PASSWORD`. The Liquibase changelogs keep the branches Jmix Studio writes for different databases.
@@ -117,7 +129,14 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 
 ## 🤖 AI Assistant
 
-Not available yet: it arrives with the AI classification and semantic search modules.
+The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the application works as before and shows none of them. They run on [Spring AI](https://docs.spring.io/spring-ai/reference/): another provider, a local model included, takes a different Spring AI starter, its properties and a new check in `AiSettings`, which turns the AI features on while the OpenAI key is set.
+
+- **Fill with AI.** The button in the header of the document card reads the file the card shows, the saved one or a file just uploaded, and fills the type of the document, the fields of the type and the document date. The values go into the form only: you check them and save the document as usual. A document that already has a type or a date asks before the AI replaces them.
+- The types and their fields come from the document types the administrator defines, so a new type or field reaches the AI without a change of the code. Fields that hold a list of values or a reference to another record are left for you to fill.
+- The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`dms.ai.max-text-length`).
+- The OpenAI model gets the text of the file, the name of the document and the document types with their fields. Only a user who may edit the document can fill it.
+
+The assistant in the card and the assistant across the documents arrive with the next parts of this step.
 
 ## 🎲 Demo Data
 

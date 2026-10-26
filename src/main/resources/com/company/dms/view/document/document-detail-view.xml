@@ -22,6 +22,7 @@
     <actions>
         <action id="saveAction" type="detail_saveClose"/>
         <action id="closeAction" type="detail_close"/>
+        <action id="fillWithAiAction" type="dms_fillWithAi"/>
     </actions>
     <layout>
         <hbox id="cardHeader" classNames="document-card-header" width="100%" alignItems="CENTER" wrap="true">
@@ -29,6 +30,7 @@
             <badge id="statusBadge" dataContainer="documentDc" property="status"/>
             <span id="pendingChanges" classNames="document-card-pending"/>
             <hbox id="headerActions" classNames="document-card-actions" alignItems="CENTER" wrap="true">
+                <button id="fillWithAiButton" action="fillWithAiAction"/>
                 <upload id="newVersionUpload" classNames="upload-button"
                         uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="1"
                         dropAllowed="false" uploadText="msg://newVersionUpload.uploadText" uploadIcon="UPLOAD"/>
