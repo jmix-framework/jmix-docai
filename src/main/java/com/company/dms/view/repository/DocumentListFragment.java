@@ -458,7 +458,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         return new ComponentRenderer<>(document -> {
             Badge badge = uiComponents.create(Badge.class);
             badge.setText(messages.getMessage(document.getStatus()));
-            badge.addClassName(statusColor(document.getStatus()));
+            badge.addClassName(DocumentDetailView.statusColor(document.getStatus()));
             return badge;
         });
     }
@@ -682,17 +682,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         statusButton.setEnabled(activateActionEnabledRule()
                 || archiveActionEnabledRule()
                 || unarchiveActionEnabledRule());
-    }
-
-    /**
-     * The Aura color class of a status, the same as in the document card.
-     */
-    private static String statusColor(DocumentStatus status) {
-        return switch (status) {
-            case DRAFT -> "v-neutral";
-            case ACTIVE -> "v-success";
-            case ARCHIVED -> "v-warning";
-        };
     }
 
     private static JmixFontIcon fileIcon(Document document) {

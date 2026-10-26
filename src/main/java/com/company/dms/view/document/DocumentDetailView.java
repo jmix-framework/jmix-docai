@@ -454,9 +454,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     }
 
     /**
-     * The Aura color class of a status. Aura has no neutral badge variant, so all three use its color classes.
+     * Returns the Aura color class of a status badge. Aura has no neutral badge variant, so all three use its
+     * color classes.
      */
-    private static String statusColor(DocumentStatus status) {
+    public static String statusColor(DocumentStatus status) {
         return switch (status) {
             case DRAFT -> "v-neutral";
             case ACTIVE -> "v-success";

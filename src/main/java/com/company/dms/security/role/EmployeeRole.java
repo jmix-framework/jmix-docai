@@ -118,4 +118,10 @@ public interface EmployeeRole extends UiMinimalRole {
     @ViewPolicy(viewIds = {"RepositoryView", "Document.detail", "Folder.detail", "Folder.lookup"})
     @MenuPolicy(menuIds = "RepositoryView")
     void repository();
+
+    /**
+     * Searches documents from the field in the header.
+     */
+    @ViewPolicy(viewIds = "DocumentSearchView")
+    void search();
 }

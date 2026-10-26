@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://documentSearchView.title">
+    <layout classNames="document-search">
+        <span id="messageText" classNames="document-search-message" visible="false"/>
+        <vbox id="hitsBox" width="100%" padding="false" spacing="false"/>
+        <button id="showMoreButton" text="msg://showMoreButton.text" visible="false"/>
+    </layout>
+</view>

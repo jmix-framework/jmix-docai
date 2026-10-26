@@ -1,0 +1,454 @@
+package com.company.dms.search;
+
+import com.company.dms.app.service.document.DocumentService;
+import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.model.access.AccessLevel;
+import com.company.dms.model.document.Document;
+import com.company.dms.model.document.DocumentStatus;
+import com.company.dms.model.folder.Folder;
+import com.company.dms.test_support.AuthenticatedAsAdmin;
+import com.company.dms.test_support.TestAccess;
+import com.company.dms.test_support.TestAccess.Grant;
+import com.company.dms.test_support.TestFiles;
+import io.jmix.core.DataManager;
+import io.jmix.core.FetchPlan;
+import io.jmix.core.Id;
+import io.jmix.core.IdSerialization;
+import io.jmix.core.MessageTools;
+import io.jmix.core.Messages;
+import io.jmix.core.Metadata;
+import io.jmix.core.MetadataTools;
+import io.jmix.core.entity.EntityValues;
+import io.jmix.core.security.SystemAuthenticator;
+import io.jmix.dynattr.DynAttrQueryHints;
+import io.jmix.dynattr.model.Category;
+import io.jmix.search.index.mapping.IndexConfigurationManager;
+import io.jmix.search.index.queue.IndexingQueueManager;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.Refresh;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Full-text search against OpenSearch from {@code compose.yaml}: what is found, by whom, and what leaves
+ * the index. Runs only with {@code ./gradlew searchTest}.
+ */
+@Tag("search")
+@SpringBootTest
+@ExtendWith(AuthenticatedAsAdmin.class)
+class DocumentSearchTest {
+
+    private static final String EMPLOYEE = "peter";
+    private static final String COLLEAGUE = "maria";
+
+    @Autowired
+    private DocumentSearch documentSearch;
+
+    @Autowired
+    private SearchIndexInitializer searchIndexInitializer;
+
+    @Autowired
+    private DocumentService documentService;
+
+    @Autowired
+    private FolderService folderService;
+
+    @Autowired
+    private DataManager dataManager;
+
+    @Autowired
+    private IndexingQueueManager indexingQueueManager;
+
+    @Autowired
+    private IndexConfigurationManager indexConfigurationManager;
+
+    @Autowired
+    private OpenSearchClient openSearchClient;
+
+    @Autowired
+    private IdSerialization idSerialization;
+
+    @Autowired
+    private Messages messages;
+
+    @Autowired
+    private MetadataTools metadataTools;
+
+    @Autowired
+    private MessageTools messageTools;
+
+    @Autowired
+    private Metadata metadata;
+
+    @Autowired
+    private SystemAuthenticator systemAuthenticator;
+
+    @TempDir
+    private Path tempDir;
+
+    private Folder sandbox;
+
+    @BeforeEach
+    void createSandbox() {
+        sandbox = folder(folderService.getRoot(), "search-test-" + UUID.randomUUID());
+    }
+
+    @AfterEach
+    void deleteSandbox() {
+        dataManager.load(Id.of(sandbox))
+                .optional()
+                .ifPresent(folderService::delete);
+
+        index();
+    }
+
+    @Test
+    void aWordInsideThePdfFindsTheDocument() {
+        Document lease = upload(sandbox, "lease.pdf", pdf());
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.search("Chamomile"), lease);
+
+        assertThat(hit.field()).isEqualTo(messages.getMessage(DocumentSearch.class, "fileText"));
+        assertThat(hit.snippet()).contains("<b>Chamomile</b>");
+        assertThat(hit.folderPath()).containsExactly(metadataTools.getInstanceName(folderService.getRoot()),
+                sandbox.getName());
+    }
+
+    // the samples are English, DmsIndexSettingsTest checks the Russian stemmer
+    @Test
+    void otherFormsOfAWordMatch() {
+        Document document = upload(sandbox, "The tenants signed the lease contracts on Monday.");
+        index();
+
+        assertThat(ids(documentSearch.search("contract"))).contains(document.getId());
+        assertThat(ids(documentSearch.search("tenant"))).contains(document.getId());
+    }
+
+    @Test
+    void aTextFieldOfTheTypeIsFoundAndAnAmountIsNot() {
+        String counterparty = token();
+        Document contract = upload(sandbox, "Nothing about the parties here.");
+        Document edited = reloadWithFields(contract);
+        edited.setCategory(contractType());
+        EntityValues.setValue(edited, "+counterparty", counterparty);
+        EntityValues.setValue(edited, "+contractAmount", new BigDecimal("7340001"));
+        documentService.save(edited, null, null);
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.search(counterparty), contract);
+
+        assertThat(hit.field()).isEqualTo("Counterparty");
+        assertThat(ids(documentSearch.search("7340001"))).doesNotContain(contract.getId());
+    }
+
+    @Test
+    void theStatusAndTheFolderAreNotSearched() {
+        Folder folder = folder(sandbox, token());
+        Document document = upload(folder, "Nothing about statuses or folders here.");
+        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+        index();
+
+        assertThat(ids(documentSearch.search(folder.getName()))).doesNotContain(document.getId());
+        assertThat(ids(documentSearch.search("Active"))).doesNotContain(document.getId());
+    }
+
+    @Test
+    void aWordOfTheNameIsShownWithTheNameCaption() {
+        String word = token();
+        Document document = upload(sandbox, word + ".txt", "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.search(word), document);
+
+        assertThat(hit.field()).isEqualTo(messageTools.getPropertyCaption(metadata.getClass(Document.class), "name"));
+    }
+
+    @Test
+    void aFileWithoutTextIsFoundByItsName() {
+        String word = token();
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n', 0, 0, 0, 0};
+        Document document = upload(sandbox, word + ".png", png);
+        index();
+
+        assertThat(ids(documentSearch.search(word))).containsExactly(document.getId());
+    }
+
+    @Test
+    void aRenamedDocumentIsFoundByItsNewNameAndItsFileByTheOldOne() {
+        String oldName = token();
+        String newName = token();
+        Document document = upload(sandbox, oldName + ".txt", "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+        index();
+
+        Document edited = reloadWithFields(document);
+        edited.setName(newName + ".txt");
+        documentService.save(edited, null, null);
+        index();
+
+        assertThat(hitOf(documentSearch.search(newName), document).field())
+                .isEqualTo(messageTools.getPropertyCaption(metadata.getClass(Document.class), "name"));
+        // the file of the version keeps its name
+        assertThat(hitOf(documentSearch.search(oldName), document).field())
+                .isEqualTo(messages.getMessage(DocumentSearch.class, "fileName"));
+    }
+
+    @Test
+    void wordsWithQuerySyntaxAreSearchedAsWords() {
+        Document lease = upload(sandbox, "lease.pdf", pdf());
+        index();
+
+        assertThat(ids(documentSearch.search("warehouse: \"( [* tenant"))).contains(lease.getId());
+    }
+
+    @Test
+    void anEmployeeGetsOnlyTheDocumentsTheyMaySee() {
+        String word = token();
+        Folder secret = secretFolder();
+        Document open = upload(sandbox, word);
+        Document hidden = upload(secret, word);
+        index();
+
+        assertThat(ids(documentSearch.search(word))).containsExactlyInAnyOrder(open.getId(), hidden.getId());
+        assertThat(ids(asEmployee(word))).containsExactly(open.getId());
+    }
+
+    @Test
+    void moreIsOfferedOnlyWhenTheNextPageHasADocumentTheUserMaySee() {
+        String word = token();
+        uploadMany(sandbox, word, DocumentSearch.PAGE_SIZE);
+        uploadMany(secretFolder(), word, 5);
+        index();
+
+        DocumentSearchPage employeePage = asEmployee(word);
+        DocumentSearchPage adminPage = documentSearch.search(word);
+
+        assertThat(employeePage.hits()).hasSize(DocumentSearch.PAGE_SIZE);
+        assertThat(employeePage.hasMore()).isFalse();
+        assertThat(adminPage.hits()).hasSize(DocumentSearch.PAGE_SIZE);
+        assertThat(adminPage.hasMore()).isTrue();
+        assertThat(documentSearch.next(adminPage).hits()).hasSize(5);
+    }
+
+    @Test
+    void pagesFollowEachOtherWithoutGapsOrRepeats() {
+        String word = token();
+        List<Document> documents = uploadMany(sandbox, word, 2 * DocumentSearch.PAGE_SIZE + 1);
+        index();
+
+        DocumentSearchPage first = documentSearch.search(word);
+        DocumentSearchPage second = documentSearch.next(first);
+        DocumentSearchPage third = documentSearch.next(second);
+
+        assertThat(first.hits()).hasSize(DocumentSearch.PAGE_SIZE);
+        assertThat(second.hits()).hasSize(DocumentSearch.PAGE_SIZE);
+        assertThat(third.hits()).hasSize(1);
+        assertThat(third.hasMore()).isFalse();
+        assertThat(Stream.of(first, second, third).flatMap(page -> ids(page).stream()))
+                .containsExactlyInAnyOrderElementsOf(documents.stream().map(Document::getId).toList());
+    }
+
+    @Test
+    void aNewVersionReplacesTheTextOfTheDocument() {
+        String oldWord = token();
+        String newWord = token();
+        Document document = upload(sandbox, oldWord);
+        index();
+
+        documentService.uploadRevision(document, TestFiles.file(tempDir, "v2.txt", newWord));
+        index();
+
+        assertThat(ids(documentSearch.search(oldWord))).doesNotContain(document.getId());
+        assertThat(ids(documentSearch.search(newWord))).containsExactly(document.getId());
+    }
+
+    @Test
+    void aDeletedDocumentLeavesTheIndexAtOnce() {
+        String word = token();
+        Document document = upload(sandbox, word);
+        index();
+
+        documentService.delete(List.of(document));
+
+        assertThat(inIndex(document)).isFalse();
+        index();
+        assertThat(ids(documentSearch.search(word))).isEmpty();
+    }
+
+    @Test
+    void theDocumentsOfADeletedFolderLeaveTheIndexAtOnce() {
+        String word = token();
+        Folder folder = folder(sandbox, "to-delete");
+        Document first = upload(folder, word);
+        Document second = upload(folder, word);
+        index();
+        documentService.uploadRevision(second, TestFiles.file(tempDir, "v2.txt", word + " again"));
+        index();
+
+        folderService.delete(folder);
+
+        assertThat(inIndex(first)).isFalse();
+        assertThat(inIndex(second)).isFalse();
+        // the queue holds the removal and, through the folder and the version, an indexing that is later
+        index();
+        assertThat(inIndex(first)).isFalse();
+        assertThat(inIndex(second)).isFalse();
+    }
+
+    @Test
+    void anEmptyIndexIsFilledWithTheLiveDocuments() {
+        String word = token();
+        Document document = upload(sandbox, word);
+        index();
+        emptyIndex();
+
+        assertThat(searchIndexInitializer.fillEmptyIndex()).isTrue();
+        indexAll();
+
+        assertThat(ids(documentSearch.search(word))).containsExactly(document.getId());
+        assertThat(searchIndexInitializer.fillEmptyIndex()).isFalse();
+    }
+
+    @Test
+    void aDocumentUploadedByAnEmployeeIsIndexed() {
+        String word = token();
+        Document document = systemAuthenticator.withUser(EMPLOYEE, () -> upload(sandbox, word));
+        index();
+
+        assertThat(ids(documentSearch.search(word))).containsExactly(document.getId());
+    }
+
+    private DocumentSearchPage asEmployee(String word) {
+        return systemAuthenticator.withUser(EMPLOYEE, () -> documentSearch.search(word));
+    }
+
+    private static DocumentSearchHit hitOf(DocumentSearchPage page, Document document) {
+        return page.hits().stream()
+                .filter(hit -> hit.document().equals(document))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Not found: " + document.getName()));
+    }
+
+    private static List<UUID> ids(DocumentSearchPage page) {
+        return page.hits().stream()
+                .map(hit -> hit.document().getId())
+                .toList();
+    }
+
+    private void index() {
+        indexingQueueManager.processEntireQueue();
+    }
+
+    private void indexAll() {
+        while (indexingQueueManager.processNextEnqueueingSession() > 0) {
+            index();
+        }
+
+        index();
+    }
+
+    private boolean inIndex(Document document) {
+        try {
+            return openSearchClient.exists(request -> request.index(indexName())
+                            .id(idSerialization.idToString(Id.of(document))))
+                    .value();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void emptyIndex() {
+        try {
+            openSearchClient.deleteByQuery(request -> request.index(indexName())
+                    .query(query -> query.matchAll(all -> all))
+                    .refresh(Refresh.True));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private String indexName() {
+        return indexConfigurationManager.getIndexConfigurationByEntityName("Document").getIndexName();
+    }
+
+    private Folder secretFolder() {
+        Folder secret = folder(sandbox, "secret");
+
+        return TestAccess.giveOwnAccess(dataManager, secret, Grant.user(COLLEAGUE, AccessLevel.EDIT));
+    }
+
+    private Folder folder(Folder parent, String name) {
+        Folder folder = dataManager.create(Folder.class);
+        folder.setParent(parent);
+        folder.setName(name);
+        return folderService.save(folder);
+    }
+
+    private Document upload(Folder folder, String text) {
+        return upload(folder, "doc-" + UUID.randomUUID() + ".txt", text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private Document upload(Folder folder, String fileName, byte[] content) {
+        return documentService.upload(folder, List.of(TestFiles.file(tempDir, fileName, content)))
+                .created()
+                .getFirst();
+    }
+
+    private List<Document> uploadMany(Folder folder, String text, int count) {
+        return documentService.upload(folder, IntStream.range(0, count)
+                        .mapToObj(number -> TestFiles.file(tempDir, "doc-" + number + ".txt", text))
+                        .toList())
+                .created();
+    }
+
+    private Document reloadWithFields(Document document) {
+        return dataManager.load(Document.class)
+                .id(document.getId())
+                .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("folder", FetchPlan.BASE)
+                        .add("category", FetchPlan.INSTANCE_NAME))
+                .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
+                .one();
+    }
+
+    private Category contractType() {
+        return dataManager.load(Category.class)
+                .query("select c from dynat_Category c where c.name = 'Contract' and c.entityType = 'Document'")
+                .one();
+    }
+
+    private static byte[] pdf() {
+        try (InputStream stream = DocumentSearchTest.class.getResourceAsStream("lease.pdf")) {
+            return Objects.requireNonNull(stream).readAllBytes();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Returns a unique word. It ends with a letter, as names do before their extension: «contract.txt».
+     */
+    private static String token() {
+        return "w" + UUID.randomUUID().toString().replace("-", "") + "z";
+    }
+}

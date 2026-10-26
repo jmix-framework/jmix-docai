@@ -1,0 +1,42 @@
+/* Search field in the header and the search results */
+
+/* The field takes the free space before the user menu, so the menu stays next to it */
+.main-view-search {
+    margin-inline-start: auto;
+    margin-inline-end: var(--vaadin-padding-m);
+    width: min(18em, 40vw);
+}
+
+.main-view-search ~ .jmix-main-view-user-menu {
+    margin-inline-start: 0;
+}
+
+.document-search-hit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-s);
+    padding-block: var(--vaadin-padding-m);
+    border-bottom: 1px solid var(--vaadin-border-color-secondary);
+}
+
+.document-search-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+}
+
+.document-search-path,
+.document-search-field,
+.document-search-message {
+    color: var(--vaadin-text-color-secondary);
+}
+
+.document-search-field {
+    margin-inline-end: var(--vaadin-gap-s);
+}
+
+.document-search-match {
+    color: var(--aura-accent-text-color);
+    font-weight: var(--aura-font-weight-medium);
+}

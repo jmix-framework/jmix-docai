@@ -39,6 +39,9 @@ dependencies {
     implementation 'io.jmix.datatools:jmix-datatools-flowui-starter'
     implementation 'io.jmix.dynattr:jmix-dynattr-starter'
     implementation 'io.jmix.dynattr:jmix-dynattr-flowui-starter'
+    implementation 'io.jmix.search:jmix-search-starter'
+    implementation 'io.jmix.search:jmix-search-opensearch-starter'
+    implementation 'io.jmix.quartz:jmix-quartz-starter'
     implementation 'io.jmix.translations:jmix-translations-ru'
     implementation 'org.apache.tika:tika-core'
 
@@ -60,8 +63,27 @@ configurations.implementation {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'search'
+    }
     systemProperty 'spring.profiles.active', 'test'
+}
+
+tasks.register('searchTest', Test) {
+    description = 'Runs the full-text search tests against OpenSearch from compose.yaml.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        includeTags 'search'
+    }
+
+    systemProperty 'spring.profiles.active', 'test'
+    systemProperty 'jmix.search.enabled', 'true'
+    systemProperty 'jmix.search.search-index-name-prefix', 'dms_test_'
+    systemProperty 'jmix.search.server.bulk-request-refresh-policy', 'WAIT_FOR'
 }
 
 idea {

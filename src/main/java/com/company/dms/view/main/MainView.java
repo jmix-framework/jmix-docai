@@ -2,21 +2,28 @@ package com.company.dms.view.main;
 
 import com.company.dms.model.user.User;
 import com.company.dms.view.profile.ProfileReadView;
+import com.company.dms.view.search.DocumentSearchView;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.router.AfterNavigationEvent;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import io.jmix.core.Messages;
 import io.jmix.core.usersubstitution.CurrentUserSubstitution;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.app.main.StandardMainView;
+import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.view.Install;
 import io.jmix.flowui.view.Subscribe;
+import io.jmix.flowui.view.ViewComponent;
 import io.jmix.flowui.view.ViewController;
 import io.jmix.flowui.view.ViewDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +34,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 @ViewDescriptor(path = "main-view.xml")
 public class MainView extends StandardMainView {
 
+    @ViewComponent
+    private TypedTextField<String> searchField;
+
     @Autowired
     private Messages messages;
     @Autowired
@@ -35,6 +45,23 @@ public class MainView extends StandardMainView {
     private CurrentUserSubstitution currentUserSubstitution;
     @Autowired
     private DialogWindows dialogWindows;
+    @Autowired
+    private ViewNavigators viewNavigators;
+
+    @Subscribe
+    public void onInit(final InitEvent event) {
+        searchField.addKeyPressListener(Key.ENTER, keyPressEvent -> openSearch());
+    }
+
+    @Override
+    public void afterNavigation(AfterNavigationEvent event) {
+        super.afterNavigation(event);
+
+        // the field shows the words of the open search and is empty elsewhere
+        boolean searchOpen = event.getActiveChain().stream()
+                .anyMatch(DocumentSearchView.class::isInstance);
+        searchField.setValue(searchOpen ? DocumentSearchView.queryOf(event.getLocation().getQueryParameters()) : "");
+    }
 
     @Subscribe("userMenu.profileMenuItem.profileAction")
     public void onUserMenuProfileMenuItemProfileAction(final ActionPerformedEvent event) {
@@ -105,6 +132,16 @@ public class MainView extends StandardMainView {
         }
 
         return content;
+    }
+
+    private void openSearch() {
+        String query = Strings.nullToEmpty(searchField.getValue()).strip();
+
+        if (!query.isEmpty()) {
+            viewNavigators.view(this, DocumentSearchView.class)
+                    .withQueryParameters(QueryParameters.of(DocumentSearchView.QUERY_PARAMETER, query))
+                    .navigate();
+        }
     }
 
     private Avatar createAvatar(String fullName) {

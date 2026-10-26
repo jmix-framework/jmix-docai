@@ -17,6 +17,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Role Model](#-role-model)
 - [Access](#-access)
 - [Document Types](#-document-types)
+- [Full-Text Search](#-full-text-search)
 
 ## 📖 Overview
 
@@ -28,19 +29,19 @@ The application grows in this order:
 2. Folders, documents, revisions, files and preview
 3. Access rights with inheritance
 4. Document types on dynamic attributes
-5. AI classification and the assistant
-6. Full-text search
+5. Full-text search
+6. AI classification and the assistant
 7. Semantic search
 8. Demo data in English and Russian
 
-Steps 1 to 4 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, and mark documents with types whose fields the administrator defines.
+Steps 1 to 5 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, and find documents by the words of their files.
 
 ## 🛠️ Technical Stack
 
 - Java 21, Gradle
 - [Jmix](https://www.jmix.io) 3.1, Spring Boot 4, Vaadin 25 with the Aura theme
 - HSQLDB, Liquibase
-- OpenSearch 2.17 (used from the full-text search module on)
+- OpenSearch 2.17 in Docker Compose
 - JUnit 5
 
 ## 🧩 Add-ons
@@ -48,6 +49,8 @@ Steps 1 to 4 are in place: employees sign in, keep documents in a folder tree, u
 - [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html)
 - [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html)
 - [Local File Storage](https://docs.jmix.io/jmix/files/file-storage.html)
+- [Quartz](https://docs.jmix.io/jmix/quartz/index.html): runs the indexing queue of the search
+- [Search](https://docs.jmix.io/jmix/search/index.html) with OpenSearch
 - Russian translation of the framework (`jmix-translations-ru`)
 
 Further add-ons come with the modules that need them.
@@ -57,12 +60,16 @@ Further add-ons come with the modules that need them.
 ### Prerequisites
 
 - Java 21
+- Docker with Docker Compose, for OpenSearch
 
 ### Run the application
 
 ```bash
+docker compose up -d --wait
 ./gradlew bootRun
 ```
+
+`docker compose up -d --wait` starts OpenSearch for full-text search on `127.0.0.1:19200` and returns once it answers, so that the application finds it at start. Without OpenSearch the application works, and the search says it is unavailable; if OpenSearch comes up later, restart the application, and the changes waiting in the queue are indexed then.
 
 Open <http://localhost:8080/dms> and log in as `admin` / `admin`.
 
@@ -75,9 +82,10 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 | `DMS_DB_USERNAME` | `sa` | Database user |
 | `DMS_DB_PASSWORD` | empty | Database password |
 | `DMS_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
+| `DMS_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
 | `SERVER_PORT` | `8080` | HTTP port |
 
-The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together.
+The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together. The search index follows them: after the database is reset or replaced, run `docker compose down -v` to remove the index, and the application fills it again at start.
 
 ### Run the tests
 
@@ -85,7 +93,14 @@ The database and the file directory belong together: a document version in the d
 ./gradlew test
 ```
 
-Gradle runs the tests with the `test` profile on an in-memory HSQLDB database, so every run starts from an empty schema. The tests write files to `build/test-filestorage`, and `./gradlew clean` removes them.
+Gradle runs the tests with the `test` profile on an in-memory HSQLDB database, so every run starts from an empty schema. The tests write files to `build/test-filestorage`, and `./gradlew clean` removes them. Search is off in these tests, so they need no OpenSearch.
+
+The tests of full-text search run against OpenSearch from `compose.yaml`, in indexes of their own (`dms_test_`):
+
+```bash
+docker compose up -d --wait
+./gradlew searchTest
+```
 
 ### Use another database
 
@@ -202,7 +217,7 @@ classDiagram
 | Role | Code | Purpose |
 |---|---|---|
 | Full Access | `system-full-access` | All data, views and actions; assigned to `admin` |
-| Employee | `employee` | Works with folders and documents, reads the document types and views their own profile; includes UI: minimal access |
+| Employee | `employee` | Works with folders and documents, reads the document types, searches documents and views their own profile; includes UI: minimal access |
 | UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
 | Folder and document access | `access-rl` | Row-level role: a user sees and changes folders and documents by their access entries; assigned to everyone without Full Access |
 
@@ -245,3 +260,13 @@ A document may have a type, and each type has fields of its own. Types and field
 - A type is optional. A field marked as required makes the card ask for it, once the **Properties** tab has been shown.
 - The administrator opens **Document types** in the main menu: the add-on's view of categories and their attributes. A saved type or field shows in the cards at once, with no **Apply changes**.
 - A type that documents are marked with cannot be deleted; change the type of those documents first.
+
+## 🔎 Full-Text Search
+
+The search field in the header finds documents by the words of their files: the text of a PDF, DOC, DOCX, XLS, XLSX, ODT, ODS, RTF or TXT file of the current version, the document name, the file name and the text fields of the document type. Search runs on the [Search](https://docs.jmix.io/jmix/search/index.html) add-on with OpenSearch.
+
+- Word forms match in Russian and in English: "contracts" finds "contract", and a Russian word finds its other forms as well.
+- The results show the documents a user may see, 20 at a time with **Show more**: the folder, the type, the status and the text around the found words. A click on the name opens the document card. The results never tell how many other documents match.
+- Not searched: the status, the folder, the type name, older versions, and numbers and dates, which the add-on does not index.
+- Changes reach the search within seconds: the add-on puts them into a queue, and a [Quartz](https://docs.jmix.io/jmix/quartz/index.html) job sends it to OpenSearch every five seconds. A deleted document leaves the search at once.
+- On start, the application fills an empty index with all documents, for example after the index schema changes.

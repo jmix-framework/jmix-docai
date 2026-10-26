@@ -11,6 +11,14 @@
                               classNames="jmix-main-view-drawer-toggle"
                               ariaLabel="msg://drawerToggle.ariaLabel"/>
                 <h1 id="viewTitle" classNames="jmix-main-view-title"/>
+                <textField id="searchField" classNames="main-view-search"
+                           placeholder="msg://searchField.placeholder"
+                           ariaLabel="msg://searchField.placeholder"
+                           clearButtonVisible="true">
+                    <prefix>
+                        <icon icon="SEARCH"/>
+                    </prefix>
+                </textField>
 
                 <userMenu id="userMenu"
                           themeNames="tertiary" classNames="jmix-main-view-user-menu">

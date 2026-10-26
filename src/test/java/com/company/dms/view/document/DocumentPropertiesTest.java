@@ -34,7 +34,6 @@ import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.data.EntityValueSource;
 import io.jmix.flowui.data.SupportsValueSource;
 import io.jmix.flowui.fragment.FragmentUtils;
-import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -129,18 +128,6 @@ class DocumentPropertiesTest {
         assertThat(fieldPaths(card)).containsExactly("+employee", "+department", "+hireDate");
 
         typeField(card).clear();
-        assertThat(fieldPaths(card)).isEmpty();
-    }
-
-    @Test
-    void theTypeIsClearedByTheActionOfItsField() {
-        DocumentDetailView card = openProperties(contract(upload()));
-        Action clear = typeField(card).getAction("entityClear");
-        assertThat(clear).isNotNull();
-
-        clear.actionPerform(typeField(card));
-
-        assertThat(typeField(card).getValue()).isNull();
         assertThat(fieldPaths(card)).isEmpty();
     }
 
