@@ -141,7 +141,7 @@ class LiveClassificationTest {
         ClassificationResult result = documentClassifier.apply(
                 documentClassifier.classify(document.getName(), text), document);
 
-        assertThat(result.recognized()).isTrue();
+        assertThat(result.typeName()).isNotNull();
         assertThat(result.skipped()).isEmpty();
         return document;
     }

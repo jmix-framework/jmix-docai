@@ -15,7 +15,6 @@ import io.jmix.core.Id;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.dynattr.AttributeType;
 import io.jmix.dynattr.DynAttrQueryHints;
-import io.jmix.dynattr.MsgBundleTools;
 import io.jmix.dynattr.model.Category;
 import io.jmix.dynattr.model.CategoryAttribute;
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +28,8 @@ import org.springframework.ai.model.openai.autoconfigure.OpenAiChatProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -36,6 +37,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -59,9 +61,6 @@ class DocumentClassifierTest {
 
     @Autowired
     private DataManager dataManager;
-
-    @Autowired
-    private MsgBundleTools msgBundleTools;
 
     @Autowired
     private OpenAiChatProperties openAiChatProperties;
@@ -127,7 +126,7 @@ class DocumentClassifierTest {
         ClassificationResult result = documentClassifier.apply(
                 documentClassifier.classify("invoice.pdf", "Invoice 1187"), document);
 
-        assertThat(result.recognized()).isTrue();
+        assertThat(result.typeName()).isEqualTo("Invoice");
         assertThat(result.filled()).isEmpty();
         assertThat(document.getCategory()).isEqualTo(invoiceType());
     }
@@ -142,7 +141,7 @@ class DocumentClassifierTest {
                 field("dueDate", "2026-11-15"),
                 field("invoiceNumber", "1187")), "2026-11-01"), document);
 
-        assertThat(result.recognized()).isTrue();
+        assertThat(result.typeName()).isEqualTo("Invoice");
         assertThat(result.filled()).hasSize(5);
         assertThat(result.skipped()).isEmpty();
         assertThat(document.getCategory()).isEqualTo(invoiceType());
@@ -271,8 +270,8 @@ class DocumentClassifierTest {
         ClassificationResult strange = documentClassifier.apply(new ClassificationProposal(
                 "Purchase order", List.of(), "2026-11-01"), document);
 
-        assertThat(unknown.recognized()).isFalse();
-        assertThat(strange.recognized()).isFalse();
+        assertThat(unknown.typeName()).isNull();
+        assertThat(strange.typeName()).isNull();
         assertThat(document.getCategory()).isNull();
         assertThat(document.getDocumentDate()).isNull();
     }
@@ -282,18 +281,20 @@ class DocumentClassifierTest {
         Document document = editable(upload());
 
         assertThat(documentClassifier.apply(new ClassificationProposal("invoice", List.of(), null), document)
-                .recognized()).isTrue();
+                .typeName()).isEqualTo("Invoice");
         assertThat(document.getCategory()).isEqualTo(invoiceType());
     }
 
     @Test
-    void theTypeIsFoundByItsLocalizedName() {
+    void theTypeIsFoundByItsLocalizedName() throws IOException {
         Document document = editable(upload());
-        String russianName = msgBundleTools.getMsgBundleValues(invoiceType().getLocaleNames()).get("ru");
+        Properties names = new Properties();
+        names.load(new StringReader(invoiceType().getLocaleNames()));
+        String russianName = names.getProperty("ru");
 
         assertThat(russianName).isNotBlank().isNotEqualTo("Invoice");
         assertThat(documentClassifier.apply(new ClassificationProposal(russianName, List.of(), null), document)
-                .recognized()).isTrue();
+                .typeName()).isEqualTo("Invoice");
         assertThat(document.getCategory()).isEqualTo(invoiceType());
     }
 

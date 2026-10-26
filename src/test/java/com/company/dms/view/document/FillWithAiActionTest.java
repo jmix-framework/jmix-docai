@@ -45,6 +45,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.ai.model.openai.autoconfigure.OpenAiCommonProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
@@ -108,6 +109,9 @@ class FillWithAiActionTest {
 
     @Autowired
     private StubChatModel model;
+
+    @Autowired
+    private OpenAiCommonProperties openAiCommonProperties;
 
     @TempDir
     private Path tempDir;
@@ -330,6 +334,48 @@ class FillWithAiActionTest {
         assertThat(lastNotification().getText())
                 .isEqualTo(messages.getMessage(FillWithAiAction.class, "fillWithAiAction.failed"));
         assertThat(card.getEditedEntity().getCategory()).isNull();
+    }
+
+    @Test
+    void aCallOfTheModelEndsBeforeTheCardStopsWaiting() {
+        Duration call = openAiCommonProperties.getTimeout()
+                .multipliedBy(openAiCommonProperties.getMaxRetries() + 1);
+
+        assertThat(call).isLessThan(Duration.ofSeconds(FillWithAiAction.TIMEOUT_SECONDS));
+    }
+
+    @Test
+    void aCardTakenOffThePageWhileTheAiReadsIgnoresTheLateAnswer() {
+        DocumentDetailView card = openCard(upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8)));
+        VaadinSession session = VaadinSession.getCurrent();
+        model.willReply(INVOICE_PROPOSAL);
+        session.getService().runPendingAccessTasks(session);
+        openedNotifications.closeOpenedNotifications();
+
+        button(card).click();
+        await().pollInSameThread()
+                .atMost(Duration.ofSeconds(20))
+                .until(() -> !session.getPendingAccessQueue().isEmpty());
+        // what browser navigation does to an open card
+        card.getElement().removeFromParent();
+        session.getService().runPendingAccessTasks(session);
+
+        assertThat(openedNotifications.getNotifications()).isEmpty();
+        assertThat(card.getEditedEntity().getCategory()).isNull();
+    }
+
+    @Test
+    void anActionTheCardHidesStaysHidden() {
+        DocumentDetailView card = openNewCard();
+        JmixButton button = button(card);
+        Action action = button.getAction();
+        assertThat(action).isNotNull();
+
+        action.setVisible(false);
+        TestUploads.succeed(UiTestUtils.getComponent(card, "newVersionUpload"), temporaryStorage, "invoice.txt",
+                INVOICE);
+
+        assertThat(button.isVisible()).isFalse();
     }
 
     private void fill(DocumentDetailView card) {

@@ -13,11 +13,4 @@ import java.util.List;
  * @param skipped  the fields whose values did not fit them, each with the value the model wrote
  */
 public record ClassificationResult(@Nullable String typeName, List<String> filled, List<String> skipped) {
-
-    /**
-     * Returns whether the proposal named a type of the catalog, so that the document got it.
-     */
-    public boolean recognized() {
-        return typeName != null;
-    }
 }

@@ -1,22 +1,27 @@
 package com.company.dms.ai.classification;
 
 import com.company.dms.model.document.Document;
+import io.jmix.core.LocaleResolver;
 import io.jmix.core.MessageTools;
 import io.jmix.core.Metadata;
+import io.jmix.core.MetadataTools;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.metamodel.model.MetaClass;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.dynattr.AttributeDefinition;
 import io.jmix.dynattr.AttributeType;
 import io.jmix.dynattr.CategoryDefinition;
 import io.jmix.dynattr.DynAttrMetadata;
 import io.jmix.dynattr.DynAttrUtils;
-import io.jmix.dynattr.MsgBundleTools;
 import io.jmix.dynattr.model.Category;
 import org.jspecify.annotations.Nullable;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -27,8 +32,12 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Proposes the type and the field values of a document from its text, and puts a proposal into a document
@@ -63,20 +72,23 @@ public class DocumentClassifier {
 
     private final ChatModel chatModel;
     private final DynAttrMetadata dynAttrMetadata;
-    private final MsgBundleTools msgBundleTools;
     private final Metadata metadata;
+    private final MetadataTools metadataTools;
     private final MessageTools messageTools;
+    private final CurrentAuthentication currentAuthentication;
 
     public DocumentClassifier(ChatModel chatModel,
                               DynAttrMetadata dynAttrMetadata,
-                              MsgBundleTools msgBundleTools,
                               Metadata metadata,
-                              MessageTools messageTools) {
+                              MetadataTools metadataTools,
+                              MessageTools messageTools,
+                              CurrentAuthentication currentAuthentication) {
         this.chatModel = chatModel;
         this.dynAttrMetadata = dynAttrMetadata;
-        this.msgBundleTools = msgBundleTools;
         this.metadata = metadata;
+        this.metadataTools = metadataTools;
         this.messageTools = messageTools;
+        this.currentAuthentication = currentAuthentication;
     }
 
     /**
@@ -267,22 +279,35 @@ public class DocumentClassifier {
 
     private Collection<String> localizedNames(CategoryDefinition type) {
         return type.getSource() instanceof Category category
-                ? msgBundleTools.getMsgBundleValues(category.getLocaleNames()).values()
+                ? namesByLanguage(category.getLocaleNames()).values()
                 : List.of();
     }
 
     private String nameOf(CategoryDefinition type) {
         return type.getSource() instanceof Category category
-                ? msgBundleTools.getLocalizedValue(category.getLocaleNames(), type.getName())
+                ? metadataTools.getInstanceName(category)
                 : type.getName();
     }
 
     private String nameOf(AttributeDefinition attribute) {
         String name = Objects.requireNonNullElse(attribute.getName(), attribute.getCode());
+        String language = LocaleResolver.localeToString(currentAuthentication.getLocale());
 
-        return attribute.getNameMsgBundle() == null
-                ? name
-                : msgBundleTools.getLocalizedValue(attribute.getNameMsgBundle(), name);
+        return namesByLanguage(attribute.getNameMsgBundle()).getOrDefault(language, name);
+    }
+
+    // the "Document types" view keeps the names of a type or a field as lines like "en=Invoice"
+    private static Map<String, String> namesByLanguage(@Nullable String names) {
+        Properties properties = new Properties();
+
+        try {
+            properties.load(new StringReader(Objects.requireNonNullElse(names, "")));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        return properties.stringPropertyNames().stream()
+                .collect(Collectors.toMap(Function.identity(), properties::getProperty));
     }
 
     private MetaClass documentClass() {

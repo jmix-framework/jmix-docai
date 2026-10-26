@@ -35,8 +35,13 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
 
     public static final String ID = "dms_fillWithAi";
 
+    /**
+     * How long the card waits for the AI, in seconds. A call of the model gives up earlier, see
+     * {@code spring.ai.openai.timeout} and {@code spring.ai.openai.max-retries}.
+     */
+    public static final long TIMEOUT_SECONDS = 90;
+
     private static final Logger log = LoggerFactory.getLogger(FillWithAiAction.class);
-    private static final long TIMEOUT_SECONDS = 90;
 
     private AiSettings aiSettings;
     private DocumentTextReader documentTextReader;
@@ -96,7 +101,7 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
     @Override
     public void refreshState() {
         super.refreshState();
-        setVisible(aiSettings.isAvailable() && target != null && !target.isReadOnly());
+        setVisibleInternal(visibleExplicitly && aiSettings.isAvailable() && target != null && !target.isReadOnly());
     }
 
     // the view sets the target while it loads, before it has a document
@@ -192,6 +197,11 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
 
         @Override
         public void done(Optional<ClassificationProposal> proposal) {
+            // the user may leave the card while the AI reads, and a late answer has nowhere to go
+            if (!target.isAttached()) {
+                return;
+            }
+
             proposal.ifPresentOrElse(
                     found -> showResult(documentClassifier.apply(found, target.getEditedEntity())),
                     () -> showNotification("fillWithAiAction.noText", Notifications.Type.WARNING));
@@ -200,13 +210,20 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
         @Override
         public boolean handleException(Exception e) {
             log.warn("The AI could not fill document {}", target.getEditedEntity().getId(), e);
-            showNotification("fillWithAiAction.failed", Notifications.Type.ERROR);
+
+            if (target.isAttached()) {
+                showNotification("fillWithAiAction.failed", Notifications.Type.ERROR);
+            }
+
             return true;
         }
 
         @Override
         public boolean handleTimeoutException() {
-            showNotification("fillWithAiAction.failed", Notifications.Type.ERROR);
+            if (target.isAttached()) {
+                showNotification("fillWithAiAction.failed", Notifications.Type.ERROR);
+            }
+
             return true;
         }
     }
