@@ -7,11 +7,7 @@
     <content>
         <vbox id="propertiesRoot" width="100%" padding="false">
             <formLayout id="typeForm" dataContainer="documentDc">
-                <entityComboBox id="typeField" property="category">
-                    <actions>
-                        <action id="entityClear" type="entity_clear"/>
-                    </actions>
-                </entityComboBox>
+                <entityComboBox id="typeField" property="category"/>
             </formLayout>
             <dynattr:dynamicAttributesPanel id="fieldsPanel" dataContainer="documentDc"
                                             categoryFieldVisible="false"/>
