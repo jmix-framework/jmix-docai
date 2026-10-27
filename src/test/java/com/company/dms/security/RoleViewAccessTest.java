@@ -29,6 +29,8 @@ class RoleViewAccessTest {
             "peter, Folder.lookup, true",
             "peter, AccessDraft.detail, true",
             "peter, DocumentSearchView, true",
+            "peter, aitls_AiChatHubView, true",
+            "peter, aitls_AiChatView, true",
             "peter, User.list, false",
             "peter, User.detail, false",
             "peter, roleAssignmentView, false",
@@ -41,7 +43,8 @@ class RoleViewAccessTest {
             "admin, roleAssignmentView, true",
             "admin, datatl_entityInspectorListView, true",
             "admin, dynat_CategoryView.list, true",
-            "admin, DocumentSearchView, true"
+            "admin, DocumentSearchView, true",
+            "admin, aitls_AiChatHubView, true"
     })
     void theUserOpensOnlyTheViewsOfTheirRoles(String username, String viewId, boolean permitted) {
         UiShowViewContext context = new UiShowViewContext(viewId);

@@ -14,8 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The main menu of the administrator: document types have their own item, and the group of the dynamic
- * attributes add-on, merged into a hidden group of the application menu, does not show.
+ * The main menu of the administrator: document types have their own item, and the groups of the dynamic attributes
+ * and AI Tools add-ons, merged into hidden groups of the application menu, do not show.
  */
 @UiTest
 @SpringBootTest(classes = {DMSApplication.class, FlowuiTestAssistConfiguration.class})
@@ -33,6 +33,16 @@ class MainMenuTest {
 
         assertThat(documentTypes).isNotNull();
         assertThat(documentTypes.isVisible()).isTrue();
+        assertThat(addOnGroup).isNotNull();
+        assertThat(addOnGroup.isVisible()).isFalse();
+    }
+
+    @Test
+    void theGroupOfTheAiToolsAddOnIsHidden() {
+        viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
+        JmixListMenu menu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "menu");
+        ListMenu.MenuItem addOnGroup = menu.getMenuItem("aitls");
+
         assertThat(addOnGroup).isNotNull();
         assertThat(addOnGroup.isVisible()).isFalse();
     }

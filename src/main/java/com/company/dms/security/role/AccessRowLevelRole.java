@@ -30,46 +30,47 @@ public interface AccessRowLevelRole {
 
     /**
      * The condition that the access entry {@code ae} is for the current user: for their username or for one of
-     * their resource roles. The alias must differ from {@code e}, the default alias of Jmix queries: a subquery
-     * alias {@code e} hides the outer one, and the policy lets every row through.
+     * their resource roles. The policies look for the access set of a row among the sets of such entries, so the
+     * row stays outside the subquery: Jmix puts the alias of a query in place of {@code {E}} as text, and inside
+     * the subquery an alias {@code ae}, which the AI may choose, would mean the entry and let every row through.
      */
     String MY_ENTRY = "(ae.username = :current_user_username or ae.roleCode in :current_role_codes)";
 
     /**
      * Shows the folders where the user has an entry.
      */
-    @JpqlRowLevelPolicy(entityClass = Folder.class, where = "exists (select ae from AccessEntry ae"
-            + " where ae.accessSet = {E}.accessSet and " + MY_ENTRY + ")")
+    @JpqlRowLevelPolicy(entityClass = Folder.class, where = "{E}.accessSet in (select ae.accessSet"
+            + " from AccessEntry ae where " + MY_ENTRY + ")")
     void folder();
 
     /**
      * Shows the documents where the user has an entry.
      */
-    @JpqlRowLevelPolicy(entityClass = Document.class, where = "exists (select ae from AccessEntry ae"
-            + " where ae.accessSet = {E}.accessSet and " + MY_ENTRY + ")")
+    @JpqlRowLevelPolicy(entityClass = Document.class, where = "{E}.accessSet in (select ae.accessSet"
+            + " from AccessEntry ae where " + MY_ENTRY + ")")
     void document();
 
     /**
      * Shows the versions of the documents the user sees.
      */
-    @JpqlRowLevelPolicy(entityClass = DocumentRevision.class, where = "exists (select ae from AccessEntry ae"
-            + " where ae.accessSet = {E}.document.accessSet and " + MY_ENTRY + ")")
+    @JpqlRowLevelPolicy(entityClass = DocumentRevision.class, where = "{E}.document.accessSet in"
+            + " (select ae.accessSet from AccessEntry ae where " + MY_ENTRY + ")")
     void documentRevision();
 
     /**
      * Shows the access sets the user manages.
      */
-    @JpqlRowLevelPolicy(entityClass = AccessSet.class, where = "exists (select ae from AccessEntry ae"
-            + " where ae.accessSet = {E}"
-            + " and ae.accessLevel >= @enum(com.company.dms.model.access.AccessLevel.MANAGE) and " + MY_ENTRY + ")")
+    @JpqlRowLevelPolicy(entityClass = AccessSet.class, where = "{E}.id in (select ae.accessSet.id"
+            + " from AccessEntry ae where ae.accessLevel >= @enum(com.company.dms.model.access.AccessLevel.MANAGE)"
+            + " and " + MY_ENTRY + ")")
     void accessSet();
 
     /**
      * Shows the entries of the access sets the user manages.
      */
-    @JpqlRowLevelPolicy(entityClass = AccessEntry.class, where = "exists (select ae from AccessEntry ae"
-            + " where ae.accessSet = {E}.accessSet"
-            + " and ae.accessLevel >= @enum(com.company.dms.model.access.AccessLevel.MANAGE) and " + MY_ENTRY + ")")
+    @JpqlRowLevelPolicy(entityClass = AccessEntry.class, where = "{E}.accessSet in (select ae.accessSet"
+            + " from AccessEntry ae where ae.accessLevel >= @enum(com.company.dms.model.access.AccessLevel.MANAGE)"
+            + " and " + MY_ENTRY + ")")
     void accessEntry();
 
     /**

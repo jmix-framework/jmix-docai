@@ -1,6 +1,7 @@
 package com.company.dms.model.folder;
 
 import com.company.dms.model.access.AccessSet;
+import io.jmix.aitools.ExcludeFromAi;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.Messages;
 import io.jmix.core.annotation.DeletedBy;
@@ -72,6 +73,7 @@ public class Folder {
      * The name of a live folder and null for a deleted one, so that the unique constraint
      * ignores deleted folders on any database.
      */
+    @ExcludeFromAi
     @Column(name = "NAME_KEY")
     private String nameKey;
 

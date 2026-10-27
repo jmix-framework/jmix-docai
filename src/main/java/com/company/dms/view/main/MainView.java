@@ -1,5 +1,6 @@
 package com.company.dms.view.main;
 
+import com.company.dms.ai.AiSettings;
 import com.company.dms.model.user.User;
 import com.company.dms.view.profile.ProfileReadView;
 import com.company.dms.view.search.DocumentSearchView;
@@ -19,8 +20,10 @@ import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.app.main.StandardMainView;
+import io.jmix.flowui.component.main.JmixListMenu;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
+import io.jmix.flowui.kit.component.main.ListMenu;
 import io.jmix.flowui.view.Install;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewComponent;
@@ -36,6 +39,8 @@ public class MainView extends StandardMainView {
 
     @ViewComponent
     private TypedTextField<String> searchField;
+    @ViewComponent
+    private JmixListMenu menu;
 
     @Autowired
     private Messages messages;
@@ -47,10 +52,20 @@ public class MainView extends StandardMainView {
     private DialogWindows dialogWindows;
     @Autowired
     private ViewNavigators viewNavigators;
+    @Autowired
+    private AiSettings aiSettings;
 
     @Subscribe
     public void onInit(final InitEvent event) {
         searchField.addKeyPressListener(Key.ENTER, keyPressEvent -> openSearch());
+
+        // the menu file cannot depend on the key, and an item hidden after the menu is drawn stays on the page
+        ListMenu.MenuItem assistantChat = menu.getMenuItem("assistantChat");
+
+        if (assistantChat != null && !aiSettings.isAvailable()
+                && menu.getMenuItem("application") instanceof ListMenu.MenuBarItem application) {
+            application.removeChildItem(assistantChat);
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.company.dms.model.user;
 
+import io.jmix.aitools.ExcludeFromAi;
 import io.jmix.core.HasTimeZone;
 import io.jmix.core.annotation.Secret;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
@@ -16,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
+@ExcludeFromAi
 @JmixEntity
 @Entity
 @Table(name = "USER_", indexes = {

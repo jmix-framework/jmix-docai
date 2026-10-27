@@ -1,5 +1,6 @@
 package com.company.dms.model.access;
 
+import io.jmix.aitools.ExcludeFromAi;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.entity.annotation.OnDeleteInverse;
@@ -23,6 +24,7 @@ import java.util.UUID;
  * Gives a user or a Jmix resource role a level of access in an access set. Exactly one of {@code username}
  * and {@code roleCode} is set, and a set holds one entry per subject.
  */
+@ExcludeFromAi
 @JmixEntity
 @Entity
 @Table(name = "ACCESS_ENTRY", indexes = {

@@ -1,5 +1,6 @@
 package com.company.dms.model.document;
 
+import io.jmix.aitools.ExcludeFromAi;
 import io.jmix.core.FileRef;
 import io.jmix.core.annotation.DeletedBy;
 import io.jmix.core.annotation.DeletedDate;
@@ -27,6 +28,7 @@ import java.util.UUID;
  * One file of a document. A saved revision never changes, and it is deleted only together
  * with its document.
  */
+@ExcludeFromAi
 @JmixEntity
 @Entity
 @Table(name = "DOCUMENT_REVISION", indexes = {

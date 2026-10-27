@@ -12,8 +12,11 @@ import com.company.dms.test_support.StubChatModelConfiguration;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
+import io.jmix.aitools.tool.AiToolStatusPublisher;
+import io.jmix.aitools.tool.AiToolStatusUpdate;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
+import io.jmix.core.security.SystemAuthenticator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,12 +38,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The tools of the document assistant, called the way the model calls them: with the person who asks and the feed
- * of the chat in the tool context, on a thread that runs as somebody else.
+ * The tools of the document assistant, called the way the model calls them: in the card, with the person who asks
+ * and the feed of the chat in the tool context, on a thread that runs as somebody else; in the chat of the menu, as
+ * the person signed in, with the status feed of the AI Tools add-on.
  */
 @SpringBootTest(classes = {DMSApplication.class, StubChatModelConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -63,6 +68,9 @@ class DocumentAssistantToolsTest {
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private SystemAuthenticator systemAuthenticator;
 
     @TempDir
     private Path tempDir;
@@ -157,6 +165,25 @@ class DocumentAssistantToolsTest {
         assertThat(tools.readDocumentText("Reading", "not-an-id", asTheEmployee())).contains("not available");
         assertThat(tools.readDocumentText("Reading", UUID.randomUUID().toString(), asTheEmployee()))
                 .contains("not available");
+    }
+
+    @Test
+    void inTheChatOfTheMenuTheToolsReadAsTheSignedInPersonAndShowTheStatusThere() {
+        Document invoice = upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8));
+        Document hidden = TestAccess.giveOwnAccess(dataManager,
+                upload("hidden.txt", INVOICE.getBytes(StandardCharsets.UTF_8)), Grant.user("maria", AccessLevel.VIEW));
+        Consumer<AiToolStatusUpdate> feed = update -> started.add(update.getMessage());
+        ToolContext menuChat = new ToolContext(Map.of(AiToolStatusPublisher.STATUS_UPDATE_CALLBACK, feed));
+
+        String text = systemAuthenticator.withUser(EMPLOYEE,
+                () -> tools.readDocumentText("Reading the invoice", invoice.getId().toString(), menuChat));
+
+        String refused = systemAuthenticator.withUser(EMPLOYEE,
+                () -> tools.readDocumentText("Reading the other invoice", hidden.getId().toString(), menuChat));
+
+        assertThat(text).contains(INVOICE);
+        assertThat(refused).doesNotContain(INVOICE).contains("not available");
+        assertThat(started).containsExactly("Reading the invoice", "Reading the other invoice");
     }
 
     private ToolContext asTheEmployee() {

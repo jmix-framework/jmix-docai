@@ -50,6 +50,9 @@ dependencies {
     implementation 'io.jmix.search:jmix-search-opensearch-starter'
     implementation 'io.jmix.quartz:jmix-quartz-starter'
     implementation 'io.jmix.aichat:jmix-aichat-flowui-starter'
+    implementation 'io.jmix.aitools:jmix-aitools-starter'
+    implementation 'io.jmix.aitools:jmix-aitools-flowui-starter'
+    implementation 'io.jmix.aitools:jmix-aitools-flowui-data-starter'
     implementation 'io.jmix.translations:jmix-translations-ru'
     implementation 'org.apache.tika:tika-core'
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'
@@ -76,6 +79,8 @@ test {
     useJUnitPlatform {
         excludeTags 'search', 'ai'
     }
+    // the tests keep a Spring context for each setup of theirs, and each context holds the whole application
+    maxHeapSize = '1g'
     systemProperty 'spring.profiles.active', 'test'
     // a key in the environment (SPRING_AI_OPENAI_APIKEY) outranks the property files, so the tests clear it here
     systemProperty 'spring.ai.openai.api-key', ''

@@ -2,6 +2,7 @@ package com.company.dms.model.document;
 
 import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.folder.Folder;
+import io.jmix.aitools.ExcludeFromAi;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.annotation.DeletedBy;
 import io.jmix.core.annotation.DeletedDate;
@@ -75,6 +76,7 @@ public class Document implements Categorized {
      * The name of a live document and null for a deleted one, so that the unique constraint
      * ignores deleted documents on any database.
      */
+    @ExcludeFromAi
     @Column(name = "NAME_KEY")
     private String nameKey;
 

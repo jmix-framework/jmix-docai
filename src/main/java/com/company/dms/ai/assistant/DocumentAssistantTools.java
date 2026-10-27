@@ -4,6 +4,8 @@ import com.company.dms.ai.DocumentTextReader;
 import com.company.dms.ai.classification.ClassificationProposal;
 import com.company.dms.ai.classification.DocumentClassifier;
 import com.company.dms.model.document.Document;
+import io.jmix.aitools.tool.AiToolStatusPublisher;
+import io.jmix.aitools.tool.JmixAiTool;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FetchPlanBuilder;
@@ -20,12 +22,13 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * The tools the assistant of a document card calls to read the document. They only read: the proposal of a type
- * and fields changes nothing. Each tool works as the person who asks, so the model gets only what that person may
- * open, and shows the status the model wrote in the chat that asks.
+ * The tools the assistants call to read a document: the assistant of a document card and the assistant in the menu,
+ * whose add-on registers them as a {@link JmixAiTool}. They only read: the proposal of a type and fields changes
+ * nothing. Each tool works as the person who asks, so the model gets only what that person may open, and shows
+ * the status the model wrote in the chat that asks.
  */
 @Component
-public class DocumentAssistantTools {
+public class DocumentAssistantTools implements JmixAiTool {
 
     /**
      * The key of the tool context that holds the username of the person who asks.
@@ -37,7 +40,10 @@ public class DocumentAssistantTools {
      */
     public static final String STATUSES = "dms.statuses";
 
-    private static final String STATUS = "What you are doing, for the person: a few words in the language of the "
+    /**
+     * The description of the status a tool takes from the model and shows in the chat.
+     */
+    public static final String STATUS = "What you are doing, for the person: a few words in the language of the "
             + "person, such as \"Reading the lease agreement\"";
 
     private static final String DOCUMENT_ID = "The id of the document";
@@ -50,15 +56,18 @@ public class DocumentAssistantTools {
     private final SystemAuthenticator systemAuthenticator;
     private final DocumentTextReader documentTextReader;
     private final DocumentClassifier documentClassifier;
+    private final AiToolStatusPublisher statusPublisher;
 
     public DocumentAssistantTools(DataManager dataManager,
                                   SystemAuthenticator systemAuthenticator,
                                   DocumentTextReader documentTextReader,
-                                  DocumentClassifier documentClassifier) {
+                                  DocumentClassifier documentClassifier,
+                                  AiToolStatusPublisher statusPublisher) {
         this.dataManager = dataManager;
         this.systemAuthenticator = systemAuthenticator;
         this.documentTextReader = documentTextReader;
         this.documentClassifier = documentClassifier;
+        this.statusPublisher = statusPublisher;
     }
 
     /**
@@ -88,25 +97,34 @@ public class DocumentAssistantTools {
                 .orElse(UNAVAILABLE));
     }
 
-    // the model answers on a thread of its own, where nobody is signed in
+    // the card asks on a thread of its own, where nobody is signed in, and names the person; the chat in the menu
+    // asks from a task that already runs as the person
     private String asThePerson(String status, ToolContext context, Supplier<String> work) {
         Runnable done = showStatus(status, context);
+        String username = (String) context.getContext().get(USERNAME);
 
         try {
-            return systemAuthenticator.withUser((String) context.getContext().get(USERNAME), work::get);
+            return username == null ? work.get() : systemAuthenticator.withUser(username, work::get);
         } finally {
             done.run();
         }
     }
 
-    // a model may leave the status out, and the chat takes no empty one
-    private static Runnable showStatus(@Nullable String status, ToolContext context) {
+    // a model may leave the status out, and a chat takes no empty one; the chat in the menu has a feed of its own
+    private Runnable showStatus(@Nullable String status, ToolContext context) {
         if (status == null || status.isBlank()) {
             return () -> {
             };
         }
 
-        return ((ToolStatusFeed) context.getContext().get(STATUSES)).start(status);
+        if (context.getContext().get(STATUSES) instanceof ToolStatusFeed statuses) {
+            return statuses.start(status);
+        }
+
+        statusPublisher.update(status, context);
+
+        return () -> {
+        };
     }
 
     private Optional<Document> document(String id) {

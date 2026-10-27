@@ -8,6 +8,7 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.model.user.User;
+import io.jmix.aitoolsflowui.security.role.AiToolsChatUserRole;
 import io.jmix.dynattr.model.Category;
 import io.jmix.dynattr.model.CategoryAttribute;
 import io.jmix.security.model.EntityAttributePolicyAction;
@@ -25,7 +26,7 @@ import io.jmix.securityflowui.role.annotation.ViewPolicy;
  */
 @ResourceRole(name = "msg://EmployeeRole.name", code = EmployeeRole.CODE,
         description = "msg://EmployeeRole.description", scope = SecurityScope.UI)
-public interface EmployeeRole extends UiMinimalRole {
+public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
 
     String CODE = "employee";
 
@@ -124,4 +125,11 @@ public interface EmployeeRole extends UiMinimalRole {
      */
     @ViewPolicy(viewIds = "DocumentSearchView")
     void search();
+
+    /**
+     * Opens the AI assistant from the main menu. The chat views and the own conversations come with the role
+     * of the add-on; the item of the add-on stays hidden in its own group, so this one needs a policy of its own.
+     */
+    @MenuPolicy(menuIds = "assistantChat")
+    void assistantChat();
 }

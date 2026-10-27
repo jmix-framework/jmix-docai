@@ -2,6 +2,7 @@ package com.company.dms.model.access;
 
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
+import io.jmix.aitools.ExcludeFromAi;
 import io.jmix.core.entity.annotation.JmixGeneratedValue;
 import io.jmix.core.metamodel.annotation.Composition;
 import io.jmix.core.metamodel.annotation.JmixEntity;
@@ -26,6 +27,7 @@ import java.util.UUID;
  * the first set. A set is deleted physically,
  * and the database deletes its entries with it.
  */
+@ExcludeFromAi
 @JmixEntity
 @Entity
 @Table(name = "ACCESS_SET", uniqueConstraints = {
