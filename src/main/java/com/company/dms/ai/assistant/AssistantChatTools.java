@@ -16,10 +16,12 @@ import io.jmix.core.querycondition.LogicalCondition;
 import io.jmix.core.querycondition.PropertyCondition;
 import io.jmix.dynattr.AttributeDefinition;
 import io.jmix.dynattr.AttributeType;
+import io.jmix.dynattr.CategoryDefinition;
 import io.jmix.dynattr.DynAttrMetadata;
 import io.jmix.dynattr.DynAttrQueryHints;
 import io.jmix.dynattr.DynAttrUtils;
 import io.jmix.dynattr.MsgBundleTools;
+import io.jmix.dynattr.model.Category;
 import org.jspecify.annotations.Nullable;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
@@ -32,8 +34,10 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -71,6 +75,8 @@ public class AssistantChatTools implements JmixAiTool {
             + "use the query tools.";
 
     private static final Set<AttributeType> TEXT = Set.of(AttributeType.STRING, AttributeType.ENUMERATION);
+    private static final Set<AttributeType> NUMBERS_AND_DATES = Set.of(AttributeType.INTEGER, AttributeType.DOUBLE,
+            AttributeType.DECIMAL, AttributeType.DATE_WITHOUT_TIME);
 
     private final DataManager dataManager;
     private final Metadata metadata;
@@ -182,6 +188,22 @@ public class AssistantChatTools implements JmixAiTool {
                 : found;
     }
 
+    /**
+     * Describes the document types and the fields this tool can search, for the prompt of the model.
+     */
+    public String describeFields() {
+        return dynAttrMetadata.getCategories(metadata.getClass(Document.class)).stream()
+                .map(type -> Map.entry(nameOf(type), type.getAttributeDefinitions().stream()
+                        .filter(AssistantChatTools::isSearchable)
+                        .sorted(Comparator.comparingInt(AttributeDefinition::getOrderNo))
+                        .map(attribute -> "%s (%s, %s)".formatted(attribute.getCode(), nameOf(attribute),
+                                kindOf(attribute)))
+                        .collect(Collectors.joining(", "))))
+                .filter(type -> !type.getValue().isEmpty())
+                .map(type -> "- %s: %s".formatted(type.getKey(), type.getValue()))
+                .collect(Collectors.joining("\n"));
+    }
+
     private List<AttributeDefinition> fieldsCalled(@Nullable String field) {
         Collection<AttributeDefinition> all = allAttributes();
 
@@ -242,6 +264,21 @@ public class AssistantChatTools implements JmixAiTool {
         }
 
         return Optional.of(LogicalCondition.and(ends.toArray(Condition[]::new)));
+    }
+
+    private static boolean isSearchable(AttributeDefinition attribute) {
+        return !attribute.isCollection()
+                && (TEXT.contains(attribute.getDataType()) || NUMBERS_AND_DATES.contains(attribute.getDataType()));
+    }
+
+    private static String kindOf(AttributeDefinition attribute) {
+        return switch (attribute.getDataType()) {
+            case ENUMERATION -> "one of: " + String.join(", ",
+                    Objects.requireNonNullElse(attribute.getEnumeration(), "").split(","));
+            case INTEGER, DOUBLE, DECIMAL -> "number";
+            case DATE_WITHOUT_TIME -> "date";
+            default -> "text";
+        };
     }
 
     private static Optional<Object> numberOrDate(AttributeDefinition attribute, String value) {
@@ -318,6 +355,12 @@ public class AssistantChatTools implements JmixAiTool {
                 .map(attribute -> "%s (%s)".formatted(attribute.getCode(), nameOf(attribute)))
                 .distinct()
                 .collect(Collectors.joining(", "));
+    }
+
+    private String nameOf(CategoryDefinition type) {
+        return type.getSource() instanceof Category category
+                ? metadataTools.getInstanceName(category)
+                : type.getName();
     }
 
     private String nameOf(AttributeDefinition attribute) {

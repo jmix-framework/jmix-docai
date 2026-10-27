@@ -22,6 +22,9 @@ import io.jmix.aitoolsflowui.service.AiConversationService;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
 import io.jmix.core.security.SystemAuthenticator;
+import io.jmix.dynattr.AttributeType;
+import io.jmix.dynattr.model.Category;
+import io.jmix.dynattr.model.CategoryAttribute;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import org.junit.jupiter.api.AfterEach;
@@ -34,6 +37,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -82,6 +86,8 @@ class AssistantChatServiceTest {
 
     private Folder sandbox;
 
+    private final List<Object> typesToRemove = new ArrayList<>();
+
     @BeforeEach
     void setUp() {
         model.reset();
@@ -97,9 +103,12 @@ class AssistantChatServiceTest {
 
     @AfterEach
     void deleteSandbox() {
-        systemAuthenticator.runWithUser(ADMIN, () -> dataManager.load(Id.of(sandbox))
-                .optional()
-                .ifPresent(folderService::delete));
+        systemAuthenticator.runWithUser(ADMIN, () -> {
+            dataManager.load(Id.of(sandbox))
+                    .optional()
+                    .ifPresent(folderService::delete);
+            typesToRemove.forEach(type -> dataManager.load(Id.of(type)).optional().ifPresent(dataManager::remove));
+        });
     }
 
     @Test
@@ -131,6 +140,42 @@ class AssistantChatServiceTest {
         AiChatMessage answer = messageService.loadLatestMessage(conversation, AiChatMessageType.ASSISTANT);
         assertThat(answer).isNotNull();
         assertThat(answer.getContent()).isEqualTo("Notes, Draft, [Files](%s)".formatted(site));
+    }
+
+    @Test
+    void theModelIsToldTheDocumentTypesAndTheirFields() {
+        model.willReply("There are no invoices.");
+
+        chatService.processMessage(ask(conversationService.create()));
+
+        assertThat(model.prompts().getFirst().getSystemMessage().getText())
+                .contains("Document types and their fields:", "- Invoice: ", "dueDate (Due date, date)");
+    }
+
+    @Test
+    void aBraceInTheNameOfATypeOrAFieldLeavesThePromptWhole() {
+        systemAuthenticator.runWithUser(ADMIN, () -> {
+            Category type = dataManager.create(Category.class);
+            type.setName("Act {draft}");
+            type.setEntityType("Document");
+            Category saved = dataManager.save(type);
+            typesToRemove.add(saved);
+
+            CategoryAttribute field = dataManager.create(CategoryAttribute.class);
+            field.setCategory(saved);
+            field.setCategoryEntityType("Document");
+            field.setName("Number {internal}");
+            field.setCode("actNumber" + UUID.randomUUID().toString().replaceAll("[^a-f]", ""));
+            field.setDataType(AttributeType.STRING);
+            field.setOrderNo(10);
+            typesToRemove.addFirst(dataManager.save(field));
+        });
+        model.willReply("There are no acts.");
+
+        chatService.processMessage(ask(conversationService.create()));
+
+        assertThat(model.prompts().getFirst().getSystemMessage().getText())
+                .contains("Act (draft)", "Number (internal)");
     }
 
     @Test

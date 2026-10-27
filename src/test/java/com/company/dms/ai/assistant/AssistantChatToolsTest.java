@@ -185,6 +185,14 @@ class AssistantChatToolsTest {
     }
 
     @Test
+    void theTypesAndTheirFieldsAreDescribedForTheModel() {
+        assertThat(tools.describeFields())
+                .contains("- Invoice: ", "supplier (Supplier, text)", "invoiceAmount (Amount, number)",
+                        "dueDate (Due date, date)", "- HR document: ", "employee (Employee, text)",
+                        "contractKind (Contract kind, one of: supply, lease, work, services, leasing)");
+    }
+
+    @Test
     void theStatusOfTheModelShowsInTheChat() {
         find("supplier", supplier);
 

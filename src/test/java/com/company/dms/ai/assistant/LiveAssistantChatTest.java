@@ -43,10 +43,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The OpenAI model in the chat of the assistant in the menu, asked by an employee: a question by a field of the
- * document types, a list, a count and a question about the content of a document each reach the tool that answers
- * them, and the answer speaks the language of the question. Runs only with {@code ./gradlew aiTest} and the key in
- * {@code OPENAI_API_KEY}.
+ * The OpenAI model in the chat of the assistant in the menu, asked by an employee: a question by a value or a range of
+ * a field of the document types, a list, a count and a question about the content of a document each reach the tool
+ * that answers them, and the answer speaks the language of the question. Runs only with {@code ./gradlew aiTest} and
+ * the key in {@code OPENAI_API_KEY}.
  */
 @Tag("ai")
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
@@ -55,8 +55,9 @@ class LiveAssistantChatTest {
 
     private static final String ADMIN = "admin";
 
-    // a name that no other document of the test database has, and that does not look like an id
+    // names that no other document of the test database has, and that do not look like an id
     private static final String SUPPLIER = "Brindlewood Haulage LLC";
+    private static final String NEW_HIRE = "Harriet Quill";
 
     @Autowired
     private AiChatService chatService;
@@ -109,6 +110,8 @@ class LiveAssistantChatTest {
             contract = typed(upload("contract.txt", "Supply contract 45 with Northwind " + token
                     + " for office paper."), "Contract", Map.of("+counterparty", "Northwind " + token));
             notes = upload("notes.txt", "Notes of the meeting about the paper supply.");
+            typed(upload("order.txt", "Hiring order 315 of the Sales department."), "HR document",
+                    Map.of("+employee", NEW_HIRE, "+department", "Sales", "+hireDate", LocalDate.of(2026, 9, 1)));
         });
     }
 
@@ -131,7 +134,23 @@ class LiveAssistantChatTest {
     void theDocumentsOfAFolderAreCounted() {
         String answer = ask("How many documents are there in the folder \"" + sandbox.getName() + "\"?");
 
-        assertThat(answer).containsAnyOf("3", "three");
+        assertThat(answer).containsPattern("(?i)\\b(4|four)\\b");
+    }
+
+    // the day of the hiring is in a field the question does not name: the search has to give all the fields
+    @RepeatedTest(3)
+    void aFieldOfAnotherTypeIsFound() {
+        String answer = ask("When was " + NEW_HIRE + " hired?");
+
+        assertThat(answer).containsPattern("(?i)2026-09-01|September 1|1 September|01\\.09\\.2026");
+    }
+
+    @RepeatedTest(3)
+    void theInvoicesDueBeforeADateAreFound() {
+        String answer = ask("Which invoices fall due by the end of December 2026?");
+
+        assertThat(answer).contains("documents/" + invoice.getId())
+                .doesNotContain("documents/" + contract.getId());
     }
 
     @RepeatedTest(3)
