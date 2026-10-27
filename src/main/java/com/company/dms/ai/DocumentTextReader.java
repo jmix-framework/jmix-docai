@@ -51,7 +51,8 @@ public class DocumentTextReader {
     public Optional<String> read(NewVersion version) {
         return switch (version) {
             case NewVersion.FromFile(UploadedFile file) ->
-                    read(file.fileName(), () -> Files.newInputStream(file.content()));
+                    read(file.fileName(), () -> Files.newInputStream(file.content()), aiSettings.getMaxTextLength(),
+                            true);
             case NewVersion.FromRevision(DocumentRevision revision) -> read(revision);
         };
     }
@@ -60,11 +61,21 @@ public class DocumentTextReader {
      * Returns the text of a saved version by the same rules as {@link #read(NewVersion)}.
      */
     public Optional<String> read(DocumentRevision revision) {
-        return read(revision.getFileName(), () -> open(revision.getFile()));
+        return read(revision.getFileName(), () -> open(revision.getFile()), aiSettings.getMaxTextLength(), true);
     }
 
-    private Optional<String> read(String fileName, InputStreamSource source) {
-        BodyContentHandler handler = new BodyContentHandler(aiSettings.getMaxTextLength());
+    /**
+     * Returns the first characters of the text of a saved version, without a note where the text is cut, or nothing
+     * when the file has no text to read.
+     *
+     * @param maxLength how many characters of the text to read at most
+     */
+    public Optional<String> readStart(DocumentRevision revision, int maxLength) {
+        return read(revision.getFileName(), () -> open(revision.getFile()), maxLength, false);
+    }
+
+    private Optional<String> read(String fileName, InputStreamSource source, int maxLength, boolean noteTheCut) {
+        BodyContentHandler handler = new BodyContentHandler(maxLength);
         Metadata metadata = new Metadata();
         metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, fileName);
         boolean cut = false;
@@ -90,7 +101,7 @@ public class DocumentTextReader {
         }
 
         // without the note the model takes the beginning for the whole document and says the rest is not there
-        return Optional.of(cut ? text + CUT.formatted(aiSettings.getMaxTextLength()) : text);
+        return Optional.of(cut && noteTheCut ? text + CUT.formatted(maxLength) : text);
     }
 
     private InputStream open(FileRef file) {

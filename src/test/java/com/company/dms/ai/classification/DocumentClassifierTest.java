@@ -6,8 +6,8 @@ import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
+import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.StubChatModel;
-import com.company.dms.test_support.StubChatModelConfiguration;
 import com.company.dms.test_support.TestFiles;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
@@ -46,7 +46,7 @@ import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = {DMSApplication.class, StubChatModelConfiguration.class})
+@SpringBootTest(classes = {DMSApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
 class DocumentClassifierTest {
 

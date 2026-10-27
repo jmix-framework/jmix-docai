@@ -2,7 +2,7 @@ package com.company.dms.ai.assistant;
 
 import com.company.dms.DMSApplication;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
-import com.company.dms.test_support.StubChatModelConfiguration;
+import com.company.dms.test_support.StubAiConfiguration;
 import io.jmix.aitools.dataload.introspection.model.EntityPropertyDescriptor;
 import io.jmix.aitools.dataload.introspection.model.EntitySummary;
 import io.jmix.aitools.dataload.tool.DomainModelDiscoveryTool;
@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * The boundary of the assistant in the code: the entities and attributes marked {@code @ExcludeFromAi} stay closed
  * even when the settings of a deployment name them.
  */
-@SpringBootTest(classes = {DMSApplication.class, StubChatModelConfiguration.class}, properties = """
+@SpringBootTest(classes = {DMSApplication.class, StubAiConfiguration.class}, properties = """
         jmix.aitools.dataload.include-entities=Document,Folder,dynat_Category,AccessSet,AccessEntry,User,\
         DocumentRevision""")
 @ExtendWith(AuthenticatedAsAdmin.class)

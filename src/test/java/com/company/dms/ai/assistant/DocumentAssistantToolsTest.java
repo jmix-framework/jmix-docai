@@ -7,8 +7,8 @@ import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
+import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.StubChatModel;
-import com.company.dms.test_support.StubChatModelConfiguration;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * and the feed of the chat in the tool context, on a thread that runs as somebody else; in the chat of the menu, as
  * the person signed in, with the status feed of the AI Tools add-on.
  */
-@SpringBootTest(classes = {DMSApplication.class, StubChatModelConfiguration.class})
+@SpringBootTest(classes = {DMSApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
 class DocumentAssistantToolsTest {
 

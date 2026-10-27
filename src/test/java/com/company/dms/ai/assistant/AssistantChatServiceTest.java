@@ -7,8 +7,8 @@ import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
+import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.StubChatModel;
-import com.company.dms.test_support.StubChatModelConfiguration;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DMSApplication.class, FlowuiTestAssistConfiguration.class,
-        StubChatModelConfiguration.class})
+        StubAiConfiguration.class})
 @TestPropertySource(properties = "spring.ai.openai.api-key=test-key")
 class AssistantChatServiceTest {
 
@@ -207,7 +207,7 @@ class AssistantChatServiceTest {
 
         assertThat(model.prompts().getFirst().getSystemMessage().getText())
                 .contains("You are an assistant for a Jmix application", "dms_findDocumentsByTypeField",
-                        "dms_readDocumentText", "[name](id)");
+                        "dms_findDocumentsByMeaning", "dms_readDocumentText", "[name](id)");
     }
 
     private AiChatMessage ask(AiConversation conversation) {

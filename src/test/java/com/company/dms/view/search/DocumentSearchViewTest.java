@@ -44,6 +44,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -184,6 +185,22 @@ class DocumentSearchViewTest {
 
         assertThat(rows(view)).isEmpty();
         assertThat(message(view)).isEqualTo(messages.getMessage(DocumentSearchView.class, "searchUnavailable"));
+    }
+
+    @Test
+    void aLinkToTheAiSearchSearchesByWordsWithoutTheKey() {
+        Document document = upload();
+        answer(entry(document, "<b>word</b>"));
+
+        viewNavigators.view(UiTestUtils.getCurrentView(), DocumentSearchView.class)
+                .withQueryParameters(QueryParameters.simple(Map.of(DocumentSearchView.QUERY_PARAMETER, "word",
+                        DocumentSearchView.MODE_PARAMETER, DocumentSearchView.AI_MODE)))
+                .navigate();
+        DocumentSearchView view = UiTestUtils.getCurrentView();
+
+        assertThat(rows(view)).hasSize(1);
+        assertThat(UiTestUtils.<Span>getComponent(view, "noteText").getText())
+                .isEqualTo(messages.getMessage(DocumentSearchView.class, "aiSearchOff"));
     }
 
     @Test

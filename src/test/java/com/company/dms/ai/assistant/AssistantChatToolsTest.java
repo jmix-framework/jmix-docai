@@ -6,8 +6,13 @@ import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.search.semantic.DocumentVectorIndex;
+import com.company.dms.search.semantic.DocumentVectorIndexer;
+import com.company.dms.search.semantic.SemanticSearch;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
-import com.company.dms.test_support.StubChatModelConfiguration;
+import com.company.dms.test_support.InMemoryVectorIndex;
+import com.company.dms.test_support.StubAiConfiguration;
+import com.company.dms.test_support.StubEmbeddingModel;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
@@ -30,6 +35,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -40,14 +46,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * The search of documents by the fields of their types, called the way the model calls it in the chat of the menu:
  * as the person who asks, with the status feed of the add-on in the tool context.
  */
-@SpringBootTest(classes = {DMSApplication.class, StubChatModelConfiguration.class})
+@SpringBootTest(classes = {DMSApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
 class AssistantChatToolsTest {
 
@@ -56,6 +64,12 @@ class AssistantChatToolsTest {
 
     @Autowired
     private AssistantChatTools tools;
+
+    @Autowired
+    private InMemoryVectorIndex vectorIndex;
+
+    @MockitoBean
+    private DocumentVectorIndexer vectorIndexer;
 
     @Autowired
     private AiToolRegistry aiToolRegistry;
@@ -86,6 +100,8 @@ class AssistantChatToolsTest {
 
     @BeforeEach
     void setUp() {
+        vectorIndex.reset();
+
         Folder folder = dataManager.create(Folder.class);
         folder.setParent(folderService.getRoot());
         folder.setName("assistant-chat-tools-test-" + UUID.randomUUID());
@@ -203,8 +219,83 @@ class AssistantChatToolsTest {
     void theChatOfTheMenuHasTheToolsOfTheDocuments() {
         assertThat(aiToolRegistry.getAllCallbacks())
                 .extracting(callback -> callback.getToolDefinition().name())
-                .contains("dms_findDocumentsByTypeField", "dms_readDocumentText", "dms_proposeTypeAndFields",
-                        "aitls_executeQuery");
+                .contains("dms_findDocumentsByTypeField", "dms_findDocumentsByMeaning", "dms_readDocumentText",
+                        "dms_proposeTypeAndFields", "aitls_executeQuery");
+    }
+
+    @Test
+    void theSearchByMeaningGivesThePassagesOfTheDocumentsThePersonMayOpen() {
+        vectorIndex.put(invoice.getId(), "key", List.of(fragment("Delivery of office paper by Harbour trucks")));
+        vectorIndex.put(hidden.getId(), "key", List.of(fragment("Delivery of office paper by Harbour trucks today")));
+
+        String found = findByMeaning("office paper delivery");
+
+        assertThat(found).contains(invoice.getId().toString(), supplier, "passage: Delivery of office paper")
+                .doesNotContain(hidden.getId().toString());
+        assertThat(statuses).containsExactly("Looking for the invoices");
+    }
+
+    @Test
+    void aSearchByMeaningThatCannotRunSaysSo() {
+        vectorIndex.setDown(true);
+
+        assertThat(findByMeaning("office paper")).contains("not available now", "do not conclude");
+    }
+
+    @Test
+    void aFullListOfPassagesSaysThatMoreDocumentsMayBeAboutTheTopic() {
+        vectorIndex.put(invoice.getId(), "key", List.of(fragment("Delivery of office paper by Harbour trucks")));
+
+        assertThat(findByMeaning("office paper delivery")).doesNotContain("more may be about it");
+
+        for (int i = 1; i <= SemanticSearch.CHAT_DOCUMENTS; i++) {
+            vectorIndex.put(upload("paper-" + i + ".txt").getId(), "key",
+                    List.of(fragment("Office paper delivery " + i)));
+        }
+
+        assertThat(findByMeaning("office paper delivery")).contains("more may be about it");
+    }
+
+    // the nearest fragments the search reads may all be of a few long documents
+    @Test
+    void thePassagesOfAFewLongDocumentsSayThatMoreDocumentsMayBeAboutTheTopic() {
+        for (Document document : List.of(invoice, upload("paper.txt"))) {
+            vectorIndex.put(document.getId(), "key", IntStream.range(0, 30)
+                    .mapToObj(number -> fragment("Office paper delivery " + number))
+                    .toList());
+        }
+
+        assertThat(findByMeaning("office paper delivery")).contains("more may be about it");
+    }
+
+    @Test
+    void aSearchByMeaningThatFindsNothingSaysSo() {
+        assertThat(findByMeaning("office paper")).contains("No document the person may open is about")
+                .doesNotContain("still indexing");
+    }
+
+    @Test
+    void aSearchByMeaningWhileTheIndexFillsSaysThatDocumentsMayBeMissing() {
+        when(vectorIndexer.isBusy()).thenReturn(true);
+
+        assertThat(findByMeaning("office paper")).contains("still indexing", "do not conclude");
+
+        vectorIndex.put(invoice.getId(), "key", List.of(fragment("Delivery of office paper by Harbour trucks")));
+
+        assertThat(findByMeaning("office paper delivery")).contains("passage: Delivery of office paper",
+                "still indexing");
+    }
+
+    private String findByMeaning(String topic) {
+        Consumer<AiToolStatusUpdate> feed = update -> statuses.add(update.getMessage());
+        ToolContext context = new ToolContext(Map.of(AiToolStatusPublisher.STATUS_UPDATE_CALLBACK, feed));
+
+        return systemAuthenticator.withUser(EMPLOYEE, () -> tools.findDocumentsByMeaning("Looking for the invoices",
+                topic, context));
+    }
+
+    private static DocumentVectorIndex.Fragment fragment(String text) {
+        return new DocumentVectorIndex.Fragment(0, text, false, StubEmbeddingModel.vectorOf(text));
     }
 
     private String find(@Nullable String field, @Nullable String value) {

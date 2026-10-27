@@ -9,13 +9,17 @@ import com.vaadin.flow.component.KeyPressEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.flowui.ViewNavigators;
+import io.jmix.flowui.Views;
 import io.jmix.flowui.component.textfield.TypedTextField;
+import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.settings.UserSettingsService;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.view.View;
 import io.jmix.search.searching.EntitySearcher;
 import io.jmix.search.searching.SearchResult;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,11 +47,22 @@ class MainViewSearchTest {
     @Autowired
     private ViewNavigators viewNavigators;
 
+    @Autowired
+    private Views views;
+
+    @Autowired
+    private UserSettingsService userSettingsService;
+
     @BeforeEach
     void answerNothing() {
         SearchResult result = mock(SearchResult.class);
         when(result.getAllEntries()).thenReturn(List.of());
         when(entitySearcher.search(any(), anyString())).thenReturn(result);
+    }
+
+    @AfterEach
+    void forgetTheMode() {
+        userSettingsService.delete(MainView.SEARCH_MODE_SETTING);
     }
 
     @Test
@@ -83,6 +98,17 @@ class MainViewSearchTest {
         viewNavigators.view(UiTestUtils.getCurrentView(), RepositoryView.class).navigate();
 
         assertThat(searchField().getValue()).isEmpty();
+    }
+
+    @Test
+    void withoutTheKeyTheSearchIsByWordsEvenForWhoChoseTheAiSearch() {
+        userSettingsService.save(MainView.SEARCH_MODE_SETTING, DocumentSearchView.AI_MODE);
+
+        // what the person sees on the next visit
+        JmixButton mode = UiTestUtils.getComponent(views.create(MainView.class), "searchModeButton");
+
+        assertThat(mode.isVisible()).isFalse();
+        assertThat(mode.getClassNames()).doesNotContain("ai");
     }
 
     private TypedTextField<String> searchField() {

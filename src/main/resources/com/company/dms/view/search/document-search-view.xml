@@ -3,6 +3,9 @@
       title="msg://documentSearchView.title">
     <layout classNames="document-search">
         <span id="messageText" classNames="document-search-message" visible="false"/>
+        <button id="searchByWordsButton" text="msg://searchByWordsButton.text" visible="false"/>
+        <span id="foundText" classNames="document-search-message" visible="false"/>
+        <span id="noteText" classNames="document-search-message" visible="false"/>
         <vbox id="hitsBox" width="100%" padding="false" spacing="false"/>
         <button id="showMoreButton" text="msg://showMoreButton.text" visible="false"/>
     </layout>

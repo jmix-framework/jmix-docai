@@ -7,8 +7,8 @@ import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
+import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.StubChatModel;
-import com.company.dms.test_support.StubChatModelConfiguration;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest(classes = {DMSApplication.class, StubChatModelConfiguration.class})
+@SpringBootTest(classes = {DMSApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
 class DocumentAssistantTest {
 

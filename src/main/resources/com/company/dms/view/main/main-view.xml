@@ -18,6 +18,10 @@
                     <prefix>
                         <icon icon="SEARCH"/>
                     </prefix>
+                    <suffix>
+                        <button id="searchModeButton" classNames="main-view-search-mode"
+                                themeNames="tertiary-inline small" title="msg://searchModeButton.tooltip"/>
+                    </suffix>
                 </textField>
 
                 <userMenu id="userMenu"

@@ -8,8 +8,8 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
+import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.StubChatModel;
-import com.company.dms.test_support.StubChatModelConfiguration;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
@@ -66,7 +66,7 @@ import static org.awaitility.Awaitility.await;
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DMSApplication.class, FlowuiTestAssistConfiguration.class,
-        StubChatModelConfiguration.class})
+        StubAiConfiguration.class})
 @TestPropertySource(properties = "spring.ai.openai.api-key=test-key")
 class DocumentAssistantFragmentTest {
 

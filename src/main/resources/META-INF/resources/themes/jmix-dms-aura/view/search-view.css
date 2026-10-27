@@ -4,11 +4,22 @@
 .main-view-search {
     margin-inline-start: auto;
     margin-inline-end: var(--vaadin-padding-m);
-    width: min(18em, 40vw);
+    width: min(24em, 45vw);
 }
 
 .main-view-search ~ .jmix-main-view-user-menu {
     margin-inline-start: 0;
+}
+
+/* The mode of the search inside the field: by words, or the search by meaning in the accent of the AI */
+.main-view-search-mode {
+    margin: 0;
+    color: var(--vaadin-text-color-secondary);
+}
+
+.main-view-search-mode.ai {
+    color: var(--aura-accent-text-color);
+    background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
 }
 
 .document-search-hit {

@@ -1,11 +1,14 @@
 package com.company.dms.view.search;
 
+import com.company.dms.ai.AiSettings;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.search.DocumentSearch;
 import com.company.dms.search.DocumentSearchHit;
 import com.company.dms.search.DocumentSearchPage;
 import com.company.dms.search.SearchUnavailableException;
+import com.company.dms.search.semantic.DocumentVectorIndexer;
+import com.company.dms.search.semantic.SemanticSearch;
 import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.main.MainView;
 import com.vaadin.flow.component.ClickEvent;
@@ -25,6 +28,8 @@ import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.ViewNavigators;
+import io.jmix.flowui.asynctask.UiAsyncTasks;
 import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
@@ -35,14 +40,19 @@ import io.jmix.flowui.view.ViewComponent;
 import io.jmix.flowui.view.ViewController;
 import io.jmix.flowui.view.ViewDescriptor;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 
 /**
- * The documents found by the words from the address, the most relevant first, a page at a time. Every row
- * shows the folder, the type, the status and the matched text of a document the user may see; how many other
- * documents match is never shown.
+ * The documents found by the words from the address, the most relevant first, a page at a time, or in the
+ * {@link #AI_MODE} by meaning: at most {@link SemanticSearch#PAGE_DOCUMENTS} of the nearest documents that a model
+ * confirmed, the nearest first. Every row shows the folder, the type, the status and the matched text of a document
+ * the user may see; how many other documents match is never shown.
  */
 @Route(value = "search", layout = MainView.class)
 @ViewController(id = "DocumentSearchView")
@@ -54,11 +64,29 @@ public class DocumentSearchView extends StandardView {
      */
     public static final String QUERY_PARAMETER = "q";
 
+    /**
+     * The address parameter with the mode of the search: {@link #AI_MODE} or none, for the search by words.
+     */
+    public static final String MODE_PARAMETER = "mode";
+
+    /**
+     * The mode of the search by meaning.
+     */
+    public static final String AI_MODE = "ai";
+
+    private static final Logger log = LoggerFactory.getLogger(DocumentSearchView.class);
+
     private static final String MATCH_START = "<b>";
     private static final String MATCH_END = "</b>";
 
     @ViewComponent
     private Span messageText;
+    @ViewComponent
+    private Span foundText;
+    @ViewComponent
+    private Span noteText;
+    @ViewComponent
+    private JmixButton searchByWordsButton;
     @ViewComponent
     private VerticalLayout hitsBox;
     @ViewComponent
@@ -68,6 +96,16 @@ public class DocumentSearchView extends StandardView {
 
     @Autowired
     private DocumentSearch documentSearch;
+    @Autowired
+    private SemanticSearch semanticSearch;
+    @Autowired
+    private DocumentVectorIndexer vectorIndexer;
+    @Autowired
+    private AiSettings aiSettings;
+    @Autowired
+    private UiAsyncTasks uiAsyncTasks;
+    @Autowired
+    private ViewNavigators viewNavigators;
     @Autowired
     private DataManager dataManager;
     @Autowired
@@ -86,6 +124,11 @@ public class DocumentSearchView extends StandardView {
     @Nullable
     private DocumentSearchPage lastPage;
 
+    private String query = "";
+
+    // the search by meaning answers in seconds, and the answer to a query the person has replaced is dropped
+    private int searchNumber;
+
     /**
      * Returns the trimmed words to search for from the address parameters, or an empty string.
      */
@@ -95,21 +138,51 @@ public class DocumentSearchView extends StandardView {
                 .orElse("");
     }
 
+    /**
+     * Returns whether the address parameters ask for the search by meaning.
+     */
+    public static boolean isAiMode(QueryParameters parameters) {
+        return parameters.getSingleParameter(MODE_PARAMETER)
+                .map(AI_MODE::equals)
+                .orElse(false);
+    }
+
     @Subscribe
     public void onQueryParametersChange(final QueryParametersChangeEvent event) {
+        searchNumber++;
         hitsBox.removeAll();
         lastPage = null;
 
         showMoreButton.setVisible(false);
+        searchByWordsButton.setVisible(false);
         messageText.setVisible(false);
-        String query = queryOf(event.getQueryParameters());
+        foundText.setVisible(false);
+        noteText.setVisible(false);
+        query = queryOf(event.getQueryParameters());
 
         if (query.isEmpty()) {
             showMessage("enterQuery");
             return;
         }
 
-        load(() -> documentSearch.search(query));
+        if (isAiMode(event.getQueryParameters()) && aiSettings.isAvailable()) {
+            searchByMeaning(query);
+            return;
+        }
+
+        if (isAiMode(event.getQueryParameters())) {
+            showNote("aiSearchOff");
+        }
+
+        String words = query;
+        load(() -> documentSearch.search(words));
+    }
+
+    @Subscribe(id = "searchByWordsButton", subject = "clickListener")
+    public void onSearchByWordsButtonClick(final ClickEvent<JmixButton> event) {
+        viewNavigators.view(this, DocumentSearchView.class)
+                .withQueryParameters(QueryParameters.of(QUERY_PARAMETER, query))
+                .navigate();
     }
 
     @Subscribe(id = "showMoreButton", subject = "clickListener")
@@ -141,9 +214,64 @@ public class DocumentSearchView extends StandardView {
         }
     }
 
+    private void searchByMeaning(String text) {
+        int number = searchNumber;
+        showMessage("searchingByMeaning");
+
+        uiAsyncTasks.supplierConfigurer(() -> semanticSearch.search(text))
+                .withResultHandler(hits -> {
+                    if (number == searchNumber) {
+                        showMeaningHits(hits);
+                    }
+                })
+                .withExceptionHandler(e -> {
+                    if (number == searchNumber) {
+                        showMeaningFailure(e);
+                    }
+                })
+                .supplyAsync();
+    }
+
+    private void showMeaningHits(List<DocumentSearchHit> hits) {
+        messageText.setVisible(false);
+
+        if (hits.isEmpty()) {
+            showMessage("nothingFoundByMeaning");
+            searchByWordsButton.setVisible(true);
+        } else {
+            foundText.setText(messageBundle.formatMessage("foundCount", hits.size()));
+            foundText.setVisible(true);
+            hits.forEach(hit -> hitsBox.add(createHitRow(hit)));
+        }
+
+        if (vectorIndexer.isBusy()) {
+            showNote("indexFilling");
+        }
+    }
+
+    private void showMeaningFailure(Throwable failure) {
+        Throwable cause = failure instanceof CompletionException && failure.getCause() != null
+                ? failure.getCause()
+                : failure;
+
+        if (cause instanceof SearchUnavailableException) {
+            showMessage("searchUnavailable");
+            return;
+        }
+
+        log.warn("The search by meaning failed", cause);
+        showMessage("aiSearchFailed");
+        searchByWordsButton.setVisible(true);
+    }
+
     private void showMessage(String key) {
         messageText.setText(messageBundle.getMessage(key));
         messageText.setVisible(true);
+    }
+
+    private void showNote(String key) {
+        noteText.setText(messageBundle.getMessage(key));
+        noteText.setVisible(true);
     }
 
     private Component createHitRow(DocumentSearchHit hit) {

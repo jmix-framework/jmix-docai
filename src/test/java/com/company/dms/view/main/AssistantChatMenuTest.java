@@ -2,7 +2,7 @@ package com.company.dms.view.main;
 
 import com.company.dms.DMSApplication;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
-import com.company.dms.test_support.StubChatModelConfiguration;
+import com.company.dms.test_support.StubAiConfiguration;
 import io.jmix.aitoolsflowui.service.AiChatService;
 import io.jmix.aitoolsflowui.view.chathub.AiChatHubView;
 import io.jmix.flowui.ViewNavigators;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DMSApplication.class, FlowuiTestAssistConfiguration.class,
-        StubChatModelConfiguration.class})
+        StubAiConfiguration.class})
 @TestPropertySource(properties = "spring.ai.openai.api-key=test-key")
 class AssistantChatMenuTest {
 

@@ -2,6 +2,8 @@ package com.company.dms.ai.assistant;
 
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.search.semantic.DocumentVectorIndexer;
+import com.company.dms.search.semantic.SemanticSearch;
 import io.jmix.aitools.AiToolsDataLoadProperties;
 import io.jmix.aitools.tool.AiToolStatusPublisher;
 import io.jmix.aitools.tool.JmixAiTool;
@@ -23,6 +25,8 @@ import io.jmix.dynattr.DynAttrUtils;
 import io.jmix.dynattr.MsgBundleTools;
 import io.jmix.dynattr.model.Category;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -52,6 +56,8 @@ import java.util.stream.Stream;
 @Component
 public class AssistantChatTools implements JmixAiTool {
 
+    private static final Logger log = LoggerFactory.getLogger(AssistantChatTools.class);
+
     private static final String FIELD = "A field of the document types, its code or its name, such as "
             + "\"supplier\"; never the folder, the name, the status, the type or the date of a document. Leave it "
             + "out to look for a value in every text field of the types";
@@ -69,6 +75,21 @@ public class AssistantChatTools implements JmixAiTool {
     private static final String ATTRIBUTES = "The folder, the name, the status, the type and the date are "
             + "attributes of a document, not fields: count or list documents by them with the query tools.";
 
+    private static final String TOPIC = "The topic or the question in the words of the person, short, such as "
+            + "\"agricultural machinery\" or \"penalties for late delivery\"";
+
+    // a model would take the nearest documents for all the documents about the topic
+    private static final String MORE_BY_MEANING = "These are the documents nearest to the topic, and more may be "
+            + "about it: say so, and point the person to the AI search of the search field for all of them.";
+
+    // a model would take the documents found while the index fills for all the documents there are
+    private static final String INDEX_FILLING = "The search by meaning is still indexing documents: some may be "
+            + "missing, so do not conclude that there are none.";
+
+    // a model would take a search that could not run for an answer that there are no such documents
+    private static final String NO_MEANING_SEARCH = "The search by meaning is not available now: say so, and do not "
+            + "conclude that there are no such documents.";
+
     // a model asks this tool for all the documents, with no value at all
     private static final String NO_VALUE = "Give a value to look for, or a range of a number or a date field. To "
             + "list or count documents, all of them or by the folder, the name, the status, the type or the date, "
@@ -85,6 +106,8 @@ public class AssistantChatTools implements JmixAiTool {
     private final MsgBundleTools msgBundleTools;
     private final AiToolsDataLoadProperties dataLoadProperties;
     private final AiToolStatusPublisher statusPublisher;
+    private final SemanticSearch semanticSearch;
+    private final DocumentVectorIndexer vectorIndexer;
 
     public AssistantChatTools(DataManager dataManager,
                               Metadata metadata,
@@ -92,7 +115,9 @@ public class AssistantChatTools implements JmixAiTool {
                               DynAttrMetadata dynAttrMetadata,
                               MsgBundleTools msgBundleTools,
                               AiToolsDataLoadProperties dataLoadProperties,
-                              AiToolStatusPublisher statusPublisher) {
+                              AiToolStatusPublisher statusPublisher,
+                              SemanticSearch semanticSearch,
+                              DocumentVectorIndexer vectorIndexer) {
         this.dataManager = dataManager;
         this.metadata = metadata;
         this.metadataTools = metadataTools;
@@ -100,6 +125,8 @@ public class AssistantChatTools implements JmixAiTool {
         this.msgBundleTools = msgBundleTools;
         this.dataLoadProperties = dataLoadProperties;
         this.statusPublisher = statusPublisher;
+        this.semanticSearch = semanticSearch;
+        this.vectorIndexer = vectorIndexer;
     }
 
     /**
@@ -186,6 +213,58 @@ public class AssistantChatTools implements JmixAiTool {
         return documents.size() > limit
                 ? found + "\nThere are more documents: narrow the search."
                 : found;
+    }
+
+    /**
+     * Finds the passages of the documents the person who asks may open that are nearest to the topic by meaning.
+     */
+    @Tool(name = "dms_findDocumentsByMeaning", description = """
+            Finds the passages of the documents nearest to a topic or a question by meaning, even when the documents \
+            name the thing in other words, such as tractors and combines for agricultural machinery. Use it for what \
+            the documents say and for which documents are about something. Never use it for the fields of the \
+            document types (dms_findDocumentsByTypeField), or to list or count documents by their folder, name, \
+            status, type or date (the query tools). Returns up to 8 documents the person may open, the nearest \
+            first, each with its id, name, type, date, folder and fields and up to 3 passages. Answer from the \
+            passages, quote them and name the documents you use.""")
+    public String findDocumentsByMeaning(@ToolParam(description = DocumentAssistantTools.STATUS) String status,
+                                         @ToolParam(description = TOPIC) String topic,
+                                         ToolContext context) {
+        if (status != null && !status.isBlank()) {
+            statusPublisher.update(status, context);
+        }
+
+        SemanticSearch.Found found;
+
+        try {
+            found = semanticSearch.passages(topic.strip());
+        } catch (RuntimeException e) {
+            // OpenSearch or the model of vectors did not answer
+            log.warn("The search by meaning failed: {}", e.toString());
+            return NO_MEANING_SEARCH;
+        }
+
+        String answer = found.documents().isEmpty()
+                ? "No document the person may open is about \"%s\".".formatted(topic)
+                : describePassages(found);
+
+        return vectorIndexer.isBusy() ? answer + "\n" + INDEX_FILLING : answer;
+    }
+
+    private String describePassages(SemanticSearch.Found found) {
+        Map<UUID, String> folders = folderNames(found.documents()
+                .stream()
+                .map(SemanticSearch.Passages::document)
+                .toList());
+
+        String passages = found.documents()
+                .stream()
+                .map(hit -> describe(hit.document(), folders) + hit.fragments()
+                        .stream()
+                        .map(fragment -> "\n  passage: " + fragment.replace('\n', ' '))
+                        .collect(Collectors.joining()))
+                .collect(Collectors.joining("\n"));
+
+        return found.more() ? passages + "\n" + MORE_BY_MEANING : passages;
     }
 
     /**

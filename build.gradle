@@ -105,7 +105,7 @@ tasks.register('searchTest', Test) {
 }
 
 tasks.register('aiTest', Test) {
-    description = 'Runs the AI tests against the OpenAI model with the key from OPENAI_API_KEY.'
+    description = 'Runs the AI tests with the OpenAI key from OPENAI_API_KEY and OpenSearch from compose.yaml.'
     group = 'verification'
 
     testClassesDirs = sourceSets.test.output.classesDirs

@@ -18,6 +18,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Access](#-access)
 - [Document Types](#-document-types)
 - [Full-Text Search](#-full-text-search)
+- [Semantic Search](#-semantic-search)
 
 ## 📖 Overview
 
@@ -34,7 +35,7 @@ The application grows in this order:
 7. Semantic search
 8. Demo data in English and Russian
 
-Steps 1 to 6 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, and ask the AI assistant in the menu about the documents, the folders and the document types.
+Steps 1 to 7 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files or by the meaning of a query, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, and ask the AI assistant in the menu about the documents, the folders and the document types.
 
 ## 🛠️ Technical Stack
 
@@ -80,7 +81,7 @@ docker compose up -d --wait
 ./gradlew bootRun
 ```
 
-`docker compose up -d --wait` starts OpenSearch for full-text search on `127.0.0.1:19200` and returns once it answers, so that the application finds it at start. Without OpenSearch the application works, and the search says it is unavailable; if OpenSearch comes up later, restart the application, and the changes waiting in the queue are indexed then.
+`docker compose up -d --wait` starts OpenSearch for full-text and semantic search on `127.0.0.1:19200` and returns once it answers, so that the application finds it at start. Without OpenSearch the application works, and the search says it is unavailable; if OpenSearch comes up later, restart the application, and the changes waiting in the queue are indexed then.
 
 Open <http://localhost:8080/dms> and log in as `admin` / `admin`.
 
@@ -96,6 +97,8 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 | `DMS_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
 | `OPENAI_API_KEY` | empty | Key of the OpenAI API; without it the application shows no AI features |
 | `DMS_AI_MODEL` | `gpt-5.6-luna` | OpenAI model of the AI features |
+| `DMS_AI_EMBEDDING_MODEL` | `text-embedding-3-large` | OpenAI model of the vectors of the semantic search, of the text-embedding-3 family; another model fills the index anew |
+| `DMS_AI_EMBEDDING_DIMENSIONS` | `3072` | Size of the vectors of the semantic search, set with the model: at most 3072 for text-embedding-3-large and 1536 for text-embedding-3-small; another size fills the index anew |
 | `DMS_AI_REASONING_EFFORT` | `none` | Reasoning effort of the model; gpt-5.6-luna calls tools only with `none`, and a model that does not reason, such as gpt-4o-mini, refuses the setting: remove `spring.ai.openai.chat.reasoning-effort` from `application.properties` for it |
 | `DMS_AI_TEMPERATURE` | `0` | Temperature of the model; a model that reasons takes only `1` |
 | `SERVER_PORT` | `8080` | HTTP port |
@@ -117,9 +120,10 @@ docker compose up -d --wait
 ./gradlew searchTest
 ```
 
-The AI tests call the OpenAI model with the key from `OPENAI_API_KEY` and check how it classifies the English samples next to them, how the assistant of the card answers about one of them, and how the assistant in the menu lists, finds, counts and reads documents and answers in the language of the question; a run costs a few cents:
+The AI tests call the OpenAI models with the key from `OPENAI_API_KEY` and check how the model classifies the English samples next to them, how the assistant of the card answers about one of them, how the assistant in the menu lists, finds, counts and reads documents and answers in the language of the question, and how the semantic search finds the samples by meaning, on the page and in the chat. They index the samples in OpenSearch from `compose.yaml` (`dms_test_`); a run costs a few cents:
 
 ```bash
+docker compose up -d --wait
 ./gradlew aiTest
 ```
 
@@ -146,9 +150,9 @@ The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the appl
 - The types and their fields come from the document types the administrator defines, so a new type or field reaches the AI without a change of the code. Fields that hold a list of values or a reference to another record are left for you to fill.
 - The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`dms.ai.max-text-length`), and the AI is told where the text stops.
 - **Assistant.** The Assistant tab of a saved document is a chat with the AI about the document, next to its preview. Ask in your own words or take a suggestion, "Summary" or "Dates and amounts". The AI reads the text of the saved current version with your rights: a version that waits for OK is not what it reads. While it reads, the chat shows what it does in the AI's own words, and the answer appears as the AI writes it. The conversation lasts while the card is open and is not stored.
-- **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask which documents there are, how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent or fall due before a date, or what a document says: the AI knows the document types and their fields, writes queries over the documents, the folders and the document types, finds documents by a value or a range of the fields of their types and reads the text of a document. It answers in the language of the question and names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
+- **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask which documents there are, how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent or fall due before a date, or what a document says: the AI knows the document types and their fields, writes queries over the documents, the folders and the document types, finds documents by a value or a range of the fields of their types and reads the text of a document. It finds the passages of the documents by meaning, for a question about what the documents say or which of them concern something (see [Semantic Search](#-semantic-search)), and answers with quotes. It answers in the language of the question and names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
 - The assistant in the menu sees only what you may open: the rights to documents and folders apply to every entity a query reads, whatever names the query gives them, and a query that reads documents where the rights cannot apply is refused. Access sets, access entries, users and versions are closed to it in the code (`@ExcludeFromAi`), so a setting cannot open them.
-- To fill a document, the OpenAI model gets the text of the file, the name of the document and the document types with their fields; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders and the types, the document types with their fields, the rows of its queries and searches (names, dates, statuses, folders, types, who uploaded the documents and when, and the values of their fields), and the text of a document it reads.
+- To fill a document, the OpenAI model gets the text of the file, the name of the document and the document types with their fields; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders and the types, the document types with their fields, the rows of its queries and searches (names, dates, statuses, folders, types, who uploaded the documents and when, and the values of their fields), the passages it finds by meaning, and the text of a document it reads. The semantic search sends the texts of all documents to OpenAI, see [Semantic Search](#-semantic-search).
 
 The pages of the application load pictures, media, styles and fonts from the application only (`Content-Security-Policy` with `img-src`, `media-src`, `style-src` and `font-src`): an answer in Markdown cannot send data to another site in the address of a picture, a sound, a video, a style or a font.
 
@@ -303,3 +307,14 @@ The search field in the header finds documents by the words of their files: the 
 - Not searched: the status, the folder, the type name, older versions, and numbers and dates, which the add-on does not index.
 - Changes reach the search within seconds: the add-on puts them into a queue, and a [Quartz](https://docs.jmix.io/jmix/quartz/index.html) job sends it to OpenSearch every five seconds. A deleted document leaves the search at once.
 - On start, the application fills an empty index with all documents, for example after the index schema changes.
+
+## 🧠 Semantic Search
+
+With the AI on, the search field in the header has a second mode. **By words** is the full-text search above; a click on it switches to **AI search**, which finds documents by the meaning of a query: "agricultural machinery" finds the lease of a tractor, the invoice for a combine and a memo about a broken baler, though none of them names agricultural machinery.
+
+- The field shows the mode, and the address of the results keeps it (`mode=ai`), so a link and Back search the same way. Each person's last choice is remembered; the default is by words. A click on the mode on the results page runs the same query in the other mode.
+- The AI search finds the fragments of the documents nearest to the query by meaning, and the OpenAI chat model checks every candidate: the page shows up to 20 documents that fit, the nearest first, each with its fragment and the quote that fits the query marked. When nothing fits, the page offers the search by words.
+- The assistant in the menu finds passages by meaning too, for a question about what the documents say or which of them concern something, and answers with quotes and links to the cards.
+- The rights apply when a person searches: the index holds the fragments of all documents, and the application asks it only among the documents the person may open, so a closed document is neither shown, nor checked, nor quoted.
+- **The texts of all documents go to OpenAI.** While the key is set, every document is sent to the OpenAI model of vectors when it is uploaded, gets another current version or another name, whoever opens it later: its name and the first 40,000 characters of its text (`dms.semantic.max-text-length`), in fragments of about 1,000 characters. A file without text is searched by its name. A search sends the query, and the results page also the names and fragments of up to 20 documents for the check. Indexing costs about $0.0002 for a document of two pages, a search on the page about $0.002.
+- The fragments live in the OpenSearch index `dms_document_vectors`, next to the index of full-text search, with the vectors of `text-embedding-3-large` (3,072 numbers each). A document is found by meaning a few seconds after an upload. At start the application checks the index against the documents: it indexes what changed while it was stopped, removes what is gone, and fills the index anew when the model of vectors changes. Until then the results page says that part of the documents cannot be found by meaning yet. Without OpenSearch the AI search says that search is unavailable.
