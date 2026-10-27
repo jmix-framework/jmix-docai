@@ -1,6 +1,7 @@
 package com.company.dms.ai.assistant;
 
 import com.company.dms.model.document.Document;
+import com.company.dms.model.folder.Folder;
 import io.jmix.aitools.AiToolsDataLoadProperties;
 import io.jmix.aitools.tool.AiToolStatusPublisher;
 import io.jmix.aitools.tool.JmixAiTool;
@@ -28,10 +29,14 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,14 +50,25 @@ public class AssistantChatTools implements JmixAiTool {
 
     private static final String FIELD = "A field of the document types, its code or its name, such as "
             + "\"supplier\"; never the folder, the name, the status, the type or the date of a document. Leave it "
-            + "out to look in every text field of the types";
+            + "out to look for a value in every text field of the types";
 
     private static final String VALUE = "The value to look for: a text, a number with a dot as the decimal "
-            + "separator, or a date such as 2026-12-31";
+            + "separator, or a date such as 2026-12-31. Leave it out to look for a range";
+
+    private static final String FROM = "For a number or a date field: the lowest number or the earliest date of "
+            + "the range, such as 2026-12-01. Leave it out for a range open at the bottom";
+
+    private static final String TO = "For a number or a date field: the highest number or the latest date of "
+            + "the range, such as 2026-12-31. Leave it out for a range open at the top";
 
     // a model asks this tool for the documents of a folder, finds none and takes that for the answer
     private static final String ATTRIBUTES = "The folder, the name, the status, the type and the date are "
             + "attributes of a document, not fields: count or list documents by them with the query tools.";
+
+    // a model asks this tool for all the documents, with no value at all
+    private static final String NO_VALUE = "Give a value to look for, or a range of a number or a date field. To "
+            + "list or count documents, all of them or by the folder, the name, the status, the type or the date, "
+            + "use the query tools.";
 
     private static final Set<AttributeType> TEXT = Set.of(AttributeType.STRING, AttributeType.ENUMERATION);
 
@@ -81,23 +97,39 @@ public class AssistantChatTools implements JmixAiTool {
     }
 
     /**
-     * Finds the documents the person who asks may open whose field holds the value.
+     * Finds the documents the person who asks may open whose field holds the value or, for a number or a date,
+     * falls in the range.
      */
     @Tool(name = "dms_findDocumentsByTypeField", description = """
             Only for the fields of the document types, such as the supplier of an invoice, the counterparty or \
-            the amount of a contract, a due date: finds the documents whose such field holds a value. These \
-            fields are not attributes of any entity, so the query tools cannot reach them. Never use this tool \
-            for the folder, the name, the status, the type or the date of a document: they are attributes of \
-            the Document entity, so count or list documents by them with the query tools. A text matches in part \
-            and in any case; a number or a date matches exactly. Returns the id, the name, the type, the date and \
-            the fields of each document found.""")
+            the amount of a contract, a due date: finds the documents whose such field holds a value or, for a \
+            number or a date, falls in a range. These fields are not attributes of any entity, so the query tools \
+            cannot reach them. Never use this tool for the folder, the name, the status, the type or the date of a \
+            document, or to list all the documents: they are attributes of the Document entity, so count or list \
+            documents by them with the query tools. A text matches in part and in any case; a number or a date \
+            matches exactly or within the range. Returns the id, the name, the type, the date, the folder, who \
+            uploaded it and when, and the fields of each document found.""")
     public String findDocumentsByTypeField(@ToolParam(description = DocumentAssistantTools.STATUS) String status,
                                            @ToolParam(required = false, description = FIELD) @Nullable String field,
-                                           @ToolParam(description = VALUE) String value,
+                                           @ToolParam(required = false, description = VALUE) @Nullable String value,
+                                           @ToolParam(required = false, description = FROM) @Nullable String from,
+                                           @ToolParam(required = false, description = TO) @Nullable String to,
                                            ToolContext context) {
         // a model may leave the status out, and the chat takes no empty one
         if (status != null && !status.isBlank()) {
             statusPublisher.update(status, context);
+        }
+
+        String wanted = value == null ? "" : value.strip();
+        boolean ranged = wanted.isEmpty();
+
+        if (ranged && isBlank(from) && isBlank(to)) {
+            return NO_VALUE;
+        }
+
+        if (ranged && isBlank(field)) {
+            return "Name the field to look in for a range. The fields of the document types: %s."
+                    .formatted(allFields());
         }
 
         List<AttributeDefinition> fields = fieldsCalled(field);
@@ -108,13 +140,16 @@ public class AssistantChatTools implements JmixAiTool {
         }
 
         List<Condition> conditions = fields.stream()
-                .map(attribute -> condition(attribute, value.strip()))
+                .map(attribute -> ranged ? range(attribute, from, to) : condition(attribute, wanted))
                 .flatMap(Optional::stream)
                 .toList();
 
         if (conditions.isEmpty()) {
-            return ("\"%s\" is not a value of %s: give a text, a number with a dot as the decimal separator or "
-                    + "a date such as 2026-12-31.").formatted(value, names(fields));
+            return ranged
+                    ? ("From %s to %s is not a range of %s: give numbers with a dot as the decimal separator or "
+                    + "dates such as 2026-12-31.").formatted(bound(from), bound(to), names(fields))
+                    : ("\"%s\" is not a value of %s: give a text, a number with a dot as the decimal separator or "
+                    + "a date such as 2026-12-31.").formatted(wanted, names(fields));
         }
 
         int limit = dataLoadProperties.getJpqlExecutionMaxResult();
@@ -122,6 +157,7 @@ public class AssistantChatTools implements JmixAiTool {
         List<Document> documents = dataManager.load(Document.class)
                 .condition(LogicalCondition.or(conditions.toArray(Condition[]::new)))
                 .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("folder", FetchPlan.INSTANCE_NAME)
                         .add("category", FetchPlan.INSTANCE_NAME))
                 .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
                 .sort(Sort.by("name"))
@@ -129,12 +165,16 @@ public class AssistantChatTools implements JmixAiTool {
                 .list();
 
         if (documents.isEmpty()) {
-            return "No document has a field holding \"%s\". ".formatted(value) + ATTRIBUTES;
+            return (ranged
+                    ? "No document has a field from %s to %s. ".formatted(bound(from), bound(to))
+                    : "No document has a field holding \"%s\". ".formatted(wanted)) + ATTRIBUTES;
         }
+
+        Map<UUID, String> folders = folderNames(documents);
 
         String found = documents.stream()
                 .limit(limit)
-                .map(document -> describe(document, fields))
+                .map(document -> describe(document, folders))
                 .collect(Collectors.joining("\n"));
 
         return documents.size() > limit
@@ -143,7 +183,7 @@ public class AssistantChatTools implements JmixAiTool {
     }
 
     private List<AttributeDefinition> fieldsCalled(@Nullable String field) {
-        Collection<AttributeDefinition> all = dynAttrMetadata.getAttributes(metadata.getClass(Document.class));
+        Collection<AttributeDefinition> all = allAttributes();
 
         if (field == null || field.isBlank()) {
             return all.stream()
@@ -171,13 +211,46 @@ public class AssistantChatTools implements JmixAiTool {
     private static Optional<Condition> condition(AttributeDefinition attribute, String value) {
         String property = DynAttrUtils.getPropertyFromAttributeCode(attribute.getCode());
 
+        return TEXT.contains(attribute.getDataType())
+                ? Optional.of(PropertyCondition.contains(property, value))
+                : numberOrDate(attribute, value).map(parsed -> PropertyCondition.equal(property, parsed));
+    }
+
+    private static Optional<Condition> range(AttributeDefinition attribute, @Nullable String from,
+                                             @Nullable String to) {
+        String property = DynAttrUtils.getPropertyFromAttributeCode(attribute.getCode());
+        List<Condition> ends = new ArrayList<>();
+
+        if (from != null && !from.isBlank()) {
+            Optional<Object> lowest = numberOrDate(attribute, from.strip());
+
+            if (lowest.isEmpty()) {
+                return Optional.empty();
+            }
+
+            ends.add(PropertyCondition.greaterOrEqual(property, lowest.get()));
+        }
+
+        if (to != null && !to.isBlank()) {
+            Optional<Object> highest = numberOrDate(attribute, to.strip());
+
+            if (highest.isEmpty()) {
+                return Optional.empty();
+            }
+
+            ends.add(PropertyCondition.lessOrEqual(property, highest.get()));
+        }
+
+        return Optional.of(LogicalCondition.and(ends.toArray(Condition[]::new)));
+    }
+
+    private static Optional<Object> numberOrDate(AttributeDefinition attribute, String value) {
         try {
             return Optional.ofNullable(switch (attribute.getDataType()) {
-                case STRING, ENUMERATION -> PropertyCondition.contains(property, value);
-                case INTEGER -> PropertyCondition.equal(property, Integer.valueOf(value));
-                case DOUBLE -> PropertyCondition.equal(property, Double.valueOf(value));
-                case DECIMAL -> PropertyCondition.equal(property, new BigDecimal(value));
-                case DATE_WITHOUT_TIME -> PropertyCondition.equal(property, LocalDate.parse(value));
+                case INTEGER -> Integer.valueOf(value);
+                case DOUBLE -> Double.valueOf(value);
+                case DECIMAL -> new BigDecimal(value);
+                case DATE_WITHOUT_TIME -> LocalDate.parse(value);
                 default -> null;
             });
         } catch (NumberFormatException | DateTimeParseException e) {
@@ -185,26 +258,59 @@ public class AssistantChatTools implements JmixAiTool {
         }
     }
 
-    private String describe(Document document, List<AttributeDefinition> fields) {
-        String type = document.getCategory() == null
-                ? "no type"
-                : metadataTools.getInstanceName(document.getCategory());
+    // a JPQL row rule filters only the entity a query selects, so a folder the person may not open would show its
+    // name through the reference of the document: the names come from a query of the folders themselves
+    private Map<UUID, String> folderNames(List<Document> documents) {
+        Set<UUID> ids = documents.stream()
+                .map(document -> document.getFolder().getId())
+                .collect(Collectors.toSet());
 
-        String values = fields.stream()
+        return dataManager.load(Folder.class)
+                .query("select f from Folder f where f.id in :ids")
+                .parameter("ids", ids)
+                .fetchPlan(FetchPlan.INSTANCE_NAME)
+                .list()
+                .stream()
+                .collect(Collectors.toMap(Folder::getId, metadataTools::getInstanceName));
+    }
+
+    private String describe(Document document, Map<UUID, String> folders) {
+        List<String> facts = new ArrayList<>();
+        facts.add("\"%s\"".formatted(document.getName()));
+        facts.add(document.getCategory() == null ? "no type" : metadataTools.getInstanceName(document.getCategory()));
+
+        if (document.getDocumentDate() != null) {
+            facts.add("dated " + document.getDocumentDate());
+        }
+
+        String folder = folders.get(document.getFolder().getId());
+
+        if (folder != null) {
+            facts.add("in the folder \"%s\"".formatted(folder));
+        }
+
+        facts.add("uploaded by %s on %s".formatted(document.getCreatedBy(),
+                document.getCreatedDate().toLocalDateTime().truncatedTo(ChronoUnit.MINUTES)));
+
+        String values = allAttributes().stream()
                 .filter(attribute -> valueOf(document, attribute) != null)
                 .map(attribute -> nameOf(attribute) + ": " + valueOf(document, attribute))
                 .collect(Collectors.joining("; "));
 
-        return "- id %s: \"%s\", %s, dated %s; %s".formatted(document.getId(), document.getName(), type,
-                document.getDocumentDate(), values);
+        return "- id %s: %s".formatted(document.getId(), String.join(", ", facts))
+                + (values.isEmpty() ? "" : "; " + values);
     }
 
     private static @Nullable Object valueOf(Document document, AttributeDefinition attribute) {
         return EntityValues.getValue(document, DynAttrUtils.getPropertyFromAttributeCode(attribute.getCode()));
     }
 
+    private Collection<AttributeDefinition> allAttributes() {
+        return dynAttrMetadata.getAttributes(metadata.getClass(Document.class));
+    }
+
     private String allFields() {
-        return names(dynAttrMetadata.getAttributes(metadata.getClass(Document.class)));
+        return names(allAttributes());
     }
 
     private String names(Collection<AttributeDefinition> fields) {
@@ -219,5 +325,13 @@ public class AssistantChatTools implements JmixAiTool {
         String names = attribute.getNameMsgBundle();
 
         return names == null ? name : msgBundleTools.getLocalizedValue(names, name);
+    }
+
+    private static String bound(@Nullable String bound) {
+        return bound == null || bound.isBlank() ? "any" : bound.strip();
+    }
+
+    private static boolean isBlank(@Nullable String text) {
+        return text == null || text.isBlank();
     }
 }

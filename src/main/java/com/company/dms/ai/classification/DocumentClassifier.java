@@ -15,6 +15,7 @@ import io.jmix.dynattr.DynAttrMetadata;
 import io.jmix.dynattr.DynAttrUtils;
 import io.jmix.dynattr.model.Category;
 import org.jspecify.annotations.Nullable;
+import org.springframework.ai.chat.client.AdvisorParams;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
@@ -98,8 +99,10 @@ public class DocumentClassifier {
      * @param text         the text of the document
      */
     public ClassificationProposal classify(String documentName, String text) {
+        // the model is held to the schema of the proposal: a model asked for JSON in the prompt alone may break it
         ClassificationProposal proposal = ChatClient.create(chatModel)
                 .prompt()
+                .advisors(AdvisorParams.ENABLE_NATIVE_STRUCTURED_OUTPUT)
                 .system(SYSTEM_PROMPT.formatted(catalog()))
                 .user("Document name: " + documentName + "\n\nDocument text:\n" + text)
                 .call()

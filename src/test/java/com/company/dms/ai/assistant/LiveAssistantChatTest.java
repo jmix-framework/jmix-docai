@@ -44,8 +44,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The OpenAI model in the chat of the assistant in the menu, asked by an employee: a question by a field of the
- * document types, a count and a question about the content of a document each reach the tool that answers them.
- * Runs only with {@code ./gradlew aiTest} and the key in {@code OPENAI_API_KEY}.
+ * document types, a list, a count and a question about the content of a document each reach the tool that answers
+ * them, and the answer speaks the language of the question. Runs only with {@code ./gradlew aiTest} and the key in
+ * {@code OPENAI_API_KEY}.
  */
 @Tag("ai")
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
@@ -87,6 +88,7 @@ class LiveAssistantChatTest {
     private Folder sandbox;
     private Document invoice;
     private Document contract;
+    private Document notes;
 
     @BeforeEach
     void setUp() {
@@ -106,7 +108,7 @@ class LiveAssistantChatTest {
                             "+dueDate", LocalDate.of(2026, 12, 1)));
             contract = typed(upload("contract.txt", "Supply contract 45 with Northwind " + token
                     + " for office paper."), "Contract", Map.of("+counterparty", "Northwind " + token));
-            upload("notes.txt", "Notes of the meeting about the paper supply.");
+            notes = upload("notes.txt", "Notes of the meeting about the paper supply.");
         });
     }
 
@@ -130,6 +132,21 @@ class LiveAssistantChatTest {
         String answer = ask("How many documents are there in the folder \"" + sandbox.getName() + "\"?");
 
         assertThat(answer).containsAnyOf("3", "three");
+    }
+
+    @RepeatedTest(3)
+    void allTheDocumentsAreListed() {
+        String answer = ask("Which documents are there?");
+
+        assertThat(answer).contains(invoice.getName(), contract.getName(), notes.getName());
+    }
+
+    // the interface of the test speaks English
+    @RepeatedTest(3)
+    void theAnswerIsInTheLanguageOfTheQuestion() {
+        String answer = ask("Wie viele Dokumente gibt es im Ordner \"" + sandbox.getName() + "\"?");
+
+        assertThat(answer).containsIgnoringCase("Dokument");
     }
 
     @RepeatedTest(3)

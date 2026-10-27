@@ -29,6 +29,7 @@ public class AssistantChatService extends AiChatDataService {
 
     private static final Pattern LINK = Pattern.compile("(?<!!)\\[([^\\n\\]]+)]\\(([^)\\s]+)\\)");
     private static final Pattern ID = Pattern.compile("[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}");
+    private static final Pattern SITE = Pattern.compile("(?i)https?://\\S+");
 
     private final DataManager secureDataManager;
     private final ViewRegistry viewRegistry;
@@ -46,6 +47,12 @@ public class AssistantChatService extends AiChatDataService {
         return aiSettings.isAvailable() && super.isAvailable();
     }
 
+    // the add-on asks for the language of the interface, and a person may ask in another one
+    @Override
+    protected String resolveResponseLanguage() {
+        return "the language of the latest message of the user";
+    }
+
     // the add-on saves an empty answer as an empty message; an error lets the chat say that the AI did not answer
     @Override
     protected void saveAssistantResponse(AiChatMessageEntity placeholder, @Nullable String response) {
@@ -57,19 +64,16 @@ public class AssistantChatService extends AiChatDataService {
     }
 
     // the model knows the id of a document from the tools, and only the code knows the address of its card; a link
-    // to a document the person cannot open, or to none, becomes plain text
+    // to a site stays, and any other link, to a document the person cannot open, to none or without an id at all,
+    // becomes plain text
     private String withCardLinks(String answer) {
         Set<UUID> ids = LINK.matcher(answer)
                 .results()
-                .map(link -> idIn(link.group(2)))
+                .map(link -> documentIn(link.group(2)))
                 .flatMap(Optional::stream)
                 .collect(Collectors.toSet());
 
-        if (ids.isEmpty()) {
-            return answer;
-        }
-
-        Set<UUID> readable = secureDataManager.load(Document.class)
+        Set<UUID> readable = ids.isEmpty() ? Set.of() : secureDataManager.load(Document.class)
                 .query("select d from Document d where d.id in :ids")
                 .parameter("ids", ids)
                 .fetchPlan(FetchPlan.INSTANCE_NAME)
@@ -83,21 +87,23 @@ public class AssistantChatService extends AiChatDataService {
     }
 
     private String cardLink(MatchResult link, Set<UUID> readable) {
-        Optional<UUID> id = idIn(link.group(2));
-
-        if (id.isEmpty()) {
+        if (SITE.matcher(link.group(2)).matches()) {
             return link.group();
         }
 
-        return readable.contains(id.get())
-                ? "[%s](%s)".formatted(link.group(1), cardUrl(id.get()))
-                : link.group(1);
+        return documentIn(link.group(2))
+                .filter(readable::contains)
+                .map(id -> "[%s](%s)".formatted(link.group(1), cardUrl(id)))
+                .orElse(link.group(1));
     }
 
-    private static Optional<UUID> idIn(String target) {
+    // a site may have an id in its address too
+    private static Optional<UUID> documentIn(String target) {
         Matcher id = ID.matcher(target);
 
-        return id.find() ? Optional.of(UUID.fromString(id.group())) : Optional.empty();
+        return !SITE.matcher(target).matches() && id.find()
+                ? Optional.of(UUID.fromString(id.group()))
+                : Optional.empty();
     }
 
     // relative to the root of the application, which the pages of Vaadin set as their base address

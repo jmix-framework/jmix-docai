@@ -121,6 +121,29 @@ class AssistantChatServiceTest {
     }
 
     @Test
+    void aLinkToNeitherADocumentNorASiteBecomesItsText() {
+        String site = "https://example.org/files/" + UUID.randomUUID();
+        model.willReply("[Notes](null), [Draft](documents/), [Files](%s)".formatted(site));
+        AiConversation conversation = conversationService.create();
+
+        chatService.processMessage(ask(conversation));
+
+        AiChatMessage answer = messageService.loadLatestMessage(conversation, AiChatMessageType.ASSISTANT);
+        assertThat(answer).isNotNull();
+        assertThat(answer.getContent()).isEqualTo("Notes, Draft, [Files](%s)".formatted(site));
+    }
+
+    @Test
+    void theModelAnswersInTheLanguageOfTheQuestion() {
+        model.willReply("There are no invoices.");
+
+        chatService.processMessage(ask(conversationService.create()));
+
+        assertThat(model.prompts().getFirst().getSystemMessage().getText())
+                .contains("Respond in this language: the language of the latest message of the user");
+    }
+
+    @Test
     void anEmptyAnswerFailsAndLeavesNoAnswerInTheConversation() {
         model.willReply(" ");
         AiConversation conversation = conversationService.create();

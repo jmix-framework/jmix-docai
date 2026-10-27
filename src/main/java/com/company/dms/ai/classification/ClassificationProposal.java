@@ -1,5 +1,6 @@
 package com.company.dms.ai.classification;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -11,7 +12,11 @@ import java.util.List;
  * @param fields       the values of the fields of the type, as the model wrote them
  * @param documentDate the date the document was issued or signed, as {@code yyyy-MM-dd}
  */
-public record ClassificationProposal(String type, List<Field> fields, @Nullable String documentDate) {
+public record ClassificationProposal(String type,
+                                     List<Field> fields,
+                                     // the schema OpenAI holds the model to must require every property
+                                     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true)
+                                     @Nullable String documentDate) {
 
     /**
      * The type the model gives when no type of the catalog fits.

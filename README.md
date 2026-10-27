@@ -95,8 +95,9 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 | `DMS_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
 | `DMS_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
 | `OPENAI_API_KEY` | empty | Key of the OpenAI API; without it the application shows no AI features |
-| `DMS_AI_MODEL` | `gpt-4o-mini` | OpenAI model of the AI features |
-| `DMS_AI_TEMPERATURE` | `0` | Temperature of the model; a reasoning model takes only `1` |
+| `DMS_AI_MODEL` | `gpt-5.6-luna` | OpenAI model of the AI features |
+| `DMS_AI_REASONING_EFFORT` | `none` | Reasoning effort of the model; gpt-5.6-luna calls tools only with `none`, and a model that does not reason, such as gpt-4o-mini, refuses the setting: remove `spring.ai.openai.chat.reasoning-effort` from `application.properties` for it |
+| `DMS_AI_TEMPERATURE` | `0` | Temperature of the model; a model that reasons takes only `1` |
 | `SERVER_PORT` | `8080` | HTTP port |
 
 The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together. The search index follows them: after the database is reset or replaced, run `docker compose down -v` to remove the index, and the application fills it again at start.
@@ -116,7 +117,7 @@ docker compose up -d --wait
 ./gradlew searchTest
 ```
 
-The AI tests call the OpenAI model with the key from `OPENAI_API_KEY` and check how it classifies the English samples next to them, how the assistant of the card answers about one of them, and how the assistant in the menu finds, counts and reads documents; a run costs a few cents:
+The AI tests call the OpenAI model with the key from `OPENAI_API_KEY` and check how it classifies the English samples next to them, how the assistant of the card answers about one of them, and how the assistant in the menu lists, finds, counts and reads documents and answers in the language of the question; a run costs a few cents:
 
 ```bash
 ./gradlew aiTest
@@ -145,9 +146,9 @@ The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the appl
 - The types and their fields come from the document types the administrator defines, so a new type or field reaches the AI without a change of the code. Fields that hold a list of values or a reference to another record are left for you to fill.
 - The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`dms.ai.max-text-length`), and the AI is told where the text stops.
 - **Assistant.** The Assistant tab of a saved document is a chat with the AI about the document, next to its preview. Ask in your own words or take a suggestion, "Summary" or "Dates and amounts". The AI reads the text of the saved current version with your rights: a version that waits for OK is not what it reads. While it reads, the chat shows what it does in the AI's own words, and the answer appears as the AI writes it. The conversation lasts while the card is open and is not stored.
-- **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent, or what a document says: the AI writes queries over the documents, the folders and the document types, finds documents by the fields of their types and reads the text of a document. It names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
+- **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask which documents there are, how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent or fall due before a date, or what a document says: the AI writes queries over the documents, the folders and the document types, finds documents by a value or a range of the fields of their types and reads the text of a document. It answers in the language of the question and names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
 - The assistant in the menu sees only what you may open: the rights to documents and folders apply to every entity a query reads, whatever names the query gives them, and a query that reads documents where the rights cannot apply is refused. Access sets, access entries, users and versions are closed to it in the code (`@ExcludeFromAi`), so a setting cannot open them.
-- To fill a document, the OpenAI model gets the text of the file, the name of the document and the document types with their fields; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders and the types, the rows of its queries and searches (names, dates, statuses, folders, types and the values of the fields it searches), and the text of a document it reads.
+- To fill a document, the OpenAI model gets the text of the file, the name of the document and the document types with their fields; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders and the types, the rows of its queries and searches (names, dates, statuses, folders, types, who uploaded the documents and when, and the values of their fields), and the text of a document it reads.
 
 The pages of the application load pictures, media, styles and fonts from the application only (`Content-Security-Policy` with `img-src`, `media-src`, `style-src` and `font-src`): an answer in Markdown cannot send data to another site in the address of a picture, a sound, a video, a style or a font.
 

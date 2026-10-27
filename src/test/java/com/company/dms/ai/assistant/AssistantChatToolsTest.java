@@ -34,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -51,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AssistantChatToolsTest {
 
     private static final String EMPLOYEE = "peter";
+    private static final LocalDate DUE_DATE = LocalDate.of(2026, 12, 1);
 
     @Autowired
     private AssistantChatTools tools;
@@ -91,11 +93,13 @@ class AssistantChatToolsTest {
 
         supplier = "Harbour Logistics " + UUID.randomUUID();
         amount = new BigDecimal(Math.abs(UUID.randomUUID().getMostSignificantBits() % 1_000_000_000) + ".50");
-        invoice = typed(upload("invoice.txt"), "Invoice", Map.of("+supplier", supplier, "+invoiceAmount", amount));
+        invoice = typed(upload("invoice.txt"), "Invoice", Map.of("+supplier", supplier, "+invoiceAmount", amount,
+                "+dueDate", DUE_DATE));
         contract = typed(upload("contract.txt"), "Contract",
                 Map.of("+counterparty", supplier, "+contractAmount", amount));
         hidden = TestAccess.giveOwnAccess(dataManager, typed(upload("hidden.txt"), "Invoice",
-                Map.of("+supplier", supplier, "+invoiceAmount", amount)), Grant.user("maria", AccessLevel.VIEW));
+                        Map.of("+supplier", supplier, "+invoiceAmount", amount, "+dueDate", DUE_DATE)),
+                Grant.user("maria", AccessLevel.VIEW));
     }
 
     @AfterEach
@@ -147,6 +151,40 @@ class AssistantChatToolsTest {
     }
 
     @Test
+    void aSearchWithoutAValueFindsNothingAndPointsToTheQueryTools() {
+        assertThat(List.of(find(null, null), find("supplier", " "))).allSatisfy(found -> assertThat(found)
+                .contains("Give a value", "query tools")
+                .doesNotContain(invoice.getId().toString()));
+    }
+
+    @Test
+    void aNumberOrADateIsFoundInARange() {
+        String byAmount = findIn("Amount", amount.subtract(BigDecimal.ONE).toPlainString(),
+                amount.add(BigDecimal.ONE).toPlainString());
+        String byDueDate = findIn("dueDate", "2026-11-01", "2026-12-31");
+
+        assertThat(byAmount).contains(invoice.getId().toString(), contract.getId().toString())
+                .doesNotContain(hidden.getId().toString());
+        assertThat(byDueDate).contains(invoice.getId().toString())
+                .doesNotContain(contract.getId().toString(), hidden.getId().toString());
+        assertThat(findIn("dueDate", "2026-12-02", null)).doesNotContain(invoice.getId().toString());
+    }
+
+    @Test
+    void aRangeNeedsANumberOrADateField() {
+        assertThat(findIn(null, "1", "2")).contains("Name the field", "invoiceAmount (");
+        assertThat(findIn("supplier", "1", "2")).contains("is not a range of supplier (");
+    }
+
+    @Test
+    void aDocumentFoundShowsAllItsFieldsItsFolderAndWhoUploadedIt() {
+        String found = find("supplier", supplier);
+
+        assertThat(found).contains(amount.toPlainString(), DUE_DATE.toString(), sandbox.getName(), "uploaded by admin")
+                .doesNotContain("dated null");
+    }
+
+    @Test
     void theStatusOfTheModelShowsInTheChat() {
         find("supplier", supplier);
 
@@ -161,12 +199,20 @@ class AssistantChatToolsTest {
                         "aitls_executeQuery");
     }
 
-    private String find(@Nullable String field, String value) {
+    private String find(@Nullable String field, @Nullable String value) {
+        return search(field, value, null, null);
+    }
+
+    private String findIn(@Nullable String field, @Nullable String from, @Nullable String to) {
+        return search(field, null, from, to);
+    }
+
+    private String search(@Nullable String field, @Nullable String value, @Nullable String from, @Nullable String to) {
         Consumer<AiToolStatusUpdate> feed = update -> statuses.add(update.getMessage());
         ToolContext context = new ToolContext(Map.of(AiToolStatusPublisher.STATUS_UPDATE_CALLBACK, feed));
 
         return systemAuthenticator.withUser(EMPLOYEE, () -> tools.findDocumentsByTypeField("Looking for the invoices",
-                field, value, context));
+                field, value, from, to, context));
     }
 
     private Document upload(String fileName) {

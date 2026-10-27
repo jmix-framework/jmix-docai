@@ -25,8 +25,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.openai.autoconfigure.OpenAiChatProperties;
+import org.springframework.ai.model.tool.StructuredOutputChatOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -102,6 +105,24 @@ class DocumentClassifierTest {
                 .contains("contractNumber", "invoiceAmount", "dueDate", "workCompletedOn", "hireDate")
                 .contains("one of: supply,lease,work,services,leasing");
         assertThat(prompt.getUserMessage().getText()).contains("scan-0001.pdf", "The text of the scan");
+    }
+
+    @Test
+    void theModelIsHeldToTheSchemaOfTheProposal() {
+        model.willReply("{\"type\": \"UNKNOWN\", \"fields\": [], \"documentDate\": null}");
+
+        documentClassifier.classify("scan-0001.pdf", "The text of the scan");
+
+        assertThat(model.prompts().getFirst().getOptions()).isInstanceOfSatisfying(StructuredOutputChatOptions.class,
+                options -> {
+                    JsonNode schema = JsonMapper.shared().readTree(options.getOutputSchema());
+
+                    // OpenAI takes a schema only when it requires every property; a missing date is null
+                    assertThat(schema.at("/required").valueStream().map(JsonNode::asString))
+                            .containsExactlyInAnyOrder("type", "fields", "documentDate");
+                    assertThat(schema.at("/properties/documentDate/type").valueStream().map(JsonNode::asString))
+                            .contains("null");
+                });
     }
 
     @Test

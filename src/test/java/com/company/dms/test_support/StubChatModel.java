@@ -6,7 +6,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.model.tool.ToolCallingChatOptions;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import reactor.core.publisher.Flux;
 
 import java.util.Deque;
@@ -70,10 +70,10 @@ public class StubChatModel implements ChatModel {
         prompts.clear();
     }
 
-    // like a real model, so that a chat client passes its tools on
+    // the options of the OpenAI model, so that a chat client passes its tools and its output schema on
     @Override
     public ChatOptions getOptions() {
-        return ToolCallingChatOptions.builder().build();
+        return OpenAiChatOptions.builder().build();
     }
 
     @Override
