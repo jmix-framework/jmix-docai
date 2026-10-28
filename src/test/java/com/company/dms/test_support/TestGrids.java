@@ -13,6 +13,7 @@ import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import io.jmix.flowui.component.grid.DataGrid;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
@@ -92,5 +93,17 @@ public final class TestGrids {
         }
 
         return componentRenderer.createComponent(item);
+    }
+
+    /**
+     * The text that a column shows for the item.
+     */
+    public static <T> String text(Grid<T> grid, String columnKey, T item) {
+        Renderer<T> renderer = grid.getColumnByKey(columnKey).getRenderer();
+        if (!(renderer instanceof TextRenderer<T> textRenderer)) {
+            throw new AssertionError("Column '%s' does not render text".formatted(columnKey));
+        }
+
+        return textRenderer.createComponent(item).getElement().getText();
     }
 }

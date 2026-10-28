@@ -203,6 +203,7 @@ public class AccessDetailView extends StandardDetailView<AccessDraft> {
         return new ComponentRenderer<>(entry -> {
             JmixSelect<AccessLevel> select = uiComponents.create(JmixSelect.class);
             select.setItems(AccessLevel.class);
+            select.setNoVerticalOverlap(true);
             select.setValue(entry.getAccessLevel());
             select.setAriaLabel(messageBundle.getMessage("levelColumn.header"));
             select.addValueChangeListener(change -> entry.setAccessLevel(change.getValue()));
@@ -216,7 +217,7 @@ public class AccessDetailView extends StandardDetailView<AccessDraft> {
             JmixButton button = uiComponents.create(JmixButton.class);
 
             button.setIcon(icons.get(JmixFontIcon.TRASH));
-            button.addThemeVariants(ButtonVariant.TERTIARY);
+            button.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.ERROR);
             button.setAriaLabel(messageBundle.getMessage("removeButton.tooltip"));
             button.setTooltipText(messageBundle.getMessage("removeButton.tooltip"));
             button.addClickListener(click -> {

@@ -25,6 +25,7 @@ class RoleViewAccessTest {
             "peter, ProfileReadView, true",
             "peter, RepositoryView, true",
             "peter, Document.detail, true",
+            "peter, DocumentRevision.read, true",
             "peter, Folder.detail, true",
             "peter, Folder.lookup, true",
             "peter, AccessDraft.detail, true",

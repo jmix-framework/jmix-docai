@@ -6,6 +6,7 @@ import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.user.User;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
 import com.company.dms.test_support.TestFiles;
 import com.company.dms.test_support.TestGrids;
@@ -14,9 +15,11 @@ import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.folder.FolderDetailView;
 import com.company.dms.view.folder.FolderLookupView;
 import com.company.dms.view.main.MainView;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.ColumnResizeEvent;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.IFrame;
@@ -30,6 +33,8 @@ import com.vaadin.flow.server.streams.ElementRequestHandler;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
+import io.jmix.core.MetadataTools;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.dynattr.model.Category;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -79,6 +84,12 @@ class RepositoryViewTest {
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private UnconstrainedDataManager unconstrainedDataManager;
+
+    @Autowired
+    private MetadataTools metadataTools;
 
     @Autowired
     private TemporaryStorage temporaryStorage;
@@ -477,6 +488,54 @@ class RepositoryViewTest {
     }
 
     @Test
+    void theDocumentListNamesWhoChangedTheDocument() {
+        Document document = unconstrainedDataManager.load(Id.of(upload(sandbox, "a.txt"))).one();
+        document.setChangedBy("maria");
+        unconstrainedDataManager.save(document);
+
+        User maria = dataManager.load(User.class)
+                .query("e.username = :username")
+                .parameter("username", "maria")
+                .one();
+
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        DataGridItems<Document> items = grid.getItems();
+
+        assertThat(items).isNotNull();
+        assertThat(TestGrids.text(grid, "changedBy", items.getItems().iterator().next()))
+                .isEqualTo(metadataTools.getInstanceName(maria));
+    }
+
+    @Test
+    void theColumnsFitTheirContentAgainWhenTheDocumentsReload() {
+        upload(sandbox, "a.txt");
+        RepositoryView view = open(sandbox, false);
+        DocumentListFragment documentList = UiTestUtils.getComponent(view, "documentList");
+        pendingClientCalls();
+
+        documentList.reload();
+
+        assertThat(pendingClientCalls()).anyMatch(call -> call.contains("recalculateColumnWidths"));
+    }
+
+    @Test
+    void aColumnTheUserResizedNoLongerFitsItsContent() {
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        Grid.Column<Document> status = grid.getColumnByKey("status");
+        Grid.Column<Document> category = grid.getColumnByKey("category");
+        assertThat(status).isNotNull();
+        assertThat(category).isNotNull();
+
+        // the browser reports a drag of the column border with the internal id of the column
+        ComponentUtil.fireEvent(grid, new ColumnResizeEvent<>(grid, true, status.getElement().getProperty("_flowId")));
+
+        assertThat(status.isAutoWidth()).isFalse();
+        assertThat(category.isAutoWidth()).isTrue();
+    }
+
+    @Test
     void theTypeFollowsTheNameInTheDocumentList() {
         Category contract = dataManager.load(Category.class)
                 .query("select c from dynat_Category c where c.name = 'Contract' and c.entityType = 'Document'")
@@ -552,6 +611,15 @@ class RepositoryViewTest {
                         || invocation.getExpression().contains("replace: true"))
                 .map(invocation -> String.valueOf(invocation.getParameters().get(1)))
                 .reduce((first, last) -> last);
+    }
+
+    // the calls of the browser's code that the server sends with its next response
+    private List<String> pendingClientCalls() {
+        UI ui = UI.getCurrent();
+        ui.getInternals().getStateTree().runExecutionsBeforeClientResponse();
+        return ui.getInternals().dumpPendingJavaScriptInvocations().stream()
+                .map(invocation -> invocation.getInvocation().getExpression())
+                .toList();
     }
 
     private ElementRequestHandler requestHandlerOf(IFrame frame) {

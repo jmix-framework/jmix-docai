@@ -33,7 +33,7 @@
         <hbox id="addPanel" alignItems="BASELINE" width="100%" expand="subjectField">
             <comboBox id="subjectField" label="msg://subjectField.label"/>
             <select id="levelField" label="msg://levelField.label"
-                    itemsEnum="com.company.dms.model.access.AccessLevel"/>
+                    itemsEnum="com.company.dms.model.access.AccessLevel" noVerticalOverlap="true"/>
             <button id="addButton" text="msg://addButton.text" icon="PLUS"/>
         </hbox>
         <hbox id="detailActions">

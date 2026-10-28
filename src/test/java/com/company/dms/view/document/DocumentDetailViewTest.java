@@ -7,6 +7,7 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.user.User;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
 import com.company.dms.test_support.TestFiles;
 import com.company.dms.test_support.TestGrids;
@@ -31,6 +32,7 @@ import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
+import io.jmix.flowui.data.grid.DataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -380,6 +382,30 @@ class DocumentDetailViewTest {
     }
 
     @Test
+    void theDialogOfAVersionIsNamedAfterIt() {
+        Document document = reload(upload("a.txt"));
+        DocumentDetailView card = openCard(document);
+
+        TestGrids.doubleClickRow(component(card, "revisionsGrid"), document.getCurrentRevision());
+
+        RevisionReadView dialog = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(dialog).isNotNull();
+        assertThat(dialog.getPageTitle())
+                .isEqualTo(messages.formatMessage(RevisionReadView.class, "revisionReadView.title", 1, "a.txt"));
+    }
+
+    @Test
+    void theDialogOfAVersionOpensLargeEnoughAndCanBeMaximized() {
+        DialogWindow<RevisionReadView> window = dialogWindows.view(UiTestUtils.getCurrentView(), RevisionReadView.class)
+                .build();
+
+        assertThat(window.isMaximizable()).isTrue();
+        assertThat(window.isResizable()).isTrue();
+        assertThat(window.getWidth()).isEqualTo("56em");
+        assertThat(window.getHeight()).isEqualTo("40em");
+    }
+
+    @Test
     void aDoubleClickOnAVersionOpensItInADialog() {
         Document document = upload("a.txt", "first");
         DocumentRevision first = reload(document).getCurrentRevision();
@@ -423,7 +449,19 @@ class DocumentDetailViewTest {
 
         DocumentDetailView card = openCard(reload(document));
 
-        assertThat(this.<TypedTextField<String>>component(card, "modifiedField").getValue()).startsWith("maria, ");
+        assertThat(this.<TypedTextField<String>>component(card, "modifiedField").getValue())
+                .startsWith(nameOf("maria") + ", ");
+    }
+
+    @Test
+    void theVersionsNameWhoUploadedThem() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
+        DataGridItems<DocumentRevision> versions = revisionsGrid.getItems();
+
+        assertThat(versions).isNotNull();
+        assertThat(TestGrids.text(revisionsGrid, "createdBy", versions.getItems().iterator().next()))
+                .isEqualTo(nameOf(EmployeeUiTestAuthenticator.USERNAME));
     }
 
     private DocumentDetailView openNewCard() {
@@ -460,11 +498,17 @@ class DocumentDetailViewTest {
     }
 
     private DocumentPreviewFragment lastDialogPreview() {
-        return UiTestUtils.getLastOpenedDialog().getContentComponents().stream()
-                .filter(DocumentPreviewFragment.class::isInstance)
-                .map(DocumentPreviewFragment.class::cast)
-                .findFirst()
-                .orElseThrow();
+        RevisionReadView dialog = UiTestUtils.getLastOpenedViewDialog();
+
+        assertThat(dialog).isNotNull();
+        return UiTestUtils.getComponent(dialog, "preview");
+    }
+
+    private String nameOf(String username) {
+        return metadataTools.getInstanceName(dataManager.load(User.class)
+                .query("e.username = :username")
+                .parameter("username", username)
+                .one());
     }
 
     private Document upload(String fileName) {

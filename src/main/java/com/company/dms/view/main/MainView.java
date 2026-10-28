@@ -5,14 +5,15 @@ import com.company.dms.model.user.User;
 import com.company.dms.view.profile.ProfileReadView;
 import com.company.dms.view.search.DocumentSearchView;
 import com.google.common.base.Strings;
-import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.shared.Tooltip;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
@@ -23,13 +24,16 @@ import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.app.main.StandardMainView;
 import io.jmix.flowui.component.main.JmixListMenu;
+import io.jmix.flowui.component.radiobuttongroup.JmixRadioButtonGroup;
 import io.jmix.flowui.component.textfield.TypedTextField;
+import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
-import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.main.ListMenu;
+import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.settings.UserSettingsService;
 import io.jmix.flowui.view.Install;
 import io.jmix.flowui.view.Subscribe;
+import io.jmix.flowui.view.Supply;
 import io.jmix.flowui.view.ViewComponent;
 import io.jmix.flowui.view.ViewController;
 import io.jmix.flowui.view.ViewDescriptor;
@@ -43,16 +47,19 @@ public class MainView extends StandardMainView {
 
     /**
      * The user setting with the mode of the search the person chose last: {@link DocumentSearchView#AI_MODE} or
-     * the search by words.
+     * {@link #WORDS_MODE}.
      */
     public static final String SEARCH_MODE_SETTING = "dms.searchMode";
 
-    private static final String WORDS_MODE = "words";
+    /**
+     * The mode of the search by words, which needs no AI.
+     */
+    public static final String WORDS_MODE = "words";
 
     @ViewComponent
     private TypedTextField<String> searchField;
     @ViewComponent
-    private JmixButton searchModeButton;
+    private JmixRadioButtonGroup<String> searchModeGroup;
     @ViewComponent
     private JmixListMenu menu;
 
@@ -60,6 +67,8 @@ public class MainView extends StandardMainView {
     private Messages messages;
     @Autowired
     private UiComponents uiComponents;
+    @Autowired
+    private Icons icons;
     @Autowired
     private CurrentUserSubstitution currentUserSubstitution;
     @Autowired
@@ -86,7 +95,8 @@ public class MainView extends StandardMainView {
             application.removeChildItem(assistantChat);
         }
 
-        searchModeButton.setVisible(aiSettings.isAvailable());
+        searchModeGroup.setItems(WORDS_MODE, DocumentSearchView.AI_MODE);
+        searchModeGroup.setVisible(aiSettings.isAvailable());
 
         aiSearch = aiSettings.isAvailable() && userSettingsService.load(SEARCH_MODE_SETTING)
                 .map(DocumentSearchView.AI_MODE::equals)
@@ -95,14 +105,35 @@ public class MainView extends StandardMainView {
         showSearchMode();
     }
 
-    @Subscribe(id = "searchModeButton", subject = "clickListener")
-    public void onSearchModeButtonClick(final ClickEvent<JmixButton> event) {
-        chooseSearchMode(!aiSearch);
+    @Subscribe("searchModeGroup")
+    public void onSearchModeGroupComponentValueChange(
+            final AbstractField.ComponentValueChangeEvent<JmixRadioButtonGroup<String>, String> event) {
+        boolean ai = DocumentSearchView.AI_MODE.equals(event.getValue());
+
+        // the view sets the value itself to show the mode already chosen, as after a link to the search by meaning
+        if (ai == aiSearch) {
+            return;
+        }
+
+        chooseSearchMode(ai);
 
         // the open search runs again at once in the other mode
         if (searchOpen) {
             openSearch();
         }
+    }
+
+    @Supply(to = "searchModeGroup", subject = "renderer")
+    private ComponentRenderer<Component, String> searchModeGroupRenderer() {
+        return new ComponentRenderer<>(mode -> {
+            boolean ai = DocumentSearchView.AI_MODE.equals(mode);
+            Component icon = icons.get(ai ? JmixFontIcon.MAGIC : JmixFontIcon.FONT);
+            String name = messages.getMessage(getClass(), ai ? "searchMode.ai" : "searchMode.words");
+
+            Tooltip.forComponent(icon).setText(name);
+            icon.getElement().setAttribute("aria-label", name);
+            return icon;
+        });
     }
 
     @Override
@@ -215,10 +246,9 @@ public class MainView extends StandardMainView {
     }
 
     private void showSearchMode() {
-        searchModeButton.setText(messages.getMessage(getClass(), aiSearch ? "searchMode.ai" : "searchMode.words"));
-        searchModeButton.setIcon(aiSearch ? VaadinIcon.MAGIC.create() : null);
-        searchModeButton.getElement().getClassList().set("ai", aiSearch);
-        searchModeButton.getElement().getClassList().set("aura-accent-purple", aiSearch);
+        searchModeGroup.setValue(aiSearch ? DocumentSearchView.AI_MODE : WORDS_MODE);
+        // the search by meaning tints its chosen icon with the purple of the AI buttons
+        searchModeGroup.setClassName("aura-accent-purple", aiSearch);
 
         searchField.setPlaceholder(messages.getMessage(getClass(),
                 aiSearch ? "searchField.aiPlaceholder" : "searchField.placeholder"));

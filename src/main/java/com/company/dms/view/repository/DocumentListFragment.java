@@ -13,6 +13,7 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.user.User;
 import com.company.dms.view.access.AccessDetailView;
 import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.document.FileSizeFormatter;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.ColumnResizeEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.html.Span;
@@ -39,6 +41,8 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.selection.MultiSelectionEvent;
 import com.vaadin.flow.data.selection.SelectionEvent;
 import io.jmix.core.AccessManager;
+import io.jmix.core.DataManager;
+import io.jmix.core.FetchPlan;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
@@ -65,6 +69,7 @@ import io.jmix.flowui.kit.action.ActionVariant;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
+import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.*;
@@ -115,6 +120,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private AccessService accessService;
     @Autowired
+    private DataManager dataManager;
+    @Autowired
     private TemporaryStorage temporaryStorage;
     @Autowired
     private FilesProperties filesProperties;
@@ -157,6 +164,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private DocumentDiscussionFragment discussion;
 
     private AccessLevels levels = new AccessLevels(Map.of(), false);
+    private Map<String, String> userNames = Map.of();
 
     private final Map<UUID, UploadedFile> uploadedFiles = new LinkedHashMap<>();
     private Consumer<@Nullable Document> focusHandler = document -> {
@@ -345,6 +353,23 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         openCard(event.getItem());
     }
 
+    // the grid fits its columns to the first rows it shows, so they fit again whenever the documents change
+    @Subscribe(id = "documentsDc", target = Target.DATA_CONTAINER)
+    public void onDocumentsDcCollectionChange(final CollectionContainer.CollectionChangeEvent<Document> event) {
+        userNames = userNames(event.getSource().getItems().stream()
+                .map(Document::getChangedBy)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+
+        documentsGrid.recalculateColumnWidths();
+    }
+
+    // a column the user has dragged to another width keeps it when the other columns fit again
+    @Subscribe("documentsGrid")
+    public void onDocumentsGridColumnResize(final ColumnResizeEvent<Document> event) {
+        event.getResizedColumn().setAutoWidth(false);
+    }
+
     @Subscribe("documentsGrid.openAction")
     public void onOpenAction(final ActionPerformedEvent event) {
         openCard(documentsGrid.getSingleSelectedItem());
@@ -514,6 +539,28 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         return new TextRenderer<>(document -> document.getCurrentRevision() == null
                 ? ""
                 : fileSizeFormatter.format(document.getCurrentRevision().getFileSize()));
+    }
+
+    @Supply(to = "documentsGrid.changedBy", subject = "renderer")
+    private Renderer<Document> changedByRenderer() {
+        return new TextRenderer<>(document -> document.getChangedBy() == null
+                ? ""
+                : userNames.getOrDefault(document.getChangedBy(), document.getChangedBy()));
+    }
+
+    // the names of the users as the application shows them; a user deleted since keeps the username
+    private Map<String, String> userNames(Set<String> usernames) {
+        if (usernames.isEmpty()) {
+            return Map.of();
+        }
+
+        return dataManager.load(User.class)
+                .query("select u from User u where u.username in :usernames")
+                .parameter("usernames", usernames)
+                .fetchPlan(FetchPlan.INSTANCE_NAME)
+                .list()
+                .stream()
+                .collect(Collectors.toMap(User::getUsername, metadataTools::getInstanceName));
     }
 
     // ---- upload of new documents and of a new version

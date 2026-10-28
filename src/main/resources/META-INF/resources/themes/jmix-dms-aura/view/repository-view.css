@@ -164,11 +164,6 @@ vaadin-upload.upload-button::part(drop-label) {
     padding-inline-start: var(--vaadin-gap-s);
 }
 
-/* The version dialog gives the preview its whole height, so a long text scrolls inside the preview */
-.revision-dialog .document-preview {
-    height: 100%;
-}
-
 /* In a low window the document table keeps its minimum height, and the pane scrolls instead of cutting it */
 .repository-documents {
     overflow: auto;

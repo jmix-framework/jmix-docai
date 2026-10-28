@@ -13,6 +13,7 @@ import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
+import com.company.dms.model.user.User;
 import com.company.dms.view.access.AccessDetailView;
 import com.company.dms.view.main.MainView;
 import com.google.common.base.Strings;
@@ -31,14 +32,13 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
+import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
 import io.jmix.core.metamodel.datatype.DatatypeFormatter;
 import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.Dialogs;
-import io.jmix.flowui.Fragments;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.datepicker.TypedDatePicker;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -60,8 +60,11 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The document card. A new version, a restored version and a status transition wait for OK
@@ -164,17 +167,14 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @Autowired
     private Notifications notifications;
     @Autowired
-    private Dialogs dialogs;
-    @Autowired
     private DialogWindows dialogWindows;
-    @Autowired
-    private Fragments fragments;
     @Autowired
     private RevisionDownloader revisionDownloader;
     @Autowired
     private AiSettings aiSettings;
 
     private DocumentCardChanges changes;
+    private Map<String, String> userNames = Map.of();
 
     @Subscribe
     public void onInit(final InitEvent event) {
@@ -334,20 +334,18 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         return new TextRenderer<>(revision -> fileSizeFormatter.format(revision.getFileSize()));
     }
 
+    @Supply(to = "revisionsGrid.createdBy", subject = "renderer")
+    private Renderer<DocumentRevision> revisionAuthorRenderer() {
+        return new TextRenderer<>(revision -> revision.getCreatedBy() == null
+                ? ""
+                : userNames.getOrDefault(revision.getCreatedBy(), revision.getCreatedBy()));
+    }
+
     // a version opens over the card, so showing it does not replace the card's own preview
     private void openRevision(DocumentRevision revision) {
-        DocumentPreviewFragment revisionPreview = fragments.create(this, DocumentPreviewFragment.class);
-        revisionPreview.showRevision(revision);
-
-        dialogs.createMessageDialog()
-                .withHeader(messageBundle.formatMessage("revisionDialog.header",
-                        revision.getNumber(), revision.getFileName()))
-                .withContent(revisionPreview)
-                .withClassName("revision-dialog")
-                .withWidth("56em")
-                .withHeight("40em")
-                .withResizable(true)
-                .withDraggable(true)
+        dialogWindows.read(this, DocumentRevision.class)
+                .withViewClass(RevisionReadView.class)
+                .readEntity(revision)
                 .open();
     }
 
@@ -432,6 +430,11 @@ public class DocumentDetailView extends StandardDetailView<Document> {
                 : "%d · %s · %s".formatted(current.getNumber(), current.getFile().getFileName(),
                 fileSizeFormatter.format(current.getFileSize())));
 
+        userNames = userNames(Stream.concat(Stream.of(document.getCreatedBy(), document.getChangedBy()),
+                        revisionsDc.getItems().stream().map(DocumentRevision::getCreatedBy))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet()));
+
         createdField.setValue(describeChange(document.getCreatedBy(), document.getCreatedDate()));
         modifiedField.setValue(describeChange(document.getChangedBy(), document.getChangedDate()));
         versionsTab.setLabel(messageBundle.formatMessage("versionsTab.label", revisionsDc.getItems().size()));
@@ -504,7 +507,24 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     }
 
     private String describeChange(String user, OffsetDateTime date) {
-        return user == null ? "" : "%s, %s".formatted(user, datatypeFormatter.formatOffsetDateTime(date));
+        return user == null
+                ? ""
+                : "%s, %s".formatted(userNames.getOrDefault(user, user), datatypeFormatter.formatOffsetDateTime(date));
+    }
+
+    // the names of the users as the application shows them; a user deleted since keeps the username
+    private Map<String, String> userNames(Set<String> usernames) {
+        if (usernames.isEmpty()) {
+            return Map.of();
+        }
+
+        return dataManager.load(User.class)
+                .query("select u from User u where u.username in :usernames")
+                .parameter("usernames", usernames)
+                .fetchPlan(FetchPlan.INSTANCE_NAME)
+                .list()
+                .stream()
+                .collect(Collectors.toMap(User::getUsername, metadataTools::getInstanceName));
     }
 
     /**

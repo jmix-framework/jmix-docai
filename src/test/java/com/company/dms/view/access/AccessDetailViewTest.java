@@ -17,6 +17,7 @@ import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestGrids;
 import com.company.dms.view.main.MainView;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.Query;
@@ -235,6 +236,22 @@ class AccessDetailViewTest {
             assertThat(inheritField.isVisible()).isFalse();
             assertThat(inheritField.getLabel()).isNull();
         });
+    }
+
+    @Test
+    void theLevelListsOpenUnderTheirFields() {
+        AccessDetailView dialog = open(shared);
+
+        assertThat(this.<JmixSelect<AccessLevel>>component(dialog, "levelField").isNoVerticalOverlap()).isTrue();
+        assertThat(levelSelect(dialog, entry(dialog, EmployeeRole.CODE)).isNoVerticalOverlap()).isTrue();
+    }
+
+    @Test
+    void removingAnEntryLooksDangerous() {
+        AccessDetailView dialog = open(shared);
+
+        assertThat(removeButton(dialog, entry(dialog, EmployeeRole.CODE)).getThemeNames())
+                .contains(ButtonVariant.TERTIARY.getVariantName(), ButtonVariant.ERROR.getVariantName());
     }
 
     @Test

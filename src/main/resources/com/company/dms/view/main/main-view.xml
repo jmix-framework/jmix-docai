@@ -19,8 +19,8 @@
                         <icon icon="SEARCH"/>
                     </prefix>
                     <suffix>
-                        <button id="searchModeButton" classNames="main-view-search-mode"
-                                themeNames="tertiary-inline small" title="msg://searchModeButton.tooltip"/>
+                        <radioButtonGroup id="searchModeGroup" classNames="main-view-search-mode"
+                                          themeNames="horizontal" ariaLabel="msg://searchModeGroup.ariaLabel"/>
                     </suffix>
                 </textField>
 
