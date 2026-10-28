@@ -312,7 +312,7 @@ class DocumentDetailViewTest {
         DocumentDetailView card = openCard(upload("a.txt"));
 
         assertThat(this.<JmixButton>component(card, "fillWithAiButton").getClassNames())
-                .contains("aura-accent-purple", "document-card-ai");
+                .contains("aura-accent-purple", "ai-button");
     }
 
     @Test

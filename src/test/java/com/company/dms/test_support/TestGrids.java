@@ -4,16 +4,24 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.contextmenu.ContextMenuBase;
+import com.vaadin.flow.component.dnd.DropEvent;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
+import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import io.jmix.flowui.component.grid.DataGrid;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
+
+import java.util.List;
 
 /**
- * Clicks that a browser would send to a grid, for UI tests that run without one.
+ * Clicks and drags that a browser would send to a grid, for UI tests that run without one.
  */
 public final class TestGrids {
 
@@ -48,6 +56,21 @@ public final class TestGrids {
         GridContextMenu<T> menu = grid.getContextMenu();
         menu.getElement().setProperty("opened", true);
         ComponentUtil.fireEvent(menu, new ContextMenuBase.OpenedChangeEvent<>(menu, true));
+    }
+
+    /**
+     * Rows dragged from a grid and dropped on a component. The browser names the rows it drags: all the selected
+     * rows when the dragged row is one of them.
+     */
+    public static <T, C extends Component> void dragRows(Grid<T> grid, List<T> rows, C target) {
+        ArrayNode draggedItems = JsonNodeFactory.instance.arrayNode();
+        rows.forEach(row -> draggedItems.addObject().put("key", grid.getDataCommunicator().getKeyMapper().key(row)));
+        ObjectNode details = JsonNodeFactory.instance.objectNode();
+        details.set("draggedItems", draggedItems);
+
+        ComponentUtil.fireEvent(grid, new GridDragStartEvent<>(grid, true, details));
+        ComponentUtil.fireEvent(target, new DropEvent<>(target, true, "all", 0, 0, 0, 0));
+        ComponentUtil.fireEvent(grid, new GridDragEndEvent<>(grid, true));
     }
 
     /**

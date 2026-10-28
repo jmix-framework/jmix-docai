@@ -290,10 +290,23 @@ class RepositoryViewTest {
 
         assertThat(items)
                 .extracting(item -> FragmentUtils.getComponentId(item).orElse(""))
-                .containsExactly("openDocumentItem", "downloadDocumentItem", "moveDocumentItem",
-                        "activateDocumentItem", "archiveDocumentItem", "unarchiveDocumentItem", "accessDocumentItem",
-                        "deleteDocumentItem");
+                .containsExactly("openDocumentItem", "downloadDocumentItem", "discussDocumentItem",
+                        "moveDocumentItem", "activateDocumentItem", "archiveDocumentItem", "unarchiveDocumentItem",
+                        "accessDocumentItem", "deleteDocumentItem");
         assertThat(items.getLast().getClassNames()).contains("danger-menu-item");
+    }
+
+    @Test
+    void withoutTheAiThereIsNoDiscussionOfDocuments() {
+        Document document = upload(sandbox, "a.txt");
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        JmixButton discussButton = fragmentComponent(view, "documentList", "discussButton");
+
+        TestGrids.clickRow(grid, document, false);
+
+        assertThat(discussButton.isVisible()).isFalse();
+        assertThat(grid.isRowsDraggable()).isFalse();
     }
 
     @Test

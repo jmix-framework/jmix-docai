@@ -45,6 +45,8 @@
                     <button id="deleteButton" action="documentsGrid.deleteAction" text=""
                             title="msg://deleteAction.text"/>
                 </hbox>
+                <button id="discussButton" action="documentsGrid.discussAction" text=""
+                        title="msg://discussAction.text" classNames="aura-accent-purple ai-button"/>
                 <button id="previewButton" text="msg://previewButton.text" icon="EYE"/>
             </hbox>
             <dataGrid id="documentsGrid" dataContainer="documentsDc" selectionMode="MULTI"
@@ -54,6 +56,8 @@
                             text="msg://openAction.text" icon="FILE_TEXT"/>
                     <action id="downloadAction" type="list_itemTracking"
                             text="msg://downloadAction.text" icon="DOWNLOAD"/>
+                    <action id="discussAction" type="list_itemTracking"
+                            text="msg://discussAction.text" icon="COMMENTS_O"/>
                     <action id="moveAction" type="list_itemTracking"
                             text="msg://moveAction.text" icon="ARROW_RIGHT"/>
                     <action id="activateAction" type="list_itemTracking"
@@ -70,6 +74,8 @@
                 <contextMenu>
                     <item id="openDocumentItem" action="documentsGrid.openAction"/>
                     <item id="downloadDocumentItem" action="documentsGrid.downloadAction"/>
+                    <item id="discussDocumentItem" action="documentsGrid.discussAction"
+                          classNames="aura-accent-purple main-menu-item"/>
                     <item id="moveDocumentItem" action="documentsGrid.moveAction"/>
                     <item id="activateDocumentItem" action="documentsGrid.activateAction"/>
                     <item id="archiveDocumentItem" action="documentsGrid.archiveAction"/>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment"
+          xmlns:aichat="http://jmix.io/schema/aichat/ui">
+    <content>
+        <vbox id="discussionRoot" classNames="document-discussion" width="100%" height="100%" padding="false">
+            <hbox id="discussionHeader" width="100%" alignItems="CENTER">
+                <h4 id="discussionTitle" text="msg://discussionTitle.text" width="100%"/>
+                <button id="fullChatButton" icon="EXPAND_SQUARE" title="msg://fullChatButton.title"
+                        themeNames="tertiary" enabled="false"/>
+                <button id="closeButton" icon="CLOSE" title="msg://closeButton.title" themeNames="tertiary"/>
+            </hbox>
+            <hbox id="selection" classNames="document-discussion-selection" width="100%" wrap="true"
+                  alignItems="CENTER">
+                <span id="dropHint" classNames="document-discussion-hint" text="msg://dropHint.text"/>
+            </hbox>
+            <aichat:aiChat id="chat" classNames="document-assistant-chat" width="100%">
+                <aichat:i18n>
+                    <aichat:messageInput placeholder="msg://discussionChat.placeholder"/>
+                </aichat:i18n>
+                <aichat:emptyStateHeader>
+                    <h4 id="greeting" text="msg://discussionChat.greeting"/>
+                </aichat:emptyStateHeader>
+                <aichat:emptyStateFooter>
+                    <hbox id="suggestions" width="100%" justifyContent="CENTER" wrap="true">
+                        <button id="summaryButton" text="msg://summaryButton.text" icon="FILE_TEXT_O"/>
+                    </hbox>
+                </aichat:emptyStateFooter>
+            </aichat:aiChat>
+        </vbox>
+    </content>
+</fragment>

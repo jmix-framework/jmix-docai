@@ -75,8 +75,8 @@ vaadin-upload.upload-button::part(drop-label) {
     margin-inline-start: auto;
 }
 
-/* Filling with AI wears the purple tint of the AI search; aura-accent-purple colors its text */
-.document-card-ai {
+/* An AI action wears the purple tint of the AI search; aura-accent-purple colors its text */
+.ai-button {
     --vaadin-button-background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
 }
 
@@ -104,6 +104,49 @@ vaadin-upload.upload-button::part(drop-label) {
 .document-assistant-chat {
     flex: 1 1 auto;
     min-height: 0;
+}
+
+/* The selection of a discussion with AI is where documents are dropped, and lights up while a row is dragged over
+   the window; a long selection scrolls instead of squeezing the chat, and a short one keeps its height, since a
+   scrolling flex item may otherwise shrink below its content */
+.document-discussion-selection {
+    flex-shrink: 0;
+    max-height: 9rem;
+    overflow-y: auto;
+    gap: var(--vaadin-gap-s);
+    padding: var(--vaadin-gap-s);
+    border: 1px dashed var(--vaadin-border-color);
+    border-radius: var(--vaadin-radius-m);
+}
+
+.document-discussion.v-drag-over-target .document-discussion-selection {
+    border-color: var(--aura-accent-color);
+    background: color-mix(in oklab, var(--aura-accent-color) 10%, transparent);
+}
+
+.document-discussion-hint {
+    color: var(--vaadin-text-color-secondary);
+}
+
+.document-discussion-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    border: 1px solid var(--vaadin-border-color);
+    border-radius: var(--vaadin-radius-m);
+}
+
+/* A long name keeps to one line and ends with an ellipsis, so the chips leave the window to the chat; the button
+   wraps its text otherwise */
+.document-discussion-chip > vaadin-button:first-child {
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+.document-discussion-chip > vaadin-button:first-child::part(label) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 /* The side panel shrinks the preview to the rest of its height, so a long text scrolls inside the preview */

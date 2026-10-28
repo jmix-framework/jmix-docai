@@ -34,7 +34,7 @@
                 <button id="archiveButton" text="msg://archiveButton.text" icon="ARCHIVE"/>
                 <button id="unarchiveButton" text="msg://unarchiveButton.text" icon="UNDO"/>
                 <button id="fillWithAiButton" action="fillWithAiAction"
-                        classNames="aura-accent-purple document-card-ai"/>
+                        classNames="aura-accent-purple ai-button"/>
                 <upload id="newVersionUpload" classNames="upload-button"
                         uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="1"
                         dropAllowed="false" uploadText="msg://newVersionUpload.uploadText" uploadIcon="UPLOAD"/>

@@ -4,6 +4,7 @@ import com.company.dms.app.service.access.AccessChecker;
 import com.company.dms.model.access.AccessEntry;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.access.AccessSet;
+import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
@@ -98,4 +99,11 @@ public interface AccessRowLevelRole {
     default RowLevelBiPredicate<DocumentRevision, ApplicationContext> documentRevisionCreation() {
         return (revision, context) -> context.getBean(AccessChecker.class).canEdit(revision.getDocument());
     }
+
+    /**
+     * Shows the selections of documents of the own conversations with the assistant.
+     */
+    @JpqlRowLevelPolicy(entityClass = DiscussedDocument.class,
+            where = "{E}.conversation.username = :current_user_username")
+    void discussedDocument();
 }

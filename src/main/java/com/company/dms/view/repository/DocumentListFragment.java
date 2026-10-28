@@ -1,5 +1,6 @@
 package com.company.dms.view.repository;
 
+import com.company.dms.ai.AiSettings;
 import com.company.dms.app.config.FilesProperties;
 import com.company.dms.app.service.access.AccessLevels;
 import com.company.dms.app.service.access.AccessService;
@@ -37,12 +38,15 @@ import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.selection.MultiSelectionEvent;
 import com.vaadin.flow.data.selection.SelectionEvent;
+import io.jmix.core.AccessManager;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
+import io.jmix.flowui.Fragments;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.accesscontext.UiShowViewContext;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.DataGridColumn;
@@ -78,6 +82,8 @@ import java.util.stream.Collectors;
 @FragmentDescriptor("document-list-fragment.xml")
 public class DocumentListFragment extends Fragment<VerticalLayout> {
 
+    private static final String ASSISTANT_CHAT_VIEW = "aitls_AiChatView";
+
     @ViewComponent
     private JmixUpload<TemporaryStorage.FileInfo> documentsUpload;
     @ViewComponent
@@ -96,6 +102,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private CollectionLoader<Document> documentsDl;
     @ViewComponent("documentsGrid.accessAction")
     private Action accessAction;
+    @ViewComponent("documentsGrid.discussAction")
+    private Action discussAction;
 
     @ViewComponent
     private MessageBundle messageBundle;
@@ -130,6 +138,12 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Messages messages;
     @Autowired
     private MetadataTools metadataTools;
+    @Autowired
+    private Fragments fragments;
+    @Autowired
+    private AiSettings aiSettings;
+    @Autowired
+    private AccessManager accessManager;
 
     @Nullable
     private Folder folder;
@@ -139,6 +153,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Folder uploadFolder;
     @Nullable
     private Document versionDocument;
+    @Nullable
+    private DocumentDiscussionFragment discussion;
 
     private AccessLevels levels = new AccessLevels(Map.of(), false);
 
@@ -167,6 +183,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     public void onReady(final ReadyEvent event) {
         configureUploads();
         configureDocumentsGridContextMenu();
+        configureDiscussion();
     }
 
     private void configureUploads() {
@@ -193,6 +210,23 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 menu.getItem()
                         .filter(document -> !documentsGrid.getSelectedItems().contains(document))
                         .ifPresent(this::selectOnly);
+            }
+        });
+    }
+
+    // the discussion keeps its conversation in the chat of the assistant, so it needs the AI and that chat
+    private void configureDiscussion() {
+        UiShowViewContext assistantChat = new UiShowViewContext(ASSISTANT_CHAT_VIEW);
+        accessManager.applyRegisteredConstraints(assistantChat);
+        boolean available = aiSettings.isAvailable() && assistantChat.isPermitted();
+        discussAction.setVisible(available);
+        // the rows are dragged only into the window, so they are draggable only where it opens
+        documentsGrid.setRowsDraggable(available);
+
+        // a dialog belongs to the UI and would stay open over the next view
+        addDetachListener(detachEvent -> {
+            if (discussion != null) {
+                discussion.close();
             }
         });
     }
@@ -314,6 +348,18 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Subscribe("documentsGrid.openAction")
     public void onOpenAction(final ActionPerformedEvent event) {
         openCard(documentsGrid.getSingleSelectedItem());
+    }
+
+    // an open window takes the selected documents into its selection, as it takes the rows dropped on it
+    @Subscribe("documentsGrid.discussAction")
+    public void onDiscussAction(final ActionPerformedEvent event) {
+        if (discussion == null || !discussion.isOpened()) {
+            discussion = fragments.create(this, DocumentDiscussionFragment.class);
+            discussion.setCardOpener(this::openCard);
+            discussion.open();
+        }
+
+        discussion.add(documentsGrid.getSelectedItems());
     }
 
     @Subscribe("previewButton")

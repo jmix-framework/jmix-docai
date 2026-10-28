@@ -34,8 +34,9 @@ The application grows in this order:
 6. AI classification and the assistant
 7. Semantic search
 8. Demo data in English and Russian
+9. Discussing documents with AI
 
-Steps 1 to 8 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files or by the meaning of a query, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, and ask the AI assistant in the menu about the documents, the folders and the document types. An empty database gets a demo set of documents in English or Russian at the first start.
+Steps 1 to 9 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files or by the meaning of a query, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, ask the AI assistant in the menu about the documents, the folders and the document types, and discuss a selection of documents with the AI beside the document table. An empty database gets a demo set of documents in English or Russian at the first start.
 
 ## 🛠️ Technical Stack
 
@@ -48,8 +49,8 @@ Steps 1 to 8 are in place: employees sign in, keep documents in a folder tree, u
 
 ## 🧩 Add-ons
 
-- AI Chat: the chat of the assistant in the document card; an experimental add-on of the Jmix Enterprise subscription
-- AI Tools: the assistant in the main menu, its tools over the data and the history of its chats
+- AI Chat: the chat of the assistant in the document card and in the discussion of documents; an experimental add-on of the Jmix Enterprise subscription
+- AI Tools: the assistant in the main menu, its tools over the data and the history of its chats, the discussions of documents among them
 - [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html)
 - [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html)
 - [Local File Storage](https://docs.jmix.io/jmix/files/file-storage.html)
@@ -152,8 +153,9 @@ The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the appl
 - The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`dms.ai.max-text-length`), and the AI is told where the text stops.
 - **Assistant.** The Assistant tab of a saved document is a chat with the AI about the document, next to its preview. Ask in your own words or take a suggestion, "Summary" or "Dates and amounts". The AI reads the text of the saved current version with your rights: a version that waits for OK is not what it reads. While it reads, the chat shows what it does in the AI's own words, and the answer appears as the AI writes it. The conversation lasts while the card is open and is not stored.
 - **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask which documents there are, how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent or fall due before a date, or what a document says: the AI knows the document types and their fields, writes queries over the documents, the folders and the document types, finds documents by a value or a range of the fields of their types and reads the text of a document. It finds the passages of the documents by meaning, for a question about what the documents say or which of them concern something (see [Semantic Search](#-semantic-search)), and answers with quotes. It answers in the language of the question and names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
+- **Discuss with AI.** Select documents in the table and choose Discuss with AI on the toolbar or in the context menu: a window opens on the right with the selection and a chat about it. The table stays in use: open other folders and drag rows into the window, or select documents and choose the action again, and they join the selection. A document is in it once, and up to 10 documents fit (`dms.ai.discussion.max-documents`). The name of a document in the selection opens its card, and its cross takes it out. Ask anything about the documents, or start with the suggestion "Briefly about each": with every question the AI is told the documents of the selection you may open, reads their text when the question needs it and may search the other documents too. The first question saves the discussion in the history of the assistant in the menu, named after the question, and Open in the full chat continues it there: the AI still knows the selection, though the full chat does not show it. A link to a document in an answer opens its card over the window, as the name in the selection does. A window closed before the first question leaves nothing behind, and leaving the repository closes the window.
 - The assistant in the menu sees only what you may open: the rights to documents and folders apply to every entity a query reads, whatever names the query gives them, and a query that reads documents where the rights cannot apply is refused. Access sets, access entries, users and versions are closed to it in the code (`@ExcludeFromAi`), so a setting cannot open them.
-- To fill a document, the OpenAI model gets the text of the file, the name of the document and the document types with their fields; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders and the types, the document types with their fields, the rows of its queries and searches (names, dates, statuses, folders, types, who uploaded the documents and when, and the values of their fields), the passages it finds by meaning, and the text of a document it reads. The semantic search sends the texts of all documents to OpenAI, see [Semantic Search](#-semantic-search).
+- To fill a document, the OpenAI model gets the text of the file, the name of the document and the document types with their fields; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders and the types, the document types with their fields, the rows of its queries and searches (names, dates, statuses, folders, types, who uploaded the documents and when, and the values of their fields), the passages it finds by meaning, and the text of a document it reads. A discussion sends the model, besides, the names, the ids, the types and the dates of the documents of the selection you may open, with every question. The semantic search sends the texts of all documents to OpenAI, see [Semantic Search](#-semantic-search).
 
 The pages of the application load pictures, media, styles and fonts from the application only (`Content-Security-Policy` with `img-src`, `media-src`, `style-src` and `font-src`): an answer in Markdown cannot send data to another site in the address of a picture, a sound, a video, a style or a font.
 
@@ -261,6 +263,9 @@ classDiagram
         EDIT
         MANAGE
     }
+    class DiscussedDocument {
+        position
+    }
     Folder "0..1" <-- "*" Folder : parent
     Folder "1" <-- "*" Document : folder
     Document "1" *-- "1..*" DocumentRevision : revisions
@@ -272,6 +277,7 @@ classDiagram
     Category "1" *-- "*" CategoryAttribute : categoryAttrs
     AccessSet "1" *-- "*" AccessEntry : entries
     AccessEntry --> AccessLevel : accessLevel
+    DiscussedDocument --> Document : document
 ```
 
 - One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
@@ -280,6 +286,7 @@ classDiagram
 - "Modified by" and "Modified" show who changed the document itself and when: a new version, name, date, type, field or status. A move or an access change leaves them as they are, while the Jmix audit stamps of the record change with every save.
 - The type of a document is a category of the Dynamic Attributes add-on (`Category`), and the fields of the type are its attributes (`CategoryAttribute`), properties of the document named `+code`.
 - Folders, documents and revisions are deleted softly. Deleting a folder takes its subtree; the administrator restores records in Data Tools.
+- A discussion with the AI keeps its selection of documents in `DiscussedDocument`, beside the conversation of the AI Tools add-on: the conversation, a document and its place in the selection. Removing the conversation removes its selection. A deleted document, or one the person may no longer open, drops out of the selection.
 - A folder and a document point to the access set in effect: their parent's or their own. An access set belongs to one folder or document, and each of its entries gives a user or a role a level.
 
 ## 🔐 Role Model
@@ -287,9 +294,9 @@ classDiagram
 | Role | Code | Purpose |
 |---|---|---|
 | Full Access | `system-full-access` | All data, views and actions; assigned to `admin` |
-| Employee | `employee` | Works with folders and documents, reads the document types, searches documents, asks the AI assistant and views their own profile; includes UI: minimal access and the chat role of AI Tools |
+| Employee | `employee` | Works with folders and documents, reads the document types, searches documents, asks the AI assistant, discusses documents with it and views their own profile; includes UI: minimal access and the chat role of AI Tools |
 | UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
-| Folder and document access | `access-rl` | Row-level role: a user sees and changes folders and documents by their access entries; assigned to everyone without Full Access |
+| Folder and document access | `access-rl` | Row-level role: a user sees and changes folders and documents by their access entries, and only the selections of their own discussions with the AI; assigned to everyone without Full Access |
 | HR department, Legal department, Accounting | `hr-department`, `legal-department`, `accounting` | Departments of the demo: roles without policies that folders and documents give access to; the demo changelog assigns them to `helen`, `john` and `maria` |
 
 A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.

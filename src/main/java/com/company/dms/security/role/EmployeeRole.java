@@ -4,6 +4,7 @@ import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.access.AccessEntry;
 import com.company.dms.model.access.AccessEntryDraft;
 import com.company.dms.model.access.AccessSet;
+import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
@@ -132,4 +133,13 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
      */
     @MenuPolicy(menuIds = "assistantChat")
     void assistantChat();
+
+    /**
+     * Keeps the selections of documents of the own conversations with the assistant: {@link AccessRowLevelRole}
+     * leaves the rows of the own conversations, and the discussion service writes only those.
+     */
+    @EntityPolicy(entityClass = DiscussedDocument.class, actions = EntityPolicyAction.ALL)
+    @EntityAttributePolicy(entityClass = DiscussedDocument.class, attributes = "*",
+            action = EntityAttributePolicyAction.MODIFY)
+    void discussion();
 }
