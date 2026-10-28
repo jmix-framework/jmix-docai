@@ -41,7 +41,7 @@
             </textField>
             <treeDataGrid id="foldersTree" dataContainer="foldersDc" hierarchyProperty="parent"
                           width="100%" height="100%">
-                <actions showInContextMenuEnabled="true">
+                <actions showInContextMenuEnabled="false">
                     <action id="createFolderAction" text="msg://createFolderAction.text" icon="FOLDER_ADD"/>
                     <action id="renameFolderAction" type="list_itemTracking"
                             text="msg://renameFolderAction.text" icon="PENCIL"/>
@@ -52,6 +52,15 @@
                     <action id="deleteFolderAction" type="list_itemTracking" actionVariant="DANGER"
                             text="msg://deleteFolderAction.text" icon="TRASH"/>
                 </actions>
+                <contextMenu>
+                    <item id="createFolderContextItem" action="foldersTree.createFolderAction"
+                          classNames="main-menu-item"/>
+                    <item id="renameFolderContextItem" action="foldersTree.renameFolderAction"/>
+                    <item id="moveFolderContextItem" action="foldersTree.moveFolderAction"/>
+                    <item id="accessFolderContextItem" action="foldersTree.accessFolderAction"/>
+                    <item id="deleteFolderContextItem" action="foldersTree.deleteFolderAction"
+                          classNames="danger-menu-item"/>
+                </contextMenu>
                 <columns>
                     <column property="name"
                             header="msg://com.company.dms.view.folder/foldersColumn.header"

@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,8 +42,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The search by meaning on the index in memory, with the stub models of vectors and of the check: the rights apply
- * before the index looks for the nearest fragments, the model decides which candidates the page shows, and the chat
- * gets the nearest fragments.
+ * before the index looks for the nearest fragments, and the model decides which candidates the page shows and the chat
+ * gets with their nearest fragments.
  */
 @SpringBootTest(classes = {DMSApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -198,28 +199,62 @@ class SemanticSearchTest {
     }
 
     @Test
-    void theChatGetsAtMostEightDocumentsAndThreeFragmentsOfEach() {
+    void theChatGetsTheDocumentsTheModelKeepsAsThePageDoes() {
+        Document lease = indexed("lease.txt", "The lessee takes the MTZ-82 tractor for the field work in spring.");
+        indexed("excavator.txt", "The lessee takes a crawler excavator for the field work on the site.");
+        model.willReply("""
+                {"verdicts": [{"number": 1, "fits": true, "quote": "MTZ-82 tractor"},
+                              {"number": 2, "fits": false, "quote": ""}]}""");
+
+        SemanticSearch.Found found = semanticSearch.passages("MTZ-82 tractor spring");
+
+        assertThat(found.documents()).singleElement()
+                .satisfies(passages -> assertThat(passages.document().getId()).isEqualTo(lease.getId()));
+        assertThat(found.more()).isFalse();
+    }
+
+    @Test
+    void theChatGetsThreeFragmentsOfTheFirstEightDocumentsAndOneOfTheRest() {
         for (int i = 0; i <= SemanticSearch.CHAT_DOCUMENTS; i++) {
             indexedFragments("tractor-" + i + ".txt", SemanticSearch.CHAT_FRAGMENTS + 1);
         }
 
+        model.willReply(allFit(SemanticSearch.CHAT_DOCUMENTS + 1));
+
         SemanticSearch.Found found = semanticSearch.passages("tractor fragment");
 
-        assertThat(found.documents()).hasSize(SemanticSearch.CHAT_DOCUMENTS)
+        assertThat(found.documents()).hasSize(SemanticSearch.CHAT_DOCUMENTS + 1);
+        assertThat(found.documents().subList(0, SemanticSearch.CHAT_DOCUMENTS))
                 .allSatisfy(passages -> assertThat(passages.fragments()).hasSize(SemanticSearch.CHAT_FRAGMENTS));
-        assertThat(found.more()).isTrue();
-        assertThat(model.prompts()).isEmpty();
+        assertThat(found.documents().getLast().fragments()).hasSize(1);
+        assertThat(found.more()).isFalse();
     }
 
-    // long documents fill the nearest fragments the search takes, and fewer documents than the chat gets come back
+    @Test
+    void theChatGetsAsManyDocumentsAsThePageAtMost() {
+        for (int i = 0; i <= SemanticSearch.PAGE_DOCUMENTS; i++) {
+            indexedFragments("tractor-" + i + ".txt", 1);
+        }
+
+        model.willReply(allFit(SemanticSearch.PAGE_DOCUMENTS));
+
+        SemanticSearch.Found found = semanticSearch.passages("tractor fragment");
+
+        assertThat(found.documents()).hasSize(SemanticSearch.PAGE_DOCUMENTS);
+        assertThat(found.more()).isTrue();
+    }
+
+    // long documents fill the nearest fragments the search takes, and the documents after them are not seen
     @Test
     void theChatHearsWhenTheNearestFragmentsMayHaveLeftDocumentsOut() {
         indexedFragments("short.txt", 2);
+        model.willReply(allFit(1));
 
         assertThat(semanticSearch.passages("tractor fragment").more()).isFalse();
 
         indexedFragments("long-1.txt", 20);
         indexedFragments("long-2.txt", 20);
+        model.willReply(allFit(3));
         SemanticSearch.Found found = semanticSearch.passages("tractor fragment");
 
         assertThat(found.documents()).hasSizeLessThan(SemanticSearch.CHAT_DOCUMENTS);
@@ -257,6 +292,13 @@ class SemanticSearchTest {
 
     private static DocumentVectorIndex.Fragment fragment(int number, String text) {
         return new DocumentVectorIndex.Fragment(number, text, false, StubEmbeddingModel.vectorOf(text));
+    }
+
+    // the decisions of the check that keeps every candidate
+    private static String allFit(int candidates) {
+        return IntStream.rangeClosed(1, candidates)
+                .mapToObj("{\"number\": %d, \"quote\": \"\", \"fits\": true}"::formatted)
+                .collect(Collectors.joining(", ", "{\"verdicts\": [", "]}"));
     }
 
     private <T> T asEmployee(Supplier<T> search) {

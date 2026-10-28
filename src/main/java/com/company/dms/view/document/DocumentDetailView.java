@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
 @ViewController(id = "Document.detail")
 @ViewDescriptor(path = "document-detail-view.xml")
 @EditedEntityContainer("documentDc")
-@DialogMode(width = "76em", height = "52em", resizable = true)
+@DialogMode(width = "86em", height = "56em", resizable = true, maximizable = true)
 public class DocumentDetailView extends StandardDetailView<Document> {
 
     @ViewComponent

@@ -272,6 +272,50 @@ class DocumentDetailViewTest {
     }
 
     @Test
+    void theStatusLeadsTheActionsAndTheIconsCloseThem() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        assertThat(this.<Component>component(card, "headerActions").getChildren()
+                .map(action -> action.getId().orElseThrow()))
+                .containsExactly("activateButton", "archiveButton", "unarchiveButton", "fillWithAiButton",
+                        "newVersionUpload", "downloadButton", "accessButton");
+    }
+
+    @Test
+    void theIconsOfDownloadAndAccessKeepTheirNamesInTooltips() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        assertThat(List.of("downloadButton", "accessButton")).allSatisfy(id -> {
+            JmixButton button = component(card, id);
+            String name = messages.getMessage(DocumentDetailView.class, id + ".text");
+
+            assertThat(button.getText()).isEmpty();
+            assertThat(button.getTooltip().getText()).isEqualTo(name);
+            assertThat(button.getAriaLabel()).hasValue(name);
+        });
+    }
+
+    @Test
+    void theCardOpensLargeEnoughForThePreviewAndCanBeMaximized() {
+        DialogWindow<DocumentDetailView> window = dialogWindows.detail(UiTestUtils.getCurrentView(), Document.class)
+                .withViewClass(DocumentDetailView.class)
+                .editEntity(upload("a.txt"))
+                .build();
+
+        assertThat(window.isMaximizable()).isTrue();
+        assertThat(window.getWidth()).isEqualTo("86em");
+        assertThat(window.getHeight()).isEqualTo("56em");
+    }
+
+    @Test
+    void fillingWithAiWearsThePurpleOfTheAiSearch() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        assertThat(this.<JmixButton>component(card, "fillWithAiButton").getClassNames())
+                .contains("aura-accent-purple", "document-card-ai");
+    }
+
+    @Test
     void restoringAnOldVersionAddsARevisionOnOk() {
         Document document = upload("a.txt");
         DocumentRevision first = reload(document).getCurrentRevision();

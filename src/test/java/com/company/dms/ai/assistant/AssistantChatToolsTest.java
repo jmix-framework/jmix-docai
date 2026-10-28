@@ -12,6 +12,7 @@ import com.company.dms.search.semantic.SemanticSearch;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.InMemoryVectorIndex;
 import com.company.dms.test_support.StubAiConfiguration;
+import com.company.dms.test_support.StubChatModel;
 import com.company.dms.test_support.StubEmbeddingModel;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
@@ -46,6 +47,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,6 +69,9 @@ class AssistantChatToolsTest {
 
     @Autowired
     private InMemoryVectorIndex vectorIndex;
+
+    @Autowired
+    private StubChatModel model;
 
     @MockitoBean
     private DocumentVectorIndexer vectorIndexer;
@@ -101,6 +106,7 @@ class AssistantChatToolsTest {
     @BeforeEach
     void setUp() {
         vectorIndex.reset();
+        model.reset();
 
         Folder folder = dataManager.create(Folder.class);
         folder.setParent(folderService.getRoot());
@@ -227,6 +233,7 @@ class AssistantChatToolsTest {
     void theSearchByMeaningGivesThePassagesOfTheDocumentsThePersonMayOpen() {
         vectorIndex.put(invoice.getId(), "key", List.of(fragment("Delivery of office paper by Harbour trucks")));
         vectorIndex.put(hidden.getId(), "key", List.of(fragment("Delivery of office paper by Harbour trucks today")));
+        model.willReply(allFit(1));
 
         String found = findByMeaning("office paper delivery");
 
@@ -242,18 +249,23 @@ class AssistantChatToolsTest {
         assertThat(findByMeaning("office paper")).contains("not available now", "do not conclude");
     }
 
+    // the search page has the same limit, so the model offers to narrow the topic instead of sending the person there
     @Test
-    void aFullListOfPassagesSaysThatMoreDocumentsMayBeAboutTheTopic() {
+    void aSearchByMeaningAtItsLimitSaysThatMoreDocumentsMayBeAboutTheTopic() {
         vectorIndex.put(invoice.getId(), "key", List.of(fragment("Delivery of office paper by Harbour trucks")));
+        model.willReply(allFit(1));
 
-        assertThat(findByMeaning("office paper delivery")).doesNotContain("more may be about it");
+        assertThat(findByMeaning("office paper delivery")).doesNotContain("more may be about");
 
-        for (int i = 1; i <= SemanticSearch.CHAT_DOCUMENTS; i++) {
+        for (int i = 1; i <= SemanticSearch.PAGE_DOCUMENTS; i++) {
             vectorIndex.put(upload("paper-" + i + ".txt").getId(), "key",
                     List.of(fragment("Office paper delivery " + i)));
         }
 
-        assertThat(findByMeaning("office paper delivery")).contains("more may be about it");
+        model.willReply(allFit(SemanticSearch.PAGE_DOCUMENTS));
+
+        assertThat(findByMeaning("office paper delivery")).contains("more may be about", "narrow")
+                .doesNotContain("search field");
     }
 
     // the nearest fragments the search reads may all be of a few long documents
@@ -265,7 +277,9 @@ class AssistantChatToolsTest {
                     .toList());
         }
 
-        assertThat(findByMeaning("office paper delivery")).contains("more may be about it");
+        model.willReply(allFit(2));
+
+        assertThat(findByMeaning("office paper delivery")).contains("more may be about");
     }
 
     @Test
@@ -281,6 +295,7 @@ class AssistantChatToolsTest {
         assertThat(findByMeaning("office paper")).contains("still indexing", "do not conclude");
 
         vectorIndex.put(invoice.getId(), "key", List.of(fragment("Delivery of office paper by Harbour trucks")));
+        model.willReply(allFit(1));
 
         assertThat(findByMeaning("office paper delivery")).contains("passage: Delivery of office paper",
                 "still indexing");
@@ -296,6 +311,13 @@ class AssistantChatToolsTest {
 
     private static DocumentVectorIndex.Fragment fragment(String text) {
         return new DocumentVectorIndex.Fragment(0, text, false, StubEmbeddingModel.vectorOf(text));
+    }
+
+    // the decisions of the check that keeps every candidate
+    private static String allFit(int candidates) {
+        return IntStream.rangeClosed(1, candidates)
+                .mapToObj("{\"number\": %d, \"quote\": \"\", \"fits\": true}"::formatted)
+                .collect(Collectors.joining(", ", "{\"verdicts\": [", "]}"));
     }
 
     private String find(@Nullable String field, @Nullable String value) {

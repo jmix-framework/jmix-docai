@@ -41,17 +41,17 @@ import java.util.stream.Collectors;
 public class SemanticSearch {
 
     /**
-     * At most how many documents the search page shows.
+     * At most how many documents the search finds, for the search page and for the chat.
      */
     public static final int PAGE_DOCUMENTS = 20;
 
     /**
-     * At most how many documents the chat gets.
+     * Of how many documents found, the nearest first, the chat gets several fragments; it gets one of the rest.
      */
     public static final int CHAT_DOCUMENTS = 8;
 
     /**
-     * At most how many fragments of a document the chat gets.
+     * At most how many fragments of each of the first {@link #CHAT_DOCUMENTS} documents the chat gets.
      */
     public static final int CHAT_FRAGMENTS = 3;
 
@@ -144,6 +144,11 @@ public class SemanticSearch {
     public record Verdict(int number, String quote, boolean fits) {
     }
 
+    // the ids of the documents the model keeps with the quotes it confirmed, and the documents and fragments found
+    private record Fitting(List<UUID> ids, Map<UUID, String> quotes, Map<UUID, Document> documents,
+                           Map<UUID, List<DocumentVectorIndex.Match>> nearest, boolean more) {
+    }
+
     /**
      * Returns the documents that fit the query by meaning, the nearest first: at most {@link #PAGE_DOCUMENTS}, each
      * with its nearest fragment, where the quote the model confirmed is marked as in a snippet of the search by words.
@@ -151,64 +156,74 @@ public class SemanticSearch {
      * @throws SearchUnavailableException if OpenSearch does not answer
      */
     public List<DocumentSearchHit> search(String query) {
-        Map<UUID, List<DocumentVectorIndex.Match>> nearest = nearest(query);
-        Map<UUID, Document> documents = load(nearest.keySet());
-
-        List<UUID> candidates = nearest.keySet()
-                .stream()
-                .filter(documents::containsKey)
-                .limit(PAGE_DOCUMENTS)
-                .toList();
-
-        if (candidates.isEmpty()) {
-            return List.of();
-        }
-
-        Map<Integer, Verdict> verdicts = check(query, candidates, documents, nearest);
+        Fitting fitting = fitting(query);
         Map<UUID, List<String>> paths = new HashMap<>();
-        List<DocumentSearchHit> hits = new ArrayList<>();
 
-        for (int number = 1; number <= candidates.size(); number++) {
-            Verdict verdict = verdicts.get(number);
-
-            if (verdict != null && verdict.fits()) {
-                UUID id = candidates.get(number - 1);
-                hits.add(hit(documents.get(id), nearest.get(id).getFirst(), verdict.quote(), paths));
-            }
-        }
-
-        return hits;
+        return fitting.ids()
+                .stream()
+                .map(id -> hit(fitting.documents().get(id), fitting.nearest().get(id).getFirst(),
+                        fitting.quotes().get(id), paths))
+                .toList();
     }
 
     /**
-     * Returns the documents nearest to the topic by meaning, at most {@link #CHAT_DOCUMENTS}, the nearest first, each
-     * with at most {@link #CHAT_FRAGMENTS} of its fragments, and whether the limits may have left out more of them.
+     * Returns the documents that fit the topic by meaning, as {@link #search} finds them, each with its fragments
+     * nearest to the topic: at most {@link #CHAT_FRAGMENTS} of the first {@link #CHAT_DOCUMENTS} documents and one of
+     * the rest; and whether the limits of the search may have left out more documents about the topic.
      *
      * @throws SearchUnavailableException if OpenSearch does not answer
      */
     public Found passages(String topic) {
-        Map<UUID, List<DocumentVectorIndex.Match>> nearest = nearest(topic);
+        Fitting fitting = fitting(topic);
+        List<Passages> passages = new ArrayList<>();
+
+        for (UUID id : fitting.ids()) {
+            passages.add(new Passages(fitting.documents().get(id), fitting.nearest()
+                    .get(id)
+                    .stream()
+                    .limit(passages.size() < CHAT_DOCUMENTS ? CHAT_FRAGMENTS : 1)
+                    .map(DocumentVectorIndex.Match::text)
+                    .toList()));
+        }
+
+        return new Found(passages, fitting.more());
+    }
+
+    // the nearest candidates that the model keeps, the nearest first, with what the search knows about them
+    private Fitting fitting(String query) {
+        Map<UUID, List<DocumentVectorIndex.Match>> nearest = nearest(query);
         Map<UUID, Document> documents = load(nearest.keySet());
 
         List<UUID> found = nearest.keySet()
                 .stream()
                 .filter(documents::containsKey)
                 .toList();
-
-        List<Passages> passages = found.stream()
-                .limit(CHAT_DOCUMENTS)
-                .map(id -> new Passages(documents.get(id), nearest.get(id)
-                        .stream()
-                        .limit(CHAT_FRAGMENTS)
-                        .map(DocumentVectorIndex.Match::text)
-                        .toList()))
+        List<UUID> candidates = found.stream()
+                .limit(PAGE_DOCUMENTS)
                 .toList();
 
         // the nearest fragments may all be of a few long documents, and the documents after them are not seen
-        boolean more = found.size() > CHAT_DOCUMENTS
+        boolean more = found.size() > PAGE_DOCUMENTS
                 || nearest.values().stream().mapToInt(List::size).sum() == NEAREST_FRAGMENTS;
 
-        return new Found(passages, more);
+        List<UUID> ids = new ArrayList<>();
+        Map<UUID, String> quotes = new HashMap<>();
+
+        if (!candidates.isEmpty()) {
+            Map<Integer, Verdict> verdicts = check(query, candidates, documents, nearest);
+
+            for (int number = 1; number <= candidates.size(); number++) {
+                Verdict verdict = verdicts.get(number);
+
+                if (verdict != null && verdict.fits()) {
+                    UUID id = candidates.get(number - 1);
+                    ids.add(id);
+                    quotes.put(id, verdict.quote());
+                }
+            }
+        }
+
+        return new Fitting(ids, quotes, documents, nearest, more);
     }
 
     // the rights of the person decide which documents the index may answer with, before it looks for the nearest

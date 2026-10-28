@@ -78,9 +78,10 @@ public class AssistantChatTools implements JmixAiTool {
     private static final String TOPIC = "The topic or the question in the words of the person, short, such as "
             + "\"agricultural machinery\" or \"penalties for late delivery\"";
 
-    // a model would take the nearest documents for all the documents about the topic
-    private static final String MORE_BY_MEANING = "These are the documents nearest to the topic, and more may be "
-            + "about it: say so, and point the person to the AI search of the search field for all of them.";
+    // a model would take the documents found within the limits for all the documents about the topic; the search
+    // page has the same limits, so a narrower topic is the way to the rest
+    private static final String MORE_BY_MEANING = "The search took only the nearest documents, and more may be about "
+            + "the topic: say so, and offer to narrow the topic.";
 
     // a model would take the documents found while the index fills for all the documents there are
     private static final String INDEX_FILLING = "The search by meaning is still indexing documents: some may be "
@@ -216,15 +217,17 @@ public class AssistantChatTools implements JmixAiTool {
     }
 
     /**
-     * Finds the passages of the documents the person who asks may open that are nearest to the topic by meaning.
+     * Finds the documents about the topic that the person who asks may open, as the AI search of the search field
+     * finds them, with their passages nearest to the topic.
      */
     @Tool(name = "dms_findDocumentsByMeaning", description = """
-            Finds the passages of the documents nearest to a topic or a question by meaning, even when the documents \
-            name the thing in other words, such as tractors and combines for agricultural machinery. Use it for what \
-            the documents say and for which documents are about something. Never use it for the fields of the \
-            document types (dms_findDocumentsByTypeField), or to list or count documents by their folder, name, \
-            status, type or date (the query tools). Returns up to 8 documents the person may open, the nearest \
-            first, each with its id, name, type, date, folder and fields and up to 3 passages. Answer from the \
+            Finds the documents about a topic or a question by meaning, with their passages nearest to it, even when \
+            the documents name the thing in other words, such as tractors and combines for agricultural machinery. \
+            Use it for what the documents say and for which documents are about something. Never use it for the \
+            fields of the document types (dms_findDocumentsByTypeField), or to list or count documents by their \
+            folder, name, status, type or date (the query tools). Returns all the documents about the topic the \
+            person may open, up to 20, the nearest first, each with its id, name, type, date, folder and fields, and \
+            up to 3 passages of each of the first 8 documents and one of each of the rest. Answer from the \
             passages, quote them and name the documents you use.""")
     public String findDocumentsByMeaning(@ToolParam(description = DocumentAssistantTools.STATUS) String status,
                                          @ToolParam(description = TOPIC) String topic,

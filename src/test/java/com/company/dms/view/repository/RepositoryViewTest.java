@@ -18,6 +18,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.internal.PendingJavaScriptInvocation;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -278,6 +279,35 @@ class RepositoryViewTest {
         TestGrids.clickRow(grid, a, true);
         TestGrids.openContextMenu(grid, a);
         assertThat(grid.getSelectedItems()).containsExactlyInAnyOrder(a, b);
+    }
+
+    // menu items take no action variant, so the stylesheet colours the delete item by its class
+    @Test
+    void theMenuOfADocumentOffersEveryActionAndMarksItsDeleteItem() {
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        List<GridMenuItem<Document>> items = grid.getContextMenu().getItems();
+
+        assertThat(items)
+                .extracting(item -> FragmentUtils.getComponentId(item).orElse(""))
+                .containsExactly("openDocumentItem", "downloadDocumentItem", "moveDocumentItem",
+                        "activateDocumentItem", "archiveDocumentItem", "unarchiveDocumentItem", "accessDocumentItem",
+                        "deleteDocumentItem");
+        assertThat(items.getLast().getClassNames()).contains("danger-menu-item");
+    }
+
+    @Test
+    void theMenuOfAFolderOffersEveryActionAndMarksItsMainAndDeleteItems() {
+        RepositoryView view = open(sandbox, false);
+        TreeDataGrid<Folder> tree = fragmentComponent(view, "folderTree", "foldersTree");
+        List<GridMenuItem<Folder>> items = tree.getContextMenu().getItems();
+
+        assertThat(items)
+                .extracting(item -> FragmentUtils.getComponentId(item).orElse(""))
+                .containsExactly("createFolderContextItem", "renameFolderContextItem", "moveFolderContextItem",
+                        "accessFolderContextItem", "deleteFolderContextItem");
+        assertThat(items.getFirst().getClassNames()).contains("main-menu-item");
+        assertThat(items.getLast().getClassNames()).contains("danger-menu-item");
     }
 
     @Test

@@ -37,12 +37,15 @@
     color: var(--vaadin-text-color-secondary);
 }
 
-/* Menu items take no action variant, so the folder menu marks its main and its dangerous item here */
-vaadin-menu-bar-item#createFolderItem:not([disabled]) {
+/* Menu items take no action variant, so the menus mark their main and their dangerous items here: a dropdown item by
+   its id, a context menu item by a class, as the items of a grid menu keep their ids on the server */
+vaadin-menu-bar-item#createFolderItem:not([disabled]),
+vaadin-context-menu-item.main-menu-item:not([disabled]) {
     color: var(--aura-accent-text-color);
 }
 
-vaadin-menu-bar-item#deleteFolderItem:not([disabled]) {
+vaadin-menu-bar-item#deleteFolderItem:not([disabled]),
+vaadin-context-menu-item.danger-menu-item:not([disabled]) {
     color: var(--aura-red-text);
 }
 
@@ -70,6 +73,11 @@ vaadin-upload.upload-button::part(drop-label) {
 .document-card-actions,
 .folder-tree-buttons {
     margin-inline-start: auto;
+}
+
+/* Filling with AI wears the purple tint of the AI search; aura-accent-purple colors its text */
+.document-card-ai {
+    --vaadin-button-background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
 }
 
 /* The form and the preview share the row; when both do not fit, the preview moves under the form */
@@ -108,6 +116,11 @@ vaadin-upload.upload-button::part(drop-label) {
     padding-inline-end: var(--vaadin-gap-s);
 }
 
+/* The same gap after the resize handle of the panel, so the handle sits between two gaps as the tree's splitter does */
+.repository-preview-panel {
+    padding-inline-start: var(--vaadin-gap-s);
+}
+
 /* The version dialog gives the preview its whole height, so a long text scrolls inside the preview */
 .revision-dialog .document-preview {
     height: 100%;
@@ -116,6 +129,12 @@ vaadin-upload.upload-button::part(drop-label) {
 /* In a low window the document table keeps its minimum height, and the pane scrolls instead of cutting it */
 .repository-documents {
     overflow: auto;
+}
+
+/* Without a minimum taken from its rows, a full table shrinks to the pane under the breadcrumbs and scrolls inside
+   itself instead of making the pane scroll too */
+.repository-document-list {
+    min-height: 0;
 }
 
 .document-preview {

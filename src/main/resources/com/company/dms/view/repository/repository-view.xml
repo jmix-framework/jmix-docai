@@ -15,10 +15,11 @@
                 <vbox id="documentPane" classNames="repository-documents" width="100%" height="100%" padding="false">
                     <hbox id="breadcrumbs" classNames="breadcrumbs" width="100%" alignItems="BASELINE"
                           spacing="false" wrap="true"/>
-                    <fragment id="documentList" class="com.company.dms.view.repository.DocumentListFragment"/>
+                    <fragment id="documentList" classNames="repository-document-list"
+                              class="com.company.dms.view.repository.DocumentListFragment"/>
                 </vbox>
             </split>
-            <vbox id="previewPanel" width="100%" height="100%" expand="preview">
+            <vbox id="previewPanel" classNames="repository-preview-panel" width="100%" height="100%" expand="preview">
                 <hbox id="previewHeader" width="100%" alignItems="CENTER">
                     <h4 id="previewTitle" text="msg://previewTitle.text" width="100%"/>
                     <sidePanelLayoutCloser id="previewCloser" sidePanelLayoutId="previewLayout"/>

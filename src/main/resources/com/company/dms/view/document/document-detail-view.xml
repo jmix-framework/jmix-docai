@@ -30,15 +30,20 @@
             <badge id="statusBadge" dataContainer="documentDc" property="status"/>
             <span id="pendingChanges" classNames="document-card-pending"/>
             <hbox id="headerActions" classNames="document-card-actions" alignItems="CENTER" wrap="true">
-                <button id="fillWithAiButton" action="fillWithAiAction"/>
-                <upload id="newVersionUpload" classNames="upload-button"
-                        uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="1"
-                        dropAllowed="false" uploadText="msg://newVersionUpload.uploadText" uploadIcon="UPLOAD"/>
-                <button id="downloadButton" text="msg://downloadButton.text" icon="DOWNLOAD"/>
                 <button id="activateButton" text="msg://activateButton.text" icon="CHECK"/>
                 <button id="archiveButton" text="msg://archiveButton.text" icon="ARCHIVE"/>
                 <button id="unarchiveButton" text="msg://unarchiveButton.text" icon="UNDO"/>
-                <button id="accessButton" text="msg://accessButton.text" icon="KEY"/>
+                <button id="fillWithAiButton" action="fillWithAiAction"
+                        classNames="aura-accent-purple document-card-ai"/>
+                <upload id="newVersionUpload" classNames="upload-button"
+                        uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="1"
+                        dropAllowed="false" uploadText="msg://newVersionUpload.uploadText" uploadIcon="UPLOAD"/>
+                <button id="downloadButton" icon="DOWNLOAD" ariaLabel="msg://downloadButton.text">
+                    <tooltip text="msg://downloadButton.text"/>
+                </button>
+                <button id="accessButton" icon="KEY" ariaLabel="msg://accessButton.text">
+                    <tooltip text="msg://accessButton.text"/>
+                </button>
             </hbox>
         </hbox>
         <tabSheet id="cardTabs" classNames="document-card-tabs" width="100%" height="100%">

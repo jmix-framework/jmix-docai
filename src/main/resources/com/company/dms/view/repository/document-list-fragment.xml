@@ -49,7 +49,7 @@
             </hbox>
             <dataGrid id="documentsGrid" dataContainer="documentsDc" selectionMode="MULTI"
                       width="100%" height="100%" minHeight="12em" emptyStateText="msg://documentsGrid.emptyStateText">
-                <actions showInContextMenuEnabled="true">
+                <actions showInContextMenuEnabled="false">
                     <action id="openAction" type="list_itemTracking"
                             text="msg://openAction.text" icon="FILE_TEXT"/>
                     <action id="downloadAction" type="list_itemTracking"
@@ -67,6 +67,16 @@
                     <action id="deleteAction" type="list_itemTracking" actionVariant="DANGER"
                             text="msg://deleteAction.text" icon="TRASH"/>
                 </actions>
+                <contextMenu>
+                    <item id="openDocumentItem" action="documentsGrid.openAction"/>
+                    <item id="downloadDocumentItem" action="documentsGrid.downloadAction"/>
+                    <item id="moveDocumentItem" action="documentsGrid.moveAction"/>
+                    <item id="activateDocumentItem" action="documentsGrid.activateAction"/>
+                    <item id="archiveDocumentItem" action="documentsGrid.archiveAction"/>
+                    <item id="unarchiveDocumentItem" action="documentsGrid.unarchiveAction"/>
+                    <item id="accessDocumentItem" action="documentsGrid.accessAction"/>
+                    <item id="deleteDocumentItem" action="documentsGrid.deleteAction" classNames="danger-menu-item"/>
+                </contextMenu>
                 <columns resizable="true">
                     <column property="name" width="15em"/>
                     <column property="category" autoWidth="true" flexGrow="0"/>
