@@ -1,0 +1,887 @@
+{
+  "folders": [
+    {
+      "name": "Inbox",
+      "documents": [
+        {
+          "name": "Scan 0457.pdf",
+          "versions": [
+            {
+              "file": "invoice-1610.pdf",
+              "author": "alice",
+              "uploaded": "2026-11-06T09:42"
+            }
+          ]
+        },
+        {
+          "name": "Scan 0458.pdf",
+          "versions": [
+            {
+              "file": "act-64.pdf",
+              "author": "alice",
+              "uploaded": "2026-11-02T10:15"
+            }
+          ]
+        },
+        {
+          "name": "Scan 0459.pdf",
+          "versions": [
+            {
+              "file": "supply-61-draft.pdf",
+              "author": "alice",
+              "uploaded": "2026-11-05T15:20"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contracts",
+      "documents": [
+        {
+          "name": "Lease Agreement No. 112",
+          "date": "2026-02-27",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "112",
+            "contractKind": "lease",
+            "counterparty": "Westwind Ltd",
+            "contractAmount": "51600.00",
+            "validUntil": "2027-02-28"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "lease-112-v1.pdf",
+              "author": "john",
+              "uploaded": "2026-02-10T10:15"
+            },
+            {
+              "file": "lease-112-v2.pdf",
+              "author": "maria",
+              "uploaded": "2026-02-18T14:30"
+            },
+            {
+              "file": "lease-112-v3.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-27T16:40"
+            }
+          ]
+        },
+        {
+          "name": "Services Agreement No. 7",
+          "date": "2026-01-12",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "7",
+            "contractKind": "services",
+            "counterparty": "Sanitary Control Inc.",
+            "contractAmount": "2520.00",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "services-7.pdf",
+              "author": "john",
+              "uploaded": "2026-01-12T11:20"
+            }
+          ]
+        },
+        {
+          "name": "Works Contract No. 15/2026",
+          "date": "2026-09-01",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "15/2026",
+            "contractKind": "work",
+            "counterparty": "BuildInvest LLC",
+            "contractAmount": "13800.00",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "works-15.pdf",
+              "author": "john",
+              "uploaded": "2026-09-01T12:05"
+            }
+          ]
+        },
+        {
+          "name": "Supply Agreement No. 45",
+          "date": "2026-01-15",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "45",
+            "contractKind": "supply",
+            "counterparty": "Northwind Paper Inc.",
+            "contractAmount": "10700.00",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "supply-45.pdf",
+              "author": "john",
+              "uploaded": "2026-01-15T15:30"
+            }
+          ]
+        },
+        {
+          "name": "Lease Agreement No. 98",
+          "date": "2024-07-01",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "98",
+            "contractKind": "lease",
+            "counterparty": "Nevsky Quarter LLC",
+            "validUntil": "2025-06-30"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "lease-98.pdf",
+              "author": "john",
+              "uploaded": "2025-07-01T10:30"
+            }
+          ]
+        },
+        {
+          "name": "Recruitment Agency Agreement",
+          "date": "2026-03-02",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "KA-3/2026",
+            "contractKind": "services",
+            "counterparty": "Profi Staff LLC",
+            "contractAmount": "20000.00",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "access": [
+            {
+              "user": "helen",
+              "level": "MANAGE"
+            }
+          ],
+          "versions": [
+            {
+              "file": "agency.pdf",
+              "author": "helen",
+              "uploaded": "2026-03-02T13:45"
+            }
+          ]
+        },
+        {
+          "name": "Contract Approval Procedure.txt",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "procedure-contracts.txt",
+              "author": "john",
+              "uploaded": "2026-01-12T16:00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Invoices and Certificates",
+      "documents": [
+        {
+          "name": "Invoice No. 2045",
+          "date": "2026-11-02",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2045",
+            "supplier": "Northwind Paper Inc.",
+            "invoiceAmount": "940.00",
+            "dueDate": "2026-11-30"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "invoice-2045.pdf",
+              "author": "maria",
+              "uploaded": "2026-11-02T11:10"
+            }
+          ]
+        },
+        {
+          "name": "Invoice No. 3318",
+          "date": "2026-09-12",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "3318",
+            "supplier": "Swift Cargo LLC",
+            "invoiceAmount": "640.00",
+            "dueDate": "2026-09-26"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "invoice-3318.pdf",
+              "author": "maria",
+              "uploaded": "2026-09-12T14:25"
+            }
+          ]
+        },
+        {
+          "name": "Completion Certificate No. 58",
+          "date": "2026-10-30",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "BuildInvest LLC",
+            "certificateAmount": "13800.00",
+            "workCompletedOn": "2026-10-30",
+            "basisContract": "15/2026"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "act-58.pdf",
+              "author": "maria",
+              "uploaded": "2026-10-30T17:05"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Procurement",
+      "documents": [
+        {
+          "name": "Lease Agreement No. 14/A-26 — MTZ-82 Tractor",
+          "date": "2026-02-12",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "14/A-26",
+            "contractKind": "lease",
+            "counterparty": "TechRent North LLC",
+            "contractAmount": "4800.00",
+            "validUntil": "2026-05-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "mtz-82-tractor-lease.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-12T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Purchase and Sale Agreement No. 07-K/2026 — Combine Harvester",
+          "date": "2026-03-03",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "07-K/2026",
+            "contractKind": "supply",
+            "counterparty": "TechnoTrade Center LLC",
+            "contractAmount": "182000.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "acros-595-combine.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-03T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Specification No. 2 to Supply Agreement No. 31/2026",
+          "date": "2026-03-20",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "seed-drill-specification-2.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-20T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Delivery and Acceptance Certificate dated June 9, 2026",
+          "date": "2026-06-09",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "TechSupply Center LLC",
+            "certificateAmount": "143000.00",
+            "workCompletedOn": "2026-06-09",
+            "basisContract": "24/2026"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "sprayer-certificate.pdf",
+              "author": "maria",
+              "uploaded": "2026-06-09T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Work Contract No. 22-M/2026 — Irrigation Machine Installation",
+          "date": "2026-04-15",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "22-M/2026",
+            "contractKind": "work",
+            "counterparty": "HydroMount Service LLC",
+            "contractAmount": "26400.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "irrigation-machine-installation.pdf",
+              "author": "alice",
+              "uploaded": "2026-04-15T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Purchase and Sale Agreement No. 11/2026 — DT-75M Crawler Tractor",
+          "date": "2026-01-28",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "11/2026",
+            "contractKind": "supply",
+            "counterparty": "RiverTech Supply LLC",
+            "contractAmount": "48700.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "dt-75m-purchase.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-28T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Invoice No. 405",
+          "date": "2026-04-02",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "405",
+            "supplier": "Orion MechService LLC",
+            "invoiceAmount": "5870.00",
+            "dueDate": "2026-04-09"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "plow-cultivator-invoice.pdf",
+              "author": "maria",
+              "uploaded": "2026-04-02T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Memo No. 18",
+          "date": "2026-05-19",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "baler-memo.pdf",
+              "author": "alice",
+              "uploaded": "2026-05-19T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Framework Supply Agreement No. 3/2026",
+          "date": "2026-01-15",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "3/2026",
+            "contractKind": "supply",
+            "counterparty": "TechnoResource Supply LLC",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "framework-supply-3-2026.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-15T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Lease Agreement No. 27/E — Crawler Excavator",
+          "date": "2026-02-25",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "27/E",
+            "contractKind": "lease",
+            "counterparty": "SpecBuild Equipment LLC",
+            "contractAmount": "2800.00",
+            "validUntil": "2026-03-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "excavator-lease.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-25T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Certificate No. 87 of Services Rendered — Site Grading",
+          "date": "2026-05-06",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "RoadBuild Partner LLC",
+            "certificateAmount": "1220.00",
+            "workCompletedOn": "2026-05-05",
+            "basisContract": "31/U"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "bulldozer-certificate-87.pdf",
+              "author": "maria",
+              "uploaded": "2026-05-06T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Request No. 112 for Truck Crane Services",
+          "date": "2026-03-17",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "truck-crane-request-112.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-17T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Delivery and Acceptance Certificate No. 5 dated January 14, 2026",
+          "date": "2026-01-14",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "CleanYard Equipment LLC",
+            "certificateAmount": "1640.00",
+            "workCompletedOn": "2026-01-14",
+            "basisContract": "2/2026"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "snow-blower-certificate-5.pdf",
+              "author": "maria",
+              "uploaded": "2026-01-14T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Facilities Request No. 29",
+          "date": "2026-04-21",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "lawn-mowers-request-29.pdf",
+              "author": "alice",
+              "uploaded": "2026-04-21T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Maintenance Agreement No. 9/TO",
+          "date": "2026-02-03",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "9/TO",
+            "contractKind": "services",
+            "counterparty": "LoadTech Service LLC",
+            "validUntil": "2027-01-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "forklift-maintenance-9.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-03T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Supply Agreement No. 63/IT — Office Multifunction Printers",
+          "date": "2026-03-10",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "63/IT",
+            "contractKind": "supply",
+            "counterparty": "IT Supply LLC",
+            "contractAmount": "4580.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "printers-supply-63.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-10T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Invoice No. 2209 — Laptops",
+          "date": "2026-06-18",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2209",
+            "supplier": "ComputerMarket Pro LLC",
+            "invoiceAmount": "5940.00",
+            "dueDate": "2026-06-25"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "laptops-invoice-2209.pdf",
+              "author": "maria",
+              "uploaded": "2026-06-18T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Memo No. 41 — Company Cars",
+          "date": "2026-05-27",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "company-cars-memo-41.pdf",
+              "author": "alice",
+              "uploaded": "2026-05-27T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Services Agreement No. 15/U — Office Cleaning",
+          "date": "2026-01-20",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "15/U",
+            "contractKind": "services",
+            "counterparty": "Clean City Service LLC",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "office-cleaning-15.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-20T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Office Lease Agreement No. 3/O",
+          "date": "2026-01-09",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "3/O",
+            "contractKind": "lease",
+            "counterparty": "Garden Business Center LLC",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "office-lease-3.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-09T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Furniture Supply Agreement No. 8/M",
+          "date": "2026-02-17",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "8/M",
+            "contractKind": "supply",
+            "counterparty": "OfficeInterior LLC",
+            "contractAmount": "5000.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "furniture-supply-8.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-17T10:05"
+            }
+          ]
+        },
+        {
+          "name": "License Agreement No. PO-44",
+          "date": "2026-03-31",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "PO-44",
+            "contractKind": "services",
+            "counterparty": "FinSoft Solutions LLC",
+            "contractAmount": "3070.00",
+            "validUntil": "2027-03-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "software-license-44.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-31T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Security Services Agreement No. 12/OKH",
+          "date": "2026-01-30",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "12/OKH",
+            "contractKind": "services",
+            "counterparty": "Shield Security LLC",
+            "validUntil": "2027-01-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "security-12.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-30T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Work Contract No. 30-K — Air Conditioner Installation",
+          "date": "2026-04-28",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "30-K",
+            "contractKind": "work",
+            "counterparty": "ClimateMount LLC",
+            "contractAmount": "1640.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "air-conditioners-30.pdf",
+              "author": "alice",
+              "uploaded": "2026-04-28T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Diesel Generator Supply Agreement No. 19/G",
+          "date": "2026-05-14",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "19/G",
+            "contractKind": "supply",
+            "counterparty": "EnergyReserve LLC",
+            "contractAmount": "20800.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "generator-19.pdf",
+              "author": "alice",
+              "uploaded": "2026-05-14T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Courier Services Agreement No. 5/K",
+          "date": "2026-02-09",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "5/K",
+            "contractKind": "services",
+            "counterparty": "Express Courier Springfield LLC"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "courier-5.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-09T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Workwear Supply Agreement No. 21/S",
+          "date": "2026-06-02",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "21/S",
+            "contractKind": "supply",
+            "counterparty": "TextileSupply LLC",
+            "contractAmount": "2040.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "workwear-21.pdf",
+              "author": "alice",
+              "uploaded": "2026-06-02T11:40"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Archive 2025",
+      "access": [
+        {
+          "role": "legal-department",
+          "level": "VIEW"
+        },
+        {
+          "role": "accounting",
+          "level": "VIEW"
+        },
+        {
+          "user": "alice",
+          "level": "EDIT"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Invoice No. 1187",
+          "date": "2025-08-14",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "1187",
+            "supplier": "Parts South LLC",
+            "invoiceAmount": "804.00",
+            "dueDate": "2025-08-21"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "combine-parts-invoice-1187.pdf",
+              "author": "alice",
+              "uploaded": "2025-08-14T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Finance Lease Agreement No. L-17/2025",
+          "date": "2025-03-11",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "L-17/2025",
+            "contractKind": "leasing",
+            "counterparty": "North Point Leasing LLC",
+            "contractAmount": "164000.00"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "kirovets-lease-17-2025.pdf",
+              "author": "alice",
+              "uploaded": "2025-03-11T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Framework Maintenance Agreement No. 9/2025",
+          "date": "2025-02-20",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "9/2025",
+            "contractKind": "services",
+            "counterparty": "ServiceMechanics LLC",
+            "validUntil": "2025-12-31"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "framework-maintenance-9-2025.pdf",
+              "author": "alice",
+              "uploaded": "2025-02-20T13:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HR",
+      "access": [
+        {
+          "role": "hr-department",
+          "level": "MANAGE"
+        }
+      ],
+      "folders": [
+        {
+          "name": "Vacations",
+          "access": [
+            {
+              "role": "hr-department",
+              "level": "MANAGE"
+            },
+            {
+              "role": "employee",
+              "level": "VIEW"
+            }
+          ],
+          "documents": [
+            {
+              "name": "Vacation Schedule 2027",
+              "versions": [
+                {
+                  "file": "vacation-schedule-2027.pdf",
+                  "author": "helen",
+                  "uploaded": "2026-10-20T15:00"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "name": "Hiring Order — Emily Clark",
+          "date": "2026-08-28",
+          "type": "HR document",
+          "fields": {
+            "employee": "Emily Clark",
+            "department": "Procurement Department",
+            "hireDate": "2026-09-01"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "hiring-order.pdf",
+              "author": "helen",
+              "uploaded": "2026-08-28T10:40"
+            }
+          ]
+        },
+        {
+          "name": "Employment Contract — Emily Clark",
+          "date": "2026-08-28",
+          "type": "HR document",
+          "fields": {
+            "employee": "Emily Clark",
+            "department": "Procurement Department",
+            "hireDate": "2026-09-01"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "employment-contract.pdf",
+              "author": "helen",
+              "uploaded": "2026-08-28T11:15"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

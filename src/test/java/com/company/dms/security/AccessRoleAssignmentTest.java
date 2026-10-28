@@ -7,6 +7,7 @@ import com.company.dms.model.user.User;
 import com.company.dms.security.role.AccessRowLevelRole;
 import com.company.dms.security.role.EmployeeRole;
 import com.company.dms.security.role.FullAccessRole;
+import com.company.dms.security.role.HrDepartmentRole;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.DepartmentRole;
@@ -94,7 +95,8 @@ class AccessRoleAssignmentTest {
         DepartmentRole department = DepartmentRole.assign(dataManager, "helen");
 
         try {
-            assertThat(roleCodesOf("helen")).containsExactlyInAnyOrder(EmployeeRole.CODE, department.code());
+            assertThat(roleCodesOf("helen"))
+                    .containsExactlyInAnyOrder(EmployeeRole.CODE, HrDepartmentRole.CODE, department.code());
             assertThat(roleCodesOf("peter")).containsExactly(EmployeeRole.CODE);
             assertThat(roleCodesOf("admin")).containsExactly(FullAccessRole.CODE);
         } finally {

@@ -1,0 +1,49 @@
+{
+  "folders": [
+    {
+      "name": "Broken",
+      "access": [
+        {"user": "nobody", "level": "VIEW"},
+        {"role": "no-such-role", "level": "VIEW"},
+        {"user": "alice", "role": "employee", "level": "EDIT"},
+        {"user": "alice", "level": "OWN"}
+      ],
+      "documents": [
+        {"name": "Twice", "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
+        {"name": "Twice", "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
+        {"name": "No versions"},
+        {"name": "Missing file", "versions": [{"file": "missing.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
+        {"name": "Unknown author", "versions": [{"file": "note.txt", "author": "nobody", "uploaded": "2026-01-01T10:00"}]},
+        {
+          "name": "Unknown status",
+          "status": "SIGNED",
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
+        },
+        {
+          "name": "Unknown type",
+          "type": "Receipt",
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
+        },
+        {
+          "name": "Unknown field",
+          "type": "Invoice",
+          "fields": {"colour": "red"},
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
+        },
+        {
+          "name": "Wrong value",
+          "type": "Invoice",
+          "fields": {"invoiceAmount": "a lot"},
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
+        },
+        {
+          "name": "Fields without a type",
+          "fields": {"supplier": "Globex"},
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
+        }
+      ]
+    },
+    {"name": "Broken"},
+    {"documents": []}
+  ]
+}

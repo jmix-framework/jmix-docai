@@ -1,0 +1,88 @@
+{
+  "folders": [
+    {
+      "name": "Sample contracts",
+      "documents": [
+        {
+          "name": "Lease Agreement No. 7",
+          "date": "2026-02-27",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "7",
+            "contractKind": "lease",
+            "counterparty": "Westwind Ltd",
+            "contractAmount": "4620000.00",
+            "validUntil": "2027-02-28"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {"file": "lease-draft.txt", "author": "john", "uploaded": "2026-02-10T10:15"},
+            {"file": "lease-signed.txt", "author": "alice", "uploaded": "2026-02-27T16:40"}
+          ]
+        },
+        {
+          "name": "Lease Agreement No. 3.txt",
+          "type": "Contract",
+          "fields": {"contractKind": "lease"},
+          "status": "ARCHIVED",
+          "versions": [
+            {"file": "old-lease.txt", "author": "john", "uploaded": "2025-06-30T12:00"}
+          ]
+        },
+        {
+          "name": "Recruitment Agency Agreement",
+          "status": "ACTIVE",
+          "access": [{"user": "helen", "level": "MANAGE"}],
+          "versions": [
+            {"file": "agency.txt", "author": "helen", "uploaded": "2026-03-02T09:00"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sample archive",
+      "access": [
+        {"role": "legal-department", "level": "VIEW"},
+        {"user": "alice", "level": "EDIT"}
+      ],
+      "documents": [
+        {
+          "name": "Invoice No. 1187",
+          "date": "2025-08-14",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "1187",
+            "supplier": "Brindlewood Haulage",
+            "invoiceAmount": "1250.00",
+            "dueDate": "2025-08-28"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {"file": "invoice.txt", "author": "alice", "uploaded": "2025-08-14T11:30"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sample HR",
+      "access": [{"role": "hr-department", "level": "MANAGE"}],
+      "folders": [
+        {
+          "name": "Vacations",
+          "access": [
+            {"role": "hr-department", "level": "MANAGE"},
+            {"role": "employee", "level": "VIEW"}
+          ],
+          "documents": [
+            {
+              "name": "Vacation Schedule 2027.txt",
+              "versions": [
+                {"file": "vacations.txt", "author": "helen", "uploaded": "2026-10-01T10:00"}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -35,7 +35,7 @@ The application grows in this order:
 7. Semantic search
 8. Demo data in English and Russian
 
-Steps 1 to 7 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files or by the meaning of a query, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, and ask the AI assistant in the menu about the documents, the folders and the document types.
+Steps 1 to 8 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files or by the meaning of a query, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, and ask the AI assistant in the menu about the documents, the folders and the document types. An empty database gets a demo set of documents in English or Russian at the first start.
 
 ## 🛠️ Technical Stack
 
@@ -83,7 +83,7 @@ docker compose up -d --wait
 
 `docker compose up -d --wait` starts OpenSearch for full-text and semantic search on `127.0.0.1:19200` and returns once it answers, so that the application finds it at start. Without OpenSearch the application works, and the search says it is unavailable; if OpenSearch comes up later, restart the application, and the changes waiting in the queue are indexed then.
 
-Open <http://localhost:8080/dms> and log in as `admin` / `admin`.
+Open <http://localhost:8080/dms> and log in as `admin` / `admin`. The first start fills the empty database with the English demo set, see [Demo Data](#-demo-data).
 
 By default the application keeps its data in the HSQLDB file database `.jmix/hsqldb/dms` and runs with the `local` profile, which pre-fills the login form.
 
@@ -101,9 +101,10 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 | `DMS_AI_EMBEDDING_DIMENSIONS` | `3072` | Size of the vectors of the semantic search, set with the model: at most 3072 for text-embedding-3-large and 1536 for text-embedding-3-small; another size fills the index anew |
 | `DMS_AI_REASONING_EFFORT` | `none` | Reasoning effort of the model; gpt-5.6-luna calls tools only with `none`, and a model that does not reason, such as gpt-4o-mini, refuses the setting: remove `spring.ai.openai.chat.reasoning-effort` from `application.properties` for it |
 | `DMS_AI_TEMPERATURE` | `0` | Temperature of the model; a model that reasons takes only `1` |
+| `DMS_DEMO_DATA` | `en` | Demo set an empty database gets at the start in the `local` profile: `en`, `ru` or `none` |
 | `SERVER_PORT` | `8080` | HTTP port |
 
-The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together. The search index follows them: after the database is reset or replaced, run `docker compose down -v` to remove the index, and the application fills it again at start.
+The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together. The search indexes follow them: `./gradlew resetDemoData` deletes all three for a fresh start, see [Demo Data](#-demo-data). After the database is replaced in another way, run `docker compose down -v` to remove the indexes, and the application fills them again at start.
 
 ### Run the tests
 
@@ -120,7 +121,7 @@ docker compose up -d --wait
 ./gradlew searchTest
 ```
 
-The AI tests call the OpenAI models with the key from `OPENAI_API_KEY` and check how the model classifies the English samples next to them, how the assistant of the card answers about one of them, how the assistant in the menu lists, finds, counts and reads documents and answers in the language of the question, and how the semantic search finds the samples by meaning, on the page and in the chat. They index the samples in OpenSearch from `compose.yaml` (`dms_test_`); a run costs a few cents:
+The AI tests call the OpenAI models with the key from `OPENAI_API_KEY` and check how the model classifies the English samples next to them, how the assistant of the card answers about one of them, how the assistant in the menu lists, finds, counts and reads documents and answers in the language of the question, and how the semantic search finds the samples by meaning, on the page and in the chat, and the twelve documents about farm equipment of the English demo set. They index the samples in OpenSearch from `compose.yaml` (`dms_test_`); a run costs a few cents:
 
 ```bash
 docker compose up -d --wait
@@ -158,20 +159,52 @@ The pages of the application load pictures, media, styles and fonts from the app
 
 ## 🎲 Demo Data
 
-Not available yet: demo document sets in English and Russian arrive with the demo data module.
+At the first start in the `local` profile, an empty database gets a demo set: folders with their access, 46 documents with their versions, types, fields and statuses, and the files of the versions. `DMS_DEMO_DATA` chooses the set:
+
+| Value | Set |
+|---|---|
+| `en` | English documents, the default |
+| `ru` | Russian documents, the set of the webinar |
+| `none` | No demo data |
+
+Both sets have the same folders, people and scenes:
+
+| Folder | Access | What to try |
+|---|---|---|
+| Inbox | Inherits: every employee edits | Three scans without a type for **Fill with AI** |
+| Contracts | Inherits | A lease agreement with three versions by John, Maria and Alice, its term and price written plainly for the assistant in the card; an archived lease; a recruitment agreement open to Helen only |
+| Invoices and Certificates | Inherits | An invoice due on November 30, 2026, for the assistant in the menu |
+| Procurement | Inherits | 27 documents of the corpus of the semantic search |
+| Archive 2025 | Legal department and Accounting view, Alice edits | 3 more documents of the corpus |
+| HR | HR department manages | A hiring order and an employment contract |
+| HR / Vacations | HR department manages, every employee views | The vacation schedule |
+
+The corpus holds 12 documents about farm machinery, such as a tractor lease, a combine harvester purchase and a memo about a baler, and 18 about other machinery and goods. None of them says "agricultural": search by words for *agricultural machinery* finds nothing, *tractor* and *combine* find a few documents each, and **AI search** finds the 12. Signed in as `peter`, who may not open Archive 2025, the AI search finds 9. Search by words for *fumigation* finds the one contract that has the word inside its PDF only; the Russian set has the Russian word for it.
+
+`demo-uploads/en` and `demo-uploads/ru` hold two files the set does not load: Invoice 1610, to fill a card by hand or with AI, and Invoice 2231 for a combine harvester under a neutral name, to upload during a demo and find with the AI search.
+
+The set loads once, into a database with no document and no folder but the root. It loads all of it or nothing: a problem of the description or a failure while loading leaves the database empty, and the log says why. To start over, stop the application and run:
+
+```bash
+./gradlew resetDemoData
+```
+
+It deletes the database, the document files and the search indexes `dms_document` and `dms_document_vectors`, and the next start loads the set of `DMS_DEMO_DATA` again. With an OpenAI key, the semantic search indexes a set in about a minute for about a cent.
+
+A set lies in `src/main/resources/com/company/dms/demo/<set>/`: `demo-data.json` describes the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, and `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
 
 ## 👥 Application Accounts
 
-| Login | Password | Name | Role |
-|---|---|---|---|
-| `admin` | `admin` | | Full Access |
-| `peter` | `peter` | Peter Wilson | Employee |
-| `alice` | `alice` | Alice Morgan | Employee |
-| `helen` | `helen` | Helen Carter | Employee |
-| `maria` | `maria` | Maria Lopez | Employee |
-| `john` | `john` | John Doe | Employee |
+| Login | Password | Name | Roles | In the demo sets |
+|---|---|---|---|---|
+| `admin` | `admin` | | Full Access | Administrator |
+| `peter` | `peter` | Peter Wilson | Employee | An employee with a narrow access |
+| `alice` | `alice` | Alice Morgan | Employee | Office manager: files the incoming documents |
+| `helen` | `helen` | Helen Carter | Employee, HR department | HR manager |
+| `maria` | `maria` | Maria Lopez | Employee, Accounting | Accountant |
+| `john` | `john` | John Doe | Employee, Legal department | Lawyer |
 
-The employees come from the demo changelog `020-demo-users.xml`. Delete it before the first start of a real deployment.
+The employees and their department roles come from the demo changelog `020-demo-users.xml`. Delete it before the first start of a real deployment.
 
 > **Warning:** these are development credentials, and the `local` profile pre-fills them in the login form. Before you deploy the application anywhere, change the `admin` password and set `DMS_ACTIVE_PROFILE` to another value, for example `prod`.
 
@@ -257,6 +290,7 @@ classDiagram
 | Employee | `employee` | Works with folders and documents, reads the document types, searches documents, asks the AI assistant and views their own profile; includes UI: minimal access and the chat role of AI Tools |
 | UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
 | Folder and document access | `access-rl` | Row-level role: a user sees and changes folders and documents by their access entries; assigned to everyone without Full Access |
+| HR department, Legal department, Accounting | `hr-department`, `legal-department`, `accounting` | Departments of the demo: roles without policies that folders and documents give access to; the demo changelog assigns them to `helen`, `john` and `maria` |
 
 A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.
 
@@ -273,7 +307,7 @@ Access works as in SharePoint. A folder or a document either inherits the access
 | Manage | Also change who has access |
 
 - An entry gives a level to a user or to a resource role, and a user gets the highest level among their entries. The root gives the Employee role the Edit level.
-- Roles stand for departments. The administrator creates a resource role without policies, for example "HR", assigns it to the department in the role views and gives the role access to the department's folders. A change of roles applies from the user's next sign-in.
+- Roles stand for departments. The demo comes with three of them in the code: HR department, Legal department and Accounting. The administrator adds more as resource roles without policies in the role views, assigns them to the department and gives them access to the department's folders. A change of roles applies from the user's next sign-in.
 - Clearing **Inherit access** copies the inherited entries as a start; checking it again removes the own entries. A folder or a document that inherits takes the access of its new place when it is moved, and the move asks first.
 - A user sees, greyed, the folders on the way to what they have access to, with their names. A key after the name marks a folder or a document with its own access for those who manage it.
 - The administrator has every level everywhere, without entries.

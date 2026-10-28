@@ -1,0 +1,887 @@
+{
+  "folders": [
+    {
+      "name": "Входящие",
+      "documents": [
+        {
+          "name": "Скан 0457.pdf",
+          "versions": [
+            {
+              "file": "invoice-1610.pdf",
+              "author": "alice",
+              "uploaded": "2026-11-06T09:42"
+            }
+          ]
+        },
+        {
+          "name": "Скан 0458.pdf",
+          "versions": [
+            {
+              "file": "act-64.pdf",
+              "author": "alice",
+              "uploaded": "2026-11-02T10:15"
+            }
+          ]
+        },
+        {
+          "name": "Скан 0459.pdf",
+          "versions": [
+            {
+              "file": "supply-61-draft.pdf",
+              "author": "alice",
+              "uploaded": "2026-11-05T15:20"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Договоры",
+      "documents": [
+        {
+          "name": "Договор аренды № 112",
+          "date": "2026-02-27",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "112",
+            "contractKind": "lease",
+            "counterparty": "ООО «Ветер»",
+            "contractAmount": "4620000.00",
+            "validUntil": "2027-02-28"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "lease-112-v1.pdf",
+              "author": "john",
+              "uploaded": "2026-02-10T10:15"
+            },
+            {
+              "file": "lease-112-v2.pdf",
+              "author": "maria",
+              "uploaded": "2026-02-18T14:30"
+            },
+            {
+              "file": "lease-112-v3.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-27T16:40"
+            }
+          ]
+        },
+        {
+          "name": "Договор оказания услуг № 7",
+          "date": "2026-01-12",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "7",
+            "contractKind": "services",
+            "counterparty": "ООО «Санитарный контроль»",
+            "contractAmount": "222000.00",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "services-7.pdf",
+              "author": "john",
+              "uploaded": "2026-01-12T11:20"
+            }
+          ]
+        },
+        {
+          "name": "Договор подряда № 15/2026",
+          "date": "2026-09-01",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "15/2026",
+            "contractKind": "work",
+            "counterparty": "ООО «СтройИнвест»",
+            "contractAmount": "1240000.00",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "works-15.pdf",
+              "author": "john",
+              "uploaded": "2026-09-01T12:05"
+            }
+          ]
+        },
+        {
+          "name": "Договор поставки № 45",
+          "date": "2026-01-15",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "45",
+            "contractKind": "supply",
+            "counterparty": "ООО «Северная бумага»",
+            "contractAmount": "960000.00",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "supply-45.pdf",
+              "author": "john",
+              "uploaded": "2026-01-15T15:30"
+            }
+          ]
+        },
+        {
+          "name": "Договор аренды № 98",
+          "date": "2024-07-01",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "98",
+            "contractKind": "lease",
+            "counterparty": "ООО «Невский квартал»",
+            "validUntil": "2025-06-30"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "lease-98.pdf",
+              "author": "john",
+              "uploaded": "2025-07-01T10:30"
+            }
+          ]
+        },
+        {
+          "name": "Договор с кадровым агентством",
+          "date": "2026-03-02",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "КА-3/2026",
+            "contractKind": "services",
+            "counterparty": "ООО «Профи Персонал»",
+            "contractAmount": "300000.00",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "access": [
+            {
+              "user": "helen",
+              "level": "MANAGE"
+            }
+          ],
+          "versions": [
+            {
+              "file": "agency.pdf",
+              "author": "helen",
+              "uploaded": "2026-03-02T13:45"
+            }
+          ]
+        },
+        {
+          "name": "Порядок согласования договоров.txt",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "procedure-contracts.txt",
+              "author": "john",
+              "uploaded": "2026-01-12T16:00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Счета и акты",
+      "documents": [
+        {
+          "name": "Счёт № 2045",
+          "date": "2026-11-02",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2045",
+            "supplier": "ООО «Северная бумага»",
+            "invoiceAmount": "84600.00",
+            "dueDate": "2026-11-30"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "invoice-2045.pdf",
+              "author": "maria",
+              "uploaded": "2026-11-02T11:10"
+            }
+          ]
+        },
+        {
+          "name": "Счёт № 3318",
+          "date": "2026-09-12",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "3318",
+            "supplier": "ООО «Быстрый груз»",
+            "invoiceAmount": "57300.00",
+            "dueDate": "2026-09-26"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "invoice-3318.pdf",
+              "author": "maria",
+              "uploaded": "2026-09-12T14:25"
+            }
+          ]
+        },
+        {
+          "name": "Акт № 58",
+          "date": "2026-10-30",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "ООО «СтройИнвест»",
+            "certificateAmount": "1240000.00",
+            "workCompletedOn": "2026-10-30",
+            "basisContract": "15/2026"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "act-58.pdf",
+              "author": "maria",
+              "uploaded": "2026-10-30T17:05"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Закупки",
+      "documents": [
+        {
+          "name": "Договор аренды № 14/А-26 — трактор МТЗ-82",
+          "date": "2026-02-12",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "14/А-26",
+            "contractKind": "lease",
+            "counterparty": "ООО «ТехПрокат Север»",
+            "contractAmount": "435000.00",
+            "validUntil": "2026-05-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "traktor-mtz-82-arenda.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-12T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Договор купли-продажи № 07-К/2026 — зерноуборочный комбайн",
+          "date": "2026-03-03",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "07-К/2026",
+            "contractKind": "supply",
+            "counterparty": "ООО «ТехноТрейд Центр»",
+            "contractAmount": "16400000.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "kombajn-akros-595.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-03T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Спецификация № 2 к договору поставки № 31/2026",
+          "date": "2026-03-20",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "seyalka-specifikaciya-2.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-20T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Акт приёма-передачи от 9 июня 2026 г.",
+          "date": "2026-06-09",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "ООО «ТехСнабЦентр»",
+            "certificateAmount": "12900000.00",
+            "workCompletedOn": "2026-06-09",
+            "basisContract": "24/2026"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "opryskivatel-akt.pdf",
+              "author": "maria",
+              "uploaded": "2026-06-09T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Договор подряда № 22-М/2026 — монтаж дождевальной машины",
+          "date": "2026-04-15",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "22-М/2026",
+            "contractKind": "work",
+            "counterparty": "ООО «ГидроМонтаж Сервис»",
+            "contractAmount": "2380000.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "fregat-montazh.pdf",
+              "author": "alice",
+              "uploaded": "2026-04-15T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Договор купли-продажи № 11/2026 — гусеничный трактор ДТ-75М",
+          "date": "2026-01-28",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "11/2026",
+            "contractKind": "supply",
+            "counterparty": "ООО «Волготехснаб»",
+            "contractAmount": "4380000.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "dt-75m-kuplya.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-28T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Счёт на оплату № 405",
+          "date": "2026-04-02",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "405",
+            "supplier": "ООО «Орион-Мехсервис»",
+            "invoiceAmount": "528000.00",
+            "dueDate": "2026-04-09"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "plug-kultivator-schet.pdf",
+              "author": "maria",
+              "uploaded": "2026-04-02T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Служебная записка № 18",
+          "date": "2026-05-19",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "press-podborshchik-zapiska.pdf",
+              "author": "alice",
+              "uploaded": "2026-05-19T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Рамочный договор поставки № 3/2026",
+          "date": "2026-01-15",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "3/2026",
+            "contractKind": "supply",
+            "counterparty": "ООО «Техноресурс-Поставка»",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "ramochnyj-dogovor-postavki-3-2026.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-15T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Договор аренды № 27/Э — гусеничный экскаватор",
+          "date": "2026-02-25",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "27/Э",
+            "contractKind": "lease",
+            "counterparty": "ООО «СпецСтройТехника»",
+            "contractAmount": "256000.00",
+            "validUntil": "2026-03-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "ekskavator-arenda.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-25T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Акт № 87 об оказании услуг — планировка площадки",
+          "date": "2026-05-06",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "ООО «ДорСтрой Партнёр»",
+            "certificateAmount": "109200.00",
+            "workCompletedOn": "2026-05-05",
+            "basisContract": "31/У"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "buldozer-akt-87.pdf",
+              "author": "maria",
+              "uploaded": "2026-05-06T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Заявка № 112 на услуги автокрана",
+          "date": "2026-03-17",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "avtokran-zayavka-112.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-17T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Акт приёма-передачи № 5 от 14 января 2026 г.",
+          "date": "2026-01-14",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "ООО «ЧистыйДвор Техника»",
+            "certificateAmount": "148000.00",
+            "workCompletedOn": "2026-01-14",
+            "basisContract": "2/2026"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "snegouborshchik-akt-5.pdf",
+              "author": "maria",
+              "uploaded": "2026-01-14T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Заявка АХО № 29",
+          "date": "2026-04-21",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "gazonokosilki-zayavka-29.pdf",
+              "author": "alice",
+              "uploaded": "2026-04-21T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Договор на техническое обслуживание № 9/ТО",
+          "date": "2026-02-03",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "9/ТО",
+            "contractKind": "services",
+            "counterparty": "ООО «ПогрузТехСервис»",
+            "validUntil": "2027-01-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "pogruzchik-to-9.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-03T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Договор поставки № 63/ИТ — МФУ для офиса",
+          "date": "2026-03-10",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "63/ИТ",
+            "contractKind": "supply",
+            "counterparty": "ООО «ИТ-Снаб»",
+            "contractAmount": "412300.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "mfu-postavka-63.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-10T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Счёт на оплату № 2209 — ноутбуки",
+          "date": "2026-06-18",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2209",
+            "supplier": "ООО «КомпьютерМаркет Про»",
+            "invoiceAmount": "535800.00",
+            "dueDate": "2026-06-25"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "noutbuki-schet-2209.pdf",
+              "author": "maria",
+              "uploaded": "2026-06-18T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Служебная записка № 41 — служебные автомобили",
+          "date": "2026-05-27",
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "avtomobili-zapiska-41.pdf",
+              "author": "alice",
+              "uploaded": "2026-05-27T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Договор оказания услуг № 15/У — уборка офиса",
+          "date": "2026-01-20",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "15/У",
+            "contractKind": "services",
+            "counterparty": "ООО «Чистый Город Сервис»",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "uborka-ofisa-15.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-20T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Договор аренды офиса № 3/О",
+          "date": "2026-01-09",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "3/О",
+            "contractKind": "lease",
+            "counterparty": "ООО «Садовый Бизнес-Центр»",
+            "validUntil": "2026-12-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "arenda-ofisa-3.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-09T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Договор поставки мебели № 8/М",
+          "date": "2026-02-17",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "8/М",
+            "contractKind": "supply",
+            "counterparty": "ООО «ОфисИнтерьер»",
+            "contractAmount": "449800.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "mebel-postavka-8.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-17T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Лицензионный договор № ПО-44",
+          "date": "2026-03-31",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "ПО-44",
+            "contractKind": "services",
+            "counterparty": "ООО «ФинСофт Решения»",
+            "contractAmount": "276000.00",
+            "validUntil": "2027-03-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "licenziya-po-44.pdf",
+              "author": "alice",
+              "uploaded": "2026-03-31T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Договор на охрану объекта № 12/ОХ",
+          "date": "2026-01-30",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "12/ОХ",
+            "contractKind": "services",
+            "counterparty": "ООО «Щит-М»",
+            "validUntil": "2027-01-31"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "ohrana-12.pdf",
+              "author": "alice",
+              "uploaded": "2026-01-30T13:15"
+            }
+          ]
+        },
+        {
+          "name": "Договор подряда № 30-К — монтаж кондиционеров",
+          "date": "2026-04-28",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "30-К",
+            "contractKind": "work",
+            "counterparty": "ООО «КлиматМонтаж»",
+            "contractAmount": "147900.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "kondicionery-30.pdf",
+              "author": "alice",
+              "uploaded": "2026-04-28T14:50"
+            }
+          ]
+        },
+        {
+          "name": "Договор поставки дизельного генератора № 19/Г",
+          "date": "2026-05-14",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "19/Г",
+            "contractKind": "supply",
+            "counterparty": "ООО «ЭнергоРезерв»",
+            "contractAmount": "1870000.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "generator-19.pdf",
+              "author": "alice",
+              "uploaded": "2026-05-14T16:20"
+            }
+          ]
+        },
+        {
+          "name": "Договор на курьерские услуги № 5/К",
+          "date": "2026-02-09",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "5/К",
+            "contractKind": "services",
+            "counterparty": "ООО «Экспресс-Курьер Москва»"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "kurer-5.pdf",
+              "author": "alice",
+              "uploaded": "2026-02-09T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Договор поставки спецодежды № 21/С",
+          "date": "2026-06-02",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "21/С",
+            "contractKind": "supply",
+            "counterparty": "ООО «ТекстильСнаб»",
+            "contractAmount": "182880.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "specodezhda-21.pdf",
+              "author": "alice",
+              "uploaded": "2026-06-02T11:40"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Архив 2025",
+      "access": [
+        {
+          "role": "legal-department",
+          "level": "VIEW"
+        },
+        {
+          "role": "accounting",
+          "level": "VIEW"
+        },
+        {
+          "user": "alice",
+          "level": "EDIT"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Счёт на оплату № 1187",
+          "date": "2025-08-14",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "1187",
+            "supplier": "ООО «Запчасть-Юг»",
+            "invoiceAmount": "72180.00",
+            "dueDate": "2025-08-21"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "zapchasti-kombajn-schet-1187.pdf",
+              "author": "alice",
+              "uploaded": "2025-08-14T10:05"
+            }
+          ]
+        },
+        {
+          "name": "Договор лизинга № Л-17/2025",
+          "date": "2025-03-11",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "Л-17/2025",
+            "contractKind": "leasing",
+            "counterparty": "ООО «Северный Лизинг»",
+            "contractAmount": "14800000.00"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "lizing-kirovec-17-2025.pdf",
+              "author": "alice",
+              "uploaded": "2025-03-11T11:40"
+            }
+          ]
+        },
+        {
+          "name": "Рамочный договор на техническое обслуживание № 9/2025",
+          "date": "2025-02-20",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "9/2025",
+            "contractKind": "services",
+            "counterparty": "ООО «СервисМеханика»",
+            "validUntil": "2025-12-31"
+          },
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "file": "ramochnyj-dogovor-obsluzhivaniya-9-2025.pdf",
+              "author": "alice",
+              "uploaded": "2025-02-20T13:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Кадры",
+      "access": [
+        {
+          "role": "hr-department",
+          "level": "MANAGE"
+        }
+      ],
+      "folders": [
+        {
+          "name": "Отпуска",
+          "access": [
+            {
+              "role": "hr-department",
+              "level": "MANAGE"
+            },
+            {
+              "role": "employee",
+              "level": "VIEW"
+            }
+          ],
+          "documents": [
+            {
+              "name": "График отпусков на 2027 год",
+              "versions": [
+                {
+                  "file": "vacation-schedule-2027.pdf",
+                  "author": "helen",
+                  "uploaded": "2026-10-20T15:00"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "name": "Приказ о приёме — Соколова А. В.",
+          "date": "2026-08-28",
+          "type": "HR document",
+          "fields": {
+            "employee": "Соколова Анна Викторовна",
+            "department": "Отдел закупок",
+            "hireDate": "2026-09-01"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "hiring-order.pdf",
+              "author": "helen",
+              "uploaded": "2026-08-28T10:40"
+            }
+          ]
+        },
+        {
+          "name": "Трудовой договор — Соколова А. В.",
+          "date": "2026-08-28",
+          "type": "HR document",
+          "fields": {
+            "employee": "Соколова Анна Викторовна",
+            "department": "Отдел закупок",
+            "hireDate": "2026-09-01"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "file": "employment-contract.pdf",
+              "author": "helen",
+              "uploaded": "2026-08-28T11:15"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

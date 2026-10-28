@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "name": "Open",
+      "documents": [
+        {"name": "Allowed note.txt", "versions": [{"file": "note.txt", "author": "peter", "uploaded": "2026-01-01T10:00"}]}
+      ]
+    },
+    {
+      "name": "Closed",
+      "access": [{"role": "hr-department", "level": "MANAGE"}],
+      "documents": [
+        {"name": "Forbidden note.txt", "versions": [{"file": "note.txt", "author": "peter", "uploaded": "2026-01-01T11:00"}]}
+      ]
+    }
+  ]
+}

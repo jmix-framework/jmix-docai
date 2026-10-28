@@ -59,6 +59,16 @@ class DocumentVectorIndexTest {
         assertThat(index.sourceKeys()).isEmpty();
     }
 
+    // the documents a demo set loads at the start reach the queue before the check of the index creates it
+    @Test
+    void theFragmentsOfADocumentGoIntoAnIndexThatIsNotThereYet() {
+        UUID document = UUID.randomUUID();
+
+        index.replace(document, "key", List.of(fragment(0, "A tractor for the field work")));
+
+        assertThat(index.sourceKeys()).containsOnlyKeys(document);
+    }
+
     @Test
     void aDocumentKeepsOnlyItsLatestFragments() {
         UUID document = UUID.randomUUID();

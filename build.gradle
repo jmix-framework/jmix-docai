@@ -120,6 +120,48 @@ tasks.register('aiTest', Test) {
     systemProperty 'spring.ai.openai.api-key', '${OPENAI_API_KEY:}'
 }
 
+tasks.register('resetDemoData') {
+    description = 'Deletes the database, the files and the search indexes, so the next start loads the demo set again.'
+    group = 'application'
+
+    doLast {
+        def environment = System.getenv()
+        def url = environment.DMS_DB_URL ?: 'jdbc:hsqldb:file:.jmix/hsqldb/dms'
+        // the properties of HSQLDB follow the first semicolon, and ~ is the home directory
+        def path = url =~ /^jdbc:hsqldb:file:([^;]+)/
+        if (!path.find()) {
+            throw new GradleException("Only a file database of HSQLDB is reset, and DMS_DB_URL is $url")
+        }
+
+        def database = file(path.group(1).replaceFirst(/^~/, System.getProperty('user.home')))
+        def lock = file("${database}.lck")
+        // HSQLDB touches the lock file every ten seconds while the database is open
+        if (lock.exists() && System.currentTimeMillis() - lock.lastModified() < 30_000) {
+            throw new GradleException('The database is open: stop the application, then run resetDemoData again')
+        }
+
+        // the indexes go first: with OpenSearch down nothing is deleted, and old documents cannot stay in the index
+        def search = environment.DMS_SEARCH_URL ?: 'http://localhost:19200'
+        def prefix = file('src/main/resources/application.properties').readLines()
+                .find { it.startsWith('jmix.search.search-index-name-prefix=') }
+                .split('=', 2)[1]
+        ["${prefix}document", "${prefix}document_vectors"].each { index ->
+            def connection = URI.create("$search/$index").toURL().openConnection()
+            connection.requestMethod = 'DELETE'
+            def answer = connection.responseCode
+            if (answer != 200 && answer != 404) {
+                throw new GradleException("OpenSearch did not delete $index: HTTP $answer")
+            }
+            logger.lifecycle("Index $index: ${answer == 200 ? 'deleted' : 'absent'}")
+        }
+
+        delete fileTree(database.parentFile) { include "${database.name}.*" }
+        delete file("${database}.tmp")
+        delete file(environment.DMS_FILES_DIR ?: '.jmix/work/filestorage')
+        logger.lifecycle('The demo data is reset: the next start loads the set of DMS_DEMO_DATA (en by default)')
+    }
+}
+
 idea {
     module {
         excludeDirs.addAll(files '.jmix', 'node_modules', 'src/main/frontend/generated/', 'src/main/bundles', 'target',

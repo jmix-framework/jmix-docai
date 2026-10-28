@@ -126,11 +126,14 @@ public class DocumentVectorIndex {
     }
 
     /**
-     * Replaces the fragments of a document in the index with the given ones.
+     * Replaces the fragments of a document in the index with the given ones, creating the index first when there is
+     * none.
      *
      * @param sourceKey what the fragments were cut from, see {@link DocumentVectorIndexer#sourceKeyOf}
      */
     public void replace(UUID documentId, String sourceKey, List<Fragment> fragments) {
+        // the documents a demo set loads at the start reach the queue before the check of the index creates it
+        prepare();
         delete(List.of(documentId));
 
         List<BulkOperation> operations = fragments.stream()

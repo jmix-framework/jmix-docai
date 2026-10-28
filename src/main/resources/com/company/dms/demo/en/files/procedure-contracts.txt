@@ -1,0 +1,19 @@
+Contract Approval Procedure at Romashka LLC
+
+Approved by order of the CEO dated January 12, 2026.
+
+1. This procedure applies to all contracts that Romashka LLC concludes with suppliers, contractors, service providers, and landlords.
+
+2. The initiator of a contract is the head of the department that needs the goods, work, or services. The initiator receives a draft contract from the counterparty or prepares one from a standard template, uploads the draft to the document management system, and sends it for approval.
+
+3. Legal counsel reviews the draft within 3 business days: the details and signing authority of the parties, the subject matter, the deadlines, liability, and the termination procedure. Legal counsel leaves comments in the document management system, and the initiator settles them with the counterparty.
+
+4. The accounting department checks the payment terms: the price, the payment procedure and deadlines, and the amounts of the advance payment and the security deposit.
+
+5. A contract approved by legal counsel and the accounting department is signed by the CEO.
+
+6. Each new edition of a contract and the scan of the signed copy are uploaded to the document management system as a new version of the same document. No separate document is created for a new edition: the whole history of the contract is kept in one card.
+
+7. Contracts are kept in the “Contracts” folder. Once signed, a contract gets the status “Active”; once terminated or expired, the status “Archived.”
+
+8. The paper originals of signed contracts are kept by the accounting department.

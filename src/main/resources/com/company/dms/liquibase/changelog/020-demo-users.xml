@@ -204,4 +204,56 @@
 
     </changeSet>
 
+    <changeSet id="3" author="jmix-dms" context="!cuba">
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="ID" value="85bbd244-e70c-4fce-9de5-8c3f1901caf6"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="helen"/>
+            <column name="ROLE_CODE" value="hr-department"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="ID" value="e66090ee-daa9-4905-b760-95637f0c4377"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="john"/>
+            <column name="ROLE_CODE" value="legal-department"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="ID" value="4b33dc33-2dcc-4315-a427-554daea9d81e"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="maria"/>
+            <column name="ROLE_CODE" value="accounting"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="85bbd244e70c4fce9de58c3f1901caf6"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="helen"/>
+            <column name="ROLE_CODE" value="hr-department"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="e66090eedaa94905b76095637f0c4377"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="john"/>
+            <column name="ROLE_CODE" value="legal-department"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="4b33dc332dcc4315a427554daea9d81e"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="maria"/>
+            <column name="ROLE_CODE" value="accounting"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+    </changeSet>
+
 </databaseChangeLog>

@@ -5,6 +5,7 @@ import com.company.dms.test_support.AuthenticatedAsAdmin;
 import io.jmix.core.DataManager;
 import io.jmix.security.role.assignment.RoleAssignmentRoleType;
 import io.jmix.securitydata.entity.RoleAssignmentEntity;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,15 +54,26 @@ class DemoUsersTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"peter", "alice", "helen", "maria", "john"})
-    void theDemoEmployeeHasOnlyTheEmployeeRole(String username) {
+    @CsvSource(nullValues = "-", value = {
+            "peter, -",
+            "alice, -",
+            "helen, hr-department",
+            "maria, accounting",
+            "john, legal-department"
+    })
+    void theDemoEmployeeHasTheEmployeeRoleAndTheRoleOfTheirDepartment(String username, String department) {
         List<RoleAssignmentEntity> assignments = dataManager.load(RoleAssignmentEntity.class)
                 .query("e.username = ?1", username)
                 .list();
 
+        List<Tuple> expected = department == null
+                ? List.of(tuple("employee", RoleAssignmentRoleType.RESOURCE))
+                : List.of(tuple("employee", RoleAssignmentRoleType.RESOURCE),
+                        tuple(department, RoleAssignmentRoleType.RESOURCE));
+
         assertThat(assignments)
                 .extracting(RoleAssignmentEntity::getRoleCode, RoleAssignmentEntity::getRoleType)
-                .containsExactly(tuple("employee", RoleAssignmentRoleType.RESOURCE));
+                .containsExactlyInAnyOrderElementsOf(expected);
     }
 
     @ParameterizedTest
