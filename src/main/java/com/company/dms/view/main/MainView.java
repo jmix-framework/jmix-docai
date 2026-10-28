@@ -12,7 +12,6 @@ import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
@@ -215,11 +214,10 @@ public class MainView extends StandardMainView {
     }
 
     private void showSearchMode() {
-        searchModeButton.setText(messages.getMessage(getClass(), aiSearch ? "searchMode.ai" : "searchMode.words"));
-        searchModeButton.setIcon(aiSearch ? VaadinIcon.MAGIC.create() : null);
-        searchModeButton.getElement().getClassList().set("ai", aiSearch);
-        searchModeButton.getElement().getClassList().set("aura-accent-purple", aiSearch);
+        searchModeButton.setTooltipText(messages.getMessage(getClass(),
+                aiSearch ? "searchModeButton.on" : "searchModeButton.off"));
 
+        searchModeButton.getElement().setAttribute("aria-pressed", String.valueOf(aiSearch));
         searchField.setPlaceholder(messages.getMessage(getClass(),
                 aiSearch ? "searchField.aiPlaceholder" : "searchField.placeholder"));
     }

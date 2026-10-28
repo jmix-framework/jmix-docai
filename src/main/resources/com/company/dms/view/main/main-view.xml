@@ -19,8 +19,8 @@
                         <icon icon="SEARCH"/>
                     </prefix>
                     <suffix>
-                        <button id="searchModeButton" classNames="main-view-search-mode"
-                                themeNames="tertiary-inline small" title="msg://searchModeButton.tooltip"/>
+                        <button id="searchModeButton" classNames="main-view-search-mode aura-accent-purple"
+                                icon="MAGIC" themeNames="tertiary" ariaLabel="msg://searchModeButton.ariaLabel"/>
                     </suffix>
                 </textField>
 

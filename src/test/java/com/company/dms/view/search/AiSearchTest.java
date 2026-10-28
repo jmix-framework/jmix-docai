@@ -75,7 +75,6 @@ import static org.mockito.Mockito.when;
 class AiSearchTest {
 
     private static final String ADMIN = "admin";
-    private static final String AI_CLASS = "ai";
     private static final String QUERY = "tractor";
 
     @MockitoBean
@@ -142,14 +141,18 @@ class AiSearchTest {
         JmixButton mode = modeButton(mainView());
 
         assertThat(mode.isVisible()).isTrue();
-        assertThat(mode.getClassNames()).doesNotContain(AI_CLASS);
+        assertThat(pressed(mode)).isFalse();
+        assertThat(mode.getTooltip().getText())
+                .isEqualTo(messages.getMessage(MainView.class, "searchModeButton.off"));
 
         mode.click();
 
-        assertThat(mode.getClassNames()).contains(AI_CLASS);
+        assertThat(pressed(mode)).isTrue();
+        assertThat(mode.getTooltip().getText())
+                .isEqualTo(messages.getMessage(MainView.class, "searchModeButton.on"));
         assertThat(userSettingsService.load(MainView.SEARCH_MODE_SETTING)).contains(DocumentSearchView.AI_MODE);
         // what the person sees on the next visit
-        assertThat(modeButton(views.create(MainView.class)).getClassNames()).contains(AI_CLASS);
+        assertThat(pressed(modeButton(views.create(MainView.class)))).isTrue();
     }
 
     @Test
@@ -185,7 +188,7 @@ class AiSearchTest {
     void aLinkToTheAiSearchSwitchesTheField() {
         openAiSearch();
 
-        assertThat(modeButton(mainView()).getClassNames()).contains(AI_CLASS);
+        assertThat(pressed(modeButton(mainView()))).isTrue();
         assertThat(userSettingsService.load(MainView.SEARCH_MODE_SETTING)).contains(DocumentSearchView.AI_MODE);
     }
 
@@ -219,7 +222,7 @@ class AiSearchTest {
 
         assertThat(DocumentSearchView.queryOf(currentQueryParameters())).isEqualTo(QUERY);
         assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
-        assertThat(modeButton(mainView()).getClassNames()).doesNotContain(AI_CLASS);
+        assertThat(pressed(modeButton(mainView()))).isFalse();
         verify(entitySearcher).search(any(), anyString());
     }
 
@@ -341,6 +344,10 @@ class AiSearchTest {
 
     private static JmixButton modeButton(MainView mainView) {
         return UiTestUtils.getComponent(mainView, "searchModeButton");
+    }
+
+    private static boolean pressed(JmixButton mode) {
+        return "true".equals(mode.getElement().getAttribute("aria-pressed"));
     }
 
     private static Span message(DocumentSearchView view) {

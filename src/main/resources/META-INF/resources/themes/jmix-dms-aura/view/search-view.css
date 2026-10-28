@@ -11,13 +11,24 @@
     margin-inline-start: 0;
 }
 
-/* The mode of the search inside the field: by words, or the search by meaning in the accent of the AI */
-.main-view-search-mode {
-    margin: 0;
+/* The mode of the search inside the field: a wand, grey while the search goes by words and pressed in the soft
+   purple of the AI buttons for the search by meaning */
+vaadin-button.main-view-search-mode {
+    /* a button is taller than a line of the field, so the wand is a small one and takes some of the field's padding */
+    margin: -2px 0;
+    padding: 1px;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
     color: var(--vaadin-text-color-secondary);
 }
 
-.main-view-search-mode.ai {
+vaadin-button.main-view-search-mode:hover {
+    color: var(--vaadin-text-color);
+    background: color-mix(in oklab, var(--vaadin-text-color) 8%, transparent);
+}
+
+vaadin-button.main-view-search-mode[aria-pressed="true"] {
     color: var(--aura-accent-text-color);
     background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
 }

@@ -108,7 +108,7 @@ class MainViewSearchTest {
         JmixButton mode = UiTestUtils.getComponent(views.create(MainView.class), "searchModeButton");
 
         assertThat(mode.isVisible()).isFalse();
-        assertThat(mode.getClassNames()).doesNotContain("ai");
+        assertThat(mode.getElement().getAttribute("aria-pressed")).isEqualTo("false");
     }
 
     private TypedTextField<String> searchField() {
