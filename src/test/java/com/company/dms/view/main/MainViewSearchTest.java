@@ -10,8 +10,8 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.Views;
-import io.jmix.flowui.component.radiobuttongroup.JmixRadioButtonGroup;
 import io.jmix.flowui.component.textfield.TypedTextField;
+import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.settings.UserSettingsService;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
@@ -105,10 +105,10 @@ class MainViewSearchTest {
         userSettingsService.save(MainView.SEARCH_MODE_SETTING, DocumentSearchView.AI_MODE);
 
         // what the person sees on the next visit
-        JmixRadioButtonGroup<String> mode = UiTestUtils.getComponent(views.create(MainView.class), "searchModeGroup");
+        JmixButton mode = UiTestUtils.getComponent(views.create(MainView.class), "searchModeButton");
 
         assertThat(mode.isVisible()).isFalse();
-        assertThat(mode.getValue()).isEqualTo(MainView.WORDS_MODE);
+        assertThat(mode.getClassNames()).doesNotContain("ai");
     }
 
     private TypedTextField<String> searchField() {

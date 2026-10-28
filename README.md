@@ -351,7 +351,7 @@ The search field in the header finds documents by the words of their files: the 
 
 ## 🧠 Semantic Search
 
-With the AI on, the search field in the header ends with a switch of two modes, named in their tooltips: **By words** (the letter A) is the full-text search above, and **AI search** (the wand) finds documents by the meaning of a query: "agricultural machinery" finds the lease of a tractor, the invoice for a combine and a memo about a broken baler, though none of them names agricultural machinery.
+With the AI on, the search field in the header has a second mode. **By words** is the full-text search above; a click on it switches to **AI search**, which finds documents by the meaning of a query: "agricultural machinery" finds the lease of a tractor, the invoice for a combine and a memo about a broken baler, though none of them names agricultural machinery.
 
 - The field shows the mode, and the address of the results keeps it (`mode=ai`), so a link and Back search the same way. Each person's last choice is remembered; the default is by words. A click on the mode on the results page runs the same query in the other mode.
 - The AI search finds the fragments of the documents nearest to the query by meaning, and the OpenAI chat model checks every candidate: the page shows up to 20 documents that fit, the nearest first, each with its fragment and the quote that fits the query marked. When nothing fits, the page offers the search by words.

@@ -19,7 +19,6 @@ import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.KeyPressEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.FontIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.VaadinSession;
@@ -29,7 +28,6 @@ import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.Views;
 import io.jmix.flowui.component.UiComponentUtils;
-import io.jmix.flowui.component.radiobuttongroup.JmixRadioButtonGroup;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.settings.UserSettingsService;
@@ -77,7 +75,7 @@ import static org.mockito.Mockito.when;
 class AiSearchTest {
 
     private static final String ADMIN = "admin";
-    private static final String AI_ACCENT = "aura-accent-purple";
+    private static final String AI_CLASS = "ai";
     private static final String QUERY = "tractor";
 
     @MockitoBean
@@ -141,38 +139,22 @@ class AiSearchTest {
 
     @Test
     void theSearchIsByWordsAtFirstAndTheChosenModeIsRemembered() {
-        JmixRadioButtonGroup<String> mode = modeGroup(mainView());
+        JmixButton mode = modeButton(mainView());
 
         assertThat(mode.isVisible()).isTrue();
-        assertThat(mode.getValue()).isEqualTo(MainView.WORDS_MODE);
-        assertThat(mode.getClassNames()).doesNotContain(AI_ACCENT);
+        assertThat(mode.getClassNames()).doesNotContain(AI_CLASS);
 
-        mode.setValue(DocumentSearchView.AI_MODE);
+        mode.click();
 
-        assertThat(mode.getClassNames()).contains(AI_ACCENT);
+        assertThat(mode.getClassNames()).contains(AI_CLASS);
         assertThat(userSettingsService.load(MainView.SEARCH_MODE_SETTING)).contains(DocumentSearchView.AI_MODE);
         // what the person sees on the next visit
-        assertThat(modeGroup(views.create(MainView.class)).getValue()).isEqualTo(DocumentSearchView.AI_MODE);
-    }
-
-    @Test
-    void theModesAreIconsNamedInTheirTooltips() {
-        JmixRadioButtonGroup<String> mode = modeGroup(mainView());
-
-        assertThat(Map.of(MainView.WORDS_MODE, "searchMode.words", DocumentSearchView.AI_MODE, "searchMode.ai"))
-                .allSatisfy((item, key) -> {
-                    Component icon = mode.getItemRenderer().createComponent(item);
-                    String name = messages.getMessage(MainView.class, key);
-
-                    assertThat(icon).isInstanceOf(FontIcon.class);
-                    assertThat(((FontIcon) icon).getTooltip().getText()).isEqualTo(name);
-                    assertThat(icon.getElement().getAttribute("aria-label")).isEqualTo(name);
-                });
+        assertThat(modeButton(views.create(MainView.class)).getClassNames()).contains(AI_CLASS);
     }
 
     @Test
     void enterInTheAiModeOpensTheSearchByMeaning() {
-        modeGroup(mainView()).setValue(DocumentSearchView.AI_MODE);
+        modeButton(mainView()).click();
 
         enter("  tractor  ");
 
@@ -188,13 +170,13 @@ class AiSearchTest {
         enter(QUERY);
         assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
 
-        modeGroup(mainView()).setValue(DocumentSearchView.AI_MODE);
+        modeButton(mainView()).click();
 
         assertThat(DocumentSearchView.queryOf(currentQueryParameters())).isEqualTo(QUERY);
         assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isTrue();
         verify(semanticSearch, timeout(5_000)).search(QUERY);
 
-        modeGroup(mainView()).setValue(MainView.WORDS_MODE);
+        modeButton(mainView()).click();
 
         assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
     }
@@ -203,7 +185,7 @@ class AiSearchTest {
     void aLinkToTheAiSearchSwitchesTheField() {
         openAiSearch();
 
-        assertThat(modeGroup(mainView()).getValue()).isEqualTo(DocumentSearchView.AI_MODE);
+        assertThat(modeButton(mainView()).getClassNames()).contains(AI_CLASS);
         assertThat(userSettingsService.load(MainView.SEARCH_MODE_SETTING)).contains(DocumentSearchView.AI_MODE);
     }
 
@@ -237,7 +219,7 @@ class AiSearchTest {
 
         assertThat(DocumentSearchView.queryOf(currentQueryParameters())).isEqualTo(QUERY);
         assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
-        assertThat(modeGroup(mainView()).getValue()).isEqualTo(MainView.WORDS_MODE);
+        assertThat(modeButton(mainView()).getClassNames()).doesNotContain(AI_CLASS);
         verify(entitySearcher).search(any(), anyString());
     }
 
@@ -284,7 +266,7 @@ class AiSearchTest {
             return List.of(hit(document, "a <b>combine</b>"));
         });
         when(semanticSearch.search(QUERY)).thenReturn(List.of(hit(document, "a <b>tractor</b>")));
-        modeGroup(mainView()).setValue(DocumentSearchView.AI_MODE);
+        modeButton(mainView()).click();
 
         enter("combine");
         DocumentSearchView view = UiTestUtils.getCurrentView();
@@ -357,8 +339,8 @@ class AiSearchTest {
                 .orElseThrow();
     }
 
-    private static JmixRadioButtonGroup<String> modeGroup(MainView mainView) {
-        return UiTestUtils.getComponent(mainView, "searchModeGroup");
+    private static JmixButton modeButton(MainView mainView) {
+        return UiTestUtils.getComponent(mainView, "searchModeButton");
     }
 
     private static Span message(DocumentSearchView view) {
