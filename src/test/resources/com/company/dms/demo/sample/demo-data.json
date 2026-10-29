@@ -5,6 +5,10 @@
       "documents": [
         {
           "name": "Lease Agreement No. 7",
+          "comments": [
+            {"author": "alice", "at": "2026-02-12T11:20", "text": "Check clause 4.2:\nthe penalty is too high"},
+            {"author": "john", "at": "2026-02-17T16:05", "text": "Agreed at 0.2 percent ", "edited": "2026-02-17T16:30"}
+          ],
           "tags": ["lease"],
           "date": "2026-02-27",
           "type": "Contract",
@@ -23,6 +27,7 @@
         },
         {
           "name": "Lease Agreement No. 3.txt",
+          "comments": [{"author": "john", "at": "2026-03-01T09:00", "text": "Archived after the move"}],
           "tags": ["lease", "office"],
           "type": "Contract",
           "fields": {"contractKind": "lease"},
@@ -41,6 +46,7 @@
         },
         {
           "name": "Lease Agreement No. 5",
+          "comments": [{"author": "john", "at": "2025-06-01T09:00", "text": "Superseded by No. 7"}],
           "tags": ["lease"],
           "type": "Contract",
           "fields": {"contractKind": "lease"},

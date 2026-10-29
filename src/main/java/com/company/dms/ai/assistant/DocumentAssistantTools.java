@@ -1,14 +1,19 @@
 package com.company.dms.ai.assistant;
 
+import com.company.dms.ai.AiSettings;
 import com.company.dms.ai.DocumentTextReader;
 import com.company.dms.ai.classification.ClassificationProposal;
 import com.company.dms.ai.classification.DocumentClassifier;
+import com.company.dms.app.service.document.DocumentCommentService;
 import com.company.dms.model.document.Document;
+import com.company.dms.model.document.DocumentComment;
+import com.company.dms.model.user.User;
 import io.jmix.aitools.tool.AiToolStatusPublisher;
 import io.jmix.aitools.tool.JmixAiTool;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FetchPlanBuilder;
+import io.jmix.core.MetadataTools;
 import io.jmix.core.security.SystemAuthenticator;
 import org.jspecify.annotations.Nullable;
 import org.springframework.ai.chat.model.ToolContext;
@@ -16,6 +21,11 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -52,22 +62,36 @@ public class DocumentAssistantTools implements JmixAiTool {
     private static final String NO_TEXT = "The document has no text to read: its file is a picture, a scan "
             + "or a file of an unknown format.";
 
+    private static final String NO_COMMENTS = "Nobody has commented on the document.";
+    private static final String EARLIER_LEFT_OUT = "Earlier comments are left out; these are the latest ones.";
+    private static final int MAX_COMMENTS = 50;
+    private static final DateTimeFormatter COMMENT_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
     private final DataManager dataManager;
     private final SystemAuthenticator systemAuthenticator;
     private final DocumentTextReader documentTextReader;
     private final DocumentClassifier documentClassifier;
     private final AiToolStatusPublisher statusPublisher;
+    private final DocumentCommentService commentService;
+    private final AiSettings aiSettings;
+    private final MetadataTools metadataTools;
 
     public DocumentAssistantTools(DataManager dataManager,
                                   SystemAuthenticator systemAuthenticator,
                                   DocumentTextReader documentTextReader,
                                   DocumentClassifier documentClassifier,
-                                  AiToolStatusPublisher statusPublisher) {
+                                  AiToolStatusPublisher statusPublisher,
+                                  DocumentCommentService commentService,
+                                  AiSettings aiSettings,
+                                  MetadataTools metadataTools) {
         this.dataManager = dataManager;
         this.systemAuthenticator = systemAuthenticator;
         this.documentTextReader = documentTextReader;
         this.documentClassifier = documentClassifier;
         this.statusPublisher = statusPublisher;
+        this.commentService = commentService;
+        this.aiSettings = aiSettings;
+        this.metadataTools = metadataTools;
     }
 
     /**
@@ -95,6 +119,19 @@ public class DocumentAssistantTools implements JmixAiTool {
                 .map(document -> textOf(document)
                         .map(text -> describe(documentClassifier.classify(document.getName(), text)))
                         .orElse(NO_TEXT))
+                .orElse(UNAVAILABLE));
+    }
+
+    /**
+     * Returns the comments people left on a document, the oldest first, with who wrote each and when.
+     */
+    @Tool(name = "dms_readDocumentComments", description = "Returns the comments people left on a document, the "
+            + "oldest first: who wrote each, when, whether it was edited, and its text")
+    public String readDocumentComments(@ToolParam(description = STATUS) String status,
+                                       @ToolParam(description = DOCUMENT_ID) String documentId,
+                                       ToolContext context) {
+        return asThePerson(status, context, () -> document(documentId)
+                .map(this::commentsOf)
                 .orElse(UNAVAILABLE));
     }
 
@@ -152,6 +189,45 @@ public class DocumentAssistantTools implements JmixAiTool {
     private Optional<String> textOf(Document document) {
         return Optional.ofNullable(document.getCurrentRevision())
                 .flatMap(documentTextReader::read);
+    }
+
+    // the latest comments that fit into what the model reads, put back in the order they were written
+    private String commentsOf(Document document) {
+        List<DocumentComment> latest = dataManager.load(DocumentComment.class)
+                .query("select c from DocumentComment c where c.document = :document"
+                        + " order by c.createdDate desc, c.id desc")
+                .parameter("document", document)
+                .maxResults(MAX_COMMENTS + 1)
+                .list();
+
+        if (latest.isEmpty()) {
+            return NO_COMMENTS;
+        }
+
+        Map<String, User> authors = commentService.authorsOf(latest);
+        List<String> entries = new ArrayList<>();
+        int length = 0;
+
+        for (DocumentComment comment : latest.subList(0, Math.min(MAX_COMMENTS, latest.size()))) {
+            User author = authors.get(comment.getCreatedBy());
+            String entry = "%s, %s%s:\n%s".formatted(
+                    author == null ? comment.getCreatedBy() : metadataTools.getInstanceName(author),
+                    COMMENT_TIME.format(comment.getCreatedDate().atZoneSameInstant(ZoneId.systemDefault())),
+                    comment.getEditedDate() == null ? "" : ", edited",
+                    // on one line, so that a text cannot pass for the next comment and its author
+                    comment.getText().replaceAll("\\R", " "));
+
+            if (length + entry.length() > aiSettings.getMaxTextLength()) {
+                break;
+            }
+
+            entries.addFirst(entry);
+            length += entry.length();
+        }
+
+        String comments = String.join("\n\n", entries);
+
+        return entries.size() < latest.size() ? EARLIER_LEFT_OUT + "\n\n" + comments : comments;
     }
 
     private static String describe(ClassificationProposal proposal) {

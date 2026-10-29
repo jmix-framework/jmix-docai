@@ -61,16 +61,18 @@ public record DemoSet(List<Folder> folders) {
      * @param status   {@code DRAFT} (when left out), {@code ACTIVE} or {@code ARCHIVED}
      * @param access   the own access of the document, or null when it inherits the access of its folder
      * @param versions the versions, the first one first
+     * @param comments the comments, the oldest first
      * @param deleted  who deleted the document and when, or null for a live document
      */
     public record Document(String name, @Nullable LocalDate date, @Nullable String type, Map<String, String> fields,
                            List<String> tags, @Nullable String status, @Nullable List<Access> access,
-                           List<Version> versions, @Nullable Deletion deleted) {
+                           List<Version> versions, List<Comment> comments, @Nullable Deletion deleted) {
 
         public Document {
             fields = fields == null ? Map.of() : fields;
             tags = tags == null ? List.of() : tags;
             versions = versions == null ? List.of() : versions;
+            comments = comments == null ? List.of() : comments;
         }
     }
 
@@ -82,6 +84,18 @@ public record DemoSet(List<Folder> folders) {
      * @param uploaded when the version was uploaded, in the time zone of the server
      */
     public record Version(String file, String author, LocalDateTime uploaded) {
+    }
+
+    /**
+     * A comment on a document.
+     *
+     * @param author the login of the user who writes it
+     * @param at     when it was written, in the time zone of the server
+     * @param text   the text of the comment
+     * @param edited when its author changed it last, in the time zone of the server, or null for a comment never
+     *               changed
+     */
+    public record Comment(String author, LocalDateTime at, String text, @Nullable LocalDateTime edited) {
     }
 
     /**

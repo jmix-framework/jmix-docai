@@ -207,7 +207,7 @@ class AssistantChatServiceTest {
 
         assertThat(selectionMessages()).singleElement()
                 .asString()
-                .contains("[invoice.txt](%s)".formatted(invoice.getId()))
+                .contains("[invoice.txt](%s)".formatted(invoice.getId()), "dms_readDocumentComments")
                 .doesNotContain("hidden.txt", hidden.getId().toString());
     }
 
@@ -262,7 +262,8 @@ class AssistantChatServiceTest {
 
         assertThat(model.prompts().getFirst().getSystemMessage().getText())
                 .contains("You are an assistant for a Jmix application", "dms_findDocumentsByTypeField",
-                        "dms_findDocumentsByMeaning", "dms_readDocumentText", "[name](id)");
+                        "dms_findDocumentsByMeaning", "dms_readDocumentText", "dms_readDocumentComments",
+                        "[name](id)");
     }
 
     private AiChatMessage ask(AiConversation conversation) {

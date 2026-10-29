@@ -128,12 +128,16 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @ViewComponent
     private Tab versionsTab;
     @ViewComponent
+    private Tab commentsTab;
+    @ViewComponent
     private Tab assistantTab;
 
     @ViewComponent
     private DocumentPreviewFragment preview;
     @ViewComponent
     private DocumentPropertiesFragment propertiesFragment;
+    @ViewComponent
+    private DocumentCommentsFragment comments;
     @ViewComponent
     private DocumentAssistantFragment assistant;
     @ViewComponent
@@ -211,6 +215,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     public void onReady(final ReadyEvent event) {
         showDocument();
         preview.showRevision(getEditedEntity().getCurrentRevision());
+        showComments();
         showAssistant();
     }
 
@@ -475,6 +480,16 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         modifiedField.setValue(describeChange(document.getChangedBy(), document.getChangedDate()));
         versionsTab.setLabel(messageBundle.formatMessage("versionsTab.label", revisionsDc.getItems().size()));
         fillWithAiAction.refreshState();
+    }
+
+    // a comment refers to a saved document, so a new one gets the tab after the first save
+    private void showComments() {
+        commentsTab.setVisible(!isNew());
+
+        if (!isNew()) {
+            comments.show(getEditedEntity(),
+                    count -> commentsTab.setLabel(messageBundle.formatMessage("commentsTab.label", count)));
+        }
     }
 
     // the assistant reads the saved document, so a new one gets it after the first save

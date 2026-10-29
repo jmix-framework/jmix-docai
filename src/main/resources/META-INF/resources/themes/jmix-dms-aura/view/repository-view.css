@@ -106,6 +106,52 @@ vaadin-upload.upload-button::part(drop-label) {
     min-height: 0;
 }
 
+/* The virtual list of the comments fills the tab under the field and scrolls the comments itself */
+.document-comments-list {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.document-comment {
+    gap: var(--vaadin-gap-s);
+    padding-block: var(--vaadin-gap-s);
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+.document-comment-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.document-comment-author {
+    font-weight: var(--aura-font-weight-medium);
+}
+
+.document-comment-meta {
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-s);
+}
+
+.document-comment-actions {
+    margin-inline-start: auto;
+}
+
+/* The text of a comment keeps the line breaks of its author and wraps a long word */
+.document-comment-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.document-comment-length-over {
+    color: var(--aura-red-text);
+}
+
+/* The send icon stays in the bottom corner of the comment field however tall the field grows */
+vaadin-button.document-comment-send {
+    align-self: flex-end;
+    min-width: 0;
+}
+
 /* The selection of a discussion with AI is where documents are dropped, and lights up while a row is dragged over
    the window; a long selection scrolls instead of squeezing the chat, and a short one keeps its height, since a
    scrolling flex item may otherwise shrink below its content */

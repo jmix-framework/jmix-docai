@@ -106,12 +106,14 @@ class DocumentAssistantTest {
 
         Prompt prompt = model.prompts().getFirst();
         assertThat(answer).isEqualTo("The lease is valid until 31 December 2027.");
-        assertThat(prompt.getSystemMessage().getText()).contains("lease-112.txt", lease.getId().toString());
+        assertThat(prompt.getSystemMessage().getText()).contains("lease-112.txt", lease.getId().toString(),
+                "dms_readDocumentComments");
         assertThat(prompt.getOptions()).isInstanceOfSatisfying(ToolCallingChatOptions.class,
                 options -> assertThat(options.getToolCallbacks())
                         .extracting(ToolCallback::getToolDefinition)
                         .extracting(ToolDefinition::name)
-                        .containsExactlyInAnyOrder("dms_readDocumentText", "dms_proposeTypeAndFields"));
+                        .containsExactlyInAnyOrder("dms_readDocumentText", "dms_proposeTypeAndFields",
+                                "dms_readDocumentComments"));
     }
 
     @Test

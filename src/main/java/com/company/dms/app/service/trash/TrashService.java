@@ -6,6 +6,7 @@ import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.document.Document;
+import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.model.trash.TrashItem;
@@ -325,6 +326,8 @@ public class TrashService {
         // a value of a list field refers to the value it belongs to, so it goes first
         deleteForever(CategoryAttributeValue.class, "e.entity.entityId in :ids and e.parent is not null", documents);
         deleteForever(CategoryAttributeValue.class, "e.entity.entityId in :ids", documents);
+        // a comment refers to its document, and the document does not know its comments
+        deleteForever(DocumentComment.class, "e.document.id in :ids", documents);
         deleteForever(DocumentRevision.class, "e.document.id in :ids", documents);
         deleteForever(Document.class, "e.id in :ids and e.deletedDate is not null", documents);
 

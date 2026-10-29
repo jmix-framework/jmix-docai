@@ -226,7 +226,7 @@ class AssistantChatToolsTest {
         assertThat(aiToolRegistry.getAllCallbacks())
                 .extracting(callback -> callback.getToolDefinition().name())
                 .contains("dms_findDocumentsByTypeField", "dms_findDocumentsByMeaning", "dms_readDocumentText",
-                        "dms_proposeTypeAndFields", "aitls_executeQuery");
+                        "dms_proposeTypeAndFields", "dms_readDocumentComments", "aitls_executeQuery");
     }
 
     @Test

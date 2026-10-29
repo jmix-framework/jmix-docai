@@ -4,6 +4,7 @@ import com.company.dms.ai.classification.ClassificationProposal;
 import com.company.dms.ai.classification.ClassificationResult;
 import com.company.dms.ai.classification.DocumentClassifier;
 import com.company.dms.app.service.access.AccessService;
+import com.company.dms.app.service.document.DocumentCommentService;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.document.UploadedFile;
 import com.company.dms.app.service.folder.FolderService;
@@ -12,6 +13,7 @@ import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.access.AccessEntryDraft;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
+import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
@@ -120,6 +122,7 @@ public class DemoDataLoader {
     private final UnconstrainedDataManager unconstrainedDataManager;
     private final FolderService folderService;
     private final DocumentService documentService;
+    private final DocumentCommentService commentService;
     private final AccessService accessService;
     private final DocumentClassifier documentClassifier;
     private final TagService tagService;
@@ -137,6 +140,7 @@ public class DemoDataLoader {
                           UnconstrainedDataManager unconstrainedDataManager,
                           FolderService folderService,
                           DocumentService documentService,
+                          DocumentCommentService commentService,
                           AccessService accessService,
                           DocumentClassifier documentClassifier,
                           TagService tagService,
@@ -149,6 +153,7 @@ public class DemoDataLoader {
         this.unconstrainedDataManager = unconstrainedDataManager;
         this.folderService = folderService;
         this.documentService = documentService;
+        this.commentService = commentService;
         this.accessService = accessService;
         this.documentClassifier = documentClassifier;
         this.tagService = tagService;
@@ -342,6 +347,7 @@ public class DemoDataLoader {
             checkType(document, where, problems);
             checkAccess(document.access(), where, users, problems);
             checkDeletion(document.deleted(), where, users, problems);
+            checkComments(document.comments(), where, users, problems);
         }
     }
 
@@ -384,6 +390,27 @@ public class DemoDataLoader {
 
         if (deletion.at() == null) {
             problems.add(where + ": the deletion has no time");
+        }
+    }
+
+    private static void checkComments(List<DemoSet.Comment> comments, String where, Set<String> users,
+                                      List<String> problems) {
+        for (DemoSet.Comment comment : comments) {
+            if (!users.contains(comment.author())) {
+                problems.add(where + ": there is no user '" + comment.author() + "'");
+            }
+
+            if (isBlank(comment.text())) {
+                problems.add(where + ": a comment has no text");
+            } else if (comment.text().strip().length() > DocumentComment.MAX_TEXT_LENGTH) {
+                problems.add(where + ": a comment is longer than " + DocumentComment.MAX_TEXT_LENGTH + " characters");
+            }
+
+            if (comment.at() == null) {
+                problems.add(where + ": a comment has no time");
+            } else if (comment.edited() != null && comment.edited().isBefore(comment.at())) {
+                problems.add(where + ": a comment is edited before it is written");
+            }
         }
     }
 
@@ -496,6 +523,7 @@ public class DemoDataLoader {
         }
 
         backdate(document, versions);
+        writeComments(document, description.comments());
         loaded.documents++;
         loaded.versions += versions.size();
 
@@ -568,6 +596,26 @@ public class DemoDataLoader {
                 .setParameter("author", last.author())
                 .setParameter("id", document.getId())
                 .executeUpdate();
+    }
+
+    // every comment is written by its author, with the rights the author has, and dated as described
+    private void writeComments(Document document, List<DemoSet.Comment> comments) {
+        for (DemoSet.Comment description : comments) {
+            DocumentComment comment = systemAuthenticator.withUser(description.author(),
+                    () -> commentService.post(document, description.text()));
+
+            entityManager.createQuery("update DocumentComment c set c.createdDate = :written where c.id = :id")
+                    .setParameter("written", at(description.at()))
+                    .setParameter("id", comment.getId())
+                    .executeUpdate();
+
+            if (description.edited() != null) {
+                entityManager.createQuery("update DocumentComment c set c.editedDate = :edited where c.id = :id")
+                        .setParameter("edited", at(description.edited()))
+                        .setParameter("id", comment.getId())
+                        .executeUpdate();
+            }
+        }
     }
 
     // what lies in the trash is deleted after the whole set has loaded, in the order of its time, and dated as

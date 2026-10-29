@@ -106,6 +106,9 @@
                     </dataGrid>
                 </vbox>
             </tab>
+            <tab id="commentsTab" label="msg://commentsTab.label">
+                <fragment id="comments" class="com.company.dms.view.document.DocumentCommentsFragment"/>
+            </tab>
             <tab id="assistantTab" label="msg://assistantTab.label">
                 <hbox id="assistantContent" width="100%" minHeight="100%" wrap="true">
                     <fragment id="assistant" classNames="document-card-assistant"

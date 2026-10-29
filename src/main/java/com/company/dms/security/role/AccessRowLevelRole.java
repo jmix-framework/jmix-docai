@@ -6,9 +6,11 @@ import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
+import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.security.AccessRoleAssignmentProvider;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.security.model.RowLevelBiPredicate;
 import io.jmix.security.model.RowLevelPolicyAction;
 import io.jmix.security.role.annotation.JpqlRowLevelPolicy;
@@ -98,6 +100,31 @@ public interface AccessRowLevelRole {
     @PredicateRowLevelPolicy(entityClass = DocumentRevision.class, actions = RowLevelPolicyAction.CREATE)
     default RowLevelBiPredicate<DocumentRevision, ApplicationContext> documentRevisionCreation() {
         return (revision, context) -> context.getBean(AccessChecker.class).canEdit(revision.getDocument());
+    }
+
+    /**
+     * Shows the comments of the documents the user sees.
+     */
+    @JpqlRowLevelPolicy(entityClass = DocumentComment.class, where = "{E}.document.accessSet in"
+            + " (select ae.accessSet from AccessEntry ae where " + MY_ENTRY + ")")
+    void documentComment();
+
+    /**
+     * Comments on the live documents the user sees: an entry of any level is enough.
+     */
+    @PredicateRowLevelPolicy(entityClass = DocumentComment.class, actions = RowLevelPolicyAction.CREATE)
+    default RowLevelBiPredicate<DocumentComment, ApplicationContext> documentCommentCreation() {
+        return (comment, context) -> context.getBean(AccessChecker.class).canRead(comment.getDocument());
+    }
+
+    /**
+     * Changes and deletes the own comments only.
+     */
+    @PredicateRowLevelPolicy(entityClass = DocumentComment.class, actions = {RowLevelPolicyAction.UPDATE,
+            RowLevelPolicyAction.DELETE})
+    default RowLevelBiPredicate<DocumentComment, ApplicationContext> ownDocumentComment() {
+        return (comment, context) -> context.getBean(CurrentAuthentication.class).getUser().getUsername()
+                .equals(comment.getCreatedBy());
     }
 
     /**

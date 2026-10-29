@@ -6,6 +6,7 @@ import com.company.dms.model.access.AccessEntryDraft;
 import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
+import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.model.tag.Tag;
@@ -100,6 +101,16 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     @EntityAttributePolicy(entityClass = DocumentRevision.class, attributes = "*",
             action = EntityAttributePolicyAction.MODIFY)
     void documentRevision();
+
+    /**
+     * Writes comments on the documents the user sees. {@link AccessRowLevelRole} leaves the comments of those
+     * documents and lets only the author change or delete a comment; the comment service writes them.
+     */
+    @EntityPolicy(entityClass = DocumentComment.class, actions = {EntityPolicyAction.READ,
+            EntityPolicyAction.CREATE, EntityPolicyAction.UPDATE, EntityPolicyAction.DELETE})
+    @EntityAttributePolicy(entityClass = DocumentComment.class, attributes = "*",
+            action = EntityAttributePolicyAction.MODIFY)
+    void documentComment();
 
     /**
      * Reads access sets and their entries; {@link AccessRowLevelRole} leaves the sets the user manages.

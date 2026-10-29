@@ -134,7 +134,8 @@ class AssistantDataBoundaryTest {
     void theClosedEntitiesCannotBeQueriedEvenByTheAdministrator() {
         List<String> queries = List.of("select count(e) as total from AccessEntry e",
                 "select count(u) as total from User u",
-                "select count(r) as total from Document d join d.revisions r");
+                "select count(r) as total from Document d join d.revisions r",
+                "select count(c) as total from DocumentComment c");
 
         assertThat(queries).allSatisfy(query -> assertThat(validation.validate(
                 new GeneratedJpqlResult(query, List.of(), "", List.of())).isValid()).as(query).isFalse());

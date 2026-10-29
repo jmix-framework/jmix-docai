@@ -121,6 +121,21 @@ public class AccessChecker {
     }
 
     /**
+     * Tells whether the current user may open the live document: with {@link FullAccessRole}, or with an entry of any
+     * level in its access set. Unlike {@link #canEdit(Document)}, deleted rows are not read, so a document in the trash
+     * is open to full access only.
+     */
+    public boolean canRead(Document document) {
+        if (hasFullAccess()) {
+            return true;
+        }
+
+        return dataManager.loadValue(DOCUMENT_LEVEL, Integer.class)
+                .parameter("item", document.getId())
+                .one() != null;
+    }
+
+    /**
      * Checks the set the item has in the database, so that the answer depends neither on the fetch plan of
      * the instance nor on changes not saved yet. A deleted item keeps its set, so deleted rows are read too.
      */

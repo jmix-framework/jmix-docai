@@ -9,6 +9,7 @@ import com.company.dms.app.service.trash.TrashService;
 import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.access.AccessEntryDraft;
 import com.company.dms.model.document.Document;
+import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
@@ -285,8 +286,31 @@ class DemoDataLoaderTest {
         assertThat(document.getCreatedDate().toInstant()).isEqualTo(instantOf(versions.getFirst().uploaded()));
         assertThat(document.getChangedDate().toInstant()).isEqualTo(instantOf(versions.getLast().uploaded()));
         assertThat(document.getChangedBy()).isEqualTo(versions.getLast().author());
+        assertComments(description.comments(), document);
 
         return document;
+    }
+
+    // a comment has its author, text and times as described, also on a document in the trash
+    private void assertComments(List<DemoSet.Comment> described, Document document) {
+        List<DocumentComment> comments = dataManager.load(DocumentComment.class)
+                .query("select c from DocumentComment c where c.document = :document order by c.createdDate")
+                .parameter("document", document)
+                .hint(PersistenceHints.SOFT_DELETION, false)
+                .list();
+
+        assertThat(comments).hasSameSizeAs(described);
+
+        for (int number = 0; number < described.size(); number++) {
+            DemoSet.Comment expected = described.get(number);
+            DocumentComment comment = comments.get(number);
+
+            assertThat(comment.getCreatedBy()).isEqualTo(expected.author());
+            assertThat(comment.getText()).isEqualTo(expected.text().strip());
+            assertThat(comment.getCreatedDate().toInstant()).isEqualTo(instantOf(expected.at()));
+            assertThat(comment.getEditedDate() == null ? null : comment.getEditedDate().toInstant())
+                    .isEqualTo(expected.edited() == null ? null : instantOf(expected.edited()));
+        }
     }
 
     // a field holds the value the rules of the AI make of the text of the description

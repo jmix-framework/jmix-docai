@@ -69,6 +69,29 @@
               "author": "alice",
               "uploaded": "2026-02-27T16:40"
             }
+          ],
+          "comments": [
+            {
+              "author": "alice",
+              "at": "2026-02-12T11:20",
+              "text": "Please check clause 4.2: the penalty is 0.5% a day, we usually agree to 0.1%. I won't approve it as it stands."
+            },
+            {
+              "author": "john",
+              "at": "2026-02-17T16:05",
+              "text": "The landlord agrees to 0.2% a day. I'll put it into the next edition."
+            },
+            {
+              "author": "maria",
+              "at": "2026-02-18T14:45",
+              "text": "The new edition is uploaded, its penalty is 0.2%.\nThe first payment moves to 15 March: agreed with Westwind Ltd.",
+              "edited": "2026-02-18T15:10"
+            },
+            {
+              "author": "alice",
+              "at": "2026-02-27T16:50",
+              "text": "The signed copy is uploaded, the agreement is in force."
+            }
           ]
         },
         {
@@ -975,6 +998,18 @@
                   "file": "vacation-schedule-2027.pdf",
                   "author": "helen",
                   "uploaded": "2026-10-20T15:00"
+                }
+              ],
+              "comments": [
+                {
+                  "author": "peter",
+                  "at": "2026-10-22T12:30",
+                  "text": "Please move my vacation from July to August: our project is due in July."
+                },
+                {
+                  "author": "helen",
+                  "at": "2026-10-23T09:15",
+                  "text": "Moved it, I'll update the schedule by Friday."
                 }
               ]
             }

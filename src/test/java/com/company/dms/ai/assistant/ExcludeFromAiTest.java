@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(classes = {DMSApplication.class, StubAiConfiguration.class}, properties = """
         jmix.aitools.dataload.include-entities=Document,Folder,dynat_Category,AccessSet,AccessEntry,User,\
-        DocumentRevision""")
+        DocumentRevision,DocumentComment""")
 @ExtendWith(AuthenticatedAsAdmin.class)
 class ExcludeFromAiTest {
 
