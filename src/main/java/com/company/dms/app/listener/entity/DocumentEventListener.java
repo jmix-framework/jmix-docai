@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * Keeps document rules on every save path: a new document is a draft, the status follows
- * its transitions, an archived document keeps its name, date, type and version, and the current
+ * its transitions, a live archived document keeps its name, date, type and version, and the current
  * revision belongs to the document.
  */
 @Component
@@ -62,7 +62,10 @@ public class DocumentEventListener {
                 throw reject("statusTransitionNotAllowed");
             }
 
-            if (oldStatus == DocumentStatus.ARCHIVED
+            // the trash may change the documents it holds, and a restore brings one back with such changes
+            boolean live = document.getDeletedDate() == null && !changes.isChanged("deletedDate");
+
+            if (oldStatus == DocumentStatus.ARCHIVED && live
                     && ARCHIVE_LOCKED_ATTRIBUTES.stream().anyMatch(changes::isChanged)) {
                 throw reject("archivedDocumentLocked");
             }

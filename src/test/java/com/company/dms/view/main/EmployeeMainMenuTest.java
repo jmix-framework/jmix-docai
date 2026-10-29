@@ -25,10 +25,11 @@ class EmployeeMainMenuTest {
     private AiChatService chatService;
 
     @Test
-    void anEmployeeHasNoDocumentTypesInTheMenu() {
+    void anEmployeeHasTheRepositoryAndTheTrashButNoDocumentTypesInTheMenu() {
         JmixListMenu menu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "menu");
 
         assertThat(menu.getMenuItem("RepositoryView")).isNotNull();
+        assertThat(menu.getMenuItem("TrashView")).isNotNull();
         assertThat(menu.getMenuItem("documentTypes")).isNull();
     }
 

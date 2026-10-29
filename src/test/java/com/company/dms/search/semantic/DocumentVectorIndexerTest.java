@@ -3,6 +3,7 @@ package com.company.dms.search.semantic;
 import com.company.dms.DMSApplication;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.trash.TrashService;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
@@ -14,6 +15,7 @@ import com.company.dms.test_support.StubEmbeddingModel;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
@@ -58,6 +60,9 @@ class DocumentVectorIndexerTest {
 
     @Autowired
     private FolderService folderService;
+
+    @Autowired
+    private TrashService trashService;
 
     @Autowired
     private DataManager dataManager;
@@ -150,6 +155,18 @@ class DocumentVectorIndexerTest {
         documentService.delete(List.of(editable(document)));
 
         await().untilAsserted(() -> assertThat(index.sourceKeys()).doesNotContainKey(document.getId()));
+    }
+
+    @Test
+    void aDocumentRestoredFromTheTrashComesBackIntoTheIndex() {
+        Document document = upload("contract.txt", "Supply contract 45 with Northwind for office paper.");
+        await().untilAsserted(() -> assertThat(index.fragmentsOf(document.getId())).isNotEmpty());
+        documentService.delete(List.of(editable(document)));
+        await().untilAsserted(() -> assertThat(index.sourceKeys()).doesNotContainKey(document.getId()));
+
+        trashService.restore(List.of(TestTrash.itemOf(trashService.loadItems(), document.getId())));
+
+        await().untilAsserted(() -> assertThat(index.fragmentsOf(document.getId())).isNotEmpty());
     }
 
     @Test

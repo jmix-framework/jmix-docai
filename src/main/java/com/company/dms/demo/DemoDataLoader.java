@@ -16,7 +16,9 @@ import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
 import io.jmix.core.DataManager;
 import io.jmix.core.Metadata;
+import io.jmix.core.SaveContext;
 import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.data.PersistenceHints;
 import io.jmix.security.role.ResourceRoleRepository;
@@ -46,16 +48,18 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
  * Loads a demo set into an empty database when the application starts: the folders under the root with their own
- * access, then the documents with their versions, types, fields, access and statuses. The set is chosen by
- * {@code dms.demo-data} ({@code en}, {@code ru} or {@code none}); its description is
+ * access, then the documents with their versions, types, fields, access and statuses, and last what lies in the trash.
+ * The set is chosen by {@code dms.demo-data} ({@code en}, {@code ru} or {@code none}); its description is
  * {@code com/company/dms/demo/<set>/demo-data.json}, the files of its versions lie in {@code files} next to it. A set
  * loads in one transaction, all of it or nothing.
  */
@@ -220,10 +224,13 @@ public class DemoDataLoader {
             for (DemoSet.Folder folder : description.folders()) {
                 createFolder(set, folder, root, loaded);
             }
+
+            deleteAsDescribed(loaded.deleted);
         }));
 
-        log.info("The demo set '{}' is loaded: {} folders, {} documents, {} versions in {} ms", set, loaded.folders,
-                loaded.documents, loaded.versions, (System.nanoTime() - started) / 1_000_000);
+        log.info("The demo set '{}' is loaded: {} folders, {} documents, {} versions, {} items in the trash in {} ms",
+                set, loaded.folders, loaded.documents, loaded.versions, loaded.deleted.size(),
+                (System.nanoTime() - started) / 1_000_000);
     }
 
     private List<String> problemsOf(String set) {
@@ -281,6 +288,7 @@ public class DemoDataLoader {
             }
 
             checkAccess(folder.access(), where, users, problems);
+            checkDeletion(folder.deleted(), where, users, problems);
             checkFolders(set, folder.folders(), where, users, problems);
             checkDocuments(set, folder.documents(), where, users, problems);
         }
@@ -323,6 +331,22 @@ public class DemoDataLoader {
 
             checkType(document, where, problems);
             checkAccess(document.access(), where, users, problems);
+            checkDeletion(document.deleted(), where, users, problems);
+        }
+    }
+
+    private static void checkDeletion(DemoSet.@Nullable Deletion deletion, String where, Set<String> users,
+                                      List<String> problems) {
+        if (deletion == null) {
+            return;
+        }
+
+        if (!users.contains(deletion.by())) {
+            problems.add(where + ": there is no user '" + deletion.by() + "'");
+        }
+
+        if (deletion.at() == null) {
+            problems.add(where + ": the deletion has no time");
         }
     }
 
@@ -387,6 +411,10 @@ public class DemoDataLoader {
         for (DemoSet.Document document : description.documents()) {
             createDocument(set, document, folder, loaded);
         }
+
+        if (description.deleted() != null) {
+            loaded.deleted.add(new Deleted(folder, description.deleted()));
+        }
     }
 
     private void createDocument(String set, DemoSet.Document description, Folder folder, Loaded loaded) {
@@ -429,6 +457,10 @@ public class DemoDataLoader {
         backdate(document, versions);
         loaded.documents++;
         loaded.versions += versions.size();
+
+        if (description.deleted() != null) {
+            loaded.deleted.add(new Deleted(document, description.deleted()));
+        }
     }
 
     private Document upload(String set, DemoSet.Version version, DemoSet.Document description,
@@ -497,6 +529,66 @@ public class DemoDataLoader {
                 .executeUpdate();
     }
 
+    // what lies in the trash is deleted after the whole set has loaded, in the order of its time, and dated as
+    // described; what goes together with a folder gets the time of the folder, so that it comes back with the folder
+    private void deleteAsDescribed(List<Deleted> deletions) {
+        deletions.sort(Comparator.comparing(deleted -> deleted.description().at()));
+
+        for (Deleted deleted : deletions) {
+            List<UUID> folders = new ArrayList<>();
+            List<UUID> documents = new ArrayList<>();
+
+            if (deleted.item() instanceof Folder folder) {
+                folders.add(folder.getId());
+
+                for (List<UUID> level = folders; !level.isEmpty(); folders.addAll(level)) {
+                    level = unconstrainedDataManager.loadValues("select f.id from Folder f where f.parent.id in :ids")
+                            .properties("id")
+                            .parameter("ids", level)
+                            .list()
+                            .stream()
+                            .map(value -> value.<UUID>getValue("id"))
+                            .toList();
+                }
+
+                unconstrainedDataManager.loadValues("select d.id from Document d where d.folder.id in :ids")
+                        .properties("id")
+                        .parameter("ids", folders)
+                        .list()
+                        .forEach(value -> documents.add(value.getValue("id")));
+                folderService.delete(folder);
+            } else if (deleted.item() instanceof Document document) {
+                documents.add(document.getId());
+                documentService.delete(List.of(document));
+            }
+
+            List<Object> rows = new ArrayList<>();
+            rows.addAll(deletedRows(Folder.class, "e.id in :ids", folders));
+            rows.addAll(deletedRows(Document.class, "e.id in :ids", documents));
+            rows.addAll(deletedRows(DocumentRevision.class, "e.document.id in :ids", documents));
+
+            rows.forEach(row -> {
+                EntityValues.setDeletedDate(row, at(deleted.description().at()));
+                EntityValues.setDeletedBy(row, deleted.description().by());
+            });
+            unconstrainedDataManager.save(new SaveContext()
+                    .saving(rows)
+                    .setHint(PersistenceHints.SOFT_DELETION, false));
+        }
+    }
+
+    private List<?> deletedRows(Class<?> type, String condition, List<UUID> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        return unconstrainedDataManager.load(type)
+                .query(condition)
+                .parameter("ids", ids)
+                .hint(PersistenceHints.SOFT_DELETION, false)
+                .list();
+    }
+
     private static ClassificationProposal proposalOf(DemoSet.Document document) {
         List<ClassificationProposal.Field> fields = document.fields()
                 .entrySet()
@@ -530,8 +622,12 @@ public class DemoDataLoader {
 
     private static final class Loaded {
 
+        private final List<Deleted> deleted = new ArrayList<>();
         private int folders;
         private int documents;
         private int versions;
+    }
+
+    private record Deleted(Object item, DemoSet.Deletion description) {
     }
 }

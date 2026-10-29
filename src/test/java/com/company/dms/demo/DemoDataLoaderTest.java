@@ -5,6 +5,7 @@ import com.company.dms.ai.classification.DocumentClassifier;
 import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.trash.TrashService;
 import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.access.AccessEntryDraft;
 import com.company.dms.model.document.Document;
@@ -13,6 +14,7 @@ import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.security.role.EmployeeRole;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
+import com.company.dms.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.UnconstrainedDataManager;
@@ -20,6 +22,7 @@ import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.data.PersistenceHints;
 import io.jmix.dynattr.DynAttrQueryHints;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -35,6 +38,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +74,9 @@ class DemoDataLoaderTest {
 
     @Autowired
     private AccessService accessService;
+
+    @Autowired
+    private TrashService trashService;
 
     @Autowired
     private DocumentClassifier documentClassifier;
@@ -123,10 +130,15 @@ class DemoDataLoaderTest {
 
     private void assertLoadedAsDescribed(String set) {
         List<Visibility> visibility = new ArrayList<>();
+        Trash trash = new Trash(new ArrayList<>(), new ArrayList<>());
 
         for (DemoSet.Folder folder : read(set).folders()) {
-            assertFolder(folder, folderService.getRoot(), ROOT_ACCESS, visibility);
+            assertFolder(folder, folderService.getRoot(), ROOT_ACCESS, null, visibility, trash);
         }
+
+        // an item deleted on its own lies in the trash, what was deleted with a folder lies inside the folder
+        List<UUID> items = TestTrash.ids(trashService.loadItems());
+        assertThat(items).containsAll(trash.items()).doesNotContainAnyElementsOf(trash.contents());
 
         List<UUID> ids = visibility.stream()
                 .map(Visibility::id)
@@ -146,28 +158,55 @@ class DemoDataLoaderTest {
                 .toList());
     }
 
+    // a folder or a document deleted together with a folder takes the deletion of the folder
     private void assertFolder(DemoSet.Folder description, Folder parent, List<String> parentAccess,
-                              List<Visibility> visibility) {
+                              DemoSet.@Nullable Deletion deletedWith, List<Visibility> visibility, Trash trash) {
+        DemoSet.Deletion deletion = description.deleted() != null ? description.deleted() : deletedWith;
         Folder folder = dataManager.load(Folder.class)
                 .query("e.parent = :parent and e.name = :name")
                 .parameter("parent", parent)
                 .parameter("name", description.name())
+                .hint(PersistenceHints.SOFT_DELETION, false)
                 .one();
 
-        List<String> access = assertAccess(accessService.describe(folder), description.access(), parentAccess);
+        assertDeletion(folder.getDeletedBy(), folder.getDeletedDate(), deletion);
+        trash.add(folder.getId(), description.deleted(), deletedWith);
+
+        // the access of what lies in the trash is not shown anywhere
+        List<String> access = deletion == null
+                ? assertAccess(accessService.describe(folder), description.access(), parentAccess)
+                : parentAccess;
 
         for (DemoSet.Folder subfolder : description.folders()) {
-            assertFolder(subfolder, folder, access, visibility);
+            assertFolder(subfolder, folder, access, deletion, visibility, trash);
         }
 
         for (DemoSet.Document document : description.documents()) {
-            Document stored = assertDocument(document, folder);
-            List<String> documentAccess = assertAccess(accessService.describe(stored), document.access(), access);
+            DemoSet.Deletion documentDeletion = document.deleted() != null ? document.deleted() : deletion;
+            Document stored = assertDocument(document, folder, documentDeletion);
+            trash.add(stored.getId(), document.deleted(), deletion);
 
-            visibility.add(new Visibility(stored.getId(), documentAccess.stream()
-                    .anyMatch(entry -> entry.startsWith("user:peter=")
-                            || entry.startsWith("role:" + EmployeeRole.CODE + "="))));
+            if (documentDeletion == null) {
+                List<String> documentAccess = assertAccess(accessService.describe(stored), document.access(),
+                        access);
+
+                visibility.add(new Visibility(stored.getId(), documentAccess.stream()
+                        .anyMatch(entry -> entry.startsWith("user:peter=")
+                                || entry.startsWith("role:" + EmployeeRole.CODE + "="))));
+            }
         }
+    }
+
+    private static void assertDeletion(@Nullable String deletedBy, @Nullable OffsetDateTime deletedDate,
+                                       DemoSet.@Nullable Deletion deletion) {
+        if (deletion == null) {
+            assertThat(deletedDate).isNull();
+            return;
+        }
+
+        assertThat(deletedBy).isEqualTo(deletion.by());
+        assertThat(deletedDate).isNotNull();
+        assertThat(deletedDate.toInstant()).isEqualTo(instantOf(deletion.at()));
     }
 
     // the access the item has: its own one as described, or the one of its parent
@@ -190,7 +229,8 @@ class DemoDataLoaderTest {
         return expected;
     }
 
-    private Document assertDocument(DemoSet.Document description, Folder folder) {
+    private Document assertDocument(DemoSet.Document description, Folder folder,
+                                    DemoSet.@Nullable Deletion deletion) {
         Document document = dataManager.load(Document.class)
                 .query("e.folder = :folder and e.name = :name")
                 .parameter("folder", folder)
@@ -198,7 +238,10 @@ class DemoDataLoaderTest {
                 .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
                         .add("category", FetchPlan.BASE))
                 .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
+                .hint(PersistenceHints.SOFT_DELETION, false)
                 .one();
+
+        assertDeletion(document.getDeletedBy(), document.getDeletedDate(), deletion);
 
         assertThat(document.getDocumentDate()).isEqualTo(description.date());
         assertThat(document.getStatus())
@@ -213,6 +256,7 @@ class DemoDataLoaderTest {
         List<DocumentRevision> revisions = dataManager.load(DocumentRevision.class)
                 .query("e.document = :document order by e.number")
                 .parameter("document", document)
+                .hint(PersistenceHints.SOFT_DELETION, false)
                 .list();
 
         assertThat(revisions).hasSameSizeAs(versions);
@@ -221,6 +265,7 @@ class DemoDataLoaderTest {
             String file = versions.get(number).file();
 
             assertThat(revisions.get(number).getCreatedBy()).isEqualTo(versions.get(number).author());
+            assertDeletion(revisions.get(number).getDeletedBy(), revisions.get(number).getDeletedDate(), deletion);
             assertThat(revisions.get(number).getCreatedDate().toInstant())
                     .isEqualTo(instantOf(versions.get(number).uploaded()));
 
@@ -285,5 +330,17 @@ class DemoDataLoaderTest {
     }
 
     private record Visibility(UUID id, boolean byPeter) {
+    }
+
+    // the items of the trash: deleted on their own, and deleted together with a folder
+    private record Trash(List<UUID> items, List<UUID> contents) {
+
+        void add(UUID id, DemoSet.@Nullable Deletion own, DemoSet.@Nullable Deletion ofParent) {
+            if (own != null) {
+                items.add(id);
+            } else if (ofParent != null) {
+                contents.add(id);
+            }
+        }
     }
 }

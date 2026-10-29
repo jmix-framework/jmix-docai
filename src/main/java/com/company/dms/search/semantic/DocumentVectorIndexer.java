@@ -94,12 +94,14 @@ public class DocumentVectorIndexer {
     public record Reconciliation(int queued, int removed) {
     }
 
-    // a move, a status, a type or access do not change what a document says: the rights apply when it is searched
+    // a move, a status, a type or access do not change what a document says: the rights apply when it is searched;
+    // a document restored from the trash comes back into the index
     @TransactionalEventListener
     public void onDocumentChanged(EntityChangedEvent<Document> event) {
         if (event.getType() == EntityChangedEvent.Type.UPDATED
                 && !event.getChanges().isChanged("name")
-                && !event.getChanges().isChanged("currentRevision")) {
+                && !event.getChanges().isChanged("currentRevision")
+                && !event.getChanges().isChanged("deletedDate")) {
             return;
         }
 

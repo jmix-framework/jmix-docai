@@ -16,6 +16,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Domain Model](#️-domain-model)
 - [Role Model](#-role-model)
 - [Access](#-access)
+- [Trash](#️-trash)
 - [Document Types](#-document-types)
 - [Full-Text Search](#-full-text-search)
 - [Semantic Search](#-semantic-search)
@@ -37,6 +38,8 @@ The application grows in this order:
 9. Discussing documents with AI
 
 Steps 1 to 9 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files or by the meaning of a query, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, ask the AI assistant in the menu about the documents, the folders and the document types, and discuss a selection of documents with the AI beside the document table. An empty database gets a demo set of documents in English or Russian at the first start.
+
+Of the later features, the trash is in place: deleted folders and documents can be previewed and restored, and the administrator deletes them forever.
 
 ## 🛠️ Technical Stack
 
@@ -161,7 +164,7 @@ The pages of the application load pictures, media, styles and fonts from the app
 
 ## 🎲 Demo Data
 
-At the first start in the `local` profile, an empty database gets a demo set: folders with their access, 46 documents with their versions, types, fields and statuses, and the files of the versions. `DMS_DEMO_DATA` chooses the set:
+At the first start in the `local` profile, an empty database gets a demo set: folders with their access, 46 documents with their versions, types, fields and statuses, the files of the versions, and a few deleted items in the trash. `DMS_DEMO_DATA` chooses the set:
 
 | Value | Set |
 |---|---|
@@ -180,6 +183,7 @@ Both sets have the same folders, people and scenes:
 | Archive 2025 | Legal department and Accounting view, Alice edits | 3 more documents of the corpus |
 | HR | HR department manages | A hiring order and an employment contract |
 | HR / Vacations | HR department manages, every employee views | The vacation schedule |
+| Trash | As before the deletion | The Drafts folder with two drafts, deleted by Alice, and the first edition of Lease Agreement No. 112, deleted by John from Contracts: preview and restore them, or delete them forever as `admin` |
 
 The corpus holds 12 documents about farm machinery, such as a tractor lease, a combine harvester purchase and a memo about a baler, and 18 about other machinery and goods. None of them says "agricultural": search by words for *agricultural machinery* finds nothing, *tractor* and *combine* find a few documents each, and **AI search** finds the 12. Signed in as `peter`, who may not open Archive 2025, the AI search finds 9. Search by words for *fumigation* finds the one contract that has the word inside its PDF only; the Russian set has the Russian word for it.
 
@@ -193,7 +197,7 @@ The set loads once, into a database with no document and no folder but the root.
 
 It deletes the database, the document files and the search indexes `dms_document` and `dms_document_vectors`, and the next start loads the set of `DMS_DEMO_DATA` again. With an OpenAI key, the semantic search indexes a set in about a minute for about a cent.
 
-A set lies in `src/main/resources/com/company/dms/demo/<set>/`: `demo-data.json` describes the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, and `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
+A set lies in `src/main/resources/com/company/dms/demo/<set>/`: `demo-data.json` describes the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, and who deleted an item of the trash and when; `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
 
 ## 👥 Application Accounts
 
@@ -285,7 +289,7 @@ classDiagram
 - A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date, type, fields and versions until it returns to Active.
 - "Modified by" and "Modified" show who changed the document itself and when: a new version, name, date, type, field or status. A move or an access change leaves them as they are, while the Jmix audit stamps of the record change with every save.
 - The type of a document is a category of the Dynamic Attributes add-on (`Category`), and the fields of the type are its attributes (`CategoryAttribute`), properties of the document named `+code`.
-- Folders, documents and revisions are deleted softly. Deleting a folder takes its subtree; the administrator restores records in Data Tools.
+- Folders, documents and revisions are deleted softly, into the [trash](#️-trash). Deleting a folder takes its subtree, and restoring it brings back what was deleted with it.
 - A discussion with the AI keeps its selection of documents in `DiscussedDocument`, beside the conversation of the AI Tools add-on: the conversation, a document and its place in the selection. Removing the conversation removes its selection. A deleted document, or one the person may no longer open, drops out of the selection.
 - A folder and a document point to the access set in effect: their parent's or their own. An access set belongs to one folder or document, and each of its entries gives a user or a role a level.
 
@@ -293,13 +297,15 @@ classDiagram
 
 | Role | Code | Purpose |
 |---|---|---|
-| Full Access | `system-full-access` | All data, views and actions; assigned to `admin` |
-| Employee | `employee` | Works with folders and documents, reads the document types, searches documents, asks the AI assistant, discusses documents with it and views their own profile; includes UI: minimal access and the chat role of AI Tools |
+| Full Access | `system-full-access` | All data, views and actions, deleting from the trash forever among them; assigned to `admin` |
+| Employee | `employee` | Works with folders and documents, restores them from the trash, reads the document types, searches documents, asks the AI assistant, discusses documents with it and views their own profile; includes UI: minimal access and the chat role of AI Tools |
 | UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
 | Folder and document access | `access-rl` | Row-level role: a user sees and changes folders and documents by their access entries, and only the selections of their own discussions with the AI; assigned to everyone without Full Access |
 | HR department, Legal department, Accounting | `hr-department`, `legal-department`, `accounting` | Departments of the demo: roles without policies that folders and documents give access to; the demo changelog assigns them to `helen`, `john` and `maria` |
 
 A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.
+
+Deleting from the trash forever needs the specific policy `dms.trash.purge`: Full Access has it, the Employee role does not.
 
 The Employee role may change every attribute of a document. The fields of document types are attributes that the administrator adds later, so a role cannot list them. Attribute policies guard only the views: what is written is decided by the document service, and the Edit level is checked there and by `access-rl`.
 
@@ -310,7 +316,7 @@ Access works as in SharePoint. A folder or a document either inherits the access
 | Level | Allows |
 |---|---|
 | View | See the folder or the document, open the card read-only, preview and download |
-| Edit | Also upload, create, add versions, change the status, rename, move and delete |
+| Edit | Also upload, create, add versions, change the status, rename, move, delete and restore from the trash |
 | Manage | Also change who has access |
 
 - An entry gives a level to a user or to a resource role, and a user gets the highest level among their entries. The root gives the Employee role the Edit level.
@@ -321,6 +327,18 @@ Access works as in SharePoint. A folder or a document either inherits the access
 - With LDAP or Active Directory, map each department group to its resource role and keep the access entries on roles rather than on users.
 
 > **Warning:** the `access-rl` role comes from the Jmix role assignments. If users sign in through LDAP or SSO and get their roles from a group mapper, add `access-rl` in the mapper, or they will see every folder and document.
+
+## 🗑️ Trash
+
+Deleted folders and documents go to the trash, which opens from the main menu.
+
+- The trash lists what was deleted on its own: a folder together with everything deleted with it is one item, a document deleted on its own is another. An item shows its name, location, who deleted it and when; the last deleted come first. Everyone sees only the items they may read.
+- **Preview** shows the current version of a document, or what comes back with a folder: its subfolders and documents with a count. A document of the folder opens its own preview, and **To the folder** goes back.
+- **Restore** puts the selected items back where they were, with their versions, fields and access, and needs the Edit level on each item. An item whose folder lies in the trash waits until the folder comes back first, and an item whose name is taken in its folder waits until the live one is renamed. When one item cannot come back, none of the selection does.
+- A document whose type was deleted while it lay in the trash comes back without a type. A restored document is found by the search again, but does not return to the AI discussions it left.
+- **Delete forever** and **Empty trash** are for the administrator. They ask first and remove the items with everything below them: versions, field values, own access and the files that no other version refers to. A folder with something live inside it, such as a subfolder restored on its own in Data Tools, is not deleted: restore the folder to keep what is live.
+
+What comes back together is what the restore of Jmix takes (`EntityRestore` of Data Tools): the rows deleted within a second of their parent. A document deleted on its own before its folder stays a separate item.
 
 ## 📋 Document Types
 

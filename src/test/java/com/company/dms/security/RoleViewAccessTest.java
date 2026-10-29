@@ -26,6 +26,7 @@ class RoleViewAccessTest {
             "peter, RepositoryView, true",
             "peter, Document.detail, true",
             "peter, DocumentRevision.read, true",
+            "peter, TrashView, true",
             "peter, Folder.detail, true",
             "peter, Folder.lookup, true",
             "peter, AccessDraft.detail, true",
@@ -45,6 +46,7 @@ class RoleViewAccessTest {
             "admin, datatl_entityInspectorListView, true",
             "admin, dynat_CategoryView.list, true",
             "admin, DocumentSearchView, true",
+            "admin, TrashView, true",
             "admin, aitls_AiChatHubView, true"
     })
     void theUserOpensOnlyTheViewsOfTheirRoles(String username, String viewId, boolean permitted) {

@@ -2,6 +2,7 @@ package com.company.dms.search;
 
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.trash.TrashService;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
@@ -10,6 +11,7 @@ import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
@@ -72,6 +74,9 @@ class DocumentSearchTest {
 
     @Autowired
     private FolderService folderService;
+
+    @Autowired
+    private TrashService trashService;
 
     @Autowired
     private DataManager dataManager;
@@ -313,6 +318,22 @@ class DocumentSearchTest {
         index();
         assertThat(inIndex(first)).isFalse();
         assertThat(inIndex(second)).isFalse();
+    }
+
+    @Test
+    void theDocumentsOfARestoredFolderAreFoundAgain() {
+        String word = token();
+        Folder folder = folder(sandbox, "to-restore");
+        Document document = upload(folder, word);
+        index();
+        folderService.delete(folder);
+        index();
+        assertThat(ids(documentSearch.search(word))).isEmpty();
+
+        trashService.restore(List.of(TestTrash.itemOf(trashService.loadItems(), folder.getId())));
+        index();
+
+        assertThat(ids(documentSearch.search(word))).containsExactly(document.getId());
     }
 
     @Test

@@ -36,6 +36,16 @@
           "versions": [
             {"file": "agency.txt", "author": "helen", "uploaded": "2026-03-02T09:00"}
           ]
+        },
+        {
+          "name": "Lease Agreement No. 5",
+          "type": "Contract",
+          "fields": {"contractKind": "lease"},
+          "status": "ARCHIVED",
+          "deleted": {"by": "john", "at": "2026-10-21T09:15"},
+          "versions": [
+            {"file": "old-lease.txt", "author": "john", "uploaded": "2025-05-30T12:00"}
+          ]
         }
       ]
     },
@@ -80,6 +90,31 @@
                 {"file": "vacations.txt", "author": "helen", "uploaded": "2026-10-01T10:00"}
               ]
             }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sample drafts",
+      "deleted": {"by": "alice", "at": "2026-10-20T17:30"},
+      "folders": [
+        {
+          "name": "Old drafts",
+          "documents": [
+            {
+              "name": "Supply Agreement No. 9 (draft)",
+              "versions": [
+                {"file": "lease-draft.txt", "author": "alice", "uploaded": "2026-10-02T10:00"}
+              ]
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "name": "Services Agreement No. 4 (draft)",
+          "versions": [
+            {"file": "lease-draft.txt", "author": "john", "uploaded": "2026-10-05T15:30"}
           ]
         }
       ]

@@ -8,6 +8,7 @@ import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.trash.TrashItem;
 import com.company.dms.model.user.User;
 import io.jmix.aitoolsflowui.security.role.AiToolsChatUserRole;
 import io.jmix.dynattr.model.Category;
@@ -121,6 +122,15 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
             "Folder.lookup"})
     @MenuPolicy(menuIds = "RepositoryView")
     void repository();
+
+    /**
+     * Opens the trash. The trash service decides which items the user sees and may restore.
+     */
+    @EntityPolicy(entityClass = TrashItem.class, actions = EntityPolicyAction.READ)
+    @EntityAttributePolicy(entityClass = TrashItem.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
+    @ViewPolicy(viewIds = "TrashView")
+    @MenuPolicy(menuIds = "TrashView")
+    void trash();
 
     /**
      * Searches documents from the field in the header.

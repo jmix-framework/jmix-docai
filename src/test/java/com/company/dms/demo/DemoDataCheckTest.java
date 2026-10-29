@@ -29,6 +29,8 @@ class DemoDataCheckTest {
                         "/Broken/Unknown field: the type does not accept colour: red",
                         "/Broken/Wrong value: the type does not accept Amount: a lot",
                         "/Broken/Fields without a type: the fields need a type",
+                        "/Broken/Unknown deleter: there is no user 'nobody'",
+                        "/Broken/Deleted at no time: the deletion has no time",
                         "/Broken: two folders have this name",
                         "/: a folder has no name");
     }

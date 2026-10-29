@@ -4,6 +4,7 @@ import com.company.dms.DMSApplication;
 import com.company.dms.app.service.discussion.DocumentDiscussionService;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.trash.TrashService;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
@@ -12,6 +13,7 @@ import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestTrash;
 import io.jmix.aitoolsflowui.service.AiConversationService;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
@@ -55,6 +57,9 @@ class DocumentDiscussionServiceTest {
 
     @Autowired
     private FolderService folderService;
+
+    @Autowired
+    private TrashService trashService;
 
     @Autowired
     private DataManager dataManager;
@@ -163,6 +168,18 @@ class DocumentDiscussionServiceTest {
                 .parameter("document", a.getId())
                 .list()).isEmpty();
         assertThat(asEmployee(() -> discussionService.documentsOf(own))).containsExactly(b);
+    }
+
+    @Test
+    void aDocumentRestoredFromTheTrashDoesNotComeBackIntoTheSelection() {
+        Document a = upload("a.txt");
+        UUID conversation = asEmployee(() -> conversationService.create().getId());
+        asEmployee(() -> discussionService.saveSelection(conversation, List.of(a)));
+        asEmployee(() -> documentService.delete(List.of(a)));
+
+        trashService.restore(List.of(TestTrash.itemOf(trashService.loadItems(), a.getId())));
+
+        assertThat(asEmployee(() -> discussionService.documentsOf(conversation))).isEmpty();
     }
 
     @Test

@@ -40,6 +40,16 @@
           "name": "Fields without a type",
           "fields": {"supplier": "Globex"},
           "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
+        },
+        {
+          "name": "Unknown deleter",
+          "deleted": {"by": "nobody", "at": "2026-01-02T10:00"},
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
+        },
+        {
+          "name": "Deleted at no time",
+          "deleted": {"by": "alice"},
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
         }
       ]
     },

@@ -10,6 +10,7 @@
               title="msg://com.company.dms/menu.documentTypes.title" icon="FILE_TEXT_O"/>
         <item id="assistantChat" view="aitls_AiChatHubView"
               title="msg://com.company.dms/menu.assistantChat.title" icon="COMMENTS_O"/>
+        <item view="TrashView" title="msg://com.company.dms.view.trash/trashView.title" icon="TRASH"/>
     </menu>
 
     <menu id="dynat" visible="false"/>
