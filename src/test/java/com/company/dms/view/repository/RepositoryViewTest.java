@@ -40,10 +40,13 @@ import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.metamodel.datatype.DatatypeFormatter;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.dynattr.model.Category;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.TreeDataGrid;
+import io.jmix.flowui.component.gridcolumnvisibility.JmixGridColumnVisibility;
 import io.jmix.flowui.component.sidepanellayout.SidePanelLayout;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
@@ -96,6 +99,12 @@ class RepositoryViewTest {
 
     @Autowired
     private MetadataTools metadataTools;
+
+    @Autowired
+    private DatatypeFormatter datatypeFormatter;
+
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
 
     @Autowired
     private TemporaryStorage temporaryStorage;
@@ -489,8 +498,9 @@ class RepositoryViewTest {
         RepositoryView view = open(sandbox, false);
         DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
 
-        assertThat(grid.getColumnByKey("changedBy")).isNotNull();
+        // who and when share one column, as in the card
         assertThat(grid.getColumnByKey("changedDate")).isNotNull();
+        assertThat(grid.getColumnByKey("changedBy")).isNull();
         // the record stamps change with an access change and a move too
         assertThat(grid.getColumnByKey("lastModifiedBy")).isNull();
         assertThat(grid.getColumnByKey("lastModifiedDate")).isNull();
@@ -512,8 +522,56 @@ class RepositoryViewTest {
         DataGridItems<Document> items = grid.getItems();
 
         assertThat(items).isNotNull();
-        assertThat(TestGrids.text(grid, "changedBy", items.getItems().iterator().next()))
-                .isEqualTo(metadataTools.getInstanceName(maria));
+        Grid.Column<Document> changed = grid.getColumnByKey("changedDate");
+        assertThat(changed).isNotNull();
+        Document shown = items.getItems().iterator().next();
+        String date = datatypeFormatter.formatLocalDate(shown.getChangedDate()
+                .atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId())
+                .toLocalDate());
+
+        assertThat(TestGrids.text(grid, "changedDate", shown))
+                .isEqualTo(metadataTools.getInstanceName(maria) + " · " + date);
+        assertThat(changed.getTooltipGenerator().apply(shown))
+                .isEqualTo(datatypeFormatter.formatOffsetDateTime(shown.getChangedDate()));
+    }
+
+    @Test
+    void theFileSizeIsHiddenUntilThePersonShowsIt() {
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        Grid.Column<Document> size = grid.getColumnByKey("fileSize");
+
+        assertThat(size).isNotNull();
+        assertThat(size.isVisible()).isFalse();
+    }
+
+    @Test
+    void thePersonChoosesTheColumnsOfTheDocumentList() {
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        JmixGridColumnVisibility columns = fragmentComponent(view, "documentList", "columnsButton");
+
+        assertThat(columns.getGrid()).isSameAs(grid);
+        assertThat(columns.getMenuItem("fileSize")).isNotNull();
+        // an icon with a tooltip, as the other buttons of the toolbar
+        assertThat(columns.getText()).isEmpty();
+        assertThat(columns.getTitle()).isNotBlank();
+    }
+
+    @Test
+    void settingsSavedWithAColumnThatIsGoneStillApply() {
+        RepositoryView first = open(sandbox, false);
+        // the settings of an earlier version of the list kept a column it no longer has
+        this.<DataGrid<Document>>fragmentComponent(first, "documentList", "documentsGrid")
+                .addColumn(Document::getChangedBy)
+                .setKey("changedBy");
+        viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
+
+        RepositoryView view = open(sandbox, false);
+
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        assertThat(grid.getColumnByKey("changedBy")).isNull();
+        assertThat(grid.getColumnByKey("changedDate")).isNotNull();
     }
 
     @Test

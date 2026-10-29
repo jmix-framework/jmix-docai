@@ -46,6 +46,8 @@ import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
+import io.jmix.core.metamodel.datatype.DatatypeFormatter;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Fragments;
@@ -55,6 +57,7 @@ import io.jmix.flowui.accesscontext.UiShowViewContext;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.DataGridColumn;
+import io.jmix.flowui.component.gridcolumnvisibility.JmixGridColumnVisibility;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.component.upload.UploadSucceededEvent;
 import io.jmix.flowui.facet.FragmentSettingsFacet;
@@ -101,6 +104,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private DropdownButton statusButton;
     @ViewComponent
     private JmixButton previewButton;
+    @ViewComponent
+    private JmixGridColumnVisibility columnsButton;
 
     @ViewComponent
     private DataGrid<Document> documentsGrid;
@@ -149,6 +154,10 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private MetadataTools metadataTools;
     @Autowired
+    private DatatypeFormatter datatypeFormatter;
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
+    @Autowired
     private Fragments fragments;
     @Autowired
     private AiSettings aiSettings;
@@ -195,6 +204,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         configureUploads();
         configureDocumentsGridContextMenu();
         configureDiscussion();
+        // the descriptor gives the column chooser no title, and an icon alone needs one
+        columnsButton.setTitle(messageBundle.getMessage("columnsButton.text"));
     }
 
     private void configureUploads() {
@@ -549,11 +560,29 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 : fileSizeFormatter.format(document.getCurrentRevision().getFileSize()));
     }
 
-    @Supply(to = "documentsGrid.changedBy", subject = "renderer")
-    private Renderer<Document> changedByRenderer() {
-        return new TextRenderer<>(document -> document.getChangedBy() == null
+    // who and when share one column, as in the card: the date in the user's time zone, the time in the tooltip
+    @Supply(to = "documentsGrid.changedDate", subject = "renderer")
+    private Renderer<Document> changedDateRenderer() {
+        return new TextRenderer<>(document -> {
+            if (document.getChangedDate() == null) {
+                return "";
+            }
+
+            String date = datatypeFormatter.formatLocalDate(document.getChangedDate()
+                    .atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId())
+                    .toLocalDate());
+
+            return document.getChangedBy() == null
+                    ? date
+                    : userNames.getOrDefault(document.getChangedBy(), document.getChangedBy()) + " · " + date;
+        });
+    }
+
+    @Install(to = "documentsGrid.changedDate", subject = "tooltipGenerator")
+    private String documentsGridChangedDateTooltipGenerator(final Document document) {
+        return document.getChangedDate() == null
                 ? ""
-                : userNames.getOrDefault(document.getChangedBy(), document.getChangedBy()));
+                : datatypeFormatter.formatOffsetDateTime(document.getChangedDate());
     }
 
     // the names of the users as the application shows them; a user deleted since keeps the username

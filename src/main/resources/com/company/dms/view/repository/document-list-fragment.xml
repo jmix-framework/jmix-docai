@@ -48,6 +48,7 @@
                 </hbox>
                 <button id="discussButton" action="documentsGrid.discussAction" text=""
                         title="msg://discussAction.text" classNames="aura-accent-purple ai-button"/>
+                <gridColumnVisibility id="columnsButton" dataGrid="documentsGrid" icon="TABLE"/>
                 <button id="previewButton" text="msg://previewButton.text" icon="EYE"/>
             </hbox>
             <dataGrid id="documentsGrid" dataContainer="documentsDc" selectionMode="MULTI"
@@ -89,9 +90,9 @@
                     <column property="category" autoWidth="true" flexGrow="0"/>
                     <column property="tags" autoWidth="true" flexGrow="0" sortable="false"/>
                     <column property="status" autoWidth="true" flexGrow="0"/>
-                    <column property="documentDate" autoWidth="true" flexGrow="0"/>
-                    <column key="fileSize" property="currentRevision.fileSize" autoWidth="true" flexGrow="0"/>
-                    <column property="changedBy" autoWidth="true" flexGrow="0"/>
+                    <column property="documentDate" autoWidth="true" flexGrow="0" visible="false"/>
+                    <column key="fileSize" property="currentRevision.fileSize" autoWidth="true" flexGrow="0"
+                            visible="false"/>
                     <column property="changedDate" autoWidth="true" flexGrow="0"/>
                 </columns>
             </dataGrid>
