@@ -24,11 +24,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Fills the type, the fields and the date of the document in the card with what the AI reads in the file
- * the card shows, saved or just uploaded. The values go into the form only: the user checks them and saves
- * the document as usual.
+ * the card shows, saved or just uploaded, and adds tags to those the document has. The values go into the form only:
+ * the user checks them and saves the document as usual, and a new tag joins the vocabulary then.
  */
 @ActionType(FillWithAiAction.ID)
 public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetailView> {
@@ -147,16 +148,30 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
 
     private void showResult(ClassificationResult result) {
         String typeName = result.typeName();
+        String tags = result.tags().stream()
+                .map(tag -> tag.newTag()
+                        ? messages.formatMessage(getClass(), "fillWithAiAction.newTag", tag.name())
+                        : tag.name())
+                .collect(Collectors.joining(", "));
+
+        if (typeName == null && tags.isEmpty()) {
+            showNotification("fillWithAiAction.unknownType", Notifications.Type.WARNING);
+            return;
+        }
 
         if (typeName == null) {
-            showNotification("fillWithAiAction.unknownType", Notifications.Type.WARNING);
+            notifications.create(messages.formatMessage(getClass(), "fillWithAiAction.unknownTypeTags", tags))
+                    .withType(Notifications.Type.WARNING)
+                    .show();
             return;
         }
 
         target.showProperties();
 
-        notifications.create(messages.formatMessage(getClass(), "fillWithAiAction.done",
-                        typeName, result.filled().size()))
+        notifications.create(tags.isEmpty()
+                        ? messages.formatMessage(getClass(), "fillWithAiAction.done", typeName, result.filled().size())
+                        : messages.formatMessage(getClass(), "fillWithAiAction.doneWithTags", typeName,
+                        result.filled().size(), tags))
                 .withType(Notifications.Type.SUCCESS)
                 .show();
 

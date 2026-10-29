@@ -9,6 +9,10 @@
         {"user": "alice", "level": "OWN"}
       ],
       "documents": [
+        {"name": "Lease tags", "tags": ["Lease"], "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
+        {"name": "Tag in another case", "tags": ["LEASE"], "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
+        {"name": "Empty tag", "tags": [" "], "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
+        {"name": "Long tag", "tags": ["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"], "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
         {"name": "Twice", "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
         {"name": "Twice", "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]},
         {"name": "No versions"},

@@ -6,14 +6,18 @@ import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.search.DocumentSearch;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestTags;
 import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.main.MainView;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.combobox.ComboBoxBase;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
@@ -22,9 +26,12 @@ import io.jmix.core.Id;
 import io.jmix.core.IdSerialization;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.UiComponentUtils;
+import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
+import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
@@ -43,8 +50,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -82,6 +91,9 @@ class DocumentSearchViewTest {
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private UnconstrainedDataManager unconstrainedDataManager;
 
     @Autowired
     private IdSerialization idSerialization;
@@ -263,6 +275,147 @@ class DocumentSearchViewTest {
         assertThat(message(view)).isEqualTo(messages.getMessage(DocumentSearchView.class, "nothingFound"));
     }
 
+    @Test
+    void aRowShowsTheTagsOfTheDocumentAndATagOpensItsPage() {
+        String lease = "Lease " + UUID.randomUUID().toString().substring(0, 8);
+        Document document = TestTags.tagged(unconstrainedDataManager, upload(),
+                TestTags.tag(unconstrainedDataManager, lease));
+        answer(entry(document, "<b>word</b>"));
+
+        Component row = rows(search("word")).getFirst();
+
+        assertThat(TestTags.names(row)).containsExactly(lease);
+
+        TestTags.click(row, lease);
+
+        DocumentSearchView view = UiTestUtils.getCurrentView();
+        assertThat(TestTags.tagInAddress()).hasValue(lease);
+        assertThat(view.getPageTitle()).isEqualTo(messages.formatMessage(DocumentSearchView.class, "tagTitle", lease));
+        assertThat(rows(view)).hasSize(1);
+    }
+
+    @Test
+    void aRowShowsTheDocumentAsTheCardSavedIt() {
+        String lease = "Lease " + UUID.randomUUID().toString().substring(0, 8);
+        answer(entry(upload(), "<b>word</b>"));
+        DocumentSearchView view = search("word");
+        this.<JmixButton>byClass(rows(view).getFirst(), "document-search-name").click();
+        DocumentDetailView card = UiTestUtils.getLastOpenedViewDialog();
+        JmixMultiSelectComboBox<Tag> tagsField = UiTestUtils.getComponent(card, "tagsField");
+
+        UiTestUtils.<TypedTextField<String>>getComponent(card, "nameField").setValue("renamed.txt");
+        ComponentUtil.fireEvent(tagsField, new ComboBoxBase.CustomValueSetEvent<>(tagsField, true, lease));
+        UiTestUtils.<JmixButton>getComponent(card, "saveButton").click();
+
+        Component row = rows(view).getFirst();
+        assertThat(this.<JmixButton>byClass(row, "document-search-name").getText()).isEqualTo("renamed.txt");
+        assertThat(TestTags.names(row)).containsExactly(lease);
+    }
+
+    @Test
+    void aDocumentWhoseTagTheCardTookOffLeavesThePageOfTheTag() {
+        Tag tag = TestTags.tag(unconstrainedDataManager, "Lease " + UUID.randomUUID().toString().substring(0, 8));
+        TestTags.tagged(unconstrainedDataManager, upload("kept.txt"), tag);
+        TestTags.tagged(unconstrainedDataManager, upload("untagged.txt"), tag);
+        DocumentSearchView view = tagPage(tag.getName());
+        JmixButton untagged = rows(view).stream()
+                .map(row -> this.<JmixButton>byClass(row, "document-search-name"))
+                .filter(name -> name.getText().equals("untagged.txt"))
+                .findFirst()
+                .orElseThrow();
+
+        untagged.click();
+        DocumentDetailView card = UiTestUtils.getLastOpenedViewDialog();
+        UiTestUtils.<JmixMultiSelectComboBox<Tag>>getComponent(card, "tagsField").setValue(Set.of());
+        UiTestUtils.<JmixButton>getComponent(card, "saveButton").click();
+
+        assertThat(rows(view)).extracting(row -> this.<JmixButton>byClass(row, "document-search-name").getText())
+                .containsExactly("kept.txt");
+    }
+
+    @Test
+    void theTagPageListsTheLiveDocumentsWithTheTagThatTheEmployeeMaySeeTheLatestChangedFirst() {
+        Tag tag = TestTags.tag(unconstrainedDataManager, "Lease " + UUID.randomUUID().toString().substring(0, 8));
+        Document older = changedAt(TestTags.tagged(unconstrainedDataManager, upload("older.txt"), tag), 2);
+        Document newer = changedAt(TestTags.tagged(unconstrainedDataManager, upload("newer.txt"), tag), 1);
+        Document secret = TestTags.tagged(unconstrainedDataManager, upload(secretFolder(), "secret.txt"), tag);
+        Document deleted = TestTags.tagged(unconstrainedDataManager, upload("deleted.txt"), tag);
+        systemAuthenticator.runWithUser(ADMIN, () -> documentService.delete(List.of(deleted)));
+
+        DocumentSearchView view = tagPage(tag.getName().toUpperCase());
+
+        assertThat(view.getPageTitle())
+                .isEqualTo(messages.formatMessage(DocumentSearchView.class, "tagTitle", tag.getName()));
+        assertThat(rows(view)).extracting(row -> this.<JmixButton>byClass(row, "document-search-name").getText())
+                .containsExactly(newer.getName(), older.getName())
+                .doesNotContain(secret.getName(), deleted.getName());
+        assertThat(UiComponentUtils.getComponents(rows(view).getFirst()))
+                .noneMatch(component -> component.hasClassName("document-search-snippet"));
+    }
+
+    @Test
+    void showMoreAddsTheNextPageOfTheTag() {
+        Tag tag = TestTags.tag(unconstrainedDataManager, "Lease " + UUID.randomUUID().toString().substring(0, 8));
+        uploadMoreThanAPage().forEach(document -> TestTags.tagged(unconstrainedDataManager, document, tag));
+
+        DocumentSearchView view = tagPage(tag.getName());
+        JmixButton showMore = UiTestUtils.getComponent(view, "showMoreButton");
+
+        assertThat(rows(view)).hasSize(DocumentSearch.PAGE_SIZE);
+        assertThat(showMore.isVisible()).isTrue();
+
+        showMore.click();
+
+        assertThat(rows(view)).hasSize(DocumentSearch.PAGE_SIZE + 1);
+        assertThat(showMore.isVisible()).isFalse();
+    }
+
+    @Test
+    void aTagThatIsNotThereIsSaid() {
+        String name = "Gone " + UUID.randomUUID().toString().substring(0, 8);
+
+        DocumentSearchView view = tagPage(name);
+
+        assertThat(rows(view)).isEmpty();
+        assertThat(message(view)).isEqualTo(messages.formatMessage(DocumentSearchView.class, "tagNotFound", name));
+    }
+
+    @Test
+    void aTagWithoutDocumentsTheEmployeeMaySeeSaysNothingOfTheOthers() {
+        Tag tag = TestTags.tag(unconstrainedDataManager, "Lease " + UUID.randomUUID().toString().substring(0, 8));
+        TestTags.tagged(unconstrainedDataManager, upload(secretFolder(), "secret.txt"), tag);
+
+        DocumentSearchView view = tagPage(tag.getName());
+
+        assertThat(rows(view)).isEmpty();
+        assertThat(message(view))
+                .isEqualTo(messages.formatMessage(DocumentSearchView.class, "nothingTagged", tag.getName()));
+    }
+
+    private DocumentSearchView tagPage(String name) {
+        viewNavigators.view(UiTestUtils.getCurrentView(), DocumentSearchView.class)
+                .withQueryParameters(QueryParameters.of(DocumentSearchView.TAG_PARAMETER, name))
+                .navigate();
+
+        return UiTestUtils.getCurrentView();
+    }
+
+    private Document changedAt(Document document, int daysAgo) {
+        Document stored = unconstrainedDataManager.load(Id.of(document)).one();
+        stored.setChangedDate(OffsetDateTime.now().minusDays(daysAgo));
+        return unconstrainedDataManager.save(stored);
+    }
+
+    private Folder secretFolder() {
+        return systemAuthenticator.withUser(ADMIN, () -> {
+            Folder folder = dataManager.create(Folder.class);
+            folder.setParent(sandbox);
+            folder.setName("secret");
+            return TestAccess.giveOwnAccess(dataManager, folderService.save(folder),
+                    Grant.user(COLLEAGUE, AccessLevel.EDIT));
+        });
+    }
+
     private DocumentSearchView search(String query) {
         viewNavigators.view(UiTestUtils.getCurrentView(), DocumentSearchView.class)
                 .withQueryParameters(QueryParameters.of(DocumentSearchView.QUERY_PARAMETER, query))
@@ -302,8 +455,16 @@ class DocumentSearchViewTest {
     }
 
     private Document upload() {
+        return upload("contract.txt");
+    }
+
+    private Document upload(String fileName) {
+        return upload(sandbox, fileName);
+    }
+
+    private Document upload(Folder folder, String fileName) {
         return systemAuthenticator.withUser(ADMIN, () ->
-                documentService.upload(sandbox, List.of(TestFiles.file(tempDir, "contract.txt", "text")))
+                documentService.upload(folder, List.of(TestFiles.file(tempDir, fileName, "text")))
                         .created()
                         .getFirst());
     }

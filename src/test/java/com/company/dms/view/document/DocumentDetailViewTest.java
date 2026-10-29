@@ -7,21 +7,27 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.model.user.User;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
 import com.company.dms.test_support.TestFiles;
 import com.company.dms.test_support.TestGrids;
+import com.company.dms.test_support.TestTags;
 import com.company.dms.test_support.TestUploads;
 import com.company.dms.view.main.MainView;
+import com.company.dms.view.search.DocumentSearchView;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBoxBase;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import io.jmix.core.DataManager;
+import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.Messages;
@@ -30,6 +36,7 @@ import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.data.grid.DataGridItems;
@@ -38,9 +45,11 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
+import io.jmix.flowui.testassist.dialog.DialogInfo;
 import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.DialogWindow;
+import io.jmix.flowui.view.View;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,8 +96,13 @@ class DocumentDetailViewTest {
     @Autowired
     private MetadataTools metadataTools;
 
+    @Autowired
+    private EntityStates entityStates;
+
     @TempDir
     private Path tempDir;
+
+    private final String suffix = UUID.randomUUID().toString().substring(0, 8);
 
     private Folder sandbox;
 
@@ -306,7 +320,7 @@ class DocumentDetailViewTest {
 
         assertThat(window.isMaximizable()).isTrue();
         assertThat(window.getWidth()).isEqualTo("86em");
-        assertThat(window.getHeight()).isEqualTo("56em");
+        assertThat(window.getHeight()).isEqualTo("58em");
     }
 
     @Test
@@ -462,6 +476,115 @@ class DocumentDetailViewTest {
         assertThat(versions).isNotNull();
         assertThat(TestGrids.text(revisionsGrid, "createdBy", versions.getItems().iterator().next()))
                 .isEqualTo(nameOf(EmployeeUiTestAuthenticator.USERNAME));
+    }
+
+    @Test
+    void theTagsShowInTheFieldAndNextToTheStatus() {
+        Tag lease = TestTags.tag(unconstrainedDataManager, "Lease " + suffix);
+        Tag office = TestTags.tag(unconstrainedDataManager, "Office " + suffix);
+
+        DocumentDetailView card = openCard(TestTags.tagged(unconstrainedDataManager, upload("a.txt"), office, lease));
+
+        assertThat(entityStates.isLoaded(card.getEditedEntity(), "tags")).isTrue();
+        assertThat(this.<JmixMultiSelectComboBox<Tag>>component(card, "tagsField").getValue())
+                .containsExactlyInAnyOrder(lease, office);
+        assertThat(TestTags.names(component(card, "documentTags")))
+                .containsExactly("Lease " + suffix, "Office " + suffix);
+    }
+
+    @Test
+    void aTypedNameTakesItsTagWhateverTheCaseOrMakesANewOneThatOkSaves() {
+        String lease = "Lease " + suffix;
+        String office = "Office " + suffix;
+        TestTags.tag(unconstrainedDataManager, lease);
+        Document document = upload("a.txt");
+        DocumentDetailView card = openCard(document);
+        JmixMultiSelectComboBox<Tag> tagsField = component(card, "tagsField");
+
+        type(tagsField, " " + lease.toLowerCase() + " ");
+        type(tagsField, office);
+        type(tagsField, office.toUpperCase());
+
+        assertThat(tagsField.getValue()).extracting(Tag::getName).containsExactlyInAnyOrder(lease, office);
+        assertThat(TestTags.names(component(card, "documentTags"))).containsExactly(lease, office);
+        assertThat(card.hasUnsavedChanges()).isTrue();
+
+        this.<JmixButton>component(card, "saveButton").click();
+
+        assertThat(unconstrainedDataManager.load(Document.class)
+                .id(document.getId())
+                .fetchPlan(fetchPlan -> fetchPlan.add("tags", FetchPlan.BASE))
+                .one()
+                .getTags()).extracting(Tag::getName).containsExactly(lease, office);
+    }
+
+    @Test
+    void theBadgesComeInAlphabeticalOrderWhateverTheCase() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        JmixMultiSelectComboBox<Tag> tagsField = component(card, "tagsField");
+
+        type(tagsField, "Office " + suffix);
+        type(tagsField, "lease " + suffix);
+
+        assertThat(TestTags.names(component(card, "documentTags")))
+                .containsExactly("lease " + suffix, "Office " + suffix);
+    }
+
+    @Test
+    void aTypedNameOfSpacesAddsNothing() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        JmixMultiSelectComboBox<Tag> tagsField = component(card, "tagsField");
+
+        type(tagsField, "   ");
+
+        assertThat(tagsField.getValue()).isEmpty();
+        assertThat(card.hasUnsavedChanges()).isFalse();
+    }
+
+    @Test
+    void theTagsOfAnArchivedDocumentStayOpenForChange() {
+        Document document = upload("a.txt");
+        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+
+        DocumentDetailView card = openCard(reload(document));
+
+        assertThat(this.<TypedTextField<String>>component(card, "nameField").isReadOnly()).isTrue();
+        assertThat(this.<JmixMultiSelectComboBox<Tag>>component(card, "tagsField").isReadOnly()).isFalse();
+    }
+
+    @Test
+    void aClickOnATagClosesTheCardAndOpensThePageOfTheTag() {
+        String lease = "Lease " + suffix;
+        Document document = TestTags.tagged(unconstrainedDataManager, upload("a.txt"),
+                TestTags.tag(unconstrainedDataManager, lease));
+        DocumentDetailView card = openCard(document);
+
+        TestTags.click(component(card, "documentTags"), lease);
+
+        assertThat((View<?>) UiTestUtils.getCurrentView()).isInstanceOf(DocumentSearchView.class);
+        assertThat(TestTags.tagInAddress()).hasValue(lease);
+    }
+
+    @Test
+    void aClickOnATagAsksAboutTheUnsavedChangesFirst() {
+        String lease = "Lease " + suffix;
+        Document document = TestTags.tagged(unconstrainedDataManager, upload("a.txt"),
+                TestTags.tag(unconstrainedDataManager, lease));
+        DocumentDetailView card = openCard(document);
+        this.<TypedTextField<String>>component(card, "nameField").setValue("b.txt");
+
+        TestTags.click(component(card, "documentTags"), lease);
+
+        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
+        assertThat(dialog).isNotNull();
+        assertThat(dialog.getDialog().getHeaderTitle()).isEqualTo(messages.getMessage("dialogs.closeUnsaved.title"));
+        assertThat((View<?>) UiTestUtils.getCurrentView()).isNotInstanceOf(DocumentSearchView.class);
+    }
+
+    // what the field fires when a name is typed and Enter pressed
+    private static void type(JmixMultiSelectComboBox<Tag> field, String text) {
+        ComponentUtil.fireEvent(field, new ComboBoxBase.CustomValueSetEvent<>(field, true, text));
     }
 
     private DocumentDetailView openNewCard() {

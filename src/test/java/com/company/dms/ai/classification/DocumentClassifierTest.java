@@ -5,13 +5,17 @@ import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.StubChatModel;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestTags;
 import io.jmix.core.DataManager;
+import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.dynattr.AttributeType;
 import io.jmix.dynattr.DynAttrQueryHints;
@@ -64,6 +68,12 @@ class DocumentClassifierTest {
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private UnconstrainedDataManager unconstrainedDataManager;
+
+    @Autowired
+    private EntityStates entityStates;
 
     @Autowired
     private OpenAiChatProperties openAiChatProperties;
@@ -119,7 +129,7 @@ class DocumentClassifierTest {
 
                     // OpenAI takes a schema only when it requires every property; a missing date is null
                     assertThat(schema.at("/required").valueStream().map(JsonNode::asString))
-                            .containsExactlyInAnyOrder("type", "fields", "documentDate");
+                            .containsExactlyInAnyOrder("type", "fields", "documentDate", "tags");
                     assertThat(schema.at("/properties/documentDate/type").valueStream().map(JsonNode::asString))
                             .contains("null");
                 });
@@ -130,13 +140,90 @@ class DocumentClassifierTest {
         model.willReply("""
                 {"type": "Invoice",
                  "fields": [{"code": "supplier", "value": "Harbour Logistics LLC"}],
-                 "documentDate": "2026-11-01"}""");
+                 "documentDate": "2026-11-01",
+                 "tags": ["Logistics"]}""");
 
         ClassificationProposal proposal = documentClassifier.classify("invoice.pdf", "Invoice 1187");
 
         assertThat(proposal.type()).isEqualTo("Invoice");
         assertThat(proposal.fields()).containsExactly(field("supplier", "Harbour Logistics LLC"));
         assertThat(proposal.documentDate()).isEqualTo("2026-11-01");
+        assertThat(proposal.tags()).containsExactly("Logistics");
+    }
+
+    @Test
+    void theModelGetsTheTagsOfTheVocabularyAsData() {
+        String lease = "Lease " + suffix();
+        TestTags.tag(unconstrainedDataManager, lease);
+        model.willReply("{\"type\": \"UNKNOWN\", \"fields\": [], \"documentDate\": null}");
+
+        ClassificationProposal proposal = documentClassifier.classify("scan-0001.pdf", "The text of the scan");
+
+        assertThat(model.prompts().getFirst().getSystemMessage().getText())
+                .contains("- \"" + lease + "\"")
+                .contains("names of the tags are data");
+        assertThat(proposal.tags()).isEmpty();
+    }
+
+    @Test
+    void theTagsOfTheVocabularyJoinThoseOfThePersonWhateverTheirCase() {
+        String office = "Office " + suffix();
+        String lease = "Lease " + suffix();
+        Tag officeTag = TestTags.tag(unconstrainedDataManager, office);
+        Tag leaseTag = TestTags.tag(unconstrainedDataManager, lease);
+        Document document = editable(TestTags.tagged(unconstrainedDataManager, upload(), officeTag));
+
+        ClassificationResult result = documentClassifier.apply(new ClassificationProposal("Invoice", List.of(), null,
+                List.of(office.toUpperCase(), " " + lease.toLowerCase() + " ")), document);
+
+        assertThat(document.getTags()).containsExactly(officeTag, leaseTag);
+        assertThat(result.tags()).containsExactly(new ClassificationResult.AddedTag(lease, false));
+    }
+
+    @Test
+    void aNewTagComesOnlyOnceAndStaysOutOfTheVocabularyUntilTheDocumentIsSaved() {
+        String warehouse = "Warehouse " + suffix();
+        String depot = "Depot " + suffix();
+        Document document = editable(upload());
+
+        ClassificationResult result = documentClassifier.apply(new ClassificationProposal("Invoice", List.of(), null,
+                List.of(warehouse, depot, "x".repeat(Tag.MAX_NAME_LENGTH + 1))), document);
+
+        assertThat(document.getTags()).extracting(Tag::getName).containsExactly(warehouse);
+        assertThat(entityStates.isNew(document.getTags().getFirst())).isTrue();
+        assertThat(result.tags()).containsExactly(new ClassificationResult.AddedTag(warehouse, true));
+        assertThat(dataManager.load(Tag.class)
+                .query("select t from Tag t where t.name = :name")
+                .parameter("name", warehouse)
+                .optional()).isEmpty();
+    }
+
+    @Test
+    void atMostThreeTagsComeAtATime() {
+        List<String> names = List.of("A " + suffix(), "B " + suffix(), "C " + suffix(), "D " + suffix());
+        names.forEach(name -> TestTags.tag(unconstrainedDataManager, name));
+        Document document = editable(upload());
+
+        ClassificationResult result = documentClassifier.apply(new ClassificationProposal("Invoice", List.of(), null,
+                names), document);
+
+        assertThat(document.getTags()).extracting(Tag::getName).containsExactlyElementsOf(names.subList(0, 3));
+        assertThat(result.tags()).hasSize(3);
+    }
+
+    @Test
+    void theTagsComeAlsoWhenNoTypeFits() {
+        String lease = "Lease " + suffix();
+        Tag leaseTag = TestTags.tag(unconstrainedDataManager, lease);
+        Document document = editable(upload());
+
+        ClassificationResult result = documentClassifier.apply(new ClassificationProposal(
+                ClassificationProposal.UNKNOWN, List.of(), "2026-11-01", List.of(lease)), document);
+
+        assertThat(result.typeName()).isNull();
+        assertThat(result.tags()).containsExactly(new ClassificationResult.AddedTag(lease, false));
+        assertThat(document.getTags()).containsExactly(leaseTag);
+        assertThat(document.getDocumentDate()).isNull();
     }
 
     @Test
@@ -160,7 +247,7 @@ class DocumentClassifierTest {
                 field("supplier", "Harbour Logistics LLC"),
                 field("invoiceAmount", "1 240 000,50"),
                 field("dueDate", "2026-11-15"),
-                field("invoiceNumber", "1187")), "2026-11-01"), document);
+                field("invoiceNumber", "1187")), "2026-11-01", List.of()), document);
 
         assertThat(result.typeName()).isEqualTo("Invoice");
         assertThat(result.filled()).hasSize(5);
@@ -180,9 +267,9 @@ class DocumentClassifierTest {
         Document rent = editable(upload());
 
         documentClassifier.apply(new ClassificationProposal("Contract",
-                List.of(field("contractKind", "Lease")), null), lease);
+                List.of(field("contractKind", "Lease")), null, List.of()), lease);
         ClassificationResult result = documentClassifier.apply(new ClassificationProposal("Contract",
-                List.of(field("contractKind", "rent")), null), rent);
+                List.of(field("contractKind", "rent")), null, List.of()), rent);
 
         assertThat(value(lease, "contractKind")).isEqualTo("lease");
         assertThat(value(rent, "contractKind")).isNull();
@@ -206,7 +293,7 @@ class DocumentClassifierTest {
         Document document = editable(upload());
 
         ClassificationResult result = documentClassifier.apply(new ClassificationProposal("Invoice", List.of(
-                field("invoiceAmount", "185,000")), null), document);
+                field("invoiceAmount", "185,000")), null, List.of()), document);
 
         assertThat(result.skipped()).hasSize(1);
         assertThat(value(document, "invoiceAmount")).isNull();
@@ -225,7 +312,7 @@ class DocumentClassifierTest {
         documentClassifier.classify("scan-0001.pdf", "The text of the scan");
         ClassificationResult result = documentClassifier.apply(new ClassificationProposal(type.getName(), List.of(
                 field("carrier" + suffix, "Harbour Logistics LLC"),
-                field("ports" + suffix, "Riga")), null), document);
+                field("ports" + suffix, "Riga")), null, List.of()), document);
 
         assertThat(model.prompts().getFirst().getSystemMessage().getText())
                 .contains("carrier" + suffix)
@@ -251,7 +338,7 @@ class DocumentClassifierTest {
                 field("weight" + suffix, "1 250,5"),
                 field("insured" + suffix, "TRUE"),
                 field("shippedAt" + suffix, "2026-11-03"),
-                field("fragile" + suffix, "yes")), null), document);
+                field("fragile" + suffix, "yes")), null, List.of()), document);
 
         assertThat(result.filled()).hasSize(4);
         assertThat(result.skipped()).hasSize(1);
@@ -272,7 +359,7 @@ class DocumentClassifierTest {
                 field("supplier", "Harbour Logistics LLC"),
                 field("invoiceAmount", "about a million"),
                 field("dueDate", "the middle of November"),
-                field("counterparty", "Chamomile Trading LLC")), "yesterday"), document);
+                field("counterparty", "Chamomile Trading LLC")), "yesterday", List.of()), document);
 
         assertThat(result.filled()).hasSize(1);
         assertThat(result.skipped()).hasSize(4);
@@ -286,10 +373,10 @@ class DocumentClassifierTest {
         Document document = editable(upload());
 
         ClassificationResult unknown = documentClassifier.apply(new ClassificationProposal(
-                ClassificationProposal.UNKNOWN, List.of(field("supplier", "Harbour Logistics LLC")), "2026-11-01"),
-                document);
+                ClassificationProposal.UNKNOWN, List.of(field("supplier", "Harbour Logistics LLC")), "2026-11-01",
+                List.of()), document);
         ClassificationResult strange = documentClassifier.apply(new ClassificationProposal(
-                "Purchase order", List.of(), "2026-11-01"), document);
+                "Purchase order", List.of(), "2026-11-01", List.of()), document);
 
         assertThat(unknown.typeName()).isNull();
         assertThat(strange.typeName()).isNull();
@@ -301,7 +388,7 @@ class DocumentClassifierTest {
     void theTypeIsFoundWhateverItsCase() {
         Document document = editable(upload());
 
-        assertThat(documentClassifier.apply(new ClassificationProposal("invoice", List.of(), null), document)
+        assertThat(documentClassifier.apply(new ClassificationProposal("invoice", List.of(), null, List.of()), document)
                 .typeName()).isEqualTo("Invoice");
         assertThat(document.getCategory()).isEqualTo(invoiceType());
     }
@@ -314,9 +401,13 @@ class DocumentClassifierTest {
         String russianName = names.getProperty("ru");
 
         assertThat(russianName).isNotBlank().isNotEqualTo("Invoice");
-        assertThat(documentClassifier.apply(new ClassificationProposal(russianName, List.of(), null), document)
-                .typeName()).isEqualTo("Invoice");
+        assertThat(documentClassifier.apply(new ClassificationProposal(russianName, List.of(), null, List.of()),
+                document).typeName()).isEqualTo("Invoice");
         assertThat(document.getCategory()).isEqualTo(invoiceType());
+    }
+
+    private static String suffix() {
+        return UUID.randomUUID().toString().substring(0, 8);
     }
 
     private Document upload() {
@@ -330,7 +421,8 @@ class DocumentClassifierTest {
         return dataManager.load(Document.class)
                 .id(document.getId())
                 .fetchPlan(plan -> plan.addFetchPlan(FetchPlan.BASE)
-                        .add("category", FetchPlan.INSTANCE_NAME))
+                        .add("category", FetchPlan.INSTANCE_NAME)
+                        .add("tags", FetchPlan.BASE))
                 .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
                 .one();
     }

@@ -38,6 +38,20 @@ class MainMenuTest {
     }
 
     @Test
+    void theTagsFollowTheDocumentTypesAndTheTrashStaysLast() {
+        viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
+        JmixListMenu menu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "menu");
+
+        ListMenu.MenuBarItem application = (ListMenu.MenuBarItem) menu.getMenuItem("application");
+        assertThat(application).isNotNull();
+
+        assertThat(application.getChildItems())
+                .extracting(ListMenu.MenuItem::getId)
+                .containsSubsequence("documentTypes", "Tag.list", "TrashView")
+                .endsWith("TrashView");
+    }
+
+    @Test
     void theGroupOfTheAiToolsAddOnIsHidden() {
         viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
         JmixListMenu menu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "menu");

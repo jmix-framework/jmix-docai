@@ -8,19 +8,24 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
 import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.StubChatModel;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestTags;
 import com.company.dms.test_support.TestUploads;
 import com.company.dms.view.main.MainView;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.server.VaadinSession;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
+import io.jmix.core.FetchPlan;
 import io.jmix.core.Messages;
+import io.jmix.core.MetadataTools;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.dynattr.model.Category;
@@ -96,6 +101,9 @@ class FillWithAiActionTest {
     private DataManager dataManager;
 
     @Autowired
+    private UnconstrainedDataManager unconstrainedDataManager;
+
+    @Autowired
     private SystemAuthenticator systemAuthenticator;
 
     @Autowired
@@ -106,6 +114,9 @@ class FillWithAiActionTest {
 
     @Autowired
     private Messages messages;
+
+    @Autowired
+    private MetadataTools metadataTools;
 
     @Autowired
     private StubChatModel model;
@@ -376,6 +387,78 @@ class FillWithAiActionTest {
                 INVOICE);
 
         assertThat(button.isVisible()).isFalse();
+    }
+
+    @Test
+    void theAiAddsTagsToThoseOfThePersonAndANewOneJoinsTheVocabularyOnlyOnOk() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        String office = "Office " + suffix;
+        String lease = "Lease " + suffix;
+        String warehouse = "Warehouse " + suffix;
+        TestTags.tag(unconstrainedDataManager, lease);
+        Document document = TestTags.tagged(unconstrainedDataManager,
+                upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8)),
+                TestTags.tag(unconstrainedDataManager, office));
+        DocumentDetailView card = openCard(document);
+        model.willReply("""
+                {"type": "Invoice",
+                 "fields": [{"code": "supplier", "value": "Harbour Logistics LLC"},
+                            {"code": "invoiceNumber", "value": "1187"}],
+                 "documentDate": "2026-11-01",
+                 "tags": ["%s", "%s"]}""".formatted(lease, warehouse));
+
+        fill(card);
+
+        assertThat(lastNotification().getText()).isEqualTo(messages.formatMessage(FillWithAiAction.class,
+                "fillWithAiAction.doneWithTags", metadataTools.getInstanceName(type("Invoice")), 3, lease + ", "
+                        + messages.formatMessage(FillWithAiAction.class, "fillWithAiAction.newTag", warehouse)));
+        assertThat(TestTags.names(component(card, "documentTags"))).containsExactly(lease, office, warehouse);
+        assertThat(storedTags(document)).containsExactly(office);
+
+        this.<JmixButton>component(card, "saveButton").click();
+
+        assertThat(storedTags(document)).containsExactly(lease, office, warehouse);
+    }
+
+    @Test
+    void theTagsComeAlsoWhenTheAiCannotTellTheType() {
+        String lease = "Lease " + UUID.randomUUID().toString().substring(0, 8);
+        TestTags.tag(unconstrainedDataManager, lease);
+        DocumentDetailView card = openCard(upload("note.txt", "Call me back".getBytes(StandardCharsets.UTF_8)));
+        model.willReply("{\"type\": \"UNKNOWN\", \"fields\": [], \"documentDate\": null, \"tags\": [\"%s\"]}"
+                .formatted(lease));
+
+        fill(card);
+
+        assertThat(lastNotification().getText()).isEqualTo(messages.formatMessage(FillWithAiAction.class,
+                "fillWithAiAction.unknownTypeTags", lease));
+        assertThat(card.getEditedEntity().getCategory()).isNull();
+        assertThat(card.getEditedEntity().getTags()).extracting(Tag::getName).containsExactly(lease);
+    }
+
+    @Test
+    void aDocumentWithTagsOnlyIsFilledWithoutAQuestion() {
+        Document document = TestTags.tagged(unconstrainedDataManager,
+                upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8)),
+                TestTags.tag(unconstrainedDataManager, "Office " + UUID.randomUUID().toString().substring(0, 8)));
+        DocumentDetailView card = openCard(document);
+        model.willReply(INVOICE_PROPOSAL);
+
+        fill(card);
+
+        assertThat(model.prompts()).hasSize(1);
+        assertThat(card.getEditedEntity().getCategory()).isEqualTo(type("Invoice"));
+    }
+
+    private List<String> storedTags(Document document) {
+        return unconstrainedDataManager.load(Document.class)
+                .id(document.getId())
+                .fetchPlan(fetchPlan -> fetchPlan.add("tags", FetchPlan.BASE))
+                .one()
+                .getTags()
+                .stream()
+                .map(Tag::getName)
+                .toList();
     }
 
     private void fill(DocumentDetailView card) {

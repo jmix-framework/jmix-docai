@@ -21,6 +21,7 @@ import com.company.dms.view.document.PreviewType;
 import com.company.dms.view.document.RevisionDownloader;
 import com.company.dms.view.folder.FolderLookupView;
 import com.company.dms.view.folder.FolderRenderers;
+import com.company.dms.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.badge.Badge;
@@ -137,6 +138,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private RevisionDownloader revisionDownloader;
     @Autowired
     private UiComponents uiComponents;
+    @Autowired
+    private TagBadges tagBadges;
     @Autowired
     private Icons icons;
     @Autowired
@@ -522,6 +525,11 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
             return name;
         });
+    }
+
+    @Supply(to = "documentsGrid.tags", subject = "renderer")
+    private Renderer<Document> tagsRenderer() {
+        return new ComponentRenderer<>(document -> tagBadges.create(document.getTags()));
     }
 
     @Supply(to = "documentsGrid.status", subject = "renderer")

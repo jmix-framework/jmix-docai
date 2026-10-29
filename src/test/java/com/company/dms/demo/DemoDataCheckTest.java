@@ -3,6 +3,13 @@ package com.company.dms.demo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import tools.jackson.databind.json.JsonMapper;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,13 +38,47 @@ class DemoDataCheckTest {
                         "/Broken/Fields without a type: the fields need a type",
                         "/Broken/Unknown deleter: there is no user 'nobody'",
                         "/Broken/Deleted at no time: the deletion has no time",
+                        "/Broken/Tag in another case: the tag 'LEASE' is written 'Lease' elsewhere",
+                        "/Broken/Empty tag: a tag has no name",
+                        "/Broken/Long tag: the tag '%s' is longer than 50 characters".formatted("x".repeat(51)),
                         "/Broken: two folders have this name",
                         "/: a folder has no name");
+    }
+
+    // the search by words for agricultural machinery finds nothing in the scene of the search by meaning
+    @Test
+    void theTagsOfTheDemoSetsNameNoAgriculturalMachineryAndTheRussianOnesMirrorTheEnglishOnes() throws IOException {
+        List<List<String>> english = tagsOf("en");
+        List<List<String>> russian = tagsOf("ru");
+
+        assertThat(english.stream().flatMap(List::stream).distinct()).hasSize(7)
+                .noneMatch(tag -> tag.toLowerCase().contains("agricultur") || tag.toLowerCase().contains("machinery"));
+        assertThat(russian).hasSameSizeAs(english);
+        assertThat(russian.stream().map(List::size))
+                .containsExactlyElementsOf(english.stream().map(List::size).toList());
+        assertThat(russian.stream().flatMap(List::stream).distinct()).hasSize(7);
     }
 
     @Test
     void aSoundDescriptionHasNoProblems() {
         assertThat(loader.check("sample")).isEmpty();
+    }
+
+    // the tags of every document of the set, in the order of the description
+    private static List<List<String>> tagsOf(String set) throws IOException {
+        try (InputStream content = new ClassPathResource("com/company/dms/demo/%s/demo-data.json".formatted(set))
+                .getInputStream()) {
+            List<List<String>> tags = new ArrayList<>();
+            collectTags(JsonMapper.shared().readValue(content, DemoSet.class).folders(), tags);
+            return tags;
+        }
+    }
+
+    private static void collectTags(List<DemoSet.Folder> folders, List<List<String>> tags) {
+        for (DemoSet.Folder folder : folders) {
+            folder.documents().forEach(document -> tags.add(document.tags()));
+            collectTags(folder.folders(), tags);
+        }
     }
 
     @Test

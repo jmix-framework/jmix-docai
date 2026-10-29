@@ -24,7 +24,7 @@ public class AssistantChatPromptProvider implements AiChatSystemPromptProvider {
             cannot filter by them. Answer a question about such a field, such as the invoices due by a date or the \
             documents of an employee, with the tool dms_findDocumentsByTypeField alone: a field belongs to its type, \
             so the documents it finds are of that type, and the tool gives the type, the folder and the fields of \
-            each. Count and list documents by their folder, name, status, type or date with the query tools.
+            each. Count and list documents by their folder, name, status, type, tags or date with the query tools.
             - A question about what the documents say, or about which documents concern something they may name in \
             other words, such as the documents about agricultural machinery or what the supply contracts say about \
             penalties: find the passages with the tool dms_findDocumentsByMeaning, answer from them with quotes and \

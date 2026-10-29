@@ -5,6 +5,7 @@
       "documents": [
         {
           "name": "Lease Agreement No. 7",
+          "tags": ["lease"],
           "date": "2026-02-27",
           "type": "Contract",
           "fields": {
@@ -22,6 +23,7 @@
         },
         {
           "name": "Lease Agreement No. 3.txt",
+          "tags": ["lease", "office"],
           "type": "Contract",
           "fields": {"contractKind": "lease"},
           "status": "ARCHIVED",
@@ -39,6 +41,7 @@
         },
         {
           "name": "Lease Agreement No. 5",
+          "tags": ["lease"],
           "type": "Contract",
           "fields": {"contractKind": "lease"},
           "status": "ARCHIVED",
@@ -58,6 +61,7 @@
       "documents": [
         {
           "name": "Invoice No. 1187",
+          "tags": ["supply"],
           "date": "2025-08-14",
           "type": "Invoice",
           "fields": {

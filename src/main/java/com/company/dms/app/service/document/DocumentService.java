@@ -5,12 +5,15 @@ import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.app.service.access.AccessChecker;
 import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.tag.TagService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntitySet;
+import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FileRef;
 import io.jmix.core.FileStorage;
@@ -37,11 +40,16 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Creates, versions, moves and deletes documents. A document gets its files as revisions:
@@ -49,7 +57,9 @@ import java.util.function.Supplier;
  * revision is stored before the data and removed again if the data cannot be saved.
  * A change needs edit access to the document, a new document to its folder. A change of the
  * document itself, its file, name, date, type, fields or status, stamps who made it and when; a move
- * does not. A document keeps only the fields of its type: the values of other types go on save.
+ * does not. A document keeps only the fields of its type: the values of other types go on save. Its tags change
+ * with it, also when it is archived, and are no change of the document itself; a new tag joins the vocabulary
+ * with the document.
  */
 @Service
 public class DocumentService {
@@ -62,6 +72,7 @@ public class DocumentService {
     private final UnconstrainedDataManager unconstrainedDataManager;
     private final FolderService folderService;
     private final DocumentFields documentFields;
+    private final TagService tagService;
     private final AccessChecker accessChecker;
     private final AccessService accessService;
     private final FileStorageLocator fileStorageLocator;
@@ -69,20 +80,23 @@ public class DocumentService {
     private final FilesProperties filesProperties;
     private final Messages messages;
     private final MetadataTools metadataTools;
+    private final EntityStates entityStates;
     private final CurrentAuthentication currentAuthentication;
     private final TimeSource timeSource;
     private final TransactionTemplate transaction;
 
     public DocumentService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager,
-                           FolderService folderService, DocumentFields documentFields, AccessChecker accessChecker,
-                           AccessService accessService, FileStorageLocator fileStorageLocator,
-                           ContentTypeDetector contentTypeDetector, FilesProperties filesProperties, Messages messages,
-                           MetadataTools metadataTools, CurrentAuthentication currentAuthentication,
+                           FolderService folderService, DocumentFields documentFields, TagService tagService,
+                           AccessChecker accessChecker, AccessService accessService,
+                           FileStorageLocator fileStorageLocator, ContentTypeDetector contentTypeDetector,
+                           FilesProperties filesProperties, Messages messages, MetadataTools metadataTools,
+                           EntityStates entityStates, CurrentAuthentication currentAuthentication,
                            TimeSource timeSource, PlatformTransactionManager transactionManager) {
         this.dataManager = dataManager;
         this.unconstrainedDataManager = unconstrainedDataManager;
         this.folderService = folderService;
         this.documentFields = documentFields;
+        this.tagService = tagService;
         this.accessChecker = accessChecker;
         this.accessService = accessService;
         this.fileStorageLocator = fileStorageLocator;
@@ -90,6 +104,7 @@ public class DocumentService {
         this.filesProperties = filesProperties;
         this.messages = messages;
         this.metadataTools = metadataTools;
+        this.entityStates = entityStates;
         this.currentAuthentication = currentAuthentication;
         this.timeSource = timeSource;
         this.transaction = new TransactionTemplate(transactionManager);
@@ -153,7 +168,9 @@ public class DocumentService {
 
             // the document and its revision refer to each other, so the current revision is set in a second save
             DocumentRevision revision = newRevision(draft, 1, stored.fileRef(), stored.size(), stored.contentType());
-            EntitySet saved = dataManager.save(new SaveContext().saving(draft, revision));
+            EntitySet saved = dataManager.save(new SaveContext()
+                    .saving(draft, revision)
+                    .saving(keepVocabulary(draft)));
 
             Document document = saved.get(draft);
             document.setCurrentRevision(saved.get(revision));
@@ -202,7 +219,10 @@ public class DocumentService {
                 stamp(document);
             }
 
-            SaveContext saveContext = new SaveContext().saving(document);
+            SaveContext saveContext = new SaveContext()
+                    .saving(document)
+                    .saving(keepVocabulary(document));
+
             if (newVersion != null) {
                 DocumentRevision revision = switch (newVersion) {
                     case NewVersion.FromFile ignored -> newRevision(document, nextNumber(document),
@@ -337,6 +357,49 @@ public class DocumentService {
         }
 
         return persisted;
+    }
+
+    /**
+     * Puts the tags of the vocabulary in place of the tags of the document: a new tag whose name the vocabulary got
+     * meanwhile becomes that tag, a tag deleted meanwhile drops out, and a name twice stays once, whatever its case.
+     * Returns the new tags, which are saved with the document. A document loaded without its tags keeps them.
+     */
+    private List<Tag> keepVocabulary(Document document) {
+        if (!entityStates.isLoaded(document, "tags") || document.getTags() == null) {
+            return List.of();
+        }
+
+        List<UUID> storedIds = document.getTags().stream()
+                .filter(tag -> !entityStates.isNew(tag))
+                .map(Tag::getId)
+                .toList();
+
+        Map<UUID, Tag> stored = storedIds.isEmpty()
+                ? Map.of()
+                : dataManager.load(Tag.class)
+                        .query("select t from Tag t where t.id in :ids")
+                        .parameter("ids", storedIds)
+                        .list()
+                        .stream()
+                        .collect(Collectors.toMap(Tag::getId, Function.identity()));
+
+        Map<String, Tag> tags = new LinkedHashMap<>();
+
+        for (Tag tag : document.getTags()) {
+            Tag kept = entityStates.isNew(tag)
+                    ? tagService.find(tag.getName()).orElse(tag)
+                    : stored.get(tag.getId());
+
+            if (kept != null) {
+                tags.putIfAbsent(kept.getName().toLowerCase(Locale.ROOT), kept);
+            }
+        }
+
+        document.setTags(new ArrayList<>(tags.values()));
+
+        return tags.values().stream()
+                .filter(entityStates::isNew)
+                .toList();
     }
 
     private void stamp(Document document) {

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://tagListView.title"
+      focusComponent="tagsDataGrid">
+    <data>
+        <collection id="tagsDc" class="com.company.dms.model.tag.Tag">
+            <fetchPlan extends="_base"/>
+            <loader id="tagsDl" readOnly="true">
+                <query>
+                    <![CDATA[select t from Tag t order by t.nameKey]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <layout>
+        <hbox id="buttonsPanel" classNames="buttons-panel">
+            <button id="createButton" action="tagsDataGrid.createAction"/>
+            <button id="editButton" action="tagsDataGrid.editAction"/>
+            <button id="removeButton" action="tagsDataGrid.removeAction"/>
+        </hbox>
+        <dataGrid id="tagsDataGrid" dataContainer="tagsDc" width="100%" minHeight="20em">
+            <actions>
+                <action id="createAction" type="list_create">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="editAction" type="list_edit">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="removeAction" type="list_remove"/>
+            </actions>
+            <columns>
+                <column property="name"/>
+            </columns>
+        </dataGrid>
+    </layout>
+</view>

@@ -8,6 +8,7 @@ import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.model.trash.TrashItem;
 import com.company.dms.model.user.User;
 import io.jmix.aitoolsflowui.security.role.AiToolsChatUserRole;
@@ -71,6 +72,14 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     @EntityAttributePolicy(entityClass = Document.class, attributes = "*",
             action = EntityAttributePolicyAction.MODIFY)
     void document();
+
+    /**
+     * Reads the tags and adds new ones from the document card, where the document service saves them with
+     * the document. Only the administrator renames and deletes tags.
+     */
+    @EntityPolicy(entityClass = Tag.class, actions = {EntityPolicyAction.READ, EntityPolicyAction.CREATE})
+    @EntityAttributePolicy(entityClass = Tag.class, attributes = "*", action = EntityAttributePolicyAction.MODIFY)
+    void tag();
 
     /**
      * Reads the document types and their fields. Only the administrator changes them.

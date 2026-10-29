@@ -5,6 +5,7 @@
             <fetchPlan extends="_base">
                 <property name="currentRevision" fetchPlan="_base"/>
                 <property name="category" fetchPlan="_instance_name"/>
+                <property name="tags" fetchPlan="_base"/>
                 <property name="accessSet" fetchPlan="_instance_name"/>
             </fetchPlan>
             <loader id="documentsDl">
@@ -86,6 +87,7 @@
                 <columns resizable="true">
                     <column property="name" width="15em"/>
                     <column property="category" autoWidth="true" flexGrow="0"/>
+                    <column property="tags" autoWidth="true" flexGrow="0" sortable="false"/>
                     <column property="status" autoWidth="true" flexGrow="0"/>
                     <column property="documentDate" autoWidth="true" flexGrow="0"/>
                     <column key="fileSize" property="currentRevision.fileSize" autoWidth="true" flexGrow="0"/>

@@ -1,1 +1,19 @@
 /* Define your styles here */
+
+/* Tags: a badge inside a bare button, so that a click, Enter or Space opens the documents with the tag */
+.tag-badges {
+    display: inline-flex;
+    gap: var(--vaadin-gap-xs);
+}
+
+.tag-badge {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+.tag-badge:hover vaadin-badge {
+    text-decoration: underline;
+}

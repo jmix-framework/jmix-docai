@@ -7,6 +7,7 @@
             <fetchPlan extends="_base">
                 <property name="folder" fetchPlan="_base"/>
                 <property name="category" fetchPlan="_instance_name"/>
+                <property name="tags" fetchPlan="_base"/>
                 <property name="accessSet" fetchPlan="_instance_name"/>
                 <property name="currentRevision" fetchPlan="_base"/>
                 <property name="revisions" fetchPlan="_base"/>
@@ -28,6 +29,7 @@
         <hbox id="cardHeader" classNames="document-card-header" width="100%" alignItems="CENTER" wrap="true">
             <h3 id="documentTitle"/>
             <badge id="statusBadge" dataContainer="documentDc" property="status"/>
+            <span id="documentTags"/>
             <span id="pendingChanges" classNames="document-card-pending"/>
             <hbox id="headerActions" classNames="document-card-actions" alignItems="CENTER" wrap="true">
                 <button id="activateButton" text="msg://activateButton.text" icon="CHECK"/>
@@ -52,6 +54,19 @@
                     <formLayout id="form" classNames="document-card-form" dataContainer="documentDc">
                         <textField id="nameField" property="name"/>
                         <datePicker id="documentDateField" property="documentDate"/>
+                        <multiSelectComboBox id="tagsField" property="tags" allowCustomValue="true"
+                                             helperText="msg://tagsField.helperText">
+                            <itemsQuery class="com.company.dms.model.tag.Tag"
+                                        searchStringFormat="(?i)%${inputString}%" escapeValueForLike="true">
+                                <query>
+                                    <![CDATA[
+                                    select t from Tag t
+                                    where t.nameKey like :searchString escape '\'
+                                    order by t.nameKey
+                                    ]]>
+                                </query>
+                            </itemsQuery>
+                        </multiSelectComboBox>
                         <textField id="folderField" label="msg://folderField.label" readOnly="true"/>
                         <textField id="currentVersionField" label="msg://currentVersionField.label" readOnly="true"/>
                         <textField id="createdField" label="msg://createdField.label" readOnly="true"/>

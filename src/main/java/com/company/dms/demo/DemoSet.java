@@ -57,17 +57,19 @@ public record DemoSet(List<Folder> folders) {
      * @param date     the date of the document
      * @param type     the English name of the document type, or null for a document without a type
      * @param fields   the values of the fields of the type by the code of the field, as text
+     * @param tags     the names of the tags of the document; a name is written the same way all over the set
      * @param status   {@code DRAFT} (when left out), {@code ACTIVE} or {@code ARCHIVED}
      * @param access   the own access of the document, or null when it inherits the access of its folder
      * @param versions the versions, the first one first
      * @param deleted  who deleted the document and when, or null for a live document
      */
     public record Document(String name, @Nullable LocalDate date, @Nullable String type, Map<String, String> fields,
-                           @Nullable String status, @Nullable List<Access> access, List<Version> versions,
-                           @Nullable Deletion deleted) {
+                           List<String> tags, @Nullable String status, @Nullable List<Access> access,
+                           List<Version> versions, @Nullable Deletion deleted) {
 
         public Document {
             fields = fields == null ? Map.of() : fields;
+            tags = tags == null ? List.of() : tags;
             versions = versions == null ? List.of() : versions;
         }
     }

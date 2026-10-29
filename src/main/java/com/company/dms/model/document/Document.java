@@ -2,6 +2,7 @@ package com.company.dms.model.document;
 
 import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import io.jmix.aitools.ExcludeFromAi;
 import io.jmix.core.DeletePolicy;
 import io.jmix.core.annotation.DeletedBy;
@@ -20,6 +21,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
@@ -117,6 +120,18 @@ public class Document implements Categorized {
     @JoinColumn(name = "CATEGORY_ID")
     @ManyToOne(fetch = FetchType.LAZY)
     private Category category;
+
+    /**
+     * The tags of the document, by name. The document owns the association, and a tag in use cannot be deleted:
+     * the tag service refuses it, and the foreign key of the link table stops the other ways.
+     */
+    @OrderBy("nameKey")
+    @JoinTable(name = "DOCUMENT_TAG_LINK",
+            joinColumns = @JoinColumn(name = "DOCUMENT_ID", referencedColumnName = "ID"),
+            inverseJoinColumns = @JoinColumn(name = "TAG_ID", referencedColumnName = "ID"),
+            indexes = @Index(name = "IDX_DOCUMENT_TAG_LINK_TAG", columnList = "TAG_ID"))
+    @ManyToMany
+    private List<Tag> tags;
 
     /**
      * Who changed the document itself last: its file, name, date, type, fields or status. The audit stamps below
@@ -251,6 +266,14 @@ public class Document implements Categorized {
     @Override
     public void setCategory(@Nullable Category category) {
         this.category = category;
+    }
+
+    public List<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<Tag> tags) {
+        this.tags = tags;
     }
 
     public String getChangedBy() {

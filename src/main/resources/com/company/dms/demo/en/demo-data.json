@@ -49,6 +49,9 @@
             "contractAmount": "51600.00",
             "validUntil": "2027-02-28"
           },
+          "tags": [
+            "lease"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -79,6 +82,9 @@
             "contractAmount": "2520.00",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "maintenance"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -119,6 +125,10 @@
             "contractAmount": "10700.00",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "supply",
+            "office"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -138,6 +148,9 @@
             "counterparty": "Nevsky Quarter LLC",
             "validUntil": "2025-06-30"
           },
+          "tags": [
+            "lease"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -158,6 +171,9 @@
             "contractAmount": "20000.00",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "HR"
+          ],
           "status": "ACTIVE",
           "access": [
             {
@@ -193,6 +209,9 @@
             "contractKind": "lease",
             "counterparty": "Westwind Ltd"
           },
+          "tags": [
+            "lease"
+          ],
           "status": "ACTIVE",
           "deleted": {
             "by": "john",
@@ -221,6 +240,10 @@
             "invoiceAmount": "940.00",
             "dueDate": "2026-11-30"
           },
+          "tags": [
+            "supply",
+            "office"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -240,6 +263,9 @@
             "invoiceAmount": "640.00",
             "dueDate": "2026-09-26"
           },
+          "tags": [
+            "transport"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -284,6 +310,9 @@
             "contractAmount": "4800.00",
             "validUntil": "2026-05-31"
           },
+          "tags": [
+            "lease"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -303,6 +332,9 @@
             "counterparty": "TechnoTrade Center LLC",
             "contractAmount": "182000.00"
           },
+          "tags": [
+            "supply"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -314,6 +346,9 @@
         },
         {
           "name": "Specification No. 2 to Supply Agreement No. 31/2026",
+          "tags": [
+            "supply"
+          ],
           "date": "2026-03-20",
           "status": "ACTIVE",
           "versions": [
@@ -334,6 +369,9 @@
             "workCompletedOn": "2026-06-09",
             "basisContract": "24/2026"
           },
+          "tags": [
+            "supply"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -372,6 +410,9 @@
             "counterparty": "RiverTech Supply LLC",
             "contractAmount": "48700.00"
           },
+          "tags": [
+            "supply"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -391,6 +432,9 @@
             "invoiceAmount": "5870.00",
             "dueDate": "2026-04-09"
           },
+          "tags": [
+            "supply"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -402,6 +446,9 @@
         },
         {
           "name": "Memo No. 18",
+          "tags": [
+            "maintenance"
+          ],
           "date": "2026-05-19",
           "status": "ACTIVE",
           "versions": [
@@ -422,6 +469,9 @@
             "counterparty": "TechnoResource Supply LLC",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "supply"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -442,6 +492,9 @@
             "contractAmount": "2800.00",
             "validUntil": "2026-03-31"
           },
+          "tags": [
+            "lease"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -472,6 +525,9 @@
         },
         {
           "name": "Request No. 112 for Truck Crane Services",
+          "tags": [
+            "transport"
+          ],
           "date": "2026-03-17",
           "status": "ACTIVE",
           "versions": [
@@ -492,6 +548,9 @@
             "workCompletedOn": "2026-01-14",
             "basisContract": "2/2026"
           },
+          "tags": [
+            "supply"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -503,6 +562,9 @@
         },
         {
           "name": "Facilities Request No. 29",
+          "tags": [
+            "maintenance"
+          ],
           "date": "2026-04-21",
           "status": "ACTIVE",
           "versions": [
@@ -523,6 +585,9 @@
             "counterparty": "LoadTech Service LLC",
             "validUntil": "2027-01-31"
           },
+          "tags": [
+            "maintenance"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -542,6 +607,11 @@
             "counterparty": "IT Supply LLC",
             "contractAmount": "4580.00"
           },
+          "tags": [
+            "supply",
+            "IT",
+            "office"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -561,6 +631,9 @@
             "invoiceAmount": "5940.00",
             "dueDate": "2026-06-25"
           },
+          "tags": [
+            "IT"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -572,6 +645,9 @@
         },
         {
           "name": "Memo No. 41 — Company Cars",
+          "tags": [
+            "transport"
+          ],
           "date": "2026-05-27",
           "status": "ACTIVE",
           "versions": [
@@ -592,6 +668,10 @@
             "counterparty": "Clean City Service LLC",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "office",
+            "maintenance"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -611,6 +691,10 @@
             "counterparty": "Garden Business Center LLC",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "lease",
+            "office"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -630,6 +714,10 @@
             "counterparty": "OfficeInterior LLC",
             "contractAmount": "5000.00"
           },
+          "tags": [
+            "supply",
+            "office"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -650,6 +738,9 @@
             "contractAmount": "3070.00",
             "validUntil": "2027-03-31"
           },
+          "tags": [
+            "IT"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -688,6 +779,9 @@
             "counterparty": "ClimateMount LLC",
             "contractAmount": "1640.00"
           },
+          "tags": [
+            "office"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -707,6 +801,9 @@
             "counterparty": "EnergyReserve LLC",
             "contractAmount": "20800.00"
           },
+          "tags": [
+            "supply"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -725,6 +822,9 @@
             "contractKind": "services",
             "counterparty": "Express Courier Springfield LLC"
           },
+          "tags": [
+            "transport"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -744,6 +844,9 @@
             "counterparty": "TextileSupply LLC",
             "contractAmount": "2040.00"
           },
+          "tags": [
+            "supply"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -782,6 +885,9 @@
             "invoiceAmount": "804.00",
             "dueDate": "2025-08-21"
           },
+          "tags": [
+            "maintenance"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -801,6 +907,9 @@
             "counterparty": "North Point Leasing LLC",
             "contractAmount": "164000.00"
           },
+          "tags": [
+            "lease"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -820,6 +929,9 @@
             "counterparty": "ServiceMechanics LLC",
             "validUntil": "2025-12-31"
           },
+          "tags": [
+            "maintenance"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -855,6 +967,9 @@
           "documents": [
             {
               "name": "Vacation Schedule 2027",
+              "tags": [
+                "HR"
+              ],
               "versions": [
                 {
                   "file": "vacation-schedule-2027.pdf",
@@ -876,6 +991,9 @@
             "department": "Procurement Department",
             "hireDate": "2026-09-01"
           },
+          "tags": [
+            "HR"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -894,6 +1012,9 @@
             "department": "Procurement Department",
             "hireDate": "2026-09-01"
           },
+          "tags": [
+            "HR"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -914,6 +1035,9 @@
       "documents": [
         {
           "name": "Supply Agreement No. 61 — Draft",
+          "tags": [
+            "supply"
+          ],
           "versions": [
             {
               "file": "supply-61-draft.pdf",

@@ -6,11 +6,13 @@ import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestTags;
 import io.jmix.aitools.dataload.execution.GeneratedJpqlParameter;
 import io.jmix.aitools.dataload.execution.GeneratedJpqlResult;
 import io.jmix.aitools.dataload.execution.JpqlExecutionParameter;
@@ -24,6 +26,7 @@ import io.jmix.aitools.dataload.validation.JpqlValidationIssue;
 import io.jmix.aitools.dataload.validation.JpqlValidationService;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.SystemAuthenticator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +37,7 @@ import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,8 +50,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 /**
- * What the data tools of the AI Tools add-on give the assistant in the menu: the documents, the folders and
- * the document types, and of them only what the person who asks may open, wherever a query reaches them.
+ * What the data tools of the AI Tools add-on give the assistant in the menu: the documents, the folders, the document
+ * types and the tags, and of them only what the person who asks may open, wherever a query reaches them.
  */
 @SpringBootTest(classes = {DMSApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -76,6 +80,12 @@ class AssistantDataBoundaryTest {
     @Autowired
     private DataManager dataManager;
 
+    @Autowired
+    private UnconstrainedDataManager unconstrainedDataManager;
+
+    @Autowired
+    private AssistantChatPromptProvider promptProvider;
+
     @TempDir
     private Path tempDir;
 
@@ -101,7 +111,7 @@ class AssistantDataBoundaryTest {
     }
 
     @Test
-    void theModelLearnsOfTheDocumentsTheFoldersAndTheTypesOnly() {
+    void theModelLearnsOfTheDocumentsTheFoldersTheTypesAndTheTagsOnly() {
         List<String> entities = asTheEmployee(() -> discovery.getAvailableEntities(toolContext())
                 .stream()
                 .map(EntitySummary::getEntityName)
@@ -115,8 +125,8 @@ class AssistantDataBoundaryTest {
                 .map(EntityPropertyDescriptor::getName)
                 .toList());
 
-        assertThat(entities).containsExactlyInAnyOrder("Document", "Folder", "dynat_Category");
-        assertThat(attributes).contains("name", "folder", "category", "status", "documentDate")
+        assertThat(entities).containsExactlyInAnyOrder("Document", "Folder", "dynat_Category", "Tag");
+        assertThat(attributes).contains("name", "folder", "category", "tags", "status", "documentDate")
                 .doesNotContain("nameKey", "accessSet", "currentRevision", "revisions");
     }
 
@@ -138,6 +148,26 @@ class AssistantDataBoundaryTest {
 
         assertThat(total(count)).isEqualTo(2);
         assertThat(asTheEmployee(() -> total(count))).isEqualTo(1);
+    }
+
+    @Test
+    void aCountByTagTellsEachPersonOfTheDocumentsTheyMayOpen() {
+        Tag lease = TestTags.tag(unconstrainedDataManager, "Lease " + UUID.randomUUID().toString().substring(0, 8));
+        TestTags.tagged(unconstrainedDataManager, upload(open, "visible.txt"), lease);
+        TestTags.tagged(unconstrainedDataManager, TestAccess.giveOwnAccess(dataManager, upload(open, "hidden.txt"),
+                Grant.user("maria", AccessLevel.VIEW)), lease);
+        String count = "select count(d) as total from Document d join d.tags t where t.name = :tag"
+                + " and d.name like :prefix";
+        JpqlExecutionParameter tag = new JpqlExecutionParameter("tag", "String", lease.getName());
+
+        assertThat(totalOf(execute(count, List.of("total"), tag))).isEqualTo(2);
+        assertThat(asTheEmployee(() -> totalOf(execute(count, List.of("total"), tag)))).isEqualTo(1);
+    }
+
+    @Test
+    void theRulesNameTheTagsAmongWhatTheQueryToolsCountBy() throws IOException {
+        assertThat(promptProvider.getResource().getContentAsString(StandardCharsets.UTF_8))
+                .contains("by their folder, name, status, type, tags or date");
     }
 
     @Test
@@ -215,7 +245,12 @@ class AssistantDataBoundaryTest {
     }
 
     private long total(String jpql) {
-        Number total = (Number) execute(jpql, List.of("total")).getRows().getFirst().get("total");
+        return totalOf(execute(jpql, List.of("total")));
+    }
+
+    private static long totalOf(JpqlExecutionResult result) {
+        assertThat(result.getExecutionError()).isNull();
+        Number total = (Number) result.getRows().getFirst().get("total");
         assertThat(total).isNotNull();
 
         return total.longValue();

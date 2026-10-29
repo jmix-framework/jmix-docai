@@ -7,6 +7,7 @@ import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.document.UploadedFile;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.tag.TagService;
 import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.access.AccessEntryDraft;
 import com.company.dms.model.access.AccessLevel;
@@ -14,6 +15,7 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import io.jmix.core.DataManager;
 import io.jmix.core.Metadata;
 import io.jmix.core.SaveContext;
@@ -49,8 +51,10 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -58,7 +62,8 @@ import java.util.function.Function;
 
 /**
  * Loads a demo set into an empty database when the application starts: the folders under the root with their own
- * access, then the documents with their versions, types, fields, access and statuses, and last what lies in the trash.
+ * access, then the documents with their versions, types, fields, tags, access and statuses, and last what lies in
+ * the trash.
  * The set is chosen by {@code dms.demo-data} ({@code en}, {@code ru} or {@code none}); its description is
  * {@code com/company/dms/demo/<set>/demo-data.json}, the files of its versions lie in {@code files} next to it. A set
  * loads in one transaction, all of it or nothing.
@@ -117,6 +122,7 @@ public class DemoDataLoader {
     private final DocumentService documentService;
     private final AccessService accessService;
     private final DocumentClassifier documentClassifier;
+    private final TagService tagService;
     private final ResourceRoleRepository roleRepository;
     private final SystemAuthenticator systemAuthenticator;
     private final Metadata metadata;
@@ -133,6 +139,7 @@ public class DemoDataLoader {
                           DocumentService documentService,
                           AccessService accessService,
                           DocumentClassifier documentClassifier,
+                          TagService tagService,
                           ResourceRoleRepository roleRepository,
                           SystemAuthenticator systemAuthenticator,
                           Metadata metadata,
@@ -144,6 +151,7 @@ public class DemoDataLoader {
         this.documentService = documentService;
         this.accessService = accessService;
         this.documentClassifier = documentClassifier;
+        this.tagService = tagService;
         this.roleRepository = roleRepository;
         this.systemAuthenticator = systemAuthenticator;
         this.metadata = metadata;
@@ -194,7 +202,8 @@ public class DemoDataLoader {
     /**
      * Returns the problems of the description of the set without writing anything: a folder or a document without
      * a name or with the name of a neighbour, a document without versions, a missing file, an unknown user, role,
-     * level, status, type or field, and a field value its field does not accept.
+     * level, status, type or field, a field value its field does not accept, and a tag without a name, too long or
+     * written in another case elsewhere.
      */
     public List<String> check(String set) {
         // the type rules read the names of types and fields in the language of the current user
@@ -251,6 +260,7 @@ public class DemoDataLoader {
 
         List<String> problems = new ArrayList<>();
         checkFolders(set, description.folders(), "", users, problems);
+        checkTags(description.folders(), "", new HashMap<>(), problems);
 
         return problems;
     }
@@ -332,6 +342,33 @@ public class DemoDataLoader {
             checkType(document, where, problems);
             checkAccess(document.access(), where, users, problems);
             checkDeletion(document.deleted(), where, users, problems);
+        }
+    }
+
+    // the vocabulary keeps one tag for a name whatever its case, so a set writes a name one way
+    private static void checkTags(List<DemoSet.Folder> folders, String path, Map<String, String> spellings,
+                                  List<String> problems) {
+        for (DemoSet.Folder folder : folders) {
+            String folderPath = path + "/" + folder.name();
+
+            for (DemoSet.Document document : folder.documents()) {
+                String where = folderPath + "/" + document.name();
+
+                for (String tag : document.tags()) {
+                    String spelling = isBlank(tag) ? null : spellings.putIfAbsent(tag.toLowerCase(Locale.ROOT), tag);
+
+                    if (isBlank(tag)) {
+                        problems.add(where + ": a tag has no name");
+                    } else if (tag.length() > Tag.MAX_NAME_LENGTH) {
+                        problems.add(where + ": the tag '" + tag + "' is longer than " + Tag.MAX_NAME_LENGTH
+                                + " characters");
+                    } else if (spelling != null && !spelling.equals(tag)) {
+                        problems.add(where + ": the tag '" + tag + "' is written '" + spelling + "' elsewhere");
+                    }
+                }
+            }
+
+            checkTags(folder.folders(), folderPath, spellings, problems);
         }
     }
 
@@ -426,6 +463,10 @@ public class DemoDataLoader {
         draft.setFolder(folder);
         draft.setName(description.name());
         draft.setDocumentDate(description.date());
+        // the document service saves a new tag with the document and finds the one an earlier document brought
+        draft.setTags(new ArrayList<>(description.tags().stream()
+                .map(tagService::findOrCreate)
+                .toList()));
 
         if (description.type() != null) {
             documentClassifier.apply(proposalOf(description), draft);
@@ -597,7 +638,7 @@ public class DemoDataLoader {
                         field.getValue()))
                 .toList();
 
-        return new ClassificationProposal(document.type(), fields, null);
+        return new ClassificationProposal(document.type(), fields, null, List.of());
     }
 
     private static ClassPathResource file(String set, String file) {

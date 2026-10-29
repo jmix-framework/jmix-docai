@@ -142,12 +142,14 @@ class DocumentAssistantToolsTest {
         model.willReply("""
                 {"type": "Invoice",
                  "fields": [{"code": "supplier", "value": "Harbour Logistics LLC"}],
-                 "documentDate": "2026-11-01"}""");
+                 "documentDate": "2026-11-01",
+                 "tags": ["Logistics", "Freight"]}""");
 
         String proposal = tools.proposeTypeAndFields("Classifying the invoice", invoice.getId().toString(),
                 asTheEmployee());
 
-        assertThat(proposal).contains("Invoice", "supplier = Harbour Logistics LLC", "2026-11-01");
+        assertThat(proposal).contains("Invoice", "supplier = Harbour Logistics LLC", "2026-11-01",
+                "Tags: Logistics, Freight");
         assertThat(dataManager.load(Id.of(invoice)).one().getCategory()).isNull();
     }
 

@@ -5,9 +5,11 @@
         <item view="RepositoryView" title="msg://com.company.dms.view.repository/repositoryView.title"
               icon="FOLDER_OPEN"/>
         <item view="User.list" title="msg://com.company.dms.view.user/UserListView.title" icon="USERS"/>
-        <!-- the items of the add-ons stay in their groups under the view ids, so these two need ids of their own -->
+        <!-- the items of the add-ons stay in their groups under the view ids, so the document types and the assistant
+             need ids of their own -->
         <item id="documentTypes" view="dynat_CategoryView.list"
               title="msg://com.company.dms/menu.documentTypes.title" icon="FILE_TEXT_O"/>
+        <item view="Tag.list" title="msg://com.company.dms.view.tag/tagListView.title" icon="TAGS"/>
         <item id="assistantChat" view="aitls_AiChatHubView"
               title="msg://com.company.dms/menu.assistantChat.title" icon="COMMENTS_O"/>
         <item view="TrashView" title="msg://com.company.dms.view.trash/trashView.title" icon="TRASH"/>

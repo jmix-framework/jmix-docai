@@ -12,6 +12,7 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.security.role.EmployeeRole;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.TestTrash;
@@ -251,6 +252,12 @@ class DemoDataLoaderTest {
         assertThat(document.getCategory() == null ? null : document.getCategory().getName())
                 .isEqualTo(description.type());
         assertFields(description, document);
+        assertThat(dataManager.load(Document.class)
+                .id(document.getId())
+                .fetchPlan(fetchPlan -> fetchPlan.add("tags", FetchPlan.BASE))
+                .hint(PersistenceHints.SOFT_DELETION, false)
+                .one()
+                .getTags()).extracting(Tag::getName).containsExactlyInAnyOrderElementsOf(description.tags());
 
         List<DemoSet.Version> versions = description.versions();
         List<DocumentRevision> revisions = dataManager.load(DocumentRevision.class)
@@ -294,7 +301,7 @@ class DemoDataLoaderTest {
                 .stream()
                 .map((Map.Entry<String, String> field) -> new ClassificationProposal.Field(field.getKey(),
                         field.getValue()))
-                .toList(), null), expected);
+                .toList(), null, List.of()), expected);
 
         for (String code : description.fields().keySet()) {
             Object value = EntityValues.getValue(document, "+" + code);

@@ -17,6 +17,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Role Model](#-role-model)
 - [Access](#-access)
 - [Trash](#️-trash)
+- [Tags](#️-tags)
 - [Document Types](#-document-types)
 - [Full-Text Search](#-full-text-search)
 - [Semantic Search](#-semantic-search)
@@ -39,7 +40,7 @@ The application grows in this order:
 
 Steps 1 to 9 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files or by the meaning of a query, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, ask the AI assistant in the menu about the documents, the folders and the document types, and discuss a selection of documents with the AI beside the document table. An empty database gets a demo set of documents in English or Russian at the first start.
 
-Of the later features, the trash is in place: deleted folders and documents can be previewed and restored, and the administrator deletes them forever.
+Of the later features, the trash and tags are in place: deleted folders and documents can be previewed and restored, and the administrator deletes them forever; documents carry tags of a shared vocabulary, and a tag finds its documents across the folders.
 
 ## 🛠️ Technical Stack
 
@@ -151,14 +152,14 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 
 The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the application works as before and shows none of them. They run on [Spring AI](https://docs.spring.io/spring-ai/reference/): another provider, a local model included, takes a different Spring AI starter, its properties and a new check in `AiSettings`, which turns the AI features on while the OpenAI key is set.
 
-- **Fill with AI.** The button in the header of the document card reads the file the card shows, the saved one or a file just uploaded, and fills the type of the document, the fields of the type and the document date. The values go into the form only: you check them and save the document as usual. A document that already has a type or a date asks before the AI replaces them.
+- **Fill with AI.** The button in the header of the document card reads the file the card shows, the saved one or a file just uploaded, and fills the type of the document, the fields of the type and the document date, and adds up to three tags to those the document has (see [Tags](#️-tags)). The values go into the form only: you check them and save the document as usual. A document that already has a type or a date asks before the AI replaces them.
 - The types and their fields come from the document types the administrator defines, so a new type or field reaches the AI without a change of the code. Fields that hold a list of values or a reference to another record are left for you to fill.
 - The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`dms.ai.max-text-length`), and the AI is told where the text stops.
 - **Assistant.** The Assistant tab of a saved document is a chat with the AI about the document, next to its preview. Ask in your own words or take a suggestion, "Summary" or "Dates and amounts". The AI reads the text of the saved current version with your rights: a version that waits for OK is not what it reads. While it reads, the chat shows what it does in the AI's own words, and the answer appears as the AI writes it. The conversation lasts while the card is open and is not stored.
-- **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask which documents there are, how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent or fall due before a date, or what a document says: the AI knows the document types and their fields, writes queries over the documents, the folders and the document types, finds documents by a value or a range of the fields of their types and reads the text of a document. It finds the passages of the documents by meaning, for a question about what the documents say or which of them concern something (see [Semantic Search](#-semantic-search)), and answers with quotes. It answers in the language of the question and names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
+- **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask which documents there are, how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent or fall due before a date, or what a document says: the AI knows the document types and their fields, writes queries over the documents, the folders, the document types and the tags, counts and lists documents by their tags, finds documents by a value or a range of the fields of their types and reads the text of a document. It finds the passages of the documents by meaning, for a question about what the documents say or which of them concern something (see [Semantic Search](#-semantic-search)), and answers with quotes. It answers in the language of the question and names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
 - **Discuss with AI.** Select documents in the table and choose Discuss with AI on the toolbar or in the context menu: a window opens on the right with the selection and a chat about it. The table stays in use: open other folders and drag rows into the window, or select documents and choose the action again, and they join the selection. A document is in it once, and up to 10 documents fit (`dms.ai.discussion.max-documents`). The name of a document in the selection opens its card, and its cross takes it out. Ask anything about the documents, or start with the suggestion "Briefly about each": with every question the AI is told the documents of the selection you may open, reads their text when the question needs it and may search the other documents too. The first question saves the discussion in the history of the assistant in the menu, named after the question, and Open in the full chat continues it there: the AI still knows the selection, though the full chat does not show it. A link to a document in an answer opens its card over the window, as the name in the selection does. A window closed before the first question leaves nothing behind, and leaving the repository closes the window.
 - The assistant in the menu sees only what you may open: the rights to documents and folders apply to every entity a query reads, whatever names the query gives them, and a query that reads documents where the rights cannot apply is refused. Access sets, access entries, users and versions are closed to it in the code (`@ExcludeFromAi`), so a setting cannot open them.
-- To fill a document, the OpenAI model gets the text of the file, the name of the document and the document types with their fields; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders and the types, the document types with their fields, the rows of its queries and searches (names, dates, statuses, folders, types, who uploaded the documents and when, and the values of their fields), the passages it finds by meaning, and the text of a document it reads. A discussion sends the model, besides, the names, the ids, the types and the dates of the documents of the selection you may open, with every question. The semantic search sends the texts of all documents to OpenAI, see [Semantic Search](#-semantic-search).
+- To fill a document, the OpenAI model gets the text of the file, the name of the document, the document types with their fields and the names of all the tags; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders, the types and the tags, the document types with their fields, the rows of its queries and searches (names, dates, statuses, folders, types, tags, who uploaded the documents and when, and the values of their fields), the passages it finds by meaning, and the text of a document it reads. A discussion sends the model, besides, the names, the ids, the types and the dates of the documents of the selection you may open, with every question. The semantic search sends the texts of all documents to OpenAI, see [Semantic Search](#-semantic-search).
 
 The pages of the application load pictures, media, styles and fonts from the application only (`Content-Security-Policy` with `img-src`, `media-src`, `style-src` and `font-src`): an answer in Markdown cannot send data to another site in the address of a picture, a sound, a video, a style or a font.
 
@@ -184,6 +185,8 @@ Both sets have the same folders, people and scenes:
 | HR | HR department manages | A hiring order and an employment contract |
 | HR / Vacations | HR department manages, every employee views | The vacation schedule |
 | Trash | As before the deletion | The Drafts folder with two drafts, deleted by Alice, and the first edition of Lease Agreement No. 112, deleted by John from Contracts: preview and restore them, or delete them forever as `admin` |
+
+Both sets tag 39 documents with seven tags, such as *lease*, *supply* and *IT*, that cross the folders: *lease* marks leases in Contracts, Procurement and Archive 2025, so the page of the tag is shorter for `peter`. The scans of the Inbox have no tags: **Fill with AI** proposes them. No tag names farm machinery.
 
 The corpus holds 12 documents about farm machinery, such as a tractor lease, a combine harvester purchase and a memo about a baler, and 18 about other machinery and goods. None of them says "agricultural": search by words for *agricultural machinery* finds nothing, *tractor* and *combine* find a few documents each, and **AI search** finds the 12. Signed in as `peter`, who may not open Archive 2025, the AI search finds 9. Search by words for *fumigation* finds the one contract that has the word inside its PDF only; the Russian set has the Russian word for it.
 
@@ -270,6 +273,9 @@ classDiagram
     class DiscussedDocument {
         position
     }
+    class Tag {
+        name
+    }
     Folder "0..1" <-- "*" Folder : parent
     Folder "1" <-- "*" Document : folder
     Document "1" *-- "1..*" DocumentRevision : revisions
@@ -278,6 +284,7 @@ classDiagram
     Folder --> AccessSet : accessSet
     Document --> AccessSet : accessSet
     Document --> Category : category
+    Document "*" --> "*" Tag : tags
     Category "1" *-- "*" CategoryAttribute : categoryAttrs
     AccessSet "1" *-- "*" AccessEntry : entries
     AccessEntry --> AccessLevel : accessLevel
@@ -287,8 +294,9 @@ classDiagram
 - One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
 - A revision never changes. A new file or a restored version adds a revision, and the document points to its current one.
 - A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date, type, fields and versions until it returns to Active.
-- "Modified by" and "Modified" show who changed the document itself and when: a new version, name, date, type, field or status. A move or an access change leaves them as they are, while the Jmix audit stamps of the record change with every save.
+- "Modified by" and "Modified" show who changed the document itself and when: a new version, name, date, type, field or status. A move, an access change or a change of tags leaves them as they are, while the Jmix audit stamps of the record change with every save.
 - The type of a document is a category of the Dynamic Attributes add-on (`Category`), and the fields of the type are its attributes (`CategoryAttribute`), properties of the document named `+code`.
+- A document carries tags of a shared vocabulary (`Tag`, many-to-many owned by the document): a tag knows nothing of its documents, and a tag that a document carries, one in the trash included, is not deleted.
 - Folders, documents and revisions are deleted softly, into the [trash](#️-trash). Deleting a folder takes its subtree, and restoring it brings back what was deleted with it.
 - A discussion with the AI keeps its selection of documents in `DiscussedDocument`, beside the conversation of the AI Tools add-on: the conversation, a document and its place in the selection. Removing the conversation removes its selection. A deleted document, or one the person may no longer open, drops out of the selection.
 - A folder and a document point to the access set in effect: their parent's or their own. An access set belongs to one folder or document, and each of its entries gives a user or a role a level.
@@ -306,6 +314,8 @@ classDiagram
 A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.
 
 Deleting from the trash forever needs the specific policy `dms.trash.purge`: Full Access has it, the Employee role does not.
+
+Employees set the tags of the documents they may edit and add new tags from the document card; Full Access renames and deletes them in the view **Tags**.
 
 The Employee role may change every attribute of a document. The fields of document types are attributes that the administrator adds later, so a role cannot list them. Attribute policies guard only the views: what is written is decided by the document service, and the Edit level is checked there and by `access-rl`.
 
@@ -340,6 +350,17 @@ Deleted folders and documents go to the trash, which opens from the main menu.
 
 What comes back together is what the restore of Jmix takes (`EntityRestore` of Data Tools): the rows deleted within a second of their parent. A document deleted on its own before its folder stays a separate item.
 
+## 🏷️ Tags
+
+Documents carry tags of a shared vocabulary, such as *lease*, *supply* or *IT*, and a tag finds all the documents with it across the folders.
+
+- The card has a **Tags** field next to the date of the document. Typing shows the tags of the vocabulary; a name it does not have becomes a new tag with Enter, and the new tag joins the vocabulary when the card is saved. *Lease* and *lease* are one tag.
+- The tags show next to the status in the card, in a column of the document list and in every search result. A click on a tag opens **Documents tagged ...**: the live documents with the tag that the person may open, from all folders, the latest changed first. The card asks about unsaved changes before it closes for the page.
+- Whoever may edit a document sets its tags, also of an archived one; a change of tags is no change of the document and keeps **Modified**. Only the administrator renames and deletes tags, under **Application > Tags**. A tag that a document carries, one in the trash included, cannot be deleted.
+- Search by words finds a document by the names of its tags, and by the new name after a tag is renamed.
+- **Fill with AI** adds up to three tags to those of the person: tags of the vocabulary, and one new tag only when none fits. The assistant in the menu counts and lists documents by tags.
+- The vocabulary is shared: every employee sees the names of the tags, so a tag is no place for what not everyone may know.
+
 ## 📋 Document Types
 
 A document may have a type, and each type has fields of its own. Types and fields are categories and attributes of the [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html) add-on, so the administrator adds them in the application, with no code and no restart.
@@ -359,10 +380,10 @@ A document may have a type, and each type has fields of its own. Types and field
 
 ## 🔎 Full-Text Search
 
-The search field in the header finds documents by the words of their files: the text of a PDF, DOC, DOCX, XLS, XLSX, ODT, ODS, RTF or TXT file of the current version, the document name, the file name and the text fields of the document type. Search runs on the [Search](https://docs.jmix.io/jmix/search/index.html) add-on with OpenSearch.
+The search field in the header finds documents by the words of their files: the text of a PDF, DOC, DOCX, XLS, XLSX, ODT, ODS, RTF or TXT file of the current version, the document name, the file name, the names of the tags of the document and the text fields of the document type. Search runs on the [Search](https://docs.jmix.io/jmix/search/index.html) add-on with OpenSearch.
 
 - Word forms match in Russian and in English: "contracts" finds "contract", and a Russian word finds its other forms as well.
-- The results show the documents a user may see, 20 at a time with **Show more**: the folder, the type, the status and the text around the found words. A click on the name opens the document card. The results never tell how many other documents match.
+- The results show the documents a user may see, 20 at a time with **Show more**: the folder, the type, the status, the tags and the text around the found words. A click on the name opens the document card. The results never tell how many other documents match.
 - Not searched: the status, the folder, the type name, older versions, and numbers and dates, which the add-on does not index.
 - Changes reach the search within seconds: the add-on puts them into a queue, and a [Quartz](https://docs.jmix.io/jmix/quartz/index.html) job sends it to OpenSearch every five seconds. A deleted document leaves the search at once.
 - On start, the application fills an empty index with all documents, for example after the index schema changes.

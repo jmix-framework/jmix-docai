@@ -6,15 +6,19 @@ import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.model.user.User;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
 import com.company.dms.test_support.TestFiles;
 import com.company.dms.test_support.TestGrids;
+import com.company.dms.test_support.TestTags;
 import com.company.dms.test_support.TestUploads;
 import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.folder.FolderDetailView;
 import com.company.dms.view.folder.FolderLookupView;
 import com.company.dms.view.main.MainView;
+import com.company.dms.view.search.DocumentSearchView;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -31,6 +35,7 @@ import com.vaadin.flow.server.StreamResourceRegistry;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.streams.ElementRequestHandler;
 import io.jmix.core.DataManager;
+import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.MetadataTools;
@@ -51,6 +56,7 @@ import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.testassist.notification.NotificationInfo;
+import io.jmix.flowui.view.View;
 import io.jmix.flowui.upload.TemporaryStorage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,6 +102,9 @@ class RepositoryViewTest {
 
     @Autowired
     private UserSettingsCache userSettingsCache;
+
+    @Autowired
+    private EntityStates entityStates;
 
     @TempDir
     private Path tempDir;
@@ -553,6 +562,32 @@ class RepositoryViewTest {
         assertThat(grid.getColumns()).extracting(Grid.Column::getKey).startsWith("name", "category");
         assertThat(items).isNotNull();
         assertThat(items.getItems()).extracting(Document::getCategory).containsExactly(contract);
+    }
+
+    @Test
+    void theTagsFollowTheTypeAndAClickOnOneOpensThePageOfTheTag() {
+        String lease = "Lease " + UUID.randomUUID().toString().substring(0, 8);
+        Tag tag = TestTags.tag(unconstrainedDataManager, lease);
+        TestTags.tagged(unconstrainedDataManager, upload(sandbox, "a.txt"), tag);
+
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        DataGridItems<Document> items = grid.getItems();
+        assertThat(items).isNotNull();
+        Document document = items.getItems().iterator().next();
+        Component tags = TestGrids.render(grid, "tags", document);
+        Grid.Column<Document> tagsColumn = grid.getColumnByKey("tags");
+        assertThat(tagsColumn).isNotNull();
+
+        assertThat(grid.getColumns()).extracting(Grid.Column::getKey).startsWith("name", "category", "tags");
+        assertThat(tagsColumn.isSortable()).isFalse();
+        assertThat(entityStates.isLoaded(document, "tags")).isTrue();
+        assertThat(TestTags.names(tags)).containsExactly(lease);
+
+        TestTags.click(tags, lease);
+
+        assertThat((View<?>) UiTestUtils.getCurrentView()).isInstanceOf(DocumentSearchView.class);
+        assertThat(TestTags.tagInAddress()).hasValue(lease);
     }
 
     @Test

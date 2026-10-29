@@ -49,6 +49,9 @@
             "contractAmount": "4620000.00",
             "validUntil": "2027-02-28"
           },
+          "tags": [
+            "аренда"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -79,6 +82,9 @@
             "contractAmount": "222000.00",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "обслуживание"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -119,6 +125,10 @@
             "contractAmount": "960000.00",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "поставка",
+            "офис"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -138,6 +148,9 @@
             "counterparty": "ООО «Невский квартал»",
             "validUntil": "2025-06-30"
           },
+          "tags": [
+            "аренда"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -158,6 +171,9 @@
             "contractAmount": "300000.00",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "кадры"
+          ],
           "status": "ACTIVE",
           "access": [
             {
@@ -193,6 +209,9 @@
             "contractKind": "lease",
             "counterparty": "ООО «Ветер»"
           },
+          "tags": [
+            "аренда"
+          ],
           "status": "ACTIVE",
           "deleted": {
             "by": "john",
@@ -221,6 +240,10 @@
             "invoiceAmount": "84600.00",
             "dueDate": "2026-11-30"
           },
+          "tags": [
+            "поставка",
+            "офис"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -240,6 +263,9 @@
             "invoiceAmount": "57300.00",
             "dueDate": "2026-09-26"
           },
+          "tags": [
+            "транспорт"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -284,6 +310,9 @@
             "contractAmount": "435000.00",
             "validUntil": "2026-05-31"
           },
+          "tags": [
+            "аренда"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -303,6 +332,9 @@
             "counterparty": "ООО «ТехноТрейд Центр»",
             "contractAmount": "16400000.00"
           },
+          "tags": [
+            "поставка"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -314,6 +346,9 @@
         },
         {
           "name": "Спецификация № 2 к договору поставки № 31/2026",
+          "tags": [
+            "поставка"
+          ],
           "date": "2026-03-20",
           "status": "ACTIVE",
           "versions": [
@@ -334,6 +369,9 @@
             "workCompletedOn": "2026-06-09",
             "basisContract": "24/2026"
           },
+          "tags": [
+            "поставка"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -372,6 +410,9 @@
             "counterparty": "ООО «Волготехснаб»",
             "contractAmount": "4380000.00"
           },
+          "tags": [
+            "поставка"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -391,6 +432,9 @@
             "invoiceAmount": "528000.00",
             "dueDate": "2026-04-09"
           },
+          "tags": [
+            "поставка"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -402,6 +446,9 @@
         },
         {
           "name": "Служебная записка № 18",
+          "tags": [
+            "обслуживание"
+          ],
           "date": "2026-05-19",
           "status": "ACTIVE",
           "versions": [
@@ -422,6 +469,9 @@
             "counterparty": "ООО «Техноресурс-Поставка»",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "поставка"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -442,6 +492,9 @@
             "contractAmount": "256000.00",
             "validUntil": "2026-03-31"
           },
+          "tags": [
+            "аренда"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -472,6 +525,9 @@
         },
         {
           "name": "Заявка № 112 на услуги автокрана",
+          "tags": [
+            "транспорт"
+          ],
           "date": "2026-03-17",
           "status": "ACTIVE",
           "versions": [
@@ -492,6 +548,9 @@
             "workCompletedOn": "2026-01-14",
             "basisContract": "2/2026"
           },
+          "tags": [
+            "поставка"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -503,6 +562,9 @@
         },
         {
           "name": "Заявка АХО № 29",
+          "tags": [
+            "обслуживание"
+          ],
           "date": "2026-04-21",
           "status": "ACTIVE",
           "versions": [
@@ -523,6 +585,9 @@
             "counterparty": "ООО «ПогрузТехСервис»",
             "validUntil": "2027-01-31"
           },
+          "tags": [
+            "обслуживание"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -542,6 +607,11 @@
             "counterparty": "ООО «ИТ-Снаб»",
             "contractAmount": "412300.00"
           },
+          "tags": [
+            "поставка",
+            "ИТ",
+            "офис"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -561,6 +631,9 @@
             "invoiceAmount": "535800.00",
             "dueDate": "2026-06-25"
           },
+          "tags": [
+            "ИТ"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -572,6 +645,9 @@
         },
         {
           "name": "Служебная записка № 41 — служебные автомобили",
+          "tags": [
+            "транспорт"
+          ],
           "date": "2026-05-27",
           "status": "ACTIVE",
           "versions": [
@@ -592,6 +668,10 @@
             "counterparty": "ООО «Чистый Город Сервис»",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "офис",
+            "обслуживание"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -611,6 +691,10 @@
             "counterparty": "ООО «Садовый Бизнес-Центр»",
             "validUntil": "2026-12-31"
           },
+          "tags": [
+            "аренда",
+            "офис"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -630,6 +714,10 @@
             "counterparty": "ООО «ОфисИнтерьер»",
             "contractAmount": "449800.00"
           },
+          "tags": [
+            "поставка",
+            "офис"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -650,6 +738,9 @@
             "contractAmount": "276000.00",
             "validUntil": "2027-03-31"
           },
+          "tags": [
+            "ИТ"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -688,6 +779,9 @@
             "counterparty": "ООО «КлиматМонтаж»",
             "contractAmount": "147900.00"
           },
+          "tags": [
+            "офис"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -707,6 +801,9 @@
             "counterparty": "ООО «ЭнергоРезерв»",
             "contractAmount": "1870000.00"
           },
+          "tags": [
+            "поставка"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -725,6 +822,9 @@
             "contractKind": "services",
             "counterparty": "ООО «Экспресс-Курьер Москва»"
           },
+          "tags": [
+            "транспорт"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -744,6 +844,9 @@
             "counterparty": "ООО «ТекстильСнаб»",
             "contractAmount": "182880.00"
           },
+          "tags": [
+            "поставка"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -782,6 +885,9 @@
             "invoiceAmount": "72180.00",
             "dueDate": "2025-08-21"
           },
+          "tags": [
+            "обслуживание"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -801,6 +907,9 @@
             "counterparty": "ООО «Северный Лизинг»",
             "contractAmount": "14800000.00"
           },
+          "tags": [
+            "аренда"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -820,6 +929,9 @@
             "counterparty": "ООО «СервисМеханика»",
             "validUntil": "2025-12-31"
           },
+          "tags": [
+            "обслуживание"
+          ],
           "status": "ARCHIVED",
           "versions": [
             {
@@ -855,6 +967,9 @@
           "documents": [
             {
               "name": "График отпусков на 2027 год",
+              "tags": [
+                "кадры"
+              ],
               "versions": [
                 {
                   "file": "vacation-schedule-2027.pdf",
@@ -876,6 +991,9 @@
             "department": "Отдел закупок",
             "hireDate": "2026-09-01"
           },
+          "tags": [
+            "кадры"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -894,6 +1012,9 @@
             "department": "Отдел закупок",
             "hireDate": "2026-09-01"
           },
+          "tags": [
+            "кадры"
+          ],
           "status": "ACTIVE",
           "versions": [
             {
@@ -914,6 +1035,9 @@
       "documents": [
         {
           "name": "Договор поставки № 61 — черновик",
+          "tags": [
+            "поставка"
+          ],
           "versions": [
             {
               "file": "supply-61-draft.pdf",

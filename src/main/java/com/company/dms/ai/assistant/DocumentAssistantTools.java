@@ -83,10 +83,11 @@ public class DocumentAssistantTools implements JmixAiTool {
     }
 
     /**
-     * Proposes the type of a document and the values of its fields from its text, without saving anything.
+     * Proposes the type of a document, the values of its fields and its tags from its text, without saving anything.
      */
     @Tool(name = "dms_proposeTypeAndFields",
-            description = "Proposes the type of a document and the values of its fields from its text; saves nothing")
+            description = "Proposes the type of a document, the values of its fields and its tags from its text;"
+                    + " saves nothing")
     public String proposeTypeAndFields(@ToolParam(description = STATUS) String status,
                                        @ToolParam(description = DOCUMENT_ID) String documentId,
                                        ToolContext context) {
@@ -158,6 +159,7 @@ public class DocumentAssistantTools implements JmixAiTool {
                 .map(field -> field.code() + " = " + field.value())
                 .collect(Collectors.joining("; "));
 
-        return "Type: %s%nFields: %s%nDocument date: %s".formatted(proposal.type(), fields, proposal.documentDate());
+        return "Type: %s%nFields: %s%nDocument date: %s%nTags: %s".formatted(proposal.type(), fields,
+                proposal.documentDate(), String.join(", ", proposal.tags()));
     }
 }

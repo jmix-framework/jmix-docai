@@ -7,6 +7,7 @@ import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
@@ -28,7 +29,6 @@ import io.jmix.search.index.mapping.IndexConfigurationManager;
 import io.jmix.search.index.queue.IndexingQueueManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -43,6 +43,7 @@ import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -55,7 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Full-text search against OpenSearch from {@code compose.yaml}: what is found, by whom, and what leaves
  * the index. Runs only with {@code ./gradlew searchTest}.
  */
-@Tag("search")
+@org.junit.jupiter.api.Tag("search")
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)
 class DocumentSearchTest {
@@ -216,6 +217,51 @@ class DocumentSearchTest {
         // the file of the version keeps its name
         assertThat(hitOf(documentSearch.search(oldName), document).field())
                 .isEqualTo(messages.getMessage(DocumentSearch.class, "fileName"));
+    }
+
+    @Test
+    void aDocumentIsFoundByTheNameOfItsTag() {
+        String word = token();
+        Document document = upload(sandbox, "Nothing about the tag here.");
+        index();
+
+        tagged(document, tag(word));
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.search(word), document);
+        assertThat(hit.field()).isEqualTo(messageTools.getPropertyCaption(metadata.getClass(Document.class), "tags"));
+        assertThat(hit.snippet()).contains("<b>" + word + "</b>");
+    }
+
+    @Test
+    void aDocumentIsFoundByTheNewNameOfItsRenamedTagAndNotByTheOldOne() {
+        String oldWord = token();
+        String newWord = token();
+        Tag tag = tag(oldWord);
+        Document document = upload(sandbox, "Nothing about the tag here.");
+        tagged(document, tag);
+        index();
+
+        Tag renamed = dataManager.load(Id.of(tag)).one();
+        renamed.setName(newWord);
+        dataManager.save(renamed);
+        index();
+
+        assertThat(ids(documentSearch.search(newWord))).containsExactly(document.getId());
+        assertThat(ids(documentSearch.search(oldWord))).doesNotContain(document.getId());
+    }
+
+    @Test
+    void aDocumentIsNotFoundByATagTakenOffIt() {
+        String word = token();
+        Document document = upload(sandbox, "Nothing about the tag here.");
+        tagged(document, tag(word));
+        index();
+
+        tagged(document);
+        index();
+
+        assertThat(ids(documentSearch.search(word))).doesNotContain(document.getId());
     }
 
     @Test
@@ -450,6 +496,24 @@ class DocumentSearchTest {
                         .add("category", FetchPlan.INSTANCE_NAME))
                 .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
                 .one();
+    }
+
+    private Tag tag(String name) {
+        Tag tag = dataManager.create(Tag.class);
+        tag.setName(name);
+        return dataManager.save(tag);
+    }
+
+    // the tags as the card saves them
+    private void tagged(Document document, Tag... tags) {
+        Document edited = dataManager.load(Document.class)
+                .id(document.getId())
+                .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("folder", FetchPlan.BASE)
+                        .add("tags", FetchPlan.BASE))
+                .one();
+        edited.setTags(new ArrayList<>(List.of(tags)));
+        documentService.save(edited, null, null);
     }
 
     private Category contractType() {

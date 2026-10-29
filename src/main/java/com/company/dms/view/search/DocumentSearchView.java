@@ -1,8 +1,10 @@
 package com.company.dms.view.search;
 
 import com.company.dms.ai.AiSettings;
+import com.company.dms.app.service.tag.TagService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.search.DocumentSearch;
 import com.company.dms.search.DocumentSearchHit;
 import com.company.dms.search.DocumentSearchPage;
@@ -11,6 +13,7 @@ import com.company.dms.search.semantic.DocumentVectorIndexer;
 import com.company.dms.search.semantic.SemanticSearch;
 import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.main.MainView;
+import com.company.dms.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -34,6 +37,7 @@ import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.view.MessageBundle;
+import io.jmix.flowui.view.StandardOutcome;
 import io.jmix.flowui.view.StandardView;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewComponent;
@@ -45,13 +49,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 
 /**
  * The documents found by the words from the address, the most relevant first, a page at a time, or in the
  * {@link #AI_MODE} by meaning: at most {@link SemanticSearch#PAGE_DOCUMENTS} of the nearest documents that a model
- * confirmed, the nearest first. Every row shows the folder, the type, the status and the matched text of a document
+ * confirmed, the nearest first. With a {@link #TAG_PARAMETER} the page lists the documents with the tag instead, the
+ * latest changed first. Every row shows the folder, the type, the status, the tags and the matched text of a document
  * the user may see; how many other documents match is never shown.
  */
 @Route(value = "search", layout = MainView.class)
@@ -73,6 +79,11 @@ public class DocumentSearchView extends StandardView {
      * The mode of the search by meaning.
      */
     public static final String AI_MODE = "ai";
+
+    /**
+     * The address parameter with the name of a tag, whose documents the page lists.
+     */
+    public static final String TAG_PARAMETER = "tag";
 
     private static final Logger log = LoggerFactory.getLogger(DocumentSearchView.class);
 
@@ -96,6 +107,10 @@ public class DocumentSearchView extends StandardView {
 
     @Autowired
     private DocumentSearch documentSearch;
+    @Autowired
+    private TagService tagService;
+    @Autowired
+    private TagBadges tagBadges;
     @Autowired
     private SemanticSearch semanticSearch;
     @Autowired
@@ -123,6 +138,10 @@ public class DocumentSearchView extends StandardView {
 
     @Nullable
     private DocumentSearchPage lastPage;
+
+    @Nullable
+    private Tag shownTag;
+    private int taggedShown;
 
     private String query = "";
 
@@ -152,6 +171,8 @@ public class DocumentSearchView extends StandardView {
         searchNumber++;
         hitsBox.removeAll();
         lastPage = null;
+        shownTag = null;
+        setPageTitle(messageBundle.getMessage("documentSearchView.title"));
 
         showMoreButton.setVisible(false);
         searchByWordsButton.setVisible(false);
@@ -159,6 +180,15 @@ public class DocumentSearchView extends StandardView {
         foundText.setVisible(false);
         noteText.setVisible(false);
         query = queryOf(event.getQueryParameters());
+
+        Optional<String> tag = event.getQueryParameters().getSingleParameter(TAG_PARAMETER)
+                .map(String::strip)
+                .filter(name -> !name.isEmpty());
+
+        if (tag.isPresent()) {
+            showTag(tag.get());
+            return;
+        }
 
         if (query.isEmpty()) {
             showMessage("enterQuery");
@@ -189,9 +219,43 @@ public class DocumentSearchView extends StandardView {
     public void onShowMoreButtonClick(final ClickEvent<JmixButton> event) {
         DocumentSearchPage page = lastPage;
 
-        if (page != null) {
+        if (shownTag != null) {
+            loadTagged(shownTag);
+        } else if (page != null) {
             load(() -> documentSearch.next(page));
         }
+    }
+
+    private void showTag(String name) {
+        Tag tag = tagService.find(name).orElse(null);
+
+        if (tag == null) {
+            messageText.setText(messageBundle.formatMessage("tagNotFound", name));
+            messageText.setVisible(true);
+            return;
+        }
+
+        shownTag = tag;
+        taggedShown = 0;
+        setPageTitle(messageBundle.formatMessage("tagTitle", tag.getName()));
+        loadTagged(tag);
+
+        if (hitsBox.getComponentCount() == 0) {
+            messageText.setText(messageBundle.formatMessage("nothingTagged", tag.getName()));
+            messageText.setVisible(true);
+        }
+    }
+
+    // one document more than the page proves that the next page is not empty
+    private void loadTagged(Tag tag) {
+        List<DocumentSearchHit> hits = documentSearch.findTagged(tag, taggedShown, DocumentSearch.PAGE_SIZE + 1);
+
+        hits.stream()
+                .limit(DocumentSearch.PAGE_SIZE)
+                .forEach(hit -> hitsBox.add(createHitRow(hit)));
+
+        taggedShown += DocumentSearch.PAGE_SIZE;
+        showMoreButton.setVisible(hits.size() > DocumentSearch.PAGE_SIZE);
     }
 
     private void load(Supplier<DocumentSearchPage> search) {
@@ -282,7 +346,6 @@ public class DocumentSearchView extends StandardView {
         name.setIcon(icons.get(JmixFontIcon.FILE_TEXT));
         name.addClassName("document-search-name");
         name.addThemeVariants(ButtonVariant.TERTIARY);
-        name.addClickListener(event -> openCard(document));
 
         Div title = uiComponents.create(Div.class);
         title.addClassName("document-search-title");
@@ -295,6 +358,10 @@ public class DocumentSearchView extends StandardView {
         DocumentStatus status = document.getStatus();
         title.add(badge(messages.getMessage(status), DocumentDetailView.statusColor(status)));
 
+        if (!document.getTags().isEmpty()) {
+            title.add(tagBadges.create(document.getTags()));
+        }
+
         Span path = uiComponents.create(Span.class);
         path.addClassName("document-search-path");
         path.setText(String.join(" / ", hit.folderPath()));
@@ -302,6 +369,7 @@ public class DocumentSearchView extends StandardView {
         Div row = uiComponents.create(Div.class);
         row.addClassName("document-search-hit");
         row.add(title, path);
+        name.addClickListener(event -> openCard(hit, row));
 
         if (hit.snippet() != null) {
             row.add(createSnippet(hit.field(), hit.snippet()));
@@ -356,7 +424,9 @@ public class DocumentSearchView extends StandardView {
         return div;
     }
 
-    private void openCard(Document document) {
+    private void openCard(DocumentSearchHit hit, Component row) {
+        Document document = hit.document();
+
         // the card fails on a document deleted or hidden from the user since the search
         if (dataManager.load(Id.of(document)).optional().isEmpty()) {
             notifications.create(messages.getMessage(DocumentDetailView.class, "documentUnavailable"))
@@ -368,6 +438,25 @@ public class DocumentSearchView extends StandardView {
         dialogWindows.detail(this, Document.class)
                 .withViewClass(DocumentDetailView.class)
                 .editEntity(document)
+                .withAfterCloseListener(closeEvent -> {
+                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
+                        showSaved(hit, row);
+                    }
+                })
                 .open();
+    }
+
+    // the row shows the document as the card saved it; one the user may no longer see, or that lost the tag
+    // of the page, leaves the page
+    private void showSaved(DocumentSearchHit hit, Component row) {
+        Document saved = documentSearch.reload(hit.document())
+                .orElse(null);
+
+        if (saved == null || (shownTag != null && !saved.getTags().contains(shownTag))) {
+            hitsBox.remove(row);
+            return;
+        }
+
+        hitsBox.replace(row, createHitRow(new DocumentSearchHit(saved, hit.folderPath(), hit.field(), hit.snippet())));
     }
 }

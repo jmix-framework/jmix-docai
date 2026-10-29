@@ -3,6 +3,7 @@ package com.company.dms.search;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FetchPlanBuilder;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -35,7 +37,7 @@ import java.util.stream.Collectors;
  * Searches documents by words. The add-on finds them in the index, and every found document is read again through
  * {@link DataManager}, so the user gets only the live documents they may see. Nothing tells how many others match:
  * the index counts them too, so a page is filled with one document more than it shows, and that one proves that
- * the next page is not empty.
+ * the next page is not empty. Lists the documents with a tag the same way, from the database.
  */
 @Service
 public class DocumentSearch {
@@ -51,7 +53,9 @@ public class DocumentSearch {
     private static final String FILE_TEXT = "currentRevision.file._content";
     private static final String NAME = "name";
     private static final String FILE_NAME = "currentRevision.file._file_name";
-    private static final List<String> SNIPPET_ORDER = List.of(FILE_TEXT, NAME, FILE_NAME);
+    // the add-on names a hit in the instance names of a reference after the reference
+    private static final String TAGS = "tags";
+    private static final List<String> SNIPPET_ORDER = List.of(FILE_TEXT, NAME, FILE_NAME, TAGS);
 
     private final EntitySearcher entitySearcher;
     private final DataManager dataManager;
@@ -104,6 +108,35 @@ public class DocumentSearch {
         return page(page.result(), page.rest());
     }
 
+    /**
+     * Reads the document again as the search shows it, or nothing when the user may no longer see it.
+     */
+    public Optional<Document> reload(Document document) {
+        return dataManager.load(Document.class)
+                .id(document.getId())
+                .fetchPlan(DocumentSearch::fetchPlan)
+                .optional();
+    }
+
+    /**
+     * Returns the live documents with the tag that the user may see, the latest changed first: at most {@code max}
+     * of them from the position {@code first}.
+     */
+    public List<DocumentSearchHit> findTagged(Tag tag, int first, int max) {
+        Map<UUID, List<String>> paths = new HashMap<>();
+
+        return dataManager.load(Document.class)
+                .query("select d from Document d join d.tags t where t = :tag order by d.changedDate desc, d.name")
+                .parameter("tag", tag)
+                .firstResult(first)
+                .maxResults(max)
+                .fetchPlan(DocumentSearch::fetchPlan)
+                .list()
+                .stream()
+                .map(document -> new DocumentSearchHit(document, pathOf(document.getFolder(), paths), null, null))
+                .toList();
+    }
+
     private DocumentSearchPage page(SearchResult result, List<DocumentSearchHit> found) {
         List<DocumentSearchHit> hits = new ArrayList<>(found);
         SearchResult last = result;
@@ -145,12 +178,7 @@ public class DocumentSearch {
     }
 
     private DocumentSearchHit hit(Document document, SearchResultEntry entry, Map<UUID, List<String>> paths) {
-        Folder folder = document.getFolder();
-
-        List<String> path = paths.computeIfAbsent(folder.getId(), id -> folderService.getPath(folder).stream()
-                .map(metadataTools::getInstanceName)
-                .toList());
-
+        List<String> path = pathOf(document.getFolder(), paths);
         FieldHit snippet = snippetOf(entry.getFieldHits());
 
         return snippet == null
@@ -158,8 +186,15 @@ public class DocumentSearch {
                 : new DocumentSearchHit(document, path, caption(snippet.getFieldName()), snippet.getHighlights());
     }
 
+    // the folders of the page usually repeat, and each path is read once
+    private List<String> pathOf(Folder folder, Map<UUID, List<String>> paths) {
+        return paths.computeIfAbsent(folder.getId(), id -> folderService.getPath(folder).stream()
+                .map(metadataTools::getInstanceName)
+                .toList());
+    }
+
     /**
-     * The hit to show: the file text, then the name, then the file name, then a field of the type.
+     * The hit to show: the file text, then the name, then the file name, then the tags, then a field of the type.
      */
     private static @Nullable FieldHit snippetOf(List<FieldHit> fieldHits) {
         for (String field : SNIPPET_ORDER) {
@@ -204,6 +239,7 @@ public class DocumentSearch {
     private static void fetchPlan(FetchPlanBuilder fetchPlan) {
         fetchPlan.addFetchPlan(FetchPlan.BASE)
                 .add("category", FetchPlan.INSTANCE_NAME)
-                .add("folder", FetchPlan.INSTANCE_NAME);
+                .add("folder", FetchPlan.INSTANCE_NAME)
+                .add("tags", FetchPlan.BASE);
     }
 }

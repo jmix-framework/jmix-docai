@@ -8,19 +8,24 @@ import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.document.NewVersion;
 import com.company.dms.app.service.document.UploadedFile;
 import com.company.dms.app.service.folder.FolderService;
+import com.company.dms.app.service.tag.TagService;
 import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.model.user.User;
 import com.company.dms.view.access.AccessDetailView;
 import com.company.dms.view.main.MainView;
+import com.company.dms.view.tag.TagBadges;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBoxBase;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
@@ -68,20 +73,22 @@ import java.util.stream.Stream;
 
 /**
  * The document card. A new version, a restored version and a status transition wait for OK
- * together with the edited fields, and are saved by one service call. A user who only views
- * the document gets the card read-only.
+ * together with the edited fields and the tags, and are saved by one service call. A user who only views
+ * the document gets the card read-only. A tag next to the status opens the page of its documents.
  */
 @Route(value = "documents/:id", layout = MainView.class)
 @ViewController(id = "Document.detail")
 @ViewDescriptor(path = "document-detail-view.xml")
 @EditedEntityContainer("documentDc")
-@DialogMode(width = "86em", height = "56em", resizable = true, maximizable = true)
+@DialogMode(width = "86em", height = "58em", resizable = true, maximizable = true)
 public class DocumentDetailView extends StandardDetailView<Document> {
 
     @ViewComponent
     private H3 documentTitle;
     @ViewComponent
     private Badge statusBadge;
+    @ViewComponent
+    private Span documentTags;
     @ViewComponent
     private Span pendingChanges;
 
@@ -147,6 +154,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @Autowired
     private FolderService folderService;
     @Autowired
+    private TagService tagService;
+    @Autowired
+    private TagBadges tagBadges;
+    @Autowired
     private AccessService accessService;
     @Autowired
     private AccessChecker accessChecker;
@@ -208,6 +219,26 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     public void onDocumentDcItemPropertyChange(final InstanceContainer.ItemPropertyChangeEvent<Document> event) {
         if ("name".equals(event.getProperty())) {
             updateTitle();
+        }
+
+        if ("tags".equals(event.getProperty())) {
+            showTags();
+        }
+    }
+
+    // a typed name takes the tag of the vocabulary whatever its case, or makes a new tag that OK saves
+    @Subscribe("tagsField")
+    public void onTagsFieldCustomValueSet(final ComboBoxBase.CustomValueSetEvent<MultiSelectComboBox<Tag>> event) {
+        if (event.getDetail().isBlank()) {
+            return;
+        }
+
+        Tag tag = tagService.findOrCreate(event.getDetail());
+        List<Tag> tags = new ArrayList<>(Objects.requireNonNullElse(getEditedEntity().getTags(), List.of()));
+
+        if (tags.stream().noneMatch(carried -> carried.getName().equalsIgnoreCase(tag.getName()))) {
+            tags.add(tag);
+            getEditedEntity().setTags(tags);
         }
     }
 
@@ -400,6 +431,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
         updateTitle();
         statusBadge.addClassName(statusColor(status));
+        showTags();
 
         nameField.setReadOnly(locked);
         documentDateField.setReadOnly(locked);
@@ -472,6 +504,16 @@ public class DocumentDetailView extends StandardDetailView<Document> {
      */
     public void showProperties() {
         cardTabs.setSelectedTab(propertiesTab);
+    }
+
+    private void showTags() {
+        documentTags.removeAll();
+        documentTags.add(tagBadges.create(getEditedEntity().getTags(), this::openTag));
+    }
+
+    // the card closes as from its close button, asking about unsaved changes, and then the page of the tag opens
+    private void openTag(Tag tag) {
+        closeWithDefaultAction().then(() -> tagBadges.open(tag));
     }
 
     private void updateTitle() {
