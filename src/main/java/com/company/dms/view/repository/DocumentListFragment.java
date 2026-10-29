@@ -39,6 +39,7 @@ import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.component.upload.StartedEvent;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.selection.MultiSelectionEvent;
@@ -82,6 +83,7 @@ import io.jmix.flowui.view.*;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -585,29 +587,31 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 : fileSizeFormatter.format(document.getCurrentRevision().getFileSize()));
     }
 
-    // who and when share one column, as in the card: the date in the user's time zone, the time in the tooltip
+    // who and when share one column, as in the card, in the user's time zone: the date in the cell, the time in its
+    // title; a tooltip generator of a grid column throws in the browser of Vaadin 25.3 when a tooltip has no row
     @Supply(to = "documentsGrid.changedDate", subject = "renderer")
     private Renderer<Document> changedDateRenderer() {
-        return new TextRenderer<>(document -> {
-            if (document.getChangedDate() == null) {
-                return "";
-            }
+        return LitRenderer.<Document>of("<span title=\"${item.time}\">${item.text}</span>")
+                .withProperty("text", document -> {
+                    if (document.getChangedDate() == null) {
+                        return "";
+                    }
 
-            String date = datatypeFormatter.formatLocalDate(document.getChangedDate()
-                    .atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId())
-                    .toLocalDate());
+                    String date = datatypeFormatter.formatLocalDate(changedTime(document).toLocalDate());
 
-            return document.getChangedBy() == null
-                    ? date
-                    : userNames.getOrDefault(document.getChangedBy(), document.getChangedBy()) + " · " + date;
-        });
+                    return document.getChangedBy() == null
+                            ? date
+                            : userNames.getOrDefault(document.getChangedBy(), document.getChangedBy()) + " · " + date;
+                })
+                .withProperty("time", document -> document.getChangedDate() == null
+                        ? ""
+                        : datatypeFormatter.formatLocalDateTime(changedTime(document)));
     }
 
-    @Install(to = "documentsGrid.changedDate", subject = "tooltipGenerator")
-    private String documentsGridChangedDateTooltipGenerator(final Document document) {
-        return document.getChangedDate() == null
-                ? ""
-                : datatypeFormatter.formatOffsetDateTime(document.getChangedDate());
+    private LocalDateTime changedTime(Document document) {
+        return document.getChangedDate()
+                .atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId())
+                .toLocalDateTime();
     }
 
     // the names of the users as the application shows them; a user deleted since keeps the username

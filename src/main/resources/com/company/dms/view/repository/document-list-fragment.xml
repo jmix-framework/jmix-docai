@@ -48,7 +48,8 @@
                 </hbox>
                 <button id="discussButton" action="documentsGrid.discussAction" text=""
                         title="msg://discussAction.text" classNames="aura-accent-purple ai-button"/>
-                <gridColumnVisibility id="columnsButton" dataGrid="documentsGrid" icon="TABLE"/>
+                <gridColumnVisibility id="columnsButton" dataGrid="documentsGrid" icon="TABLE"
+                                      exclude="name" hideAllEnabled="false"/>
                 <button id="previewButton" text="msg://previewButton.text" icon="EYE"/>
             </hbox>
             <dataGrid id="documentsGrid" dataContainer="documentsDc" selectionMode="MULTI" rowsDraggable="true"

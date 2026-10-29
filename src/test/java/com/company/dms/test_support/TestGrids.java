@@ -14,6 +14,7 @@ import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.component.grid.dnd.GridDropEvent;
 import com.vaadin.flow.component.grid.dnd.GridDropLocation;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -132,5 +133,19 @@ public final class TestGrids {
         }
 
         return textRenderer.createComponent(item).getElement().getText();
+    }
+
+    /**
+     * A property of the Lit template that renders a column, as the grid sends it to the browser for the item.
+     */
+    public static <T> Object property(Grid<T> grid, String columnKey, String property, T item) {
+        Renderer<T> renderer = grid.getColumnByKey(columnKey).getRenderer();
+        // the renderers of text and components are Lit templates too, with properties of their own
+        if (!(renderer instanceof LitRenderer<T> litRenderer)
+                || !litRenderer.getValueProviders().containsKey(property)) {
+            throw new AssertionError("Column '%s' renders no property '%s'".formatted(columnKey, property));
+        }
+
+        return litRenderer.getValueProviders().get(property).apply(item);
     }
 }

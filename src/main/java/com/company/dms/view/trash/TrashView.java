@@ -168,7 +168,7 @@ public class TrashView extends StandardView {
         String question = items.size() > NAMED_ITEMS
                 ? messageBundle.formatMessage("purgeDialog.count", items.size())
                 : messageBundle.formatMessage("purgeDialog.names", items.stream()
-                .map(TrashItem::getName)
+                .map(item -> messageBundle.formatMessage("purgeDialog.name", item.getName()))
                 .collect(Collectors.joining(", ")));
 
         confirm(messageBundle.getMessage("purgeDialog.header"), question, () -> trashService.purge(items));
@@ -176,9 +176,11 @@ public class TrashView extends StandardView {
 
     @Subscribe("emptyAction")
     public void onEmptyAction(final ActionPerformedEvent event) {
+        // the items the question counts, not what was deleted after the list was loaded
+        List<TrashItem> items = List.copyOf(trashItemsDc.getItems());
         confirm(messageBundle.getMessage("emptyDialog.header"),
-                messageBundle.formatMessage("emptyDialog.text", trashItemsDc.getItems().size()),
-                trashService::empty);
+                messageBundle.formatMessage("emptyDialog.text", items.size()),
+                () -> trashService.purge(items));
     }
 
     @Subscribe("previewButton")

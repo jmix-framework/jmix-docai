@@ -279,20 +279,6 @@ public class TrashService {
                 purgeRows(idsOf(items, TrashItem::getFolder), idsOf(items, TrashItem::getDocument)))));
     }
 
-    /**
-     * Deletes everything in the trash forever, as {@link #purge(Collection)} does.
-     *
-     * @throws OperationRejectedException if the user has no {@link #PURGE_POLICY}
-     */
-    public void empty() {
-        checkPurge();
-
-        removeFiles(Objects.requireNonNull(transaction.execute(status -> purgeRows(
-                ids(unconstrainedDataManager.loadValues("select f.id from Folder f where f.deletedDate is not null")),
-                ids(unconstrainedDataManager.loadValues(
-                        "select d.id from Document d where d.deletedDate is not null"))))));
-    }
-
     private List<FileRef> purgeRows(Collection<UUID> folderIds, Collection<UUID> documentIds) {
         // the rows stay locked, so a restore of the same items waits, and are checked again: what came back stays
         List<Folder> roots = lockDeleted(Folder.class, folderIds);

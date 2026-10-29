@@ -80,7 +80,7 @@ test {
         excludeTags 'search', 'ai'
     }
     // the tests keep a Spring context for each setup of theirs, and each context holds the whole application
-    maxHeapSize = '1g'
+    maxHeapSize = '1536m'
     systemProperty 'spring.profiles.active', 'test'
     // a key in the environment (SPRING_AI_OPENAI_APIKEY) outranks the property files, so the tests clear it here
     systemProperty 'spring.ai.openai.api-key', ''

@@ -109,8 +109,6 @@ class TrashPurgeTest {
         assertThat(systemAuthenticator.withUser("peter", trashService::canPurge)).isFalse();
         assertThatThrownBy(() -> systemAuthenticator.runWithUser("peter", () -> trashService.purge(List.of(item))))
                 .isInstanceOf(OperationRejectedException.class);
-        assertThatThrownBy(() -> systemAuthenticator.runWithUser("peter", trashService::empty))
-                .isInstanceOf(OperationRejectedException.class);
         assertThat(exists(dataManager, Document.class, note.getId())).isTrue();
     }
 
@@ -258,21 +256,6 @@ class TrashPurgeTest {
 
         assertThat(isDeleted(dataManager, Document.class, note.getId())).isFalse();
         assertThat(exists(dataManager, Document.class, note.getId())).isTrue();
-    }
-
-    @Test
-    void emptyingTheTrashLeavesNothingInIt() {
-        Folder contracts = folder(sandbox, "Contracts");
-        upload(contracts, "supply.txt");
-        Document note = upload(sandbox, "note.txt");
-        folderService.delete(contracts);
-        documentService.delete(List.of(note));
-
-        trashService.empty();
-
-        assertThat(trashService.loadItems()).isEmpty();
-        assertThat(exists(dataManager, Folder.class, contracts.getId())).isFalse();
-        assertThat(exists(dataManager, Document.class, note.getId())).isFalse();
     }
 
     // an invoice with its number, so that the document has values of fields

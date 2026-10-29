@@ -296,7 +296,7 @@ classDiagram
 - One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
 - A revision never changes. A new file or a restored version adds a revision, and the document points to its current one.
 - A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date, type, fields and versions until it returns to Active.
-- "Modified by" and "Modified" show who changed the document itself and when: a new version, name, date, type, field or status. A move, an access change or a change of tags leaves them as they are, while the Jmix audit stamps of the record change with every save.
+- "Modified" shows who changed the document itself and when: a new version, name, date, type, field or status. A move, an access change or a change of tags leaves it as it is, while the Jmix audit stamps of the record change with every save.
 - The type of a document is a category of the Dynamic Attributes add-on (`Category`), and the fields of the type are its attributes (`CategoryAttribute`), properties of the document named `+code`.
 - A document carries tags of a shared vocabulary (`Tag`, many-to-many owned by the document): a tag knows nothing of its documents, and a tag that a document carries, one in the trash included, is not deleted.
 - Folders, documents and revisions are deleted softly, into the [trash](#️-trash). Deleting a folder takes its subtree, and restoring it brings back what was deleted with it.
@@ -348,7 +348,7 @@ Deleted folders and documents go to the trash, which opens from the main menu.
 - **Preview** shows the current version of a document, or what comes back with a folder: its subfolders and documents with a count. A document of the folder opens its own preview, and **To the folder** goes back.
 - **Restore** puts the selected items back where they were, with their versions, fields and access, and needs the Edit level on each item. An item whose folder lies in the trash waits until the folder comes back first, and an item whose name is taken in its folder waits until the live one is renamed. When one item cannot come back, none of the selection does.
 - A document whose type was deleted while it lay in the trash comes back without a type. A restored document is found by the search again, but does not return to the AI discussions it left.
-- **Delete forever** and **Empty trash** are for the administrator. They ask first and remove the items with everything below them: versions, field values, own access and the files that no other version refers to. A folder with something live inside it, such as a subfolder restored on its own in Data Tools, is not deleted: restore the folder to keep what is live.
+- **Delete forever** and **Empty trash** are for the administrator. They ask first and remove the items with everything below them: versions, field values, own access and the files that no other version refers to. **Empty trash** removes the items the list shows: what was deleted after the list was loaded stays in the trash. A folder with something live inside it, such as a subfolder restored on its own in Data Tools, is not deleted: restore the folder to keep what is live.
 
 What comes back together is what the restore of Jmix takes (`EntityRestore` of Data Tools): the rows deleted within a second of their parent. A document deleted on its own before its folder stays a separate item.
 

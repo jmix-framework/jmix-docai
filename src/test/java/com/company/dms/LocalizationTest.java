@@ -1,11 +1,15 @@
 package com.company.dms;
 
+import com.company.dms.model.document.Document;
+import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import io.jmix.core.CoreProperties;
 import io.jmix.core.Messages;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,5 +48,17 @@ class LocalizationTest {
                 .containsPattern("\\p{IsCyrillic}");
         assertThat(messages.getMessage("actions.logout.text", RUSSIAN))
                 .containsPattern("\\p{IsCyrillic}");
+    }
+
+    @Test
+    void theNameKeysHaveCaptionsInEveryLanguage() {
+        for (Class<?> entityClass : List.of(Folder.class, Document.class, Tag.class)) {
+            for (Locale locale : coreProperties.getAvailableLocales()) {
+                assertThat(messages.findMessage(entityClass.getPackageName(),
+                        entityClass.getSimpleName() + ".nameKey", locale))
+                        .as("%s.nameKey in %s", entityClass.getSimpleName(), locale)
+                        .isNotBlank();
+            }
+        }
     }
 }

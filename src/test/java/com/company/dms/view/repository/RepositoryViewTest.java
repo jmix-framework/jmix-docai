@@ -70,6 +70,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -506,10 +510,16 @@ class RepositoryViewTest {
     }
 
     @Test
-    void theDocumentListNamesWhoChangedTheDocument() {
+    void theDocumentListNamesWhoChangedTheDocumentAndWhenInThePersonsTimeZone() {
         Document document = unconstrainedDataManager.load(Id.of(upload(sandbox, "a.txt"))).one();
         document.setChangedBy("maria");
+        document.setChangedDate(OffsetDateTime.of(2020, 1, 15, 12, 0, 0, 0, ZoneOffset.UTC));
         unconstrainedDataManager.save(document);
+
+        // the person works in Kiritimati, where noon in UTC is already the next day; the user of the test's login
+        // is loaded for this test alone
+        ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
+        assertThat(currentAuthentication.getTimeZone().getID()).isEqualTo("Pacific/Kiritimati");
 
         User maria = dataManager.load(User.class)
                 .query("e.username = :username")
@@ -521,17 +531,16 @@ class RepositoryViewTest {
         DataGridItems<Document> items = grid.getItems();
 
         assertThat(items).isNotNull();
-        Grid.Column<Document> changed = grid.getColumnByKey("changedDate");
-        assertThat(changed).isNotNull();
         Document shown = items.getItems().iterator().next();
-        String date = datatypeFormatter.formatLocalDate(shown.getChangedDate()
-                .atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId())
-                .toLocalDate());
 
-        assertThat(TestGrids.text(grid, "changedDate", shown))
-                .isEqualTo(metadataTools.getInstanceName(maria) + " · " + date);
-        assertThat(changed.getTooltipGenerator().apply(shown))
-                .isEqualTo(datatypeFormatter.formatOffsetDateTime(shown.getChangedDate()));
+        assertThat(TestGrids.property(grid, "changedDate", "text", shown))
+                .isEqualTo(metadataTools.getInstanceName(maria) + " · "
+                        + datatypeFormatter.formatLocalDate(LocalDate.of(2020, 1, 16)));
+        assertThat(TestGrids.property(grid, "changedDate", "time", shown))
+                .isEqualTo(datatypeFormatter.formatLocalDateTime(LocalDateTime.of(2020, 1, 16, 2, 0)));
+        // the time is the title of the cell: the tooltip that a column's tooltip generator puts into the grid fails in
+        // the browser of Vaadin 25.3
+        assertThat(grid.getElement().getChildren()).noneMatch(child -> "tooltip".equals(child.getAttribute("slot")));
     }
 
     @Test
@@ -552,6 +561,9 @@ class RepositoryViewTest {
 
         assertThat(columns.getGrid()).isSameAs(grid);
         assertThat(columns.getMenuItem("fileSize")).isNotNull();
+        // the name stays: rows without names leave nothing to know a document by
+        assertThat(columns.getMenuItem("name")).isNull();
+        assertThat(columns.isHideAllEnabled()).isFalse();
         // an icon with a tooltip, as the other buttons of the toolbar
         assertThat(columns.getText()).isEmpty();
         assertThat(columns.getTitle()).isNotBlank();

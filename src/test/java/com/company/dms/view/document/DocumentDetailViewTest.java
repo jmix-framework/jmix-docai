@@ -33,6 +33,8 @@ import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.metamodel.datatype.DatatypeFormatter;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -58,6 +60,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -98,6 +101,12 @@ class DocumentDetailViewTest {
 
     @Autowired
     private EntityStates entityStates;
+
+    @Autowired
+    private DatatypeFormatter datatypeFormatter;
+
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
 
     @TempDir
     private Path tempDir;
@@ -455,16 +464,22 @@ class DocumentDetailViewTest {
     }
 
     @Test
-    void theCardShowsWhoChangedTheDocumentItself() {
+    void theCardShowsWhoChangedTheDocumentItselfAndWhenInThePersonsTimeZone() {
         Document document = unconstrainedDataManager.load(Id.of(upload("a.txt"))).one();
         document.setChangedBy("maria");
-        document.setChangedDate(OffsetDateTime.of(2020, 1, 15, 9, 30, 0, 0, ZoneOffset.UTC));
+        document.setChangedDate(OffsetDateTime.of(2020, 1, 15, 12, 0, 0, 0, ZoneOffset.UTC));
         unconstrainedDataManager.save(document);
+
+        // the person works in Kiritimati, where noon in UTC is already the next day; the user of the test's login
+        // is loaded for this test alone
+        ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
+        assertThat(currentAuthentication.getTimeZone().getID()).isEqualTo("Pacific/Kiritimati");
 
         DocumentDetailView card = openCard(reload(document));
 
         assertThat(this.<TypedTextField<String>>component(card, "modifiedField").getValue())
-                .startsWith(nameOf("maria") + ", ");
+                .isEqualTo(nameOf("maria") + ", "
+                        + datatypeFormatter.formatLocalDateTime(LocalDateTime.of(2020, 1, 16, 2, 0)));
     }
 
     @Test

@@ -43,6 +43,7 @@ import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
 import io.jmix.core.metamodel.datatype.DatatypeFormatter;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.datepicker.TypedDatePicker;
@@ -62,6 +63,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -169,6 +171,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private FileSizeFormatter fileSizeFormatter;
     @Autowired
     private DatatypeFormatter datatypeFormatter;
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
     @Autowired
     private EntityStates entityStates;
     @Autowired
@@ -549,9 +553,13 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     }
 
     private String describeChange(String user, OffsetDateTime date) {
-        return user == null
-                ? ""
-                : "%s, %s".formatted(userNames.getOrDefault(user, user), datatypeFormatter.formatOffsetDateTime(date));
+        if (user == null || date == null) {
+            return "";
+        }
+
+        LocalDateTime time = date.atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId()).toLocalDateTime();
+
+        return "%s, %s".formatted(userNames.getOrDefault(user, user), datatypeFormatter.formatLocalDateTime(time));
     }
 
     // the names of the users as the application shows them; a user deleted since keeps the username

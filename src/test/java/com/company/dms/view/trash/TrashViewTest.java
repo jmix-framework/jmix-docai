@@ -25,11 +25,13 @@ import io.jmix.flowui.component.sidepanellayout.SidePanelLayout;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.settings.UserSettingsCache;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.testassist.dialog.DialogInfo;
+import io.jmix.flowui.view.ViewControllerUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -144,8 +146,8 @@ class TrashViewTest {
             grid.select(itemOf(items(grid), note.getId()));
             purgeButton.click();
 
-            assertThat(dialogText())
-                    .isEqualTo(messages.formatMessage(TrashView.class, "purgeDialog.names", "note.txt"));
+            assertThat(dialogText()).isEqualTo(messages.formatMessage(TrashView.class, "purgeDialog.names",
+                    messages.formatMessage(TrashView.class, "purgeDialog.name", "note.txt")));
             dialogButton(DialogAction.Type.YES).click();
 
             assertThat(exists(dataManager, Document.class, note.getId())).isFalse();
@@ -171,6 +173,52 @@ class TrashViewTest {
             dialogButton(DialogAction.Type.NO).click();
 
             assertThat(isDeleted(dataManager, Document.class, note.getId())).isTrue();
+        });
+    }
+
+    @Test
+    void emptyingTheTrashDeletesForeverOnlyTheItemsItShows() {
+        Document shown = upload(sandbox, "shown.txt");
+        Document later = upload(sandbox, "later.txt");
+        documentService.delete(List.of(shown));
+
+        systemAuthenticator.runWithUser("admin", () -> {
+            TrashView view = open();
+            // the list keeps only this test's item, so that emptying it leaves what other tests put into the trash
+            CollectionContainer<TrashItem> listed = ViewControllerUtils.getViewData(view).getContainer("trashItemsDc");
+            listed.setItems(List.of(itemOf(listed.getItems(), shown.getId())));
+            // a colleague deletes another document while the list is open
+            documentService.delete(List.of(later));
+            JmixButton emptyButton = UiTestUtils.getComponent(view, "emptyButton");
+
+            emptyButton.click();
+            dialogButton(DialogAction.Type.YES).click();
+
+            assertThat(exists(dataManager, Document.class, shown.getId())).isFalse();
+            assertThat(isDeleted(dataManager, Document.class, later.getId())).isTrue();
+        });
+    }
+
+    @Test
+    void theQuestionToDeleteForeverQuotesEveryName() {
+        Document report = upload(sandbox, "Report, total.txt");
+        Document note = upload(sandbox, "note.txt");
+        documentService.delete(List.of(report, note));
+
+        systemAuthenticator.runWithUser("admin", () -> {
+            TrashView view = open();
+            DataGrid<TrashItem> grid = grid(view);
+            JmixButton purgeButton = UiTestUtils.getComponent(view, "purgeButton");
+            grid.select(itemOf(items(grid), report.getId()));
+            grid.select(itemOf(items(grid), note.getId()));
+
+            purgeButton.click();
+
+            // without the quotes a comma inside a name reads as two names
+            assertThat(dialogText()).contains(
+                    messages.formatMessage(TrashView.class, "purgeDialog.name", "Report, total.txt"),
+                    messages.formatMessage(TrashView.class, "purgeDialog.name", "note.txt"));
+            dialogButton(DialogAction.Type.NO).click();
         });
     }
 
