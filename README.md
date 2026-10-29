@@ -42,6 +42,8 @@ Steps 1 to 9 are in place: employees sign in, keep documents in a folder tree, u
 
 Of the later features, the trash and tags are in place: deleted folders and documents can be previewed and restored, and the administrator deletes them forever; documents carry tags of a shared vocabulary, and a tag finds its documents across the folders.
 
+Documents and folders move by drag and drop too: drag documents from the table onto a folder in the tree, or a folder onto another folder. While a row is dragged, only the folders it may go to light up, and a move that changes access asks first, as Move does.
+
 ## 🛠️ Technical Stack
 
 - Java 21, Gradle
@@ -331,7 +333,7 @@ Access works as in SharePoint. A folder or a document either inherits the access
 
 - An entry gives a level to a user or to a resource role, and a user gets the highest level among their entries. The root gives the Employee role the Edit level.
 - Roles stand for departments. The demo comes with three of them in the code: HR department, Legal department and Accounting. The administrator adds more as resource roles without policies in the role views, assigns them to the department and gives them access to the department's folders. A change of roles applies from the user's next sign-in.
-- Clearing **Inherit access** copies the inherited entries as a start; checking it again removes the own entries. A folder or a document that inherits takes the access of its new place when it is moved, and the move asks first.
+- Clearing **Inherit access** copies the inherited entries as a start; checking it again removes the own entries. A folder or a document that inherits takes the access of its new place when it is moved, by Move or by drag and drop, and the move asks first.
 - A user sees, greyed, the folders on the way to what they have access to, with their names. A key after the name marks a folder or a document with its own access for those who manage it.
 - The administrator has every level everywhere, without entries.
 - With LDAP or Active Directory, map each department group to its resource role and keep the access entries on roles rather than on users.

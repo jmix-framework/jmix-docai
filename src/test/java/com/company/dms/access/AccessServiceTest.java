@@ -379,6 +379,15 @@ class AccessServiceTest {
         assertThat(accessService.changesOnMove(List.of(salaries), closed)).isTrue();
     }
 
+    @Test
+    void aDocumentDeletedBeforeTheMoveIsLeftOutOfTheAccessCheck() {
+        Folder closed = TestAccess.giveOwnAccess(dataManager, folder(sandbox, "Closed"),
+                Grant.role(hrDepartment.code(), AccessLevel.MANAGE));
+
+        assertThat(accessService.changesOnMove(List.of(oldSalaries), closed)).isFalse();
+        assertThat(accessService.changesOnMove(List.of(oldSalaries, salaries), closed)).isTrue();
+    }
+
     /**
      * Gives the folder its own access through the service, so that its branch follows it.
      */

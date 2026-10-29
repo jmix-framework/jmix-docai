@@ -32,7 +32,8 @@ import java.util.UUID;
 
 /**
  * The document repository: the folder tree, the documents of the selected folder and
- * the preview panel. The address keeps the open folder and the preview mode.
+ * the preview panel. The address keeps the open folder and the preview mode. Documents dragged from
+ * the list move into the folder of the tree they are dropped on.
  */
 @Route(value = "repository", layout = MainView.class)
 @ViewController(id = "RepositoryView")
@@ -85,6 +86,8 @@ public class RepositoryView extends StandardView {
         documentList.setFocusHandler(this::showPreview);
         documentList.setPreviewToggleHandler(this::togglePreviewMode);
         documentList.setContentsChangeHandler(folderTree::refreshDocumentCounts);
+        documentList.setDragHandler(folderTree::setDraggedDocuments);
+        folderTree.setDocumentsDropHandler(documentList::move);
     }
 
     @Subscribe

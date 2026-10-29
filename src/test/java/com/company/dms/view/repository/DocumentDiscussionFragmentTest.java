@@ -33,6 +33,7 @@ import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.sidedialog.SideDialog;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.action.Action;
@@ -244,6 +245,23 @@ class DocumentDiscussionFragmentTest {
         TestGrids.dragRows(grid, List.of(invoice, act), this.<VerticalLayout>component(discussion, "discussionRoot"));
 
         assertThat(chips(discussion)).containsExactly("lease.txt", "invoice.txt", "act.txt");
+    }
+
+    @Test
+    void aFolderDraggedOntoTheWindowStaysOutOfTheSelection() {
+        Document lease = upload("lease.txt");
+        RepositoryView view = open();
+        DataGrid<Document> grid = listComponent(view, "documentsGrid");
+        grid.select(lease);
+        discuss(view);
+        DocumentDiscussionFragment discussion = window().orElseThrow();
+        @SuppressWarnings("unchecked")
+        TreeDataGrid<Folder> tree = (TreeDataGrid<Folder>) FragmentUtils.getComponent(
+                UiTestUtils.getComponent(view, "folderTree"), "foldersTree");
+
+        TestGrids.dragRows(tree, List.of(sandbox), this.<VerticalLayout>component(discussion, "discussionRoot"));
+
+        assertThat(chips(discussion)).containsExactly("lease.txt");
     }
 
     @Test

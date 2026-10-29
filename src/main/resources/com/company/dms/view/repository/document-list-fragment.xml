@@ -51,7 +51,7 @@
                 <gridColumnVisibility id="columnsButton" dataGrid="documentsGrid" icon="TABLE"/>
                 <button id="previewButton" text="msg://previewButton.text" icon="EYE"/>
             </hbox>
-            <dataGrid id="documentsGrid" dataContainer="documentsDc" selectionMode="MULTI"
+            <dataGrid id="documentsGrid" dataContainer="documentsDc" selectionMode="MULTI" rowsDraggable="true"
                       width="100%" height="100%" minHeight="12em" emptyStateText="msg://documentsGrid.emptyStateText">
                 <actions showInContextMenuEnabled="false">
                     <action id="openAction" type="list_itemTracking"

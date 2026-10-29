@@ -30,6 +30,8 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnResizeEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
+import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.AllFinishedEvent;
@@ -185,6 +187,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     };
     private Runnable contentsChangeHandler = () -> {
     };
+    private Consumer<List<Document>> dragHandler = documents -> {
+    };
 
     // Jmix takes a saved width other than 100px for one the user dragged and stops the column from growing,
     // so the name takes its share of the free space again unless the user has changed its width
@@ -242,8 +246,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         accessManager.applyRegisteredConstraints(assistantChat);
         boolean available = aiSettings.isAvailable() && assistantChat.isPermitted();
         discussAction.setVisible(available);
-        // the rows are dragged only into the window, so they are draggable only where it opens
-        documentsGrid.setRowsDraggable(available);
 
         // a dialog belongs to the UI and would stay open over the next view
         addDetachListener(detachEvent -> {
@@ -272,6 +274,14 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
      */
     public void setPreviewToggleHandler(Runnable previewToggleHandler) {
         this.previewToggleHandler = previewToggleHandler;
+    }
+
+    /**
+     * Receives the documents the user starts to drag when the user may move every one of them, and an empty list
+     * when the drag ends.
+     */
+    public void setDragHandler(Consumer<List<Document>> dragHandler) {
+        this.dragHandler = dragHandler;
     }
 
     /**
@@ -382,6 +392,21 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Subscribe("documentsGrid")
     public void onDocumentsGridColumnResize(final ColumnResizeEvent<Document> event) {
         event.getResizedColumn().setAutoWidth(false);
+    }
+
+    // the folder tree takes the rows only when the user may move all of them; the discussion window takes them anyway
+    @Subscribe("documentsGrid")
+    public void onDocumentsGridDragStart(final GridDragStartEvent<Document> event) {
+        List<Document> documents = event.getDraggedItems();
+
+        if (documents.stream().allMatch(document -> levels.allows(document.getAccessSet(), AccessLevel.EDIT))) {
+            dragHandler.accept(documents);
+        }
+    }
+
+    @Subscribe("documentsGrid")
+    public void onDocumentsGridDragEnd(final GridDragEndEvent<Document> event) {
+        dragHandler.accept(List.of());
     }
 
     @Subscribe("documentsGrid.openAction")
@@ -785,10 +810,22 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         accessAction.setVisible(accessService.managesAnything());
     }
 
-    private void move(Set<Document> documents, Folder target) {
+    /**
+     * Moves the documents into the folder, as the move action does: a move that changes the access of the documents
+     * asks first. The documents and the counts of the folder tree are reloaded after the move.
+     */
+    public void move(Collection<Document> documents, Folder target) {
         Runnable move = () -> {
             documentService.move(documents, target);
             contentsChanged();
+
+            // the documents of the shown folder stay where they are when it is the target
+            if (!target.equals(folder)) {
+                notifications.create(messageBundle.formatMessage("documentsMoved",
+                                metadataTools.getInstanceName(target), documents.size()))
+                        .withType(Notifications.Type.SUCCESS)
+                        .show();
+            }
         };
 
         if (!accessService.changesOnMove(documents, target)) {

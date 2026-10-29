@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -225,24 +226,34 @@ public class AccessService {
 
     /**
      * Tells whether moving the folder changes its access: it inherits, and the target passes down another set.
+     * A folder or a target deleted meanwhile changes nothing here, and the move then refuses it.
      */
     public boolean changesOnMove(Folder folder, Folder target) {
         Folder stored = unconstrainedDataManager.load(Folder.class)
                 .id(folder.getId())
                 .fetchPlan(fetchPlan -> fetchPlan.add("accessSet", AccessService::withOwners))
-                .one();
+                .optional()
+                .orElse(null);
 
-        return !stored.equals(stored.getAccessSet().getOwnerFolder()) && !stored.getAccessSet().equals(setOf(target));
+        return stored != null
+                && !stored.equals(stored.getAccessSet().getOwnerFolder())
+                && setOf(target).filter(targetSet -> !targetSet.equals(stored.getAccessSet())).isPresent();
     }
 
     /**
      * Tells whether moving the documents changes the access of any of them: it inherits, and the target passes
-     * down another set.
+     * down another set. A target deleted meanwhile changes nothing here, and the move then refuses it.
      */
     public boolean changesOnMove(Collection<Document> documents, Folder target) {
-        AccessSet targetSet = setOf(target);
+        AccessSet targetSet = setOf(target).orElse(null);
+        if (targetSet == null) {
+            return false;
+        }
+
+        // ids() fails on a document deleted meanwhile; a query leaves it out, and the move then refuses it
         return unconstrainedDataManager.load(Document.class)
-                .ids(documents.stream().map(Document::getId).toList())
+                .query("select d from Document d where d.id in :ids")
+                .parameter("ids", documents.stream().map(Document::getId).toList())
                 .fetchPlan(fetchPlan -> fetchPlan.add("accessSet", AccessService::withOwners))
                 .list()
                 .stream()
@@ -262,7 +273,7 @@ public class AccessService {
                 .one();
 
         AccessSet current = stored.getAccessSet();
-        AccessSet targetSet = setOf(target);
+        AccessSet targetSet = setOf(target).orElseThrow();
 
         if (!stored.equals(current.getOwnerFolder()) && !current.equals(targetSet)) {
             saveContext.setHint(PersistenceHints.SOFT_DELETION, false);
@@ -279,7 +290,7 @@ public class AccessService {
             return;
         }
 
-        AccessSet targetSet = setOf(target);
+        AccessSet targetSet = setOf(target).orElseThrow();
         Set<Document> inheriting = unconstrainedDataManager.load(Document.class)
                 .ids(documents.stream().map(Document::getId).toList())
                 .fetchPlan(fetchPlan -> fetchPlan.add("accessSet", AccessService::withOwners))
@@ -500,12 +511,12 @@ public class AccessService {
                 .one();
     }
 
-    private AccessSet setOf(Folder folder) {
+    private Optional<AccessSet> setOf(Folder folder) {
         return unconstrainedDataManager.load(Folder.class)
                 .id(folder.getId())
                 .fetchPlan(fetchPlan -> fetchPlan.add("accessSet", FetchPlan.INSTANCE_NAME))
-                .one()
-                .getAccessSet();
+                .optional()
+                .map(Folder::getAccessSet);
     }
 
     @Nullable

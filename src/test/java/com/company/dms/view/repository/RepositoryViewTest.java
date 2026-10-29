@@ -335,7 +335,6 @@ class RepositoryViewTest {
         TestGrids.clickRow(grid, document, false);
 
         assertThat(discussButton.isVisible()).isFalse();
-        assertThat(grid.isRowsDraggable()).isFalse();
     }
 
     @Test

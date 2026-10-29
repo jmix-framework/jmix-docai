@@ -11,6 +11,8 @@ import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
+import com.vaadin.flow.component.grid.dnd.GridDropEvent;
+import com.vaadin.flow.component.grid.dnd.GridDropLocation;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
@@ -64,13 +66,38 @@ public final class TestGrids {
      * rows when the dragged row is one of them.
      */
     public static <T, C extends Component> void dragRows(Grid<T> grid, List<T> rows, C target) {
+        startDrag(grid, rows);
+        ComponentUtil.fireEvent(target, new DropEvent<>(target, true, "all", 0, 0, 0, 0));
+        endDrag(grid);
+    }
+
+    /**
+     * The start of a drag of rows, as the grid reports it with the rows the browser names.
+     */
+    public static <T> void startDrag(Grid<T> grid, List<T> rows) {
         ArrayNode draggedItems = JsonNodeFactory.instance.arrayNode();
         rows.forEach(row -> draggedItems.addObject().put("key", grid.getDataCommunicator().getKeyMapper().key(row)));
         ObjectNode details = JsonNodeFactory.instance.objectNode();
         details.set("draggedItems", draggedItems);
 
         ComponentUtil.fireEvent(grid, new GridDragStartEvent<>(grid, true, details));
-        ComponentUtil.fireEvent(target, new DropEvent<>(target, true, "all", 0, 0, 0, 0));
+    }
+
+    /**
+     * A drop on top of a row, as the grid that takes it reports it. The drop comes before the end of the drag.
+     */
+    public static <T> void dropOnRow(Grid<T> grid, T item) {
+        ObjectNode target = JsonNodeFactory.instance.objectNode()
+                .put("key", grid.getDataCommunicator().getKeyMapper().key(item));
+
+        ComponentUtil.fireEvent(grid, new GridDropEvent<>(grid, true, target, GridDropLocation.ON_TOP.getClientName(),
+                JsonNodeFactory.instance.arrayNode()));
+    }
+
+    /**
+     * The end of a drag of rows, as the grid the rows were dragged from reports it.
+     */
+    public static <T> void endDrag(Grid<T> grid) {
         ComponentUtil.fireEvent(grid, new GridDragEndEvent<>(grid, true));
     }
 

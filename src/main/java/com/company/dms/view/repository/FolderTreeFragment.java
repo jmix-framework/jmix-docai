@@ -7,6 +7,7 @@ import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.app.service.folder.FolderTree;
 import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.access.AccessLevel;
+import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.view.access.AccessDetailView;
 import com.company.dms.view.folder.FolderDetailView;
@@ -14,9 +15,14 @@ import com.company.dms.view.folder.FolderLookupView;
 import com.company.dms.view.folder.FolderRenderers;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
+import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
+import com.vaadin.flow.component.grid.dnd.GridDropEvent;
+import com.vaadin.flow.component.grid.dnd.GridDropMode;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.selection.SelectionEvent;
+import com.vaadin.flow.function.SerializablePredicate;
 import io.jmix.core.LoadContext;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
@@ -53,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -60,7 +67,8 @@ import java.util.stream.Collectors;
 /**
  * The folder tree of the repository with the folder actions, the folder filter and the document counts.
  * The folders on the way to what the user has access to are greyed, and the actions follow the user's level
- * in the selected folder.
+ * in the selected folder. A folder is moved by dragging it onto another one, and documents are moved by dropping
+ * them on a folder: while something is dragged, only the folders that may take it accept the drop.
  */
 @FragmentDescriptor("folder-tree-fragment.xml")
 public class FolderTreeFragment extends Fragment<VerticalLayout> {
@@ -104,12 +112,40 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     private Folder selectedFolder;
     private Consumer<Folder> selectionHandler = folder -> {
     };
+    private BiConsumer<List<Document>, Folder> documentsDropHandler = (documents, target) -> {
+    };
+    private List<Document> draggedDocuments = List.of();
+    @Nullable
+    private Folder draggedFolder;
+    @Nullable
+    private SerializablePredicate<Folder> dropTargets;
 
     /**
      * Receives the folder selected in the tree.
      */
     public void setSelectionHandler(Consumer<Folder> selectionHandler) {
         this.selectionHandler = selectionHandler;
+    }
+
+    /**
+     * Receives the documents dropped on a folder of the tree, together with the folder.
+     */
+    public void setDocumentsDropHandler(BiConsumer<List<Document>, Folder> documentsDropHandler) {
+        this.documentsDropHandler = documentsDropHandler;
+    }
+
+    /**
+     * Offers the folders that may take the documents being dragged: those the user may change, except the shown
+     * folder, which holds them. An empty list ends the offer.
+     */
+    public void setDraggedDocuments(List<Document> documents) {
+        draggedDocuments = List.copyOf(documents);
+
+        if (documents.isEmpty()) {
+            stopDrop();
+        } else {
+            startDrop(target -> allows(target, AccessLevel.EDIT) && !target.equals(selectedFolder));
+        }
     }
 
     /**
@@ -220,6 +256,46 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
             selectedFolder = folder;
             selectionHandler.accept(folder);
         }
+    }
+
+    // a folder goes onto a folder the user may change, but not where it already is, nor into itself or below
+    @Subscribe("foldersTree")
+    public void onFoldersTreeDragStart(final GridDragStartEvent<Folder> event) {
+        Folder folder = event.getDraggedItems().getFirst();
+        Folder parent = parentOf(folder);
+        draggedFolder = folder;
+
+        startDrop(target -> allows(target, AccessLevel.EDIT)
+                && !target.equals(parent)
+                && !getPath(target).contains(folder));
+    }
+
+    @Subscribe("foldersTree")
+    public void onFoldersTreeDragEnd(final GridDragEndEvent<Folder> event) {
+        draggedFolder = null;
+        stopDrop();
+    }
+
+    // the drop comes before the end of the drag, which forgets what was dragged
+    @Subscribe("foldersTree")
+    public void onFoldersTreeDrop(final GridDropEvent<Folder> event) {
+        Folder target = event.getDropTargetItem().orElse(null);
+
+        // the browser takes a drop only on the folders that light up, and the tree checks again
+        if (target == null || dropTargets == null || !dropTargets.test(target)) {
+            return;
+        }
+
+        if (draggedFolder != null) {
+            move(draggedFolder, target);
+        } else {
+            documentsDropHandler.accept(draggedDocuments, target);
+        }
+    }
+
+    @Install(to = "foldersTree", subject = "dragFilter")
+    private boolean foldersTreeDragFilter(final Folder folder) {
+        return !folder.isRoot() && allows(folder, AccessLevel.EDIT);
     }
 
     @Subscribe("folderFilterField")
@@ -378,10 +454,30 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
                 && allows(folder, AccessLevel.MANAGE);
     }
 
+    // the filter of the drop depends on what is dragged, so the tree takes drops only while something is dragged
+    private void startDrop(SerializablePredicate<Folder> targets) {
+        dropTargets = targets;
+        foldersTree.setDropFilter(targets);
+        foldersTree.setDropMode(GridDropMode.ON_TOP);
+    }
+
+    private void stopDrop() {
+        dropTargets = null;
+        foldersTree.setDropMode(null);
+    }
+
     private void move(Folder folder, Folder target) {
         Runnable move = () -> {
             folderService.move(folder, target);
             loadAndSelect(folder.getId());
+
+            // a folder put back into its parent stays where it was
+            if (!target.equals(folder.getParent())) {
+                notifications.create(messageBundle.formatMessage("folderMoved",
+                                metadataTools.getInstanceName(folder), metadataTools.getInstanceName(target)))
+                        .withType(Notifications.Type.SUCCESS)
+                        .show();
+            }
         };
 
         if (!accessService.changesOnMove(folder, target)) {
