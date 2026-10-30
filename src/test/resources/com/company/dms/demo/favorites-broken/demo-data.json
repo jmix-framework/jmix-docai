@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "name": "Marked",
+      "favoriteOf": ["nobody"],
+      "documents": [
+        {
+          "name": "Deleted favorite",
+          "favoriteOf": ["alice"],
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}],
+          "deleted": {"by": "alice", "at": "2026-01-02T10:00"}
+        }
+      ]
+    },
+    {
+      "name": "Binned",
+      "favoriteOf": ["alice"],
+      "deleted": {"by": "alice", "at": "2026-01-02T10:00"},
+      "documents": [
+        {
+          "name": "Inside",
+          "favoriteOf": ["maria"],
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
+        }
+      ]
+    }
+  ]
+}

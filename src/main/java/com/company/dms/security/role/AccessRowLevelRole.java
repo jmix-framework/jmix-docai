@@ -8,9 +8,11 @@ import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
+import com.company.dms.model.favorite.Favorite;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.security.AccessRoleAssignmentProvider;
 import io.jmix.core.security.CurrentAuthentication;
+import io.jmix.core.usersubstitution.CurrentUserSubstitution;
 import io.jmix.security.model.RowLevelBiPredicate;
 import io.jmix.security.model.RowLevelPolicyAction;
 import io.jmix.security.role.annotation.JpqlRowLevelPolicy;
@@ -133,4 +135,20 @@ public interface AccessRowLevelRole {
     @JpqlRowLevelPolicy(entityClass = DiscussedDocument.class,
             where = "{E}.conversation.username = :current_user_username")
     void discussedDocument();
+
+    /**
+     * Shows the own favorites: those of the user the person works as.
+     */
+    @JpqlRowLevelPolicy(entityClass = Favorite.class, where = "{E}.user.username = :current_user_username")
+    void favorite();
+
+    /**
+     * Adds and removes only the own favorites.
+     */
+    @PredicateRowLevelPolicy(entityClass = Favorite.class, actions = {RowLevelPolicyAction.CREATE,
+            RowLevelPolicyAction.DELETE})
+    default RowLevelBiPredicate<Favorite, ApplicationContext> favoriteChange() {
+        return (favorite, context) -> favorite.getUser().getUsername()
+                .equals(context.getBean(CurrentUserSubstitution.class).getEffectiveUser().getUsername());
+    }
 }

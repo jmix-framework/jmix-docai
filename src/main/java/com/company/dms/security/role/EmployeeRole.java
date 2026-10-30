@@ -8,6 +8,8 @@ import com.company.dms.model.discussion.DiscussedDocument;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
+import com.company.dms.model.favorite.Favorite;
+import com.company.dms.model.favorite.FavoriteItem;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.model.tag.Tag;
 import com.company.dms.model.trash.TrashItem;
@@ -173,4 +175,17 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     @EntityAttributePolicy(entityClass = DiscussedDocument.class, attributes = "*",
             action = EntityAttributePolicyAction.MODIFY)
     void discussion();
+
+    /**
+     * Marks folders and documents as own favorites and removes the marks: {@link AccessRowLevelRole} leaves the own
+     * marks, and the favorite service reads the targets with the rights of the user. The favorites block shows its
+     * rows as {@link FavoriteItem}.
+     */
+    @EntityPolicy(entityClass = Favorite.class, actions = {EntityPolicyAction.READ, EntityPolicyAction.CREATE,
+            EntityPolicyAction.DELETE})
+    @EntityAttributePolicy(entityClass = Favorite.class, attributes = "*", action = EntityAttributePolicyAction.MODIFY)
+    @EntityPolicy(entityClass = FavoriteItem.class, actions = EntityPolicyAction.READ)
+    @EntityAttributePolicy(entityClass = FavoriteItem.class, attributes = "*",
+            action = EntityAttributePolicyAction.VIEW)
+    void favorite();
 }

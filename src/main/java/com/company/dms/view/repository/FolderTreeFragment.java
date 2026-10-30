@@ -10,15 +10,20 @@ import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.view.access.AccessDetailView;
+import com.company.dms.view.favorite.FavoritesFragment;
 import com.company.dms.view.folder.FolderDetailView;
 import com.company.dms.view.folder.FolderLookupView;
 import com.company.dms.view.folder.FolderRenderers;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.dnd.DropEvent;
+import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.component.grid.dnd.GridDropEvent;
 import com.vaadin.flow.component.grid.dnd.GridDropMode;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.selection.SelectionEvent;
@@ -28,47 +33,39 @@ import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
+import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.action.DialogAction;
+import io.jmix.flowui.component.details.JmixDetails;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.fragment.FragmentUtils;
+import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.kit.action.ActionVariant;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
-import io.jmix.flowui.view.DialogWindow;
-import io.jmix.flowui.view.Install;
-import io.jmix.flowui.view.MessageBundle;
-import io.jmix.flowui.view.StandardOutcome;
-import io.jmix.flowui.view.Subscribe;
-import io.jmix.flowui.view.Supply;
-import io.jmix.flowui.view.Target;
-import io.jmix.flowui.view.View;
-import io.jmix.flowui.view.ViewComponent;
+import io.jmix.flowui.view.*;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * The folder tree of the repository with the folder actions, the folder filter and the document counts.
+ * The folder tree of the repository with the folder actions, the folder filter, which narrows the favorites too, and
+ * the document counts.
  * The folders on the way to what the user has access to are greyed, and the actions follow the user's level
  * in the selected folder. A folder is moved by dragging it onto another one, and documents are moved by dropping
- * them on a folder: while something is dragged, only the folders that may take it accept the drop.
+ * them on a folder: while something is dragged, only the folders that may take it accept the drop. Folders and
+ * documents dropped on the favorites, the first section of the frame, are marked as favorites.
  */
 @FragmentDescriptor("folder-tree-fragment.xml")
 public class FolderTreeFragment extends Fragment<VerticalLayout> {
@@ -85,6 +82,12 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     private Action createFolderAction;
     @ViewComponent("foldersTree.accessFolderAction")
     private Action accessFolderAction;
+    @ViewComponent("foldersTree.favoriteAction")
+    private Action favoriteAction;
+    @ViewComponent
+    private FavoritesFragment favorites;
+    @ViewComponent
+    private JmixDetails favoritesDetails;
 
     @ViewComponent
     private MessageBundle messageBundle;
@@ -103,11 +106,19 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     private MetadataTools metadataTools;
     @Autowired
     private FolderRenderers folderRenderers;
+    @Autowired
+    private UiComponents uiComponents;
+    @Autowired
+    private Icons icons;
 
     private FolderTree tree = new FolderTree(List.of(), Set.of(), new AccessLevels(Map.of(), false));
 
+    private Runnable favoritesChangeHandler = () -> {
+    };
     private Map<UUID, Folder> allFolders = Map.of();
     private Map<UUID, Long> documentCounts = Map.of();
+    private Runnable reloadHandler = () -> {
+    };
     @Nullable
     private Folder selectedFolder;
     private Consumer<Folder> selectionHandler = folder -> {
@@ -146,6 +157,13 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         } else {
             startDrop(target -> allows(target, AccessLevel.EDIT) && !target.equals(selectedFolder));
         }
+    }
+
+    /**
+     * Receives a reload of the tree: the folders may have new names and places since, and some may be gone.
+     */
+    public void setReloadHandler(Runnable reloadHandler) {
+        this.reloadHandler = reloadHandler;
     }
 
     /**
@@ -188,6 +206,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         }
 
         select(folder);
+        reloadHandler.run();
     }
 
     /**
@@ -196,6 +215,20 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     public void refreshDocumentCounts() {
         documentCounts = folderService.countDocuments(allFolders.values());
         foldersTree.getDataProvider().refreshAll();
+    }
+
+    /**
+     * Receives a mark set or removed on a folder of the tree.
+     */
+    public void setFavoritesChangeHandler(Runnable favoritesChangeHandler) {
+        this.favoritesChangeHandler = favoritesChangeHandler;
+    }
+
+    /**
+     * Shows again what the folder menu offers for the selected folder: after a mark set or removed outside the tree.
+     */
+    public void refreshFavorites() {
+        favoriteAction.refreshState();
     }
 
     /**
@@ -215,6 +248,13 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     @Nullable
     public Folder getSelectedFolder() {
         return selectedFolder;
+    }
+
+    /**
+     * The favorites of the user, the first section in the frame of the tree, above the folders.
+     */
+    public FavoritesFragment getFavorites() {
+        return favorites;
     }
 
     /**
@@ -242,6 +282,20 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         return tree.folders();
     }
 
+    // the header of the favorites carries a star, as a folder of the tree carries its icon; the descriptor gives
+    // a details a summary text only
+    @Subscribe
+    public void onReady(final ReadyEvent event) {
+        Span summary = uiComponents.create(Span.class);
+        summary.addClassName("name-with-icon");
+        summary.add(icons.get(JmixFontIcon.STAR), new Text(favoritesDetails.getSummaryText()));
+        favoritesDetails.setSummary(summary);
+
+        // the whole section takes a drop, the header of the closed one too
+        DropTarget.create(favoritesDetails)
+                .addDropListener(this::onFavoritesDrop);
+    }
+
     @Subscribe("foldersTree")
     public void onFoldersTreeSelection(final SelectionEvent<TreeDataGrid<Folder>, Folder> event) {
         // unlike the item tracking actions, a new folder is not refreshed by the selection
@@ -258,10 +312,16 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         }
     }
 
-    // a folder goes onto a folder the user may change, but not where it already is, nor into itself or below
+    // a folder goes onto a folder the user may change, but not where it already is, nor into itself or below; one
+    // the user may not change goes only to the favorites
     @Subscribe("foldersTree")
     public void onFoldersTreeDragStart(final GridDragStartEvent<Folder> event) {
         Folder folder = event.getDraggedItems().getFirst();
+
+        if (!allows(folder, AccessLevel.EDIT)) {
+            return;
+        }
+
         Folder parent = parentOf(folder);
         draggedFolder = folder;
 
@@ -293,15 +353,31 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         }
     }
 
+    // the table and the tree put the rows they drag into the drag data: all the selected rows when one of them is
+    // dragged; the closed section opens to show what was dropped on its header
+    private void onFavoritesDrop(DropEvent<JmixDetails> event) {
+        if (event.getDragData().orElse(null) instanceof Collection<?> rows) {
+            List<?> targets = rows.stream()
+                    .filter(row -> row instanceof Folder || row instanceof Document)
+                    .toList();
+
+            if (!targets.isEmpty()) {
+                favorites.mark(targets);
+                favoritesDetails.setOpened(true);
+            }
+        }
+    }
+
     @Install(to = "foldersTree", subject = "dragFilter")
     private boolean foldersTreeDragFilter(final Folder folder) {
-        return !folder.isRoot() && allows(folder, AccessLevel.EDIT);
+        return !folder.isRoot();
     }
 
     @Subscribe("folderFilterField")
     public void onFolderFilterFieldComponentValueChange(
             final AbstractField.ComponentValueChangeEvent<TypedTextField<String>, String> event) {
         foldersDc.setItems(folderService.filterByName(allFolders.values(), event.getValue()));
+        favorites.setFilter(event.getValue());
 
         if (event.getValue() != null && !event.getValue().isBlank()) {
             foldersTree.expand(foldersDc.getItems());
@@ -421,6 +497,18 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     @Install(to = "foldersTree.accessFolderAction", subject = "enabledRule")
     private boolean accessFolderActionEnabledRule() {
         return allows(foldersTree.getSingleSelectedItem(), AccessLevel.MANAGE);
+    }
+
+    @Install(to = "foldersTree.favoriteAction", subject = "afterToggleHandler")
+    private void foldersTreeFavoriteActionAfterToggleHandler() {
+        favoritesChangeHandler.run();
+    }
+
+    // the root is always one click away, and a greyed folder is only the way to others
+    @Install(to = "foldersTree.favoriteAction", subject = "enabledRule")
+    private boolean favoriteActionEnabledRule() {
+        Folder folder = foldersTree.getSingleSelectedItem();
+        return folder != null && !folder.isRoot() && !isGreyed(folder);
     }
 
     @Install(to = "foldersTree.deleteFolderAction", subject = "enabledRule")

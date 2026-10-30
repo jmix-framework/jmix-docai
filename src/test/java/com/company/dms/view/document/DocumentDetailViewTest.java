@@ -303,7 +303,7 @@ class DocumentDetailViewTest {
         assertThat(this.<Component>component(card, "headerActions").getChildren()
                 .map(action -> action.getId().orElseThrow()))
                 .containsExactly("activateButton", "archiveButton", "unarchiveButton", "fillWithAiButton",
-                        "newVersionUpload", "downloadButton", "accessButton");
+                        "newVersionUpload", "downloadButton", "accessButton", "favoriteButton");
     }
 
     @Test

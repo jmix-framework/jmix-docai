@@ -200,6 +200,15 @@ class TrashViewTest {
     }
 
     @Test
+    void theEdgeOfThePreviewIsAHairline() {
+        TrashView view = open();
+        SidePanelLayout previewLayout = UiTestUtils.getComponent(view, "previewLayout");
+
+        // a thin line, with the grip shown on hover only, as in the repository
+        assertThat(previewLayout.getThemeNames()).contains("resizer-small");
+    }
+
+    @Test
     void theQuestionToDeleteForeverQuotesEveryName() {
         Document report = upload(sandbox, "Report, total.txt");
         Document note = upload(sandbox, "note.txt");

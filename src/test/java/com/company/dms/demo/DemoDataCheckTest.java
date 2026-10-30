@@ -65,6 +65,16 @@ class DemoDataCheckTest {
     }
 
     @Test
+    void aFavoriteOfAnUnknownUserOrOfAnItemInTheTrashIsListed() {
+        assertThat(loader.check("favorites-broken"))
+                .containsExactlyInAnyOrder(
+                        "/Marked: there is no user 'nobody'",
+                        "/Marked/Deleted favorite: an item in the trash cannot be a favorite",
+                        "/Binned: an item in the trash cannot be a favorite",
+                        "/Binned/Inside: an item in the trash cannot be a favorite");
+    }
+
+    @Test
     void aSoundDescriptionHasNoProblems() {
         assertThat(loader.check("sample")).isEmpty();
     }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <content>
+        <vbox id="favoritesRoot" width="100%" padding="false" spacing="false">
+            <span id="emptyHint" classNames="favorites-hint" text="msg://emptyHint.text" visible="false"/>
+            <vbox id="favoritesBox" classNames="favorites-list" width="100%" padding="false" spacing="false"/>
+        </vbox>
+    </content>
+</fragment>

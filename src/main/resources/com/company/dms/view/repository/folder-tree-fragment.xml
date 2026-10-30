@@ -10,7 +10,7 @@
     </facets>
     <content>
         <vbox id="folderTreeRoot" classNames="folder-tree" width="100%" height="100%"
-              minWidth="12em" padding="false">
+              minWidth="12em" padding="false" expand="treeFrame">
             <hbox id="folderToolbar" width="100%" alignItems="CENTER" wrap="true">
                 <dropdownButton id="folderActionsButton" text="msg://folderActionsButton.text" icon="FOLDER">
                     <items>
@@ -18,6 +18,7 @@
                         <actionItem id="renameFolderItem" ref="foldersTree.renameFolderAction"/>
                         <actionItem id="moveFolderItem" ref="foldersTree.moveFolderAction"/>
                         <actionItem id="accessFolderItem" ref="foldersTree.accessFolderAction"/>
+                        <actionItem id="favoriteFolderItem" ref="foldersTree.favoriteAction"/>
                         <actionItem id="deleteFolderItem" ref="foldersTree.deleteFolderAction"/>
                     </items>
                 </dropdownButton>
@@ -39,34 +40,45 @@
                     <icon icon="SEARCH"/>
                 </prefix>
             </textField>
-            <treeDataGrid id="foldersTree" dataContainer="foldersDc" hierarchyProperty="parent"
-                          rowsDraggable="true" width="100%" height="100%">
-                <actions showInContextMenuEnabled="false">
-                    <action id="createFolderAction" text="msg://createFolderAction.text" icon="FOLDER_ADD"/>
-                    <action id="renameFolderAction" type="list_itemTracking"
-                            text="msg://renameFolderAction.text" icon="PENCIL"/>
-                    <action id="moveFolderAction" type="list_itemTracking"
-                            text="msg://moveFolderAction.text" icon="ARROW_RIGHT"/>
-                    <action id="accessFolderAction" type="list_itemTracking"
-                            text="msg://accessAction.text" icon="KEY"/>
-                    <action id="deleteFolderAction" type="list_itemTracking" actionVariant="DANGER"
-                            text="msg://deleteFolderAction.text" icon="TRASH"/>
-                </actions>
-                <contextMenu>
-                    <item id="createFolderContextItem" action="foldersTree.createFolderAction"
-                          classNames="main-menu-item"/>
-                    <item id="renameFolderContextItem" action="foldersTree.renameFolderAction"/>
-                    <item id="moveFolderContextItem" action="foldersTree.moveFolderAction"/>
-                    <item id="accessFolderContextItem" action="foldersTree.accessFolderAction"/>
-                    <item id="deleteFolderContextItem" action="foldersTree.deleteFolderAction"
-                          classNames="danger-menu-item"/>
-                </contextMenu>
-                <columns>
-                    <column property="name"
-                            header="msg://com.company.dms.view.folder/foldersColumn.header"
-                            sortable="false"/>
-                </columns>
-            </treeDataGrid>
+            <vbox id="treeFrame" classNames="folder-tree-frame" width="100%" padding="false" spacing="false"
+                  expand="foldersTree">
+                <!-- the section opens and closes here, so that the settings of the tree keep its state: a fragment
+                     inside a fragment has no id for settings of its own -->
+                <details id="favoritesDetails" classNames="favorites" opened="true" width="100%"
+                         summaryText="msg://com.company.dms.view.favorite/favoritesDetails.summaryText">
+                    <fragment id="favorites" class="com.company.dms.view.favorite.FavoritesFragment"/>
+                </details>
+                <treeDataGrid id="foldersTree" dataContainer="foldersDc" hierarchyProperty="parent"
+                              rowsDraggable="true" width="100%" themeNames="no-border">
+                    <actions showInContextMenuEnabled="false">
+                        <action id="createFolderAction" text="msg://createFolderAction.text" icon="FOLDER_ADD"/>
+                        <action id="renameFolderAction" type="list_itemTracking"
+                                text="msg://renameFolderAction.text" icon="PENCIL"/>
+                        <action id="moveFolderAction" type="list_itemTracking"
+                                text="msg://moveFolderAction.text" icon="ARROW_RIGHT"/>
+                        <action id="accessFolderAction" type="list_itemTracking"
+                                text="msg://accessAction.text" icon="KEY"/>
+                        <action id="favoriteAction" type="dms_favoriteList"/>
+                        <action id="deleteFolderAction" type="list_itemTracking" actionVariant="DANGER"
+                                text="msg://deleteFolderAction.text" icon="TRASH"/>
+                    </actions>
+                    <contextMenu>
+                        <item id="createFolderContextItem" action="foldersTree.createFolderAction"
+                              classNames="main-menu-item"/>
+                        <item id="renameFolderContextItem" action="foldersTree.renameFolderAction"/>
+                        <item id="moveFolderContextItem" action="foldersTree.moveFolderAction"/>
+                        <item id="accessFolderContextItem" action="foldersTree.accessFolderAction"/>
+                        <item id="favoriteFolderContextItem" action="foldersTree.favoriteAction"/>
+                        <item id="deleteFolderContextItem" action="foldersTree.deleteFolderAction"
+                              classNames="danger-menu-item"/>
+                    </contextMenu>
+                    <columns>
+                        <column property="name"
+                                header="msg://com.company.dms.view.folder/foldersColumn.header"
+                                sortable="false"/>
+                    </columns>
+                </treeDataGrid>
+            </vbox>
         </vbox>
     </content>
 </fragment>

@@ -2,6 +2,9 @@
   "folders": [
     {
       "name": "Inbox",
+      "favoriteOf": [
+        "alice"
+      ],
       "documents": [
         {
           "name": "Scan 0457.pdf",
@@ -37,9 +40,17 @@
     },
     {
       "name": "Contracts",
+      "favoriteOf": [
+        "admin",
+        "john"
+      ],
       "documents": [
         {
           "name": "Lease Agreement No. 112",
+          "favoriteOf": [
+            "admin",
+            "john"
+          ],
           "date": "2026-02-27",
           "type": "Contract",
           "fields": {
@@ -252,9 +263,15 @@
     },
     {
       "name": "Invoices and Certificates",
+      "favoriteOf": [
+        "maria"
+      ],
       "documents": [
         {
           "name": "Invoice No. 2045",
+          "favoriteOf": [
+            "maria"
+          ],
           "date": "2026-11-02",
           "type": "Invoice",
           "fields": {
@@ -321,6 +338,10 @@
     },
     {
       "name": "Procurement",
+      "favoriteOf": [
+        "admin",
+        "peter"
+      ],
       "documents": [
         {
           "name": "Lease Agreement No. 14/A-26 — MTZ-82 Tractor",
@@ -706,6 +727,9 @@
         },
         {
           "name": "Office Lease Agreement No. 3/O",
+          "favoriteOf": [
+            "peter"
+          ],
           "date": "2026-01-09",
           "type": "Contract",
           "fields": {
@@ -883,6 +907,9 @@
     },
     {
       "name": "Archive 2025",
+      "favoriteOf": [
+        "alice"
+      ],
       "access": [
         {
           "role": "legal-department",
@@ -968,6 +995,9 @@
     },
     {
       "name": "HR",
+      "favoriteOf": [
+        "helen"
+      ],
       "access": [
         {
           "role": "hr-department",
@@ -990,6 +1020,9 @@
           "documents": [
             {
               "name": "Vacation Schedule 2027",
+              "favoriteOf": [
+                "helen"
+              ],
               "tags": [
                 "HR"
               ],

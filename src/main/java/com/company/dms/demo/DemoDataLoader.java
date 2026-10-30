@@ -3,10 +3,12 @@ package com.company.dms.demo;
 import com.company.dms.ai.classification.ClassificationProposal;
 import com.company.dms.ai.classification.ClassificationResult;
 import com.company.dms.ai.classification.DocumentClassifier;
+import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.document.DocumentCommentService;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.document.UploadedFile;
+import com.company.dms.app.service.favorite.FavoriteService;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.app.service.tag.TagService;
 import com.company.dms.model.access.AccessDraft;
@@ -126,6 +128,7 @@ public class DemoDataLoader {
     private final AccessService accessService;
     private final DocumentClassifier documentClassifier;
     private final TagService tagService;
+    private final FavoriteService favoriteService;
     private final ResourceRoleRepository roleRepository;
     private final SystemAuthenticator systemAuthenticator;
     private final Metadata metadata;
@@ -144,6 +147,7 @@ public class DemoDataLoader {
                           AccessService accessService,
                           DocumentClassifier documentClassifier,
                           TagService tagService,
+                          FavoriteService favoriteService,
                           ResourceRoleRepository roleRepository,
                           SystemAuthenticator systemAuthenticator,
                           Metadata metadata,
@@ -157,6 +161,7 @@ public class DemoDataLoader {
         this.accessService = accessService;
         this.documentClassifier = documentClassifier;
         this.tagService = tagService;
+        this.favoriteService = favoriteService;
         this.roleRepository = roleRepository;
         this.systemAuthenticator = systemAuthenticator;
         this.metadata = metadata;
@@ -208,7 +213,7 @@ public class DemoDataLoader {
      * Returns the problems of the description of the set without writing anything: a folder or a document without
      * a name or with the name of a neighbour, a document without versions, a missing file, an unknown user, role,
      * level, status, type or field, a field value its field does not accept, and a tag without a name, too long or
-     * written in another case elsewhere.
+     * written in another case elsewhere, and a favorite of an unknown user or of an item in the trash.
      */
     public List<String> check(String set) {
         // the type rules read the names of types and fields in the language of the current user
@@ -239,6 +244,7 @@ public class DemoDataLoader {
                 createFolder(set, folder, root, loaded);
             }
 
+            markAsDescribed(loaded.marked);
             deleteAsDescribed(loaded.deleted);
         }));
 
@@ -266,6 +272,7 @@ public class DemoDataLoader {
         List<String> problems = new ArrayList<>();
         checkFolders(set, description.folders(), "", users, problems);
         checkTags(description.folders(), "", new HashMap<>(), problems);
+        checkFavorites(description.folders(), "", false, users, problems);
 
         return problems;
     }
@@ -378,6 +385,36 @@ public class DemoDataLoader {
         }
     }
 
+    // a mark of a folder or a document that the loader puts into the trash would never show
+    private static void checkFavorites(List<DemoSet.Folder> folders, String path, boolean deleted, Set<String> users,
+                                       List<String> problems) {
+        for (DemoSet.Folder folder : folders) {
+            String folderPath = path + "/" + folder.name();
+            boolean folderDeleted = deleted || folder.deleted() != null;
+            checkMarks(folder.favoriteOf(), folderPath, folderDeleted, users, problems);
+
+            for (DemoSet.Document document : folder.documents()) {
+                checkMarks(document.favoriteOf(), folderPath + "/" + document.name(),
+                        folderDeleted || document.deleted() != null, users, problems);
+            }
+
+            checkFavorites(folder.folders(), folderPath, folderDeleted, users, problems);
+        }
+    }
+
+    private static void checkMarks(List<String> logins, String where, boolean deleted, Set<String> users,
+                                   List<String> problems) {
+        if (deleted && !logins.isEmpty()) {
+            problems.add(where + ": an item in the trash cannot be a favorite");
+        }
+
+        for (String login : logins) {
+            if (!users.contains(login)) {
+                problems.add(where + ": there is no user '" + login + "'");
+            }
+        }
+    }
+
     private static void checkDeletion(DemoSet.@Nullable Deletion deletion, String where, Set<String> users,
                                       List<String> problems) {
         if (deletion == null) {
@@ -463,6 +500,7 @@ public class DemoDataLoader {
         draft.setParent(parent);
         Folder folder = folderService.save(draft);
         loaded.folders++;
+        loaded.marked.add(new Marked(folder, description.favoriteOf()));
 
         if (description.access() != null) {
             giveOwnAccess(accessService.describe(folder), description.access());
@@ -525,6 +563,7 @@ public class DemoDataLoader {
         backdate(document, versions);
         writeComments(document, description.comments());
         loaded.documents++;
+        loaded.marked.add(new Marked(document, description.favoriteOf()));
         loaded.versions += versions.size();
 
         if (description.deleted() != null) {
@@ -614,6 +653,20 @@ public class DemoDataLoader {
                         .setParameter("edited", at(description.edited()))
                         .setParameter("id", comment.getId())
                         .executeUpdate();
+            }
+        }
+    }
+
+    // each mark is set by its owner with the owner's rights, so a mark of an item the owner may not read fails the load
+    private void markAsDescribed(List<Marked> marks) {
+        for (Marked mark : marks) {
+            for (String login : mark.logins()) {
+                try {
+                    systemAuthenticator.runWithUser(login, () -> favoriteService.mark(List.of(mark.item())));
+                } catch (OperationRejectedException e) {
+                    throw new IllegalStateException("The demo set marks an item that '%s' may not read: %s"
+                            .formatted(login, e.getMessage()), e);
+                }
             }
         }
     }
@@ -712,11 +765,15 @@ public class DemoDataLoader {
     private static final class Loaded {
 
         private final List<Deleted> deleted = new ArrayList<>();
+        private final List<Marked> marked = new ArrayList<>();
         private int folders;
         private int documents;
         private int versions;
     }
 
     private record Deleted(Object item, DemoSet.Deletion description) {
+    }
+
+    private record Marked(Object item, List<String> logins) {
     }
 }

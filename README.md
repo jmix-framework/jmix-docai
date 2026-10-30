@@ -16,6 +16,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Domain Model](#️-domain-model)
 - [Role Model](#-role-model)
 - [Access](#-access)
+- [Favorites](#-favorites)
 - [Trash](#️-trash)
 - [Tags](#️-tags)
 - [Comments](#-comments)
@@ -189,6 +190,7 @@ Both sets have the same folders, people and scenes:
 | HR | HR department manages | A hiring order and an employment contract |
 | HR / Vacations | HR department manages, every employee views | The vacation schedule, with a comment by Peter, who may only view it, and Helen's answer |
 | Trash | As before the deletion | The Drafts folder with two drafts, deleted by Alice, and the first edition of Lease Agreement No. 112, deleted by John from Contracts: preview and restore them, or delete them forever as `admin` |
+| Favorites | Personal | Two or three marks of each employee and of `admin` in the Favorites section of the folder tree: John has Contracts and Lease Agreement No. 112 |
 
 Both sets tag 39 documents with seven tags, such as *lease*, *supply* and *IT*, that cross the folders: *lease* marks leases in Contracts, Procurement and Archive 2025, so the page of the tag is shorter for `peter`. The scans of the Inbox have no tags: **Fill with AI** proposes them. No tag names farm machinery.
 
@@ -309,6 +311,7 @@ classDiagram
 - The type of a document is a category of the Dynamic Attributes add-on (`Category`), and the fields of the type are its attributes (`CategoryAttribute`), properties of the document named `+code`.
 - A document carries tags of a shared vocabulary (`Tag`, many-to-many owned by the document): a tag knows nothing of its documents, and a tag that a document carries, one in the trash included, is not deleted.
 - Folders, documents and revisions are deleted softly, into the [trash](#️-trash). Deleting a folder takes its subtree, and restoring it brings back what was deleted with it.
+- A favorite marks one folder or one document for one user (`Favorite`). Removing a mark deletes it at once; the marks of a folder or a document deleted forever go with it.
 - A discussion with the AI keeps its selection of documents in `DiscussedDocument`, beside the conversation of the AI Tools add-on: the conversation, a document and its place in the selection. Removing the conversation removes its selection. A deleted document, or one the person may no longer open, drops out of the selection.
 - A comment (`DocumentComment`) refers to its document, and the document has no list of its comments: saving a document never touches them. A comment is deleted for good. The comments of a document in the trash stay hidden with it, come back with it and go when it is deleted forever.
 - A folder and a document point to the access set in effect: their parent's or their own. An access set belongs to one folder or document, and each of its entries gives a user or a role a level.
@@ -333,6 +336,8 @@ Employees set the tags of the documents they may edit and add new tags from the 
 
 The Employee role may change every attribute of a document. The fields of document types are attributes that the administrator adds later, so a role cannot list them. Attribute policies guard only the views: what is written is decided by the document service, and the Edit level is checked there and by `access-rl`.
 
+Favorites are personal: the row-level role lets a user read, add and remove only their own marks, and the favorite service names the owner in every query, so the administrator, whom the row-level role does not narrow, sees only their own marks too.
+
 ## 🔑 Access
 
 Access works as in SharePoint. A folder or a document either inherits the access of its parent or has its own, set in the **Access** dialog. For a folder, it opens from the folder menu and the folder's context menu; for a document, from the key on the documents toolbar, the document's context menu and the document card. Only those who manage something see the action.
@@ -351,6 +356,12 @@ Access works as in SharePoint. A folder or a document either inherits the access
 - With LDAP or Active Directory, map each department group to its resource role and keep the access entries on roles rather than on users.
 
 > **Warning:** the `access-rl` role comes from the Jmix role assignments. If users sign in through LDAP or SSO and get their roles from a group mapper, add `access-rl` in the mapper, or they will see every folder and document.
+
+## ⭐ Favorites
+
+Each user marks the folders and the documents they come back to often. The Favorites section at the top of the folder tree, above the folders, lists the marked folders, then the marked documents, alphabetically, each with the folder it lies in: a folder opens in the tree, a document opens its card, and the star of a row removes the mark. The stars in the header of the document card and in the toolbar of the documents table, **Favorites** in the context menu of the table, and the **Folder** menu and the context menu of the tree set and remove marks: a yellow outline of a star adds the mark, a filled yellow star removes it. A marked document shows a star after its name; a long name ends with an ellipsis, so the star stays in sight. Folders and documents dragged onto the Favorites section are marked too, and the folder filter above the tree narrows the section by name.
+
+Marks are personal: every user, the administrator too, sees only their own. A user marks only what they may read. A mark of a folder or a document the user can no longer read, or that lies in the trash, is hidden and comes back with the access or the restore; deleting the item forever removes the mark, and the marks of a deleted user go with the user. Search and the AI assistants do not see favorites. In the demo sets each employee and the administrator have two or three marks.
 
 ## 🗑️ Trash
 

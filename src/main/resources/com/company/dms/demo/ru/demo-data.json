@@ -2,6 +2,9 @@
   "folders": [
     {
       "name": "Входящие",
+      "favoriteOf": [
+        "alice"
+      ],
       "documents": [
         {
           "name": "Скан 0457.pdf",
@@ -37,9 +40,17 @@
     },
     {
       "name": "Договоры",
+      "favoriteOf": [
+        "admin",
+        "john"
+      ],
       "documents": [
         {
           "name": "Договор аренды № 112",
+          "favoriteOf": [
+            "admin",
+            "john"
+          ],
           "date": "2026-02-27",
           "type": "Contract",
           "fields": {
@@ -252,9 +263,15 @@
     },
     {
       "name": "Счета и акты",
+      "favoriteOf": [
+        "maria"
+      ],
       "documents": [
         {
           "name": "Счёт № 2045",
+          "favoriteOf": [
+            "maria"
+          ],
           "date": "2026-11-02",
           "type": "Invoice",
           "fields": {
@@ -321,6 +338,10 @@
     },
     {
       "name": "Закупки",
+      "favoriteOf": [
+        "admin",
+        "peter"
+      ],
       "documents": [
         {
           "name": "Договор аренды № 14/А-26 — трактор МТЗ-82",
@@ -706,6 +727,9 @@
         },
         {
           "name": "Договор аренды офиса № 3/О",
+          "favoriteOf": [
+            "peter"
+          ],
           "date": "2026-01-09",
           "type": "Contract",
           "fields": {
@@ -883,6 +907,9 @@
     },
     {
       "name": "Архив 2025",
+      "favoriteOf": [
+        "alice"
+      ],
       "access": [
         {
           "role": "legal-department",
@@ -968,6 +995,9 @@
     },
     {
       "name": "Кадры",
+      "favoriteOf": [
+        "helen"
+      ],
       "access": [
         {
           "role": "hr-department",
@@ -990,6 +1020,9 @@
           "documents": [
             {
               "name": "График отпусков на 2027 год",
+              "favoriteOf": [
+                "helen"
+              ],
               "tags": [
                 "кадры"
               ],

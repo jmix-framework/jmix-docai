@@ -8,6 +8,7 @@ import com.company.dms.model.access.AccessSet;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
+import com.company.dms.model.favorite.Favorite;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.model.trash.TrashItem;
 import com.company.dms.model.user.User;
@@ -329,6 +330,9 @@ public class TrashService {
         // a comment refers to its document, and the document does not know its comments
         deleteForever(DocumentComment.class, "e.document.id in :ids", documents);
         deleteForever(DocumentRevision.class, "e.document.id in :ids", documents);
+        // the marks of the users keep their targets in the trash and go with them
+        deleteForever(Favorite.class, "e.document.id in :ids", documents);
+        deleteForever(Favorite.class, "e.folder.id in :ids", folders);
         deleteForever(Document.class, "e.id in :ids and e.deletedDate is not null", documents);
 
         for (List<UUID> folderLevel : levels.reversed()) {

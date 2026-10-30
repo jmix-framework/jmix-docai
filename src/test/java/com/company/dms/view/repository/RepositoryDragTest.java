@@ -281,13 +281,23 @@ class RepositoryDragTest {
         assertThat(UiTestUtils.getOpenedNotifications()).isEmpty();
     }
 
+    // a folder the employee only views is dragged to the favorites
     @Test
-    void onlyFoldersTheEmployeeChangesAreDraggedAndNeverTheRoot() {
+    void everyFolderButTheRootIsDragged() {
         TreeDataGrid<Folder> tree = foldersTree(open(sandbox));
 
         assertThat(tree.getDragFilter().test(drafts)).isTrue();
-        assertThat(tree.getDragFilter().test(published)).isFalse();
+        assertThat(tree.getDragFilter().test(published)).isTrue();
         assertThat(tree.getDragFilter().test(folderService.getRoot())).isFalse();
+    }
+
+    @Test
+    void aFolderTheEmployeeOnlyViewsLightsUpNoFolder() {
+        TreeDataGrid<Folder> tree = foldersTree(open(sandbox));
+
+        TestGrids.startDrag(tree, List.of(published));
+
+        assertThat(tree.getDropMode()).isNull();
     }
 
     @Test

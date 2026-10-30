@@ -16,7 +16,7 @@
     <layout>
         <sidePanelLayout id="previewLayout" classNames="repository-preview-layout" width="100%" height="100%"
                          sidePanelPosition="RIGHT" sidePanelOverlay="false" modal="false"
-                         closeOnOutsideClick="false" sidePanelResizable="true"
+                         closeOnOutsideClick="false" sidePanelResizable="true" themeNames="resizer-small"
                          sidePanelHorizontalSize="40%" sidePanelHorizontalMinSize="20em">
             <vbox id="trashPane" width="100%" height="100%" padding="false" expand="trashItemsGrid">
                 <hbox id="trashToolbar" width="100%" alignItems="START">

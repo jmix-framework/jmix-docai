@@ -3,6 +3,7 @@ package com.company.dms.view.repository;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.view.document.DocumentPreviewFragment;
+import com.company.dms.view.favorite.FavoritesFragment;
 import com.company.dms.view.main.MainView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -82,10 +83,26 @@ public class RepositoryView extends StandardView {
     }
 
     private void configureFragments() {
+        FavoritesFragment favorites = folderTree.getFavorites();
         folderTree.setSelectionHandler(this::showFolder);
+        folderTree.setReloadHandler(favorites::reload);
+        favorites.setFolderOpenHandler(folder -> folderTree.loadAndSelect(folder.getId()));
+        favorites.setDocumentOpenHandler(documentList::openCard);
         documentList.setFocusHandler(this::showPreview);
+        documentList.setFavoritesChangeHandler(() -> {
+            favorites.reload();
+            folderTree.refreshFavorites();
+        });
+        folderTree.setFavoritesChangeHandler(favorites::reload);
+        favorites.setChangeHandler(() -> {
+            documentList.refreshFavorites();
+            folderTree.refreshFavorites();
+        });
         documentList.setPreviewToggleHandler(this::togglePreviewMode);
-        documentList.setContentsChangeHandler(folderTree::refreshDocumentCounts);
+        documentList.setContentsChangeHandler(() -> {
+            folderTree.refreshDocumentCounts();
+            favorites.reload();
+        });
         documentList.setDragHandler(folderTree::setDraggedDocuments);
         folderTree.setDocumentsDropHandler(documentList::move);
     }

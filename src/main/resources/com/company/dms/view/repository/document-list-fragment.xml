@@ -43,6 +43,8 @@
                     </dropdownButton>
                     <button id="accessButton" action="documentsGrid.accessAction" text=""
                             title="msg://accessAction.text"/>
+                    <button id="favoriteButton" action="documentsGrid.favoriteAction" text=""
+                            title="msg://com.company.dms.view.favorite/favoriteAction.text"/>
                     <button id="deleteButton" action="documentsGrid.deleteAction" text=""
                             title="msg://deleteAction.text"/>
                 </hbox>
@@ -71,6 +73,7 @@
                             text="msg://unarchiveAction.text" icon="UNDO"/>
                     <action id="accessAction" type="list_itemTracking"
                             text="msg://accessAction.text" icon="KEY"/>
+                    <action id="favoriteAction" type="dms_favoriteList"/>
                     <action id="deleteAction" type="list_itemTracking" actionVariant="DANGER"
                             text="msg://deleteAction.text" icon="TRASH"/>
                 </actions>
@@ -84,6 +87,7 @@
                     <item id="archiveDocumentItem" action="documentsGrid.archiveAction"/>
                     <item id="unarchiveDocumentItem" action="documentsGrid.unarchiveAction"/>
                     <item id="accessDocumentItem" action="documentsGrid.accessAction"/>
+                    <item id="favoriteDocumentItem" action="documentsGrid.favoriteAction"/>
                     <item id="deleteDocumentItem" action="documentsGrid.deleteAction" classNames="danger-menu-item"/>
                 </contextMenu>
                 <columns resizable="true">

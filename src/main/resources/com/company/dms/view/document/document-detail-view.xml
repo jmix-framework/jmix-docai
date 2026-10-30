@@ -24,6 +24,7 @@
         <action id="saveAction" type="detail_saveClose"/>
         <action id="closeAction" type="detail_close"/>
         <action id="fillWithAiAction" type="dms_fillWithAi"/>
+        <action id="favoriteAction" type="dms_favoriteCard"/>
     </actions>
     <layout>
         <hbox id="cardHeader" classNames="document-card-header" width="100%" alignItems="CENTER" wrap="true">
@@ -45,6 +46,9 @@
                 </button>
                 <button id="accessButton" icon="KEY" ariaLabel="msg://accessButton.text">
                     <tooltip text="msg://accessButton.text"/>
+                </button>
+                <button id="favoriteButton" action="favoriteAction" text="">
+                    <tooltip text="msg://com.company.dms.view.favorite/favoriteAction.text"/>
                 </button>
             </hbox>
         </hbox>

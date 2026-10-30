@@ -12,6 +12,7 @@ import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.document.DocumentRevision;
 import com.company.dms.model.document.DocumentStatus;
+import com.company.dms.model.favorite.Favorite;
 import com.company.dms.model.folder.Folder;
 import com.company.dms.model.tag.Tag;
 import com.company.dms.security.role.EmployeeRole;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -118,6 +120,7 @@ class DemoDataLoaderTest {
         loader.load("ru");
 
         assertLoadedAsDescribed("ru");
+        assertFavoritesAsDescribed("ru");
     }
 
     @Test
@@ -128,6 +131,7 @@ class DemoDataLoaderTest {
         loader.load("en");
 
         assertLoadedAsDescribed("en");
+        assertFavoritesAsDescribed("en");
     }
 
     private void assertLoadedAsDescribed(String set) {
@@ -158,6 +162,53 @@ class DemoDataLoaderTest {
                 .filter(Visibility::byPeter)
                 .map(Visibility::id)
                 .toList());
+    }
+
+    // every login of a favoriteOf has its mark on the item; the folders of the other sets have marks of their own
+    private void assertFavoritesAsDescribed(String set) {
+        List<String> expected = new ArrayList<>();
+        collectMarks(read(set).folders(), "", expected);
+
+        List<String> folders = read(set).folders().stream()
+                .map(folder -> "/" + folder.name() + "/")
+                .toList();
+
+        List<String> marks = unconstrainedDataManager.load(Favorite.class)
+                .all()
+                .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("user", user -> user.add("username"))
+                        .add("folder", FetchPlan.BASE)
+                        .add("document", document -> document.addFetchPlan(FetchPlan.BASE)
+                                .add("folder", FetchPlan.BASE)))
+                .list()
+                .stream()
+                .map(favorite -> favorite.getUser().getUsername() + ":" + (favorite.getFolder() != null
+                        ? pathOf(favorite.getFolder())
+                        : pathOf(favorite.getDocument().getFolder()) + "/" + favorite.getDocument().getName()))
+                .filter(mark -> folders.stream().anyMatch(folder -> (mark.substring(mark.indexOf(':') + 1) + "/")
+                        .startsWith(folder)))
+                .toList();
+
+        assertThat(expected).isNotEmpty();
+        assertThat(marks).containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    private static void collectMarks(List<DemoSet.Folder> folders, String path, List<String> marks) {
+        for (DemoSet.Folder folder : folders) {
+            String folderPath = path + "/" + folder.name();
+            folder.favoriteOf().forEach(login -> marks.add(login + ":" + folderPath));
+            folder.documents().forEach(document -> document.favoriteOf()
+                    .forEach(login -> marks.add(login + ":" + folderPath + "/" + document.name())));
+            collectMarks(folder.folders(), folderPath, marks);
+        }
+    }
+
+    // the names from the folder under the root down to the folder
+    private String pathOf(Folder folder) {
+        return folderService.getPath(folder).stream()
+                .skip(1)
+                .map(step -> "/" + step.getName())
+                .collect(Collectors.joining());
     }
 
     // a folder or a document deleted together with a folder takes the deletion of the folder

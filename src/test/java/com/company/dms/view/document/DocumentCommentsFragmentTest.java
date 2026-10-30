@@ -9,6 +9,7 @@ import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentComment;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.user.User;
 import com.company.dms.test_support.EmployeeUiTestAuthenticator;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
@@ -24,6 +25,8 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.data.provider.Query;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
+import io.jmix.core.metamodel.datatype.DatatypeFormatter;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Fragments;
@@ -49,7 +52,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -90,6 +95,12 @@ class DocumentCommentsFragmentTest {
 
     @Autowired
     private SystemAuthenticator systemAuthenticator;
+
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
+
+    @Autowired
+    private DatatypeFormatter datatypeFormatter;
 
     @TempDir
     private Path tempDir;
@@ -132,7 +143,7 @@ class DocumentCommentsFragmentTest {
     @Test
     void theTabCountsTheCommentsAndShowsTheNewestFirst() {
         DocumentComment older = post("alice", "Check item 4.2");
-        backdate(older, 5);
+        backdate(older, OffsetDateTime.now().minusMinutes(5));
         post(AUTHOR, "Agreed at 0.2 percent");
 
         DocumentDetailView card = openCommentsTab();
@@ -305,14 +316,28 @@ class DocumentCommentsFragmentTest {
         assertThat(this.<JmixButton>inner(row, "editCommentButton").isVisible()).isFalse();
     }
 
+    @Test
+    void theTimeOfACommentIsInThePersonsTimeZone() {
+        backdate(post("alice", "Check item 4.2"), OffsetDateTime.of(2020, 1, 15, 12, 0, 0, 0, ZoneOffset.UTC));
+        // the person works in Kiritimati, where noon in UTC is already the next day; the user of the test's login
+        // is loaded for this test alone
+        ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
+
+        DocumentDetailView card = openCommentsTab();
+        DocumentCommentItemFragment row = row(card, items(card).getFirst());
+
+        assertThat(this.<Span>inner(row, "writtenTime").getText())
+                .isEqualTo(datatypeFormatter.formatLocalDateTime(LocalDateTime.of(2020, 1, 16, 2, 0)));
+    }
+
     private DocumentComment post(String username, String text) {
         return systemAuthenticator.withUser(username, () -> commentService.post(document, text));
     }
 
-    private void backdate(DocumentComment comment, int minutes) {
+    private void backdate(DocumentComment comment, OffsetDateTime createdDate) {
         systemAuthenticator.runWithSystem(() -> {
             DocumentComment stored = dataManager.load(Id.of(comment)).one();
-            stored.setCreatedDate(OffsetDateTime.now().minusMinutes(minutes));
+            stored.setCreatedDate(createdDate);
             dataManager.save(stored);
         });
     }

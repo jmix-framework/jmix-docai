@@ -7,6 +7,7 @@ import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.document.UploadReport;
 import com.company.dms.app.service.document.UploadedFile;
+import com.company.dms.app.service.favorite.FavoriteService;
 import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
@@ -19,11 +20,11 @@ import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.document.FileSizeFormatter;
 import com.company.dms.view.document.PreviewType;
 import com.company.dms.view.document.RevisionDownloader;
+import com.company.dms.view.favorite.FavoriteStars;
 import com.company.dms.view.folder.FolderLookupView;
 import com.company.dms.view.folder.FolderRenderers;
 import com.company.dms.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -119,6 +120,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Action accessAction;
     @ViewComponent("documentsGrid.discussAction")
     private Action discussAction;
+    @ViewComponent("documentsGrid.favoriteAction")
+    private Action favoriteAction;
 
     @ViewComponent
     private MessageBundle messageBundle;
@@ -149,6 +152,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private UiComponents uiComponents;
     @Autowired
     private TagBadges tagBadges;
+    @Autowired
+    private FavoriteService favoriteService;
     @Autowired
     private Icons icons;
     @Autowired
@@ -181,6 +186,9 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     private AccessLevels levels = new AccessLevels(Map.of(), false);
     private Map<String, String> userNames = Map.of();
+    private Set<UUID> markedIds = Set.of();
+    private Runnable favoritesChangeHandler = () -> {
+    };
 
     private final Map<UUID, UploadedFile> uploadedFiles = new LinkedHashMap<>();
     private Consumer<@Nullable Document> focusHandler = document -> {
@@ -287,6 +295,13 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     }
 
     /**
+     * Receives a mark set or removed in the list or in a card the list opened.
+     */
+    public void setFavoritesChangeHandler(Runnable favoritesChangeHandler) {
+        this.favoritesChangeHandler = favoritesChangeHandler;
+    }
+
+    /**
      * Shows the preview button pressed while the preview mode is on.
      */
     public void setPreviewPressed(boolean pressed) {
@@ -382,6 +397,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     // the grid fits its columns to the first rows it shows, so they fit again whenever the documents change
     @Subscribe(id = "documentsDc", target = Target.DATA_CONTAINER)
     public void onDocumentsDcCollectionChange(final CollectionContainer.CollectionChangeEvent<Document> event) {
+        markedIds = favoriteService.markedIds(event.getSource().getItems());
         userNames = userNames(event.getSource().getItems().stream()
                 .map(Document::getChangedBy)
                 .filter(Objects::nonNull)
@@ -409,6 +425,21 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Subscribe("documentsGrid")
     public void onDocumentsGridDragEnd(final GridDragEndEvent<Document> event) {
         dragHandler.accept(List.of());
+    }
+
+    /**
+     * Shows again which documents the user has marked: after a mark set or removed outside the list.
+     */
+    public void refreshFavorites() {
+        markedIds = favoriteService.markedIds(documentsDl.getContainer().getItems());
+        documentsGrid.getDataProvider().refreshAll();
+        favoriteAction.refreshState();
+    }
+
+    @Install(to = "documentsGrid.favoriteAction", subject = "afterToggleHandler")
+    private void documentsGridFavoriteActionAfterToggleHandler() {
+        refreshFavorites();
+        favoritesChangeHandler.run();
     }
 
     @Subscribe("documentsGrid.openAction")
@@ -555,7 +586,15 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         return new ComponentRenderer<>(document -> {
             Span name = uiComponents.create(Span.class);
             name.addClassName("name-with-icon");
-            name.add(icons.get(fileIcon(document)), new Text(document.getName()));
+            Span text = uiComponents.create(Span.class);
+            text.addClassName("name-text");
+            text.setText(document.getName());
+            name.add(icons.get(fileIcon(document)), text);
+
+            // after the name: a long name ends with an ellipsis, and the star stays in sight
+            if (markedIds.contains(document.getId())) {
+                name.add(FavoriteStars.star(icons, true));
+            }
 
             if (showsOwnAccess(document)) {
                 folderRenderers.markOwnAccess(name);
@@ -747,7 +786,10 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         return span;
     }
 
-    private void openCard(@Nullable Document document) {
+    /**
+     * Opens the card of the document; after a save the list shows its documents again.
+     */
+    public void openCard(@Nullable Document document) {
         if (document == null) {
             return;
         }
@@ -756,8 +798,12 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 .withViewClass(DocumentDetailView.class)
                 .editEntity(document)
                 .withAfterCloseListener(closeEvent -> {
+                    // a saved card may have renamed the document, and any card may have marked it with its star
                     if (closeEvent.closedWith(StandardOutcome.SAVE)) {
-                        reload();
+                        contentsChanged();
+                    } else {
+                        refreshFavorites();
+                        favoritesChangeHandler.run();
                     }
                 })
                 .open();

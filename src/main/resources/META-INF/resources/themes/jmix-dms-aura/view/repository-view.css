@@ -21,10 +21,21 @@
     display: inline-flex;
     align-items: center;
     gap: var(--vaadin-gap-s);
+    max-width: 100%;
 }
 
 .name-with-icon > * {
     pointer-events: none;
+    flex-shrink: 0;
+}
+
+/* A long name ends with an ellipsis, so the marks after it, the star and the key, stay in sight */
+.name-with-icon > .name-text {
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .folder-document-count {
@@ -208,6 +219,26 @@ vaadin-button.document-comment-send {
 /* The same gap after the resize handle of the panel, so the handle sits between two gaps as the tree's splitter does */
 .repository-preview-panel {
     padding-inline-start: var(--vaadin-gap-s);
+}
+
+/* The splitter of the tree and the edge of the preview are hairlines with the grip shown on hover, and still as easy to
+   grab as the bands they were. The splitter gets its look from the properties of the split layout: in Aura its small
+   theme makes everything inside the layout small too */
+vaadin-split-layout.repository-split {
+    --vaadin-split-layout-splitter-size: 1px;
+    --vaadin-split-layout-splitter-target-size: 8px;
+    --vaadin-split-layout-handle-size: 3px;
+    --vaadin-split-layout-handle-background: transparent;
+}
+
+vaadin-split-layout.repository-split::part(splitter):hover,
+vaadin-split-layout.repository-split::part(splitter):active,
+vaadin-split-layout.repository-split[focus-ring]::part(splitter) {
+    --vaadin-split-layout-handle-background: var(--vaadin-text-color-secondary);
+}
+
+.repository-preview-layout {
+    --jmix-side-panel-layout-splitter-target-size: 8px;
 }
 
 /* In a low window the document table keeps its minimum height, and the pane scrolls instead of cutting it */

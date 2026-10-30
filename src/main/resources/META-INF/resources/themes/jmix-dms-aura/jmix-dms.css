@@ -17,3 +17,110 @@
 .tag-badge:hover vaadin-badge {
     text-decoration: underline;
 }
+
+/* Favorites are the first section in the frame of the folder tree: the frame takes the border of the tree, the header
+   of the section the look of the header of the folders, and a row the look of a folder a level below the root */
+.folder-tree-frame {
+    border: 1px solid var(--vaadin-border-color-secondary);
+    border-radius: var(--vaadin-radius-m);
+    background: var(--vaadin-background-color);
+    overflow: hidden;
+}
+
+.folder-tree-frame > vaadin-grid {
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+/* Aura indents the content of a details under its summary; the rows indent themselves as the folders do */
+vaadin-details.favorites::part(content) {
+    padding: 0;
+    margin: 0;
+}
+
+/* The section takes the folders and the documents dropped on it and lights up while they are dragged over it, as the
+   selection of a discussion with AI does; the outline keeps inside the rounded frame */
+vaadin-details.favorites.v-drag-over-target {
+    outline: 1px dashed var(--aura-accent-color);
+    outline-offset: -2px;
+    border-radius: var(--vaadin-radius-m);
+    background: color-mix(in oklab, var(--aura-accent-color) 10%, transparent);
+}
+
+/* The list scrolls itself after a third of the screen, so the folders stay in sight */
+.favorites-list {
+    max-height: 30vh;
+    overflow-y: auto;
+}
+
+/* A long name and its folder end with an ellipsis, so a row keeps to the width of the frame and its star in sight; the
+   button wraps its text otherwise */
+.favorite-row {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-xs);
+    box-sizing: border-box;
+    width: 100%;
+    padding-block: var(--vaadin-padding-block-container);
+    padding-inline: calc(var(--vaadin-padding-inline-container) + 2.75rem) var(--vaadin-padding-inline-container);
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+/* The name and the star are tertiary buttons drawn as the text and the icons of a row; the selectors outweigh the
+   padding Aura gives a tertiary button and a button with an icon */
+.favorite-row > vaadin-button.favorite-name[theme~='tertiary'],
+.favorite-row > vaadin-button[theme~='tertiary']:last-child {
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    border: none;
+}
+
+.favorite-row > vaadin-button:last-child {
+    margin-inline-start: auto;
+}
+
+.favorite-name {
+    color: var(--vaadin-text-color);
+}
+
+.favorite-name,
+.favorite-location {
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+.favorite-name::part(label),
+.favorite-location {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.favorite-location,
+.favorites-hint {
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-s);
+}
+
+.favorites-hint {
+    display: block;
+    padding: var(--vaadin-padding-block-container) var(--vaadin-padding-inline-container);
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+/* A star is yellow, an outline before the mark and filled after it; on a disabled button or menu item it takes the
+   color of the other icons there. The font has only the filled star since Jmix 3.1, so the outline is its stroke
+   without the fill; the filled star keeps the same stroke, or it looks smaller than the outline */
+.favorite-star,
+.favorite-star-unmarked {
+    color: var(--aura-yellow-text);
+    -webkit-text-stroke: 1.5px currentColor;
+}
+
+.favorite-star-unmarked {
+    -webkit-text-fill-color: transparent;
+}
+
+[disabled] :is(.favorite-star, .favorite-star-unmarked) {
+    color: inherit;
+}

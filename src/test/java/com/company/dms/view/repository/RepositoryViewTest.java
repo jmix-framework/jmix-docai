@@ -29,6 +29,7 @@ import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.internal.PendingJavaScriptInvocation;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.AbstractStreamResource;
 import com.vaadin.flow.server.StreamResourceRegistry;
@@ -325,7 +326,7 @@ class RepositoryViewTest {
                 .extracting(item -> FragmentUtils.getComponentId(item).orElse(""))
                 .containsExactly("openDocumentItem", "downloadDocumentItem", "discussDocumentItem",
                         "moveDocumentItem", "activateDocumentItem", "archiveDocumentItem", "unarchiveDocumentItem",
-                        "accessDocumentItem", "deleteDocumentItem");
+                        "accessDocumentItem", "favoriteDocumentItem", "deleteDocumentItem");
         assertThat(items.getLast().getClassNames()).contains("danger-menu-item");
     }
 
@@ -350,7 +351,7 @@ class RepositoryViewTest {
         assertThat(items)
                 .extracting(item -> FragmentUtils.getComponentId(item).orElse(""))
                 .containsExactly("createFolderContextItem", "renameFolderContextItem", "moveFolderContextItem",
-                        "accessFolderContextItem", "deleteFolderContextItem");
+                        "accessFolderContextItem", "favoriteFolderContextItem", "deleteFolderContextItem");
         assertThat(items.getFirst().getClassNames()).contains("main-menu-item");
         assertThat(items.getLast().getClassNames()).contains("danger-menu-item");
     }
@@ -396,6 +397,19 @@ class RepositoryViewTest {
         assertThat(previewLayout.isSidePanelOpened()).isTrue();
         assertThat(documentList.getFocusedDocument()).isEqualTo(b);
         assertThat(documentList.getFocusedDocument().getStatus()).isEqualTo(DocumentStatus.ACTIVE);
+    }
+
+    @Test
+    void theTreeSplitterAndTheEdgeOfThePreviewAreHairlines() {
+        RepositoryView view = open(sandbox, true);
+        SplitLayout split = UiTestUtils.getComponent(view, "split");
+        SidePanelLayout previewLayout = UiTestUtils.getComponent(view, "previewLayout");
+
+        // a thin line, with the grip shown on hover only: the splitter by its own style, since in Aura the small theme
+        // of the split layout makes everything inside it small too
+        assertThat(split.getClassNames()).contains("repository-split");
+        assertThat(split.getThemeNames()).doesNotContain("small");
+        assertThat(previewLayout.getThemeNames()).contains("resizer-small");
     }
 
     @Test

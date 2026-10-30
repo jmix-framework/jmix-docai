@@ -30,11 +30,14 @@ public record DemoSet(List<Folder> folders) {
      * @param folders   the subfolders
      * @param documents the documents of the folder
      * @param deleted   who deleted the folder and when, or null for a live folder
+     * @param favoriteOf the logins of the users who marked the folder as a favorite
      */
     public record Folder(String name, @Nullable List<Access> access, List<Folder> folders, List<Document> documents,
-                         @Nullable Deletion deleted) {
+                         @Nullable Deletion deleted,
+                         List<String> favoriteOf) {
 
         public Folder {
+            favoriteOf = favoriteOf == null ? List.of() : favoriteOf;
             folders = folders == null ? List.of() : folders;
             documents = documents == null ? List.of() : documents;
         }
@@ -63,12 +66,15 @@ public record DemoSet(List<Folder> folders) {
      * @param versions the versions, the first one first
      * @param comments the comments, the oldest first
      * @param deleted  who deleted the document and when, or null for a live document
+     * @param favoriteOf the logins of the users who marked the document as a favorite
      */
     public record Document(String name, @Nullable LocalDate date, @Nullable String type, Map<String, String> fields,
                            List<String> tags, @Nullable String status, @Nullable List<Access> access,
-                           List<Version> versions, List<Comment> comments, @Nullable Deletion deleted) {
+                           List<Version> versions, List<Comment> comments, @Nullable Deletion deleted,
+                           List<String> favoriteOf) {
 
         public Document {
+            favoriteOf = favoriteOf == null ? List.of() : favoriteOf;
             fields = fields == null ? Map.of() : fields;
             tags = tags == null ? List.of() : tags;
             versions = versions == null ? List.of() : versions;

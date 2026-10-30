@@ -17,6 +17,7 @@ import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.tag.Tag;
 import com.company.dms.model.user.User;
 import com.company.dms.view.access.AccessDetailView;
+import com.company.dms.view.favorite.FavoriteCardAction;
 import com.company.dms.view.main.MainView;
 import com.company.dms.view.tag.TagBadges;
 import com.google.common.base.Strings;
@@ -107,6 +108,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private JmixButton unarchiveButton;
     @ViewComponent
     private JmixButton accessButton;
+    @ViewComponent
+    private JmixButton favoriteButton;
 
     @ViewComponent
     private TypedTextField<String> nameField;
@@ -149,6 +152,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @ViewComponent
     private FillWithAiAction fillWithAiAction;
+    @ViewComponent
+    private FavoriteCardAction favoriteAction;
 
     @ViewComponent
     private MessageBundle messageBundle;
@@ -213,6 +218,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
+        // binding the action after the init event sets the title of the star, and Jmix copies a title into the aria
+        // label, an empty one too
+        favoriteButton.setAriaLabel(messages.getMessage(FavoriteCardAction.class, "favoriteAction.text"));
+
         showDocument();
         preview.showRevision(getEditedEntity().getCurrentRevision());
         showComments();
@@ -460,6 +469,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         archiveButton.setVisible(status == DocumentStatus.ACTIVE && !isReadOnly());
         unarchiveButton.setVisible(archived && !isReadOnly());
         accessButton.setVisible(!isNew() && accessChecker.getLevel(document.getAccessSet()) == AccessLevel.MANAGE);
+
+        favoriteAction.refreshState();
 
         folderField.setValue(folderService.getPath(document.getFolder()).stream()
                 .map(metadataTools::getInstanceName)
