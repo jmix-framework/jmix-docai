@@ -387,7 +387,8 @@ public class DocumentService {
 
         for (Tag tag : document.getTags()) {
             Tag kept = entityStates.isNew(tag)
-                    ? tagService.find(tag.getName()).orElse(tag)
+                    ? tagService.find(tag.getName())
+                            .orElse(tag)
                     : stored.get(tag.getId());
 
             if (kept != null) {

@@ -6,16 +6,19 @@ import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.model.access.AccessLevel;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.folder.Folder;
+import com.company.dms.model.tag.Tag;
 import com.company.dms.test_support.AuthenticatedAsAdmin;
 import com.company.dms.test_support.StubAiConfiguration;
 import com.company.dms.test_support.StubChatModel;
 import com.company.dms.test_support.TestAccess;
 import com.company.dms.test_support.TestAccess.Grant;
 import com.company.dms.test_support.TestFiles;
+import com.company.dms.test_support.TestTags;
 import io.jmix.aitools.tool.AiToolStatusPublisher;
 import io.jmix.aitools.tool.AiToolStatusUpdate;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.SystemAuthenticator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +71,9 @@ class DocumentAssistantToolsTest {
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private UnconstrainedDataManager unconstrainedDataManager;
 
     @Autowired
     private SystemAuthenticator systemAuthenticator;
@@ -148,9 +154,30 @@ class DocumentAssistantToolsTest {
         String proposal = tools.proposeTypeAndFields("Classifying the invoice", invoice.getId().toString(),
                 asTheEmployee());
 
+        // one new tag at most, as "Fill with AI" adds them
         assertThat(proposal).contains("Invoice", "supplier = Harbour Logistics LLC", "2026-11-01",
-                "Tags: Logistics, Freight");
+                "Tags: Logistics")
+                .doesNotContain("Freight");
         assertThat(dataManager.load(Id.of(invoice)).one().getCategory()).isNull();
+    }
+
+    // the tags as "Fill with AI" would add them: three at most, one new at most, none longer than a tag may be, and
+    // those of the vocabulary as the vocabulary writes them
+    @Test
+    void aProposalNamesTheTagsAsFillingWithAiWouldAddThem() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        TestTags.tag(unconstrainedDataManager, "Logistics " + suffix);
+        TestTags.tag(unconstrainedDataManager, "Supply " + suffix);
+        Document invoice = upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8));
+        model.willReply("""
+                {"type": "Invoice", "fields": [], "documentDate": "2026-11-01",
+                 "tags": ["logistics %1$s", "Freight %1$s", "Customs %1$s", "%2$s", "SUPPLY %1$s", "Harbour %1$s"]}"""
+                .formatted(suffix, "x".repeat(Tag.MAX_NAME_LENGTH + 1)));
+
+        String proposal = tools.proposeTypeAndFields("Classifying the invoice", invoice.getId().toString(),
+                asTheEmployee());
+
+        assertThat(proposal).contains("Tags: Logistics %1$s, Freight %1$s, Supply %1$s".formatted(suffix));
     }
 
     @Test

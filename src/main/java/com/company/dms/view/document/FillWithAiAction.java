@@ -163,6 +163,7 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
             notifications.create(messages.formatMessage(getClass(), "fillWithAiAction.unknownTypeTags", tags))
                     .withType(Notifications.Type.WARNING)
                     .show();
+
             return;
         }
 
@@ -171,7 +172,7 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
         notifications.create(tags.isEmpty()
                         ? messages.formatMessage(getClass(), "fillWithAiAction.done", typeName, result.filled().size())
                         : messages.formatMessage(getClass(), "fillWithAiAction.doneWithTags", typeName,
-                        result.filled().size(), tags))
+                                result.filled().size(), tags))
                 .withType(Notifications.Type.SUCCESS)
                 .show();
 

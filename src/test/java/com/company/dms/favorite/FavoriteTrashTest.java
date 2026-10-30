@@ -85,6 +85,18 @@ class FavoriteTrashTest {
         assertThat(itemIds()).containsExactly(lease.getId());
     }
 
+    // the block was shown before the document went to the trash, and the star of its row still removes the mark
+    @Test
+    void theMarkOfADocumentThatWentToTheTrashIsStillRemoved() {
+        Document lease = upload(sandbox, "lease.txt");
+        favoriteService.mark(List.of(lease));
+        documentService.delete(List.of(lease));
+
+        favoriteService.unmark(List.of(lease));
+
+        assertThat(unconstrainedDataManager.load(Favorite.class).all().list()).isEmpty();
+    }
+
     @Test
     void theMarksInsideADeletedFolderHideAndComeBackWithIt() {
         Folder contracts = folder(sandbox, "Contracts");

@@ -328,7 +328,7 @@ class DocumentDetailViewTest {
                 .build();
 
         assertThat(window.isMaximizable()).isTrue();
-        assertThat(window.getWidth()).isEqualTo("86em");
+        assertThat(window.getWidth()).isEqualTo("88em");
         assertThat(window.getHeight()).isEqualTo("58em");
     }
 
@@ -574,6 +574,23 @@ class DocumentDetailViewTest {
         Document document = TestTags.tagged(unconstrainedDataManager, upload("a.txt"),
                 TestTags.tag(unconstrainedDataManager, lease));
         DocumentDetailView card = openCard(document);
+
+        TestTags.click(component(card, "documentTags"), lease);
+
+        assertThat((View<?>) UiTestUtils.getCurrentView()).isInstanceOf(DocumentSearchView.class);
+        assertThat(TestTags.tagInAddress()).hasValue(lease);
+    }
+
+    // a card opened by its address is a page of its own, and the page of the tag takes its place
+    @Test
+    void aClickOnATagInACardOpenedByItsAddressOpensThePageOfTheTag() {
+        String lease = "Lease " + suffix;
+        Document document = TestTags.tagged(unconstrainedDataManager, upload("a.txt"),
+                TestTags.tag(unconstrainedDataManager, lease));
+        viewNavigators.detailView(UiTestUtils.getCurrentView(), Document.class)
+                .editEntity(document)
+                .navigate();
+        DocumentDetailView card = UiTestUtils.getCurrentView();
 
         TestTags.click(component(card, "documentTags"), lease);
 

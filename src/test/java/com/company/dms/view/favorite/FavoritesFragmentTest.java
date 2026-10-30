@@ -223,7 +223,7 @@ class FavoritesFragmentTest {
 
         assertThat(rows(view)).containsExactly("act.txt " + sandbox.getName(), "lease.txt " + sandbox.getName());
         assertThat(TestGrids.render(documentsGrid, "name", act).getChildren()
-                .anyMatch(part -> part.getElement().getClassList().contains(FavoriteStars.MARKED_CLASS)))
+                .anyMatch(part -> part.getElement().getClassList().contains(FavoriteListAction.MARKED_CLASS)))
                 .isTrue();
     }
 

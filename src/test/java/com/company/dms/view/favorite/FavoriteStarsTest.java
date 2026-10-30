@@ -117,11 +117,14 @@ class FavoriteStarsTest {
         DocumentDetailView card = openCard(view, lease);
         JmixButton star = UiTestUtils.getComponent(card, "favoriteButton");
         assertThat(isMarkedStar(star.getIcon())).isFalse();
+        assertThat(star.getElement().getAttribute("aria-pressed")).isEqualTo("false");
 
         star.click();
 
         assertThat(favoriteService.markedIds(List.of(lease))).containsExactly(lease.getId());
         assertThat(isMarkedStar(star.getIcon())).isTrue();
+        // the look of the star alone does not reach a screen reader
+        assertThat(star.getElement().getAttribute("aria-pressed")).isEqualTo("true");
         // only the star changes: the text of the action stays, the button stays bare with its static tooltip
         assertThat(star.getAction().getText()).isEqualTo(text("favoriteAction.text"));
         assertThat(star.getText()).isEmpty();
@@ -229,6 +232,43 @@ class FavoriteStarsTest {
     }
 
     @Test
+    void theTableRemovesTheMarksWhenAllTheSelectedDocumentsAreMarked() {
+        Document lease = upload(sandbox, "lease.txt");
+        favoriteService.mark(List.of(lease));
+        RepositoryView view = open(sandbox);
+        DataGrid<Document> grid = component(view, "documentList", "documentsGrid");
+        JmixButton button = component(view, "documentList", "favoriteButton");
+
+        grid.select(lease);
+        assertThat(isMarkedStar(button.getIcon())).isTrue();
+        assertThat(button.getElement().getAttribute("aria-pressed")).isEqualTo("true");
+        button.click();
+
+        assertThat(favoriteService.markedIds(List.of(lease))).isEmpty();
+        assertThat(isMarkedStar(button.getIcon())).isFalse();
+        assertThat(button.getElement().getAttribute("aria-pressed")).isEqualTo("false");
+        assertThat(hasStar(TestGrids.render(grid, "name", lease))).isFalse();
+        assertThat(blockNames(view)).isEmpty();
+    }
+
+    // the star after the name tells a screen reader what it means, as the key of an own access does
+    @Test
+    void theStarAfterTheNameIsAnImageWithALabel() {
+        Document lease = upload(sandbox, "lease.txt");
+        favoriteService.mark(List.of(lease));
+        RepositoryView view = open(sandbox);
+        DataGrid<Document> grid = component(view, "documentList", "documentsGrid");
+
+        Component star = TestGrids.render(grid, "name", lease).getChildren()
+                .filter(FavoriteStarsTest::isMarkedStar)
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(star.getElement().getAttribute("role")).isEqualTo("img");
+        assertThat(star.getElement().getAttribute("aria-label")).isEqualTo(text("markedStar.label"));
+    }
+
+    @Test
     void theFolderMenuMarksTheFolderButNotTheRoot() {
         Folder contracts = folder(sandbox, "Contracts");
         RepositoryView view = open(contracts);
@@ -268,17 +308,17 @@ class FavoriteStarsTest {
     // the theme draws the star of an item that is not marked as an outline: the outline glyph is deprecated
     @Test
     void aStarIsAnOutlineUntilTheItemIsMarked() {
-        Component outline = FavoriteStars.star(icons, false);
-        Component filled = FavoriteStars.star(icons, true);
+        Component outline = FavoriteListAction.star(icons, false);
+        Component filled = FavoriteListAction.star(icons, true);
 
         assertThat(glyph(outline)).isNotBlank().isEqualTo(glyph(icons.get(JmixFontIcon.STAR)));
         assertThat(outline.getElement().getClassList())
-                .contains(FavoriteStars.UNMARKED_CLASS)
-                .doesNotContain(FavoriteStars.MARKED_CLASS);
+                .contains(FavoriteListAction.UNMARKED_CLASS)
+                .doesNotContain(FavoriteListAction.MARKED_CLASS);
         assertThat(glyph(filled)).isEqualTo(glyph(outline));
         assertThat(filled.getElement().getClassList())
-                .contains(FavoriteStars.MARKED_CLASS)
-                .doesNotContain(FavoriteStars.UNMARKED_CLASS);
+                .contains(FavoriteListAction.MARKED_CLASS)
+                .doesNotContain(FavoriteListAction.UNMARKED_CLASS);
     }
 
     // the names of the rows of the favorites section of the folder tree
@@ -296,7 +336,7 @@ class FavoriteStarsTest {
 
     private static boolean hasStar(Component cell) {
         return cell.getChildren().anyMatch(child -> child.getElement().getClassList()
-                .contains(FavoriteStars.MARKED_CLASS));
+                .contains(FavoriteListAction.MARKED_CLASS));
     }
 
     // the column cuts a long name with an ellipsis and keeps the star after it in sight
@@ -312,12 +352,12 @@ class FavoriteStarsTest {
     }
 
     private static boolean isMarkedStar(Component icon) {
-        return icon.getElement().getClassList().contains(FavoriteStars.MARKED_CLASS);
+        return icon.getElement().getClassList().contains(FavoriteListAction.MARKED_CLASS);
     }
 
     // a menu item holds the icon of its action next to its text
     private static boolean hasMarkedStar(Element element) {
-        return element.getClassList().contains(FavoriteStars.MARKED_CLASS)
+        return element.getClassList().contains(FavoriteListAction.MARKED_CLASS)
                 || element.getChildren().anyMatch(FavoriteStarsTest::hasMarkedStar);
     }
 

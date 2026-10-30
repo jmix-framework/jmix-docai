@@ -1,5 +1,6 @@
 package com.company.dms.ai.classification;
 
+import com.company.dms.app.service.OperationRejectedException;
 import com.company.dms.app.service.tag.TagService;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.tag.Tag;
@@ -41,6 +42,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
 /**
@@ -132,6 +134,17 @@ public class DocumentClassifier {
     }
 
     /**
+     * Returns the names of the tags of the proposal as {@link #apply} adds them to the document: three at most, one
+     * new tag at most, none the document has, and the tags of the vocabulary as the vocabulary writes them.
+     */
+    public List<String> tagsToAdd(ClassificationProposal proposal, Document document) {
+        return selectTags(proposal.tags(), Objects.requireNonNullElse(document.getTags(), List.of()))
+                .stream()
+                .map(Tag::getName)
+                .toList();
+    }
+
+    /**
      * Puts the proposal into the document being edited: the type, the values of its fields, the date of the document
      * and the tags. A value that does not fit its field is left out and reported. The values of other types stay
      * until the document is saved, which clears them. The tags join those the document has, also when no type fits.
@@ -173,38 +186,55 @@ public class DocumentClassifier {
         return new ClassificationResult(nameOf(type), filled, skipped, tags);
     }
 
-    // the tags of the person stay; a tag of the vocabulary comes whatever its case, a new one only once,
-    // and a name that does not fit a tag is left out
+    // the tags of the person stay
     private List<ClassificationResult.AddedTag> applyTags(List<String> names, Document document) {
-        List<Tag> tags = new ArrayList<>(Objects.requireNonNullElse(document.getTags(), List.of()));
-        List<ClassificationResult.AddedTag> added = new ArrayList<>();
-        boolean newTagAdded = false;
+        List<Tag> current = Objects.requireNonNullElse(document.getTags(), List.of());
+        List<Tag> added = selectTags(names, current);
+
+        if (!added.isEmpty()) {
+            List<Tag> tags = new ArrayList<>(current);
+            tags.addAll(added);
+            document.setTags(tags);
+        }
+
+        return added.stream()
+                .map(tag -> new ClassificationResult.AddedTag(tag.getName(), entityStates.isNew(tag)))
+                .toList();
+    }
+
+    // a tag of the vocabulary comes whatever its case, a new one only once, and a name that does not fit a tag is
+    // left out
+    private List<Tag> selectTags(List<String> names, List<Tag> current) {
+        List<Tag> selected = new ArrayList<>();
+        boolean newTagSelected = false;
 
         for (String name : names) {
             String stripped = isBlank(name) ? "" : name.strip();
 
-            if (added.size() == MAX_TAGS || stripped.isEmpty() || stripped.length() > Tag.MAX_NAME_LENGTH
-                    || tags.stream().anyMatch(tag -> tag.getName().equalsIgnoreCase(stripped))) {
+            if (selected.size() == MAX_TAGS || Stream.concat(current.stream(), selected.stream())
+                    .anyMatch(tag -> tag.getName().equalsIgnoreCase(stripped))) {
                 continue;
             }
 
-            Tag tag = tagService.findOrCreate(stripped);
+            Tag tag;
+
+            try {
+                tag = tagService.findOrCreate(stripped);
+            } catch (OperationRejectedException e) {
+                continue;
+            }
+
             boolean newTag = entityStates.isNew(tag);
 
-            if (newTag && newTagAdded) {
+            if (newTag && newTagSelected) {
                 continue;
             }
 
-            newTagAdded |= newTag;
-            tags.add(tag);
-            added.add(new ClassificationResult.AddedTag(tag.getName(), newTag));
+            newTagSelected |= newTag;
+            selected.add(tag);
         }
 
-        if (!added.isEmpty()) {
-            document.setTags(tags);
-        }
-
-        return added;
+        return selected;
     }
 
     private String catalog() {

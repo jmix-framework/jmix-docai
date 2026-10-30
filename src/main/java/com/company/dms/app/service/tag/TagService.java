@@ -46,28 +46,35 @@ public class TagService {
      * Returns the tag of the vocabulary with the name, whatever its case, or a new unsaved tag with the name
      * without the spaces around it.
      *
-     * @throws OperationRejectedException if the name is empty or longer than {@link Tag#MAX_NAME_LENGTH}
+     * @throws OperationRejectedException if the name is empty, longer than {@link Tag#MAX_NAME_LENGTH} or holds
+     *                                    a line break or another control character
      */
     public Tag findOrCreate(String name) {
         String stripped = checkName(name);
 
-        return find(stripped).orElseGet(() -> {
-            Tag tag = dataManager.create(Tag.class);
-            tag.setName(stripped);
-            return tag;
-        });
+        return find(stripped)
+                .orElseGet(() -> {
+                    Tag tag = dataManager.create(Tag.class);
+                    tag.setName(stripped);
+                    return tag;
+                });
     }
 
     /**
      * Returns the name without the spaces around it.
      *
-     * @throws OperationRejectedException if the name is empty or longer than {@link Tag#MAX_NAME_LENGTH}
+     * @throws OperationRejectedException if the name is empty, longer than {@link Tag#MAX_NAME_LENGTH} or holds
+     *                                    a line break or another control character
      */
     public String checkName(@Nullable String name) {
         String stripped = name == null ? "" : name.strip();
 
         if (stripped.isEmpty()) {
             throw new OperationRejectedException(messages.getMessage(getClass(), "tagNameEmpty"));
+        }
+
+        if (stripped.chars().anyMatch(Character::isISOControl)) {
+            throw new OperationRejectedException(messages.getMessage(getClass(), "tagNameControl"));
         }
 
         if (stripped.length() > Tag.MAX_NAME_LENGTH) {
@@ -91,11 +98,24 @@ public class TagService {
                 .hint(PersistenceHints.SOFT_DELETION, false)
                 .one();
 
+        // the documents in the trash are out of sight, so the refusal says where they are
         if (carriers > 0) {
-            throw new OperationRejectedException(messages.formatMessage(getClass(), "tagInUse", tag.getName()));
+            throw new OperationRejectedException(messages.formatMessage(getClass(),
+                    countLiveCarriers(tag) > 0 ? "tagInUse" : "tagInTrash", tag.getName()));
         }
 
         dataManager.remove(tag);
+    }
+
+    /**
+     * Tells whether a document in the trash that the user may see carries the tag.
+     */
+    public boolean isInTrash(Tag tag) {
+        return dataManager.loadValue("select count(d) from Document d join d.tags t"
+                        + " where t.id = :tag and d.deletedDate is not null", Long.class)
+                .parameter("tag", tag.getId())
+                .hint(PersistenceHints.SOFT_DELETION, false)
+                .one() > 0;
     }
 
     /**
@@ -108,5 +128,12 @@ public class TagService {
                 .stream()
                 .map(value -> value.<String>getValue("name"))
                 .toList();
+    }
+
+    private long countLiveCarriers(Tag tag) {
+        return unconstrainedDataManager.loadValue(
+                        "select count(d) from Document d join d.tags t where t.id = :tag", Long.class)
+                .parameter("tag", tag.getId())
+                .one();
     }
 }

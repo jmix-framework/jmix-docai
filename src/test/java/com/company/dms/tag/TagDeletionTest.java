@@ -1,10 +1,12 @@
 package com.company.dms.tag;
 
 import com.company.dms.app.service.OperationRejectedException;
+import com.company.dms.app.service.access.AccessService;
 import com.company.dms.app.service.document.DocumentService;
 import com.company.dms.app.service.folder.FolderService;
 import com.company.dms.app.service.tag.TagService;
 import com.company.dms.app.service.trash.TrashService;
+import com.company.dms.model.access.AccessDraft;
 import com.company.dms.model.document.Document;
 import com.company.dms.model.document.DocumentStatus;
 import com.company.dms.model.folder.Folder;
@@ -15,6 +17,7 @@ import com.company.dms.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
+import io.jmix.core.Messages;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.querycondition.PropertyCondition;
 import org.junit.jupiter.api.AfterEach;
@@ -53,6 +56,12 @@ class TagDeletionTest {
 
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private AccessService accessService;
+
+    @Autowired
+    private Messages messages;
 
     @Autowired
     private DataManager dataManager;
@@ -113,8 +122,10 @@ class TagDeletionTest {
         Document document = tagged(upload("a.txt"), lease);
         documentService.delete(List.of(document));
 
+        // the refusal says where the documents are, as nothing else carries the tag
         assertThatThrownBy(() -> tagService.delete(lease))
-                .isInstanceOf(OperationRejectedException.class);
+                .isInstanceOf(OperationRejectedException.class)
+                .hasMessage(messages.formatMessage(TagService.class, "tagInTrash", lease.getName()));
     }
 
     @Test
@@ -163,6 +174,18 @@ class TagDeletionTest {
         documentService.move(List.of(document), target);
         documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
         documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "second"));
+
+        assertThat(tagsOf(document)).containsExactly(lease);
+    }
+
+    @Test
+    void breakingTheInheritanceOfTheAccessKeepsTheTags() {
+        Tag lease = tag("Lease " + suffix);
+        Document document = tagged(upload("a.txt"), lease);
+        AccessDraft draft = accessService.describe(document);
+        draft.setInherit(false);
+
+        accessService.save(draft);
 
         assertThat(tagsOf(document)).containsExactly(lease);
     }

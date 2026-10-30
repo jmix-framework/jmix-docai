@@ -136,9 +136,10 @@ class DocumentCommentAccessTest {
         assertThat(dataManager.load(Id.of(comment)).one().getText()).isEqualTo("Please add the annex");
     }
 
-    // the access rules hold for a save past the comment service as well
+    // the access rules hold for a save past the comment service as well; they judge the author the saved comment
+    // names, and the comment service checks the stored one
     @Test
-    void theRulesRefuseAChangeOfAnotherPersonsCommentThroughDataManager() {
+    void aCommentThatNamesAnotherAuthorIsNeitherSavedNorDeletedThroughDataManager() {
         DocumentComment comment = post(VIEWER, open, "Check item 4.2");
 
         assertThatThrownBy(() -> systemAuthenticator.runWithUser("alice", () -> {

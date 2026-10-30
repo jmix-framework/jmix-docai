@@ -227,7 +227,8 @@ public class DocumentSearchView extends StandardView {
     }
 
     private void showTag(String name) {
-        Tag tag = tagService.find(name).orElse(null);
+        Tag tag = tagService.find(name)
+                .orElse(null);
 
         if (tag == null) {
             messageText.setText(messageBundle.formatMessage("tagNotFound", name));
@@ -240,8 +241,10 @@ public class DocumentSearchView extends StandardView {
         setPageTitle(messageBundle.formatMessage("tagTitle", tag.getName()));
         loadTagged(tag);
 
+        // the documents in the trash are out of sight, so the page says where they are
         if (hitsBox.getComponentCount() == 0) {
-            messageText.setText(messageBundle.formatMessage("nothingTagged", tag.getName()));
+            messageText.setText(messageBundle.formatMessage(
+                    tagService.isInTrash(tag) ? "taggedOnlyInTrash" : "nothingTagged", tag.getName()));
             messageText.setVisible(true);
         }
     }

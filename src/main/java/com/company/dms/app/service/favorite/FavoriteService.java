@@ -8,20 +8,23 @@ import com.company.dms.model.folder.Folder;
 import com.company.dms.model.user.User;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
-import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.core.usersubstitution.CurrentUserSubstitution;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -36,13 +39,16 @@ public class FavoriteService {
 
     private final DataManager dataManager;
     private final CurrentUserSubstitution currentUserSubstitution;
+    private final CurrentAuthentication currentAuthentication;
     private final MetadataTools metadataTools;
     private final Messages messages;
 
     public FavoriteService(DataManager dataManager, CurrentUserSubstitution currentUserSubstitution,
-                           MetadataTools metadataTools, Messages messages) {
+                           CurrentAuthentication currentAuthentication, MetadataTools metadataTools,
+                           Messages messages) {
         this.dataManager = dataManager;
         this.currentUserSubstitution = currentUserSubstitution;
+        this.currentAuthentication = currentAuthentication;
         this.metadataTools = metadataTools;
         this.messages = messages;
     }
@@ -55,6 +61,8 @@ public class FavoriteService {
     public void mark(Collection<?> targets) {
         User owner = owner();
         Set<UUID> marked = markedIds(targets);
+        Map<UUID, Folder> folders = loadReadable(Folder.class, targets);
+        Map<UUID, Document> documents = loadReadable(Document.class, targets);
         SaveContext saveContext = new SaveContext();
 
         for (Object target : targets) {
@@ -65,11 +73,9 @@ public class FavoriteService {
             Favorite favorite = dataManager.create(Favorite.class);
             favorite.setUser(owner);
 
-            // the target is read again with the rights of the user; a reference to a target deleted meanwhile
-            // would fail the save as well
             switch (target) {
-                case Folder folder -> favorite.setFolder(readable(folder, "folderUnavailable"));
-                case Document document -> favorite.setDocument(readable(document, "documentUnavailable"));
+                case Folder folder -> favorite.setFolder(readable(folders, folder, "folderUnavailable"));
+                case Document document -> favorite.setDocument(readable(documents, document, "documentUnavailable"));
                 default -> throw new IllegalArgumentException("Not a folder or a document: " + target);
             }
 
@@ -102,10 +108,11 @@ public class FavoriteService {
     }
 
     /**
-     * Returns the marked folders, then the marked documents, each in alphabetical order, that the user may read
-     * and that are not in the trash.
+     * Returns the marked folders, then the marked documents, each in the alphabetical order of the language of the
+     * user, that the user may read and that are not in the trash.
      */
     public List<FavoriteItem> loadItems() {
+        Collator collator = Collator.getInstance(currentAuthentication.getLocale());
         List<FavoriteItem> items = new ArrayList<>();
         List<UUID> folderIds = markedTargetIds("folder");
         List<UUID> documentIds = markedTargetIds("document");
@@ -118,7 +125,7 @@ public class FavoriteService {
                             .add("parent", FetchPlan.INSTANCE_NAME))
                     .list()
                     .stream()
-                    .sorted(Comparator.comparing(Folder::getName, String.CASE_INSENSITIVE_ORDER))
+                    .sorted(Comparator.comparing(Folder::getName, collator))
                     .forEach(folder -> items.add(item(folder.getId(), folder, null, folder.getName(),
                             folder.getParent() == null || folder.getParent().isRoot()
                                     ? null
@@ -133,7 +140,7 @@ public class FavoriteService {
                             .add("folder", FetchPlan.INSTANCE_NAME))
                     .list()
                     .stream()
-                    .sorted(Comparator.comparing(Document::getName, String.CASE_INSENSITIVE_ORDER))
+                    .sorted(Comparator.comparing(Document::getName, collator))
                     .forEach(document -> items.add(item(document.getId(), null, document, document.getName(),
                             metadataTools.getInstanceName(document.getFolder()))));
         }
@@ -175,11 +182,36 @@ public class FavoriteService {
                 .toList();
     }
 
-    private <T> T readable(T target, String refusal) {
-        return dataManager.load(Id.of(target))
-                .optional()
-                .orElseThrow(() -> new OperationRejectedException(messages.formatMessage(getClass(), refusal,
-                        metadataTools.getInstanceName(target))));
+    // the folders or the documents among the targets that the user may read, by their ids: the targets are read
+    // again with the rights of the user, one query for each kind, since a reference to a target deleted meanwhile
+    // would fail the save as well
+    private <T> Map<UUID, T> loadReadable(Class<T> type, Collection<?> targets) {
+        List<UUID> ids = targets.stream()
+                .filter(type::isInstance)
+                .map(FavoriteService::idOf)
+                .toList();
+
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+
+        return dataManager.load(type)
+                .query("e.id in :ids")
+                .parameter("ids", ids)
+                .list()
+                .stream()
+                .collect(Collectors.toMap(FavoriteService::idOf, Function.identity()));
+    }
+
+    private <T> T readable(Map<UUID, T> readable, T target, String refusal) {
+        T found = readable.get(idOf(target));
+
+        if (found == null) {
+            throw new OperationRejectedException(messages.formatMessage(getClass(), refusal,
+                    metadataTools.getInstanceName(target)));
+        }
+
+        return found;
     }
 
     private User owner() {
@@ -202,6 +234,7 @@ public class FavoriteService {
         item.setDocument(document);
         item.setName(name);
         item.setLocation(location);
+
         return item;
     }
 }

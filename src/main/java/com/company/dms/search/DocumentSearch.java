@@ -126,7 +126,9 @@ public class DocumentSearch {
         Map<UUID, List<String>> paths = new HashMap<>();
 
         return dataManager.load(Document.class)
-                .query("select d from Document d join d.tags t where t = :tag order by d.changedDate desc, d.name")
+                // the id makes the order total, so that the next page neither repeats nor skips a document
+                .query("select d from Document d join d.tags t where t = :tag"
+                        + " order by d.changedDate desc, d.name, d.id")
                 .parameter("tag", tag)
                 .firstResult(first)
                 .maxResults(max)

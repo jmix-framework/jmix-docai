@@ -7,6 +7,7 @@ import com.company.dms.test_support.AuthenticatedAsAdmin;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
 import io.jmix.core.Id;
+import io.jmix.core.Messages;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,9 @@ class TagTest {
 
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private Messages messages;
 
     @Autowired
     private DataManager dataManager;
@@ -65,6 +69,25 @@ class TagTest {
         office.setName("LEASE " + suffix);
 
         assertThatThrownBy(() -> dataManager.save(office))
+                .isInstanceOf(OperationRejectedException.class);
+    }
+
+    @Test
+    void aTagNamedLikeAnotherInAnotherCaseIsRefusedBeyondAsciiToo() {
+        save("Übergabe " + suffix);
+
+        assertThatThrownBy(() -> save("ÜBERGABE " + suffix))
+                .isInstanceOf(OperationRejectedException.class);
+        assertThat(tagService.find("übergabe " + suffix)).isPresent();
+    }
+
+    // a name is one line of text: a control character would break the lists and the prompts that show it
+    @Test
+    void aNameWithALineBreakOrAnotherControlCharacterIsRefused() {
+        assertThatThrownBy(() -> save("Lease\n" + suffix))
+                .isInstanceOf(OperationRejectedException.class)
+                .hasMessage(messages.getMessage(TagService.class, "tagNameControl"));
+        assertThatThrownBy(() -> tagService.findOrCreate("Lease\u0007" + suffix))
                 .isInstanceOf(OperationRejectedException.class);
     }
 

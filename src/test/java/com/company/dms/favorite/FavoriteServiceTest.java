@@ -116,6 +116,19 @@ class FavoriteServiceTest {
                         tuple("lease.txt", "Contracts"));
     }
 
+    // the order of the language of the user: a letter with a diacritic goes with its base letter, not after z
+    @Test
+    void theBlockListsTheNamesInTheOrderOfTheLanguage() {
+        Folder zebra = folder(sandbox, "Zebra");
+        Folder apples = folder(sandbox, "Äpfel");
+
+        as(PETER, () -> favoriteService.mark(List.of(zebra, apples)));
+
+        assertThat(as(PETER, favoriteService::loadItems))
+                .extracting(FavoriteItem::getName)
+                .containsExactly("Äpfel", "Zebra");
+    }
+
     @Test
     void onlyTheOwnerSeesTheMarksTheAdministratorToo() {
         Folder contracts = folder(sandbox, "Contracts");
@@ -138,6 +151,17 @@ class FavoriteServiceTest {
 
         assertThat(itemIds(PETER)).isEmpty();
         assertThat(itemIds(MARIA)).containsExactly(contracts.getId());
+    }
+
+    @Test
+    void aMarkIsRemovedAlsoWhenTheUserNoLongerReadsItsTarget() {
+        Document memo = upload(sandbox, "memo.txt");
+        as(PETER, () -> favoriteService.mark(List.of(memo)));
+        TestAccess.giveOwnAccess(dataManager, memo, TestAccess.Grant.user(MARIA, AccessLevel.EDIT));
+
+        as(PETER, () -> favoriteService.unmark(List.of(memo)));
+
+        assertThat(unconstrainedDataManager.load(Favorite.class).all().list()).isEmpty();
     }
 
     @Test
@@ -209,6 +233,11 @@ class FavoriteServiceTest {
             systemAuthenticator.runWithUser(PETER, () -> {
                 userSubstitutionManager.substituteUser(MARIA);
                 favoriteService.mark(List.of(sandbox));
+
+                // the person reads the marks of the user they work as
+                assertThat(favoriteService.loadItems())
+                        .extracting(FavoriteItem::getId)
+                        .containsExactly(sandbox.getId());
             });
         } finally {
             unconstrainedDataManager.remove(saved);

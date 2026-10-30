@@ -73,8 +73,15 @@ public class FavoriteCardAction extends ViewAction<FavoriteCardAction, DocumentD
 
         if (document != null) {
             marked = !favoriteService.markedIds(List.of(document)).isEmpty();
-            setIcon(FavoriteStars.star(icons, marked));
+            setIcon(FavoriteListAction.star(icons, marked));
         }
+    }
+
+    /**
+     * Tells whether the user has marked the document, so that a click removes the mark.
+     */
+    public boolean isMarked() {
+        return marked;
     }
 
     @Override

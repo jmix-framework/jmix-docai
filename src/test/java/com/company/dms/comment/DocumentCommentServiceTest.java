@@ -141,6 +141,18 @@ class DocumentCommentServiceTest {
     }
 
     @Test
+    void savingTheSameTextLeavesTheCommentAsItWas() {
+        DocumentComment comment = post(AUTHOR, "Check item 4.2");
+        Integer version = dataManager.load(Id.of(comment)).one().getVersion();
+
+        systemAuthenticator.runWithUser(AUTHOR, () -> commentService.edit(comment, " Check item 4.2 "));
+
+        DocumentComment stored = dataManager.load(Id.of(comment)).one();
+        assertThat(stored.getEditedDate()).isNull();
+        assertThat(stored.getVersion()).isEqualTo(version);
+    }
+
+    @Test
     void anotherEmployeeNeitherEditsNorDeletesAComment() {
         DocumentComment comment = post(AUTHOR, "Check item 4.2");
 

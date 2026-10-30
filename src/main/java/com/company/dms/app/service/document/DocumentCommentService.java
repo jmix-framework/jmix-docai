@@ -86,6 +86,11 @@ public class DocumentCommentService {
             throw reject("commentEditNotYours");
         }
 
+        // the same text is no change: the comment keeps its version and gets no "edited" mark
+        if (content.equals(stored.getText())) {
+            return stored;
+        }
+
         stored.setText(content);
         stored.setEditedDate(timeSource.now().toOffsetDateTime());
 

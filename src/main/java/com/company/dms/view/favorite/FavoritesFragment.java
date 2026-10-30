@@ -135,11 +135,10 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
         name.addThemeVariants(ButtonVariant.TERTIARY);
         name.addClickListener(click -> open(item));
 
+        // the title is the aria label of the button as well
         JmixButton star = uiComponents.create(JmixButton.class);
-        String unmark = messageBundle.getMessage("unmarkButton.title");
-        star.setIcon(FavoriteStars.star(icons, true));
-        star.setTitle(unmark);
-        star.setAriaLabel(unmark);
+        star.setIcon(FavoriteListAction.star(icons, true));
+        star.setTitle(messageBundle.getMessage("unmarkButton.title"));
         star.addThemeVariants(ButtonVariant.TERTIARY);
         star.addClickListener(click -> unmark(item));
 
@@ -156,6 +155,7 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
         }
 
         row.add(star);
+
         return row;
     }
 
@@ -170,6 +170,7 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
             notifications.create(messages.getMessage(DocumentDetailView.class, "documentUnavailable"))
                     .withType(Notifications.Type.WARNING)
                     .show();
+
             reload();
             return;
         }

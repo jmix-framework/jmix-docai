@@ -117,7 +117,7 @@ public class DocumentAssistantTools implements JmixAiTool {
                                        ToolContext context) {
         return asThePerson(status, context, () -> document(documentId)
                 .map(document -> textOf(document)
-                        .map(text -> describe(documentClassifier.classify(document.getName(), text)))
+                        .map(text -> describe(documentClassifier.classify(document.getName(), text), document))
                         .orElse(NO_TEXT))
                 .orElse(UNAVAILABLE));
     }
@@ -183,7 +183,8 @@ public class DocumentAssistantTools implements JmixAiTool {
 
     private static void fetchPlan(FetchPlanBuilder fetchPlan) {
         fetchPlan.addFetchPlan(FetchPlan.BASE)
-                .add("currentRevision", FetchPlan.BASE);
+                .add("currentRevision", FetchPlan.BASE)
+                .add("tags", FetchPlan.BASE);
     }
 
     private Optional<String> textOf(Document document) {
@@ -230,12 +231,13 @@ public class DocumentAssistantTools implements JmixAiTool {
         return entries.size() < latest.size() ? EARLIER_LEFT_OUT + "\n\n" + comments : comments;
     }
 
-    private static String describe(ClassificationProposal proposal) {
+    // the tags as "Fill with AI" would add them, not as the model proposed them
+    private String describe(ClassificationProposal proposal, Document document) {
         String fields = proposal.fields().stream()
                 .map(field -> field.code() + " = " + field.value())
                 .collect(Collectors.joining("; "));
 
         return "Type: %s%nFields: %s%nDocument date: %s%nTags: %s".formatted(proposal.type(), fields,
-                proposal.documentDate(), String.join(", ", proposal.tags()));
+                proposal.documentDate(), String.join(", ", documentClassifier.tagsToAdd(proposal, document)));
     }
 }

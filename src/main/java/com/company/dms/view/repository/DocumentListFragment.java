@@ -20,11 +20,12 @@ import com.company.dms.view.document.DocumentDetailView;
 import com.company.dms.view.document.FileSizeFormatter;
 import com.company.dms.view.document.PreviewType;
 import com.company.dms.view.document.RevisionDownloader;
-import com.company.dms.view.favorite.FavoriteStars;
+import com.company.dms.view.favorite.FavoriteListAction;
 import com.company.dms.view.folder.FolderLookupView;
 import com.company.dms.view.folder.FolderRenderers;
 import com.company.dms.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -110,6 +111,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @ViewComponent
     private JmixButton previewButton;
     @ViewComponent
+    private JmixButton favoriteButton;
+    @ViewComponent
     private JmixGridColumnVisibility columnsButton;
 
     @ViewComponent
@@ -121,7 +124,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @ViewComponent("documentsGrid.discussAction")
     private Action discussAction;
     @ViewComponent("documentsGrid.favoriteAction")
-    private Action favoriteAction;
+    private FavoriteListAction<Document> favoriteAction;
 
     @ViewComponent
     private MessageBundle messageBundle;
@@ -187,10 +190,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private AccessLevels levels = new AccessLevels(Map.of(), false);
     private Map<String, String> userNames = Map.of();
     private Set<UUID> markedIds = Set.of();
-    private Runnable favoritesChangeHandler = () -> {
-    };
-
     private final Map<UUID, UploadedFile> uploadedFiles = new LinkedHashMap<>();
+
     private Consumer<@Nullable Document> focusHandler = document -> {
     };
     private Runnable previewToggleHandler = () -> {
@@ -198,6 +199,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Runnable contentsChangeHandler = () -> {
     };
     private Consumer<List<Document>> dragHandler = documents -> {
+    };
+    private Runnable favoritesChangeHandler = () -> {
     };
 
     // Jmix takes a saved width other than 100px for one the user dragged and stops the column from growing,
@@ -220,6 +223,13 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         configureDiscussion();
         // the descriptor gives the column chooser no title, and an icon alone needs one
         columnsButton.setTitle(messageBundle.getMessage("columnsButton.text"));
+        // the star shows the state by its look only, so the button tells a screen reader whether it is pressed
+        favoriteAction.addPropertyChangeListener(change -> showFavoritePressed());
+        showFavoritePressed();
+    }
+
+    private void showFavoritePressed() {
+        favoriteButton.getElement().setAttribute("aria-pressed", String.valueOf(favoriteAction.isAllMarked()));
     }
 
     private void configureUploads() {
@@ -583,6 +593,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @Supply(to = "documentsGrid.name", subject = "renderer")
     private Renderer<Document> nameRenderer() {
+        String marked = messages.getMessage(FavoriteListAction.class, "markedStar.label");
+
         return new ComponentRenderer<>(document -> {
             Span name = uiComponents.create(Span.class);
             name.addClassName("name-with-icon");
@@ -591,9 +603,13 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
             text.setText(document.getName());
             name.add(icons.get(fileIcon(document)), text);
 
-            // after the name: a long name ends with an ellipsis, and the star stays in sight
+            // after the name: a long name ends with an ellipsis, and the star stays in sight; a screen reader names
+            // it, as the key of an own access
             if (markedIds.contains(document.getId())) {
-                name.add(FavoriteStars.star(icons, true));
+                Component star = FavoriteListAction.star(icons, true);
+                star.getElement().setAttribute("role", "img");
+                star.getElement().setAttribute("aria-label", marked);
+                name.add(star);
             }
 
             if (showsOwnAccess(document)) {

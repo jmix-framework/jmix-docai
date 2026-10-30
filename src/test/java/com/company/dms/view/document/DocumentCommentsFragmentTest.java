@@ -20,6 +20,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.data.provider.Query;
@@ -237,6 +238,36 @@ class DocumentCommentsFragmentTest {
     }
 
     @Test
+    void theSaveButtonOfAChangeTakesOnlyATextThatFits() {
+        post(AUTHOR, "Check item 4.2");
+        DocumentDetailView card = openCommentsTab();
+        DocumentCommentItemFragment row = row(card, items(card).getFirst());
+        this.<JmixButton>inner(row, "editCommentButton").click();
+        JmixTextArea field = inner(row, "editCommentField");
+        JmixButton save = inner(row, "saveCommentButton");
+        Span length = inner(row, "editCommentLength");
+
+        field.setValue("x".repeat(DocumentComment.MAX_TEXT_LENGTH + 1));
+        assertThat(save.isEnabled()).isFalse();
+        assertThat(length.getClassNames()).contains("document-comment-length-over");
+
+        field.setValue("Fine");
+        assertThat(save.isEnabled()).isTrue();
+        assertThat(length.getClassNames()).doesNotContain("document-comment-length-over");
+        assertThat(length.getText()).startsWith("4");
+    }
+
+    // on a narrow screen the buttons of a comment go to the next line instead of past its edge
+    @Test
+    void theHeaderOfACommentWraps() {
+        post(AUTHOR, "Check item 4.2");
+        DocumentDetailView card = openCommentsTab();
+        DocumentCommentItemFragment row = row(card, items(card).getFirst());
+
+        assertThat(this.<HorizontalLayout>inner(row, "commentHeader").isWrap()).isTrue();
+    }
+
+    @Test
     void theAuthorDeletesTheirCommentAfterAQuestion() {
         post(AUTHOR, "Never mind");
         DocumentDetailView card = openCommentsTab();
@@ -314,6 +345,7 @@ class DocumentCommentsFragmentTest {
         assertThat(this.<Span>inner(row, "authorName").getText()).isEqualTo("gone");
         assertThat(this.<Avatar>inner(row, "authorAvatar").getAbbreviation()).isEqualTo("G");
         assertThat(this.<JmixButton>inner(row, "editCommentButton").isVisible()).isFalse();
+        assertThat(this.<JmixButton>inner(row, "deleteCommentButton").isVisible()).isFalse();
     }
 
     @Test

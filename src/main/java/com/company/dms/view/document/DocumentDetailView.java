@@ -83,7 +83,7 @@ import java.util.stream.Stream;
 @ViewController(id = "Document.detail")
 @ViewDescriptor(path = "document-detail-view.xml")
 @EditedEntityContainer("documentDc")
-@DialogMode(width = "86em", height = "58em", resizable = true, maximizable = true)
+@DialogMode(width = "88em", height = "58em", resizable = true, maximizable = true)
 public class DocumentDetailView extends StandardDetailView<Document> {
 
     @ViewComponent
@@ -221,6 +221,10 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         // binding the action after the init event sets the title of the star, and Jmix copies a title into the aria
         // label, an empty one too
         favoriteButton.setAriaLabel(messages.getMessage(FavoriteCardAction.class, "favoriteAction.text"));
+
+        // the star shows the state by its look only, so the button tells a screen reader whether it is pressed
+        favoriteAction.addPropertyChangeListener(change -> favoriteButton.getElement()
+                .setAttribute("aria-pressed", String.valueOf(favoriteAction.isMarked())));
 
         showDocument();
         preview.showRevision(getEditedEntity().getCurrentRevision());

@@ -171,6 +171,14 @@ class AssistantDataBoundaryTest {
                 .contains("by their folder, name, status, type, tags or date");
     }
 
+    // the vocabulary keeps one tag for a name whatever its case, and a query that compares the name as written
+    // misses a tag spelled otherwise
+    @Test
+    void theRulesSayThatATagNameIgnoresCase() throws IOException {
+        assertThat(promptProvider.getResource().getContentAsString(StandardCharsets.UTF_8))
+                .contains("A tag name ignores case");
+    }
+
     @Test
     void aHiddenDocumentStaysHiddenWhereverTheQueryReachesIt() {
         upload(open, "visible.txt");

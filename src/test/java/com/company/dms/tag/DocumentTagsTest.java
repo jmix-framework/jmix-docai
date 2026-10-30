@@ -158,6 +158,23 @@ class DocumentTagsTest {
         assertThat(stored.getChangedDate()).isAtSameInstantAs(LONG_AGO);
     }
 
+    // the stamp of an archived document stays, and the version alone keeps a card opened earlier from overwriting
+    // the tags
+    @Test
+    void aChangeOfTheTagsAloneRaisesTheVersionOfTheDocument() {
+        Tag lease = tag("Lease " + suffix);
+        Document document = upload("a.txt");
+        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        Integer version = dataManager.load(Id.of(document)).one().getVersion();
+
+        Document edited = editable(document);
+        edited.setTags(new ArrayList<>(List.of(lease)));
+        documentService.save(edited, null, null);
+
+        assertThat(dataManager.load(Id.of(document)).one().getVersion()).isGreaterThan(version);
+    }
+
     @Test
     void aNewTagNamedMeanwhileInTheVocabularyBecomesThatTag() {
         Document document = upload("a.txt");

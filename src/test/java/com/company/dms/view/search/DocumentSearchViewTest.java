@@ -392,6 +392,20 @@ class DocumentSearchViewTest {
                 .isEqualTo(messages.formatMessage(DocumentSearchView.class, "nothingTagged", tag.getName()));
     }
 
+    // nothing else carries the tag, so the page says where its documents are
+    @Test
+    void aTagOnlyOnDocumentsInTheTrashSaysSo() {
+        Tag tag = TestTags.tag(unconstrainedDataManager, "Lease " + UUID.randomUUID().toString().substring(0, 8));
+        Document document = TestTags.tagged(unconstrainedDataManager, upload(), tag);
+        systemAuthenticator.runWithUser(ADMIN, () -> documentService.delete(List.of(document)));
+
+        DocumentSearchView view = tagPage(tag.getName());
+
+        assertThat(rows(view)).isEmpty();
+        assertThat(message(view))
+                .isEqualTo(messages.formatMessage(DocumentSearchView.class, "taggedOnlyInTrash", tag.getName()));
+    }
+
     private DocumentSearchView tagPage(String name) {
         viewNavigators.view(UiTestUtils.getCurrentView(), DocumentSearchView.class)
                 .withQueryParameters(QueryParameters.of(DocumentSearchView.TAG_PARAMETER, name))

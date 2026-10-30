@@ -112,24 +112,24 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     private Icons icons;
 
     private FolderTree tree = new FolderTree(List.of(), Set.of(), new AccessLevels(Map.of(), false));
-
-    private Runnable favoritesChangeHandler = () -> {
-    };
     private Map<UUID, Folder> allFolders = Map.of();
     private Map<UUID, Long> documentCounts = Map.of();
-    private Runnable reloadHandler = () -> {
-    };
     @Nullable
     private Folder selectedFolder;
-    private Consumer<Folder> selectionHandler = folder -> {
-    };
-    private BiConsumer<List<Document>, Folder> documentsDropHandler = (documents, target) -> {
-    };
     private List<Document> draggedDocuments = List.of();
     @Nullable
     private Folder draggedFolder;
     @Nullable
     private SerializablePredicate<Folder> dropTargets;
+
+    private Consumer<Folder> selectionHandler = folder -> {
+    };
+    private BiConsumer<List<Document>, Folder> documentsDropHandler = (documents, target) -> {
+    };
+    private Runnable reloadHandler = () -> {
+    };
+    private Runnable favoritesChangeHandler = () -> {
+    };
 
     /**
      * Receives the folder selected in the tree.

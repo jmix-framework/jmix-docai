@@ -7,7 +7,7 @@
         <hbox id="commentRoot" classNames="document-comment" width="100%" padding="false">
             <avatar id="authorAvatar"/>
             <vbox id="commentBody" classNames="document-comment-body" padding="false" spacing="false">
-                <hbox id="commentHeader" width="100%" alignItems="CENTER" padding="false">
+                <hbox id="commentHeader" width="100%" alignItems="CENTER" padding="false" wrap="true">
                     <span id="authorName" classNames="document-comment-author"/>
                     <span id="writtenTime" classNames="document-comment-meta"/>
                     <span id="editedMark" classNames="document-comment-meta" text="msg://commentEdited"
