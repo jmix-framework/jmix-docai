@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        logicalFilePath="com/company/docai/liquibase/changelog/070-discussed-document.xml">
+    <changeSet id="1" author="jmix-docai" context="!cuba">
+        <createTable tableName="DISCUSSED_DOCUMENT">
+            <column name="ID" type="${uuid.type}">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_DISCUSSED_DOCUMENT"/>
+            </column>
+            <column name="VERSION" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CONVERSATION_ID" type="${uuid.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DOCUMENT_ID" type="${uuid.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="POSITION_" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="jmix-docai" context="!cuba">
+        <addUniqueConstraint tableName="DISCUSSED_DOCUMENT" columnNames="CONVERSATION_ID, DOCUMENT_ID"
+                             constraintName="UK_DISCUSSED_DOCUMENT"/>
+        <createIndex indexName="IDX_DISCUSSED_DOCUMENT_DOCUMENT" tableName="DISCUSSED_DOCUMENT">
+            <column name="DOCUMENT_ID"/>
+        </createIndex>
+        <addForeignKeyConstraint baseTableName="DISCUSSED_DOCUMENT" baseColumnNames="CONVERSATION_ID"
+                                 referencedTableName="AITLS_AI_CONVERSATION_ENTITY" referencedColumnNames="ID"
+                                 constraintName="FK_DISCUSSED_DOCUMENT_ON_CONVERSATION" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="DISCUSSED_DOCUMENT" baseColumnNames="DOCUMENT_ID"
+                                 referencedTableName="DOCUMENT" referencedColumnNames="ID"
+                                 constraintName="FK_DISCUSSED_DOCUMENT_ON_DOCUMENT"/>
+    </changeSet>
+</databaseChangeLog>

@@ -1,4 +1,4 @@
-# Jmix DMS
+# Jmix DocAI
 
 A reference document management system built on [Jmix](https://www.jmix.io).
 
@@ -27,7 +27,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 
 ## 📖 Overview
 
-Jmix DMS shows how to build a document management system on Jmix and how to add AI to it. You can clone it, run it locally, and read the code as an example.
+Jmix DocAI shows how to build a document management system on Jmix and how to add AI to it. You can clone it, run it locally, and read the code as an example.
 
 The application grows in this order:
 
@@ -93,25 +93,25 @@ docker compose up -d --wait
 
 `docker compose up -d --wait` starts OpenSearch for full-text and semantic search on `127.0.0.1:19200` and returns once it answers, so that the application finds it at start. Without OpenSearch the application works, and the search says it is unavailable; if OpenSearch comes up later, restart the application, and the changes waiting in the queue are indexed then.
 
-Open <http://localhost:8080/dms> and log in as `admin` / `admin`. The first start fills the empty database with the English demo set, see [Demo Data](#-demo-data).
+Open <http://localhost:8080/docai> and log in as `admin` / `admin`. The first start fills the empty database with the English demo set, see [Demo Data](#-demo-data).
 
-By default the application keeps its data in the HSQLDB file database `.jmix/hsqldb/dms` and runs with the `local` profile, which pre-fills the login form.
+By default the application keeps its data in the HSQLDB file database `.jmix/hsqldb/docai` and runs with the `local` profile, which pre-fills the login form.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `DMS_ACTIVE_PROFILE` | `local` | Spring profile |
-| `DMS_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/dms` | JDBC URL of the database |
-| `DMS_DB_USERNAME` | `sa` | Database user |
-| `DMS_DB_PASSWORD` | empty | Database password |
-| `DMS_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
-| `DMS_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
+| `DOCAI_ACTIVE_PROFILE` | `local` | Spring profile |
+| `DOCAI_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/docai` | JDBC URL of the database |
+| `DOCAI_DB_USERNAME` | `sa` | Database user |
+| `DOCAI_DB_PASSWORD` | empty | Database password |
+| `DOCAI_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
+| `DOCAI_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
 | `OPENAI_API_KEY` | empty | Key of the OpenAI API; without it the application shows no AI features |
-| `DMS_AI_MODEL` | `gpt-5.6-luna` | OpenAI model of the AI features |
-| `DMS_AI_EMBEDDING_MODEL` | `text-embedding-3-large` | OpenAI model of the vectors of the semantic search, of the text-embedding-3 family; another model fills the index anew |
-| `DMS_AI_EMBEDDING_DIMENSIONS` | `3072` | Size of the vectors of the semantic search, set with the model: at most 3072 for text-embedding-3-large and 1536 for text-embedding-3-small; another size fills the index anew |
-| `DMS_AI_REASONING_EFFORT` | `none` | Reasoning effort of the model; gpt-5.6-luna calls tools only with `none`, and a model that does not reason, such as gpt-4o-mini, refuses the setting: remove `spring.ai.openai.chat.reasoning-effort` from `application.properties` for it |
-| `DMS_AI_TEMPERATURE` | `0` | Temperature of the model; a model that reasons takes only `1` |
-| `DMS_DEMO_DATA` | `en` | Demo set an empty database gets at the start in the `local` profile: `en`, `ru` or `none` |
+| `DOCAI_AI_MODEL` | `gpt-5.6-luna` | OpenAI model of the AI features |
+| `DOCAI_AI_EMBEDDING_MODEL` | `text-embedding-3-large` | OpenAI model of the vectors of the semantic search, of the text-embedding-3 family; another model fills the index anew |
+| `DOCAI_AI_EMBEDDING_DIMENSIONS` | `3072` | Size of the vectors of the semantic search, set with the model: at most 3072 for text-embedding-3-large and 1536 for text-embedding-3-small; another size fills the index anew |
+| `DOCAI_AI_REASONING_EFFORT` | `none` | Reasoning effort of the model; gpt-5.6-luna calls tools only with `none`, and a model that does not reason, such as gpt-4o-mini, refuses the setting: remove `spring.ai.openai.chat.reasoning-effort` from `application.properties` for it |
+| `DOCAI_AI_TEMPERATURE` | `0` | Temperature of the model; a model that reasons takes only `1` |
+| `DOCAI_DEMO_DATA` | `en` | Demo set an empty database gets at the start in the `local` profile: `en`, `ru` or `none` |
 | `SERVER_PORT` | `8080` | HTTP port |
 
 The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together. The search indexes follow them: `./gradlew resetDemoData` deletes all three for a fresh start, see [Demo Data](#-demo-data). After the database is replaced in another way, run `docker compose down -v` to remove the indexes, and the application fills them again at start.
@@ -124,14 +124,14 @@ The database and the file directory belong together: a document version in the d
 
 Gradle runs the tests with the `test` profile on an in-memory HSQLDB database, so every run starts from an empty schema. The tests write files to `build/test-filestorage`, and `./gradlew clean` removes them. Search is off in these tests, so they need no OpenSearch.
 
-The tests of full-text search run against OpenSearch from `compose.yaml`, in indexes of their own (`dms_test_`):
+The tests of full-text search run against OpenSearch from `compose.yaml`, in indexes of their own (`docai_test_`):
 
 ```bash
 docker compose up -d --wait
 ./gradlew searchTest
 ```
 
-The AI tests call the OpenAI models with the key from `OPENAI_API_KEY` and check how the model classifies the English samples next to them, how the assistant of the card answers about one of them, how the assistant in the menu lists, finds, counts and reads documents and answers in the language of the question, and how the semantic search finds the samples by meaning, on the page and in the chat, and the twelve documents about farm equipment of the English demo set. They index the samples in OpenSearch from `compose.yaml` (`dms_test_`); a run costs a few cents:
+The AI tests call the OpenAI models with the key from `OPENAI_API_KEY` and check how the model classifies the English samples next to them, how the assistant of the card answers about one of them, how the assistant in the menu lists, finds, counts and reads documents and answers in the language of the question, and how the semantic search finds the samples by meaning, on the page and in the chat, and the twelve documents about farm equipment of the English demo set. They index the samples in OpenSearch from `compose.yaml` (`docai_test_`); a run costs a few cents:
 
 ```bash
 docker compose up -d --wait
@@ -142,7 +142,7 @@ The other tests clear the key, so they never call the model.
 
 ### Use another database
 
-Add the JDBC driver of your database to `build.gradle` and set `DMS_DB_URL`, `DMS_DB_USERNAME` and `DMS_DB_PASSWORD`. The Liquibase changelogs keep the branches Jmix Studio writes for different databases.
+Add the JDBC driver of your database to `build.gradle` and set `DOCAI_DB_URL`, `DOCAI_DB_USERNAME` and `DOCAI_DB_PASSWORD`. The Liquibase changelogs keep the branches Jmix Studio writes for different databases.
 
 ### Develop with AI agents
 
@@ -159,10 +159,10 @@ The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the appl
 
 - **Fill with AI.** The button in the header of the document card reads the file the card shows, the saved one or a file just uploaded, and fills the type of the document, the fields of the type and the document date, and adds up to three tags to those the document has (see [Tags](#️-tags)). The values go into the form only: you check them and save the document as usual. A document that already has a type or a date asks before the AI replaces them.
 - The types and their fields come from the document types the administrator defines, so a new type or field reaches the AI without a change of the code. Fields that hold a list of values or a reference to another record are left for you to fill.
-- The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`dms.ai.max-text-length`), and the AI is told where the text stops.
+- The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`docai.ai.max-text-length`), and the AI is told where the text stops.
 - **Assistant.** The Assistant tab of a saved document is a chat with the AI about the document, next to its preview. Ask in your own words or take a suggestion, "Summary" or "Dates and amounts". The AI reads the text of the saved current version with your rights: a version that waits for OK is not what it reads. While it reads, the chat shows what it does in the AI's own words, and the answer appears as the AI writes it. The conversation lasts while the card is open and is not stored.
 - **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask which documents there are, how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent or fall due before a date, or what a document says: the AI knows the document types and their fields, writes queries over the documents, the folders, the document types and the tags, counts and lists documents by their tags, finds documents by a value or a range of the fields of their types and reads the text of a document. It finds the passages of the documents by meaning, for a question about what the documents say or which of them concern something (see [Semantic Search](#-semantic-search)), and answers with quotes. It answers in the language of the question and names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
-- **Discuss with AI.** Select documents in the table and choose Discuss with AI on the toolbar or in the context menu: a window opens on the right with the selection and a chat about it. The table stays in use: open other folders and drag rows into the window, or select documents and choose the action again, and they join the selection. A document is in it once, and up to 10 documents fit (`dms.ai.discussion.max-documents`). The name of a document in the selection opens its card, and its cross takes it out. Ask anything about the documents, or start with the suggestion "Briefly about each": with every question the AI is told the documents of the selection you may open, reads their text when the question needs it and may search the other documents too. The first question saves the discussion in the history of the assistant in the menu, named after the question, and Open in the full chat continues it there: the AI still knows the selection, though the full chat does not show it. A link to a document in an answer opens its card over the window, as the name in the selection does. A window closed before the first question leaves nothing behind, and leaving the repository closes the window.
+- **Discuss with AI.** Select documents in the table and choose Discuss with AI on the toolbar or in the context menu: a window opens on the right with the selection and a chat about it. The table stays in use: open other folders and drag rows into the window, or select documents and choose the action again, and they join the selection. A document is in it once, and up to 10 documents fit (`docai.ai.discussion.max-documents`). The name of a document in the selection opens its card, and its cross takes it out. Ask anything about the documents, or start with the suggestion "Briefly about each": with every question the AI is told the documents of the selection you may open, reads their text when the question needs it and may search the other documents too. The first question saves the discussion in the history of the assistant in the menu, named after the question, and Open in the full chat continues it there: the AI still knows the selection, though the full chat does not show it. A link to a document in an answer opens its card over the window, as the name in the selection does. A window closed before the first question leaves nothing behind, and leaving the repository closes the window.
 - **Comments.** The assistant in the card, the assistant in the menu and a discussion read the [comments](#-comments) of a document when a question is about what people said or agreed: the latest 50 that fit into 12,000 characters, with your rights. They name the author and the date of the comment they rely on.
 - The assistant in the menu sees only what you may open: the rights to documents and folders apply to every entity a query reads, whatever names the query gives them, and a query that reads documents where the rights cannot apply is refused. Access sets, access entries, users, versions, comments, favorites and the documents of a discussion are closed to it in the code (`@ExcludeFromAi`), so a setting cannot open them.
 - To fill a document, the OpenAI model gets the text of the file, the name of the document, the document types with their fields and the names of all the tags; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders, the types and the tags, the document types with their fields, the rows of its queries and searches (names, dates, statuses, folders, types, tags, who uploaded the documents and when, and the values of their fields), the passages it finds by meaning, and the text of a document it reads. A discussion sends the model, besides, the names, the ids, the types and the dates of the documents of the selection you may open, with every question. Any of them sends the model the comments of a document it reads them for: their authors, times and texts. The semantic search sends the texts of all documents to OpenAI, see [Semantic Search](#-semantic-search).
@@ -171,7 +171,7 @@ The pages of the application load pictures, media, styles and fonts from the app
 
 ## 🎲 Demo Data
 
-At the first start in the `local` profile, an empty database gets a demo set: folders with their access, 46 documents with their versions, types, fields and statuses, the files of the versions, and a few deleted items in the trash. `DMS_DEMO_DATA` chooses the set:
+At the first start in the `local` profile, an empty database gets a demo set: folders with their access, 46 documents with their versions, types, fields and statuses, the files of the versions, and a few deleted items in the trash. `DOCAI_DEMO_DATA` chooses the set:
 
 | Value | Set |
 |---|---|
@@ -205,9 +205,9 @@ The set loads once, into a database with no document and no folder but the root.
 ./gradlew resetDemoData
 ```
 
-It deletes the database, the document files and the search indexes `dms_document` and `dms_document_vectors`, and the next start loads the set of `DMS_DEMO_DATA` again. With an OpenAI key, the semantic search indexes a set in about a minute for about a cent.
+It deletes the database, the document files and the search indexes `docai_document` and `docai_document_vectors`, and the next start loads the set of `DOCAI_DEMO_DATA` again. With an OpenAI key, the semantic search indexes a set in about a minute for about a cent.
 
-A set lies in `src/main/resources/com/company/dms/demo/<set>/`: `demo-data.json` describes the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, the comments with their authors and times, and who deleted an item of the trash and when; `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
+A set lies in `src/main/resources/com/company/docai/demo/<set>/`: `demo-data.json` describes the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, the comments with their authors and times, and who deleted an item of the trash and when; `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
 
 ## 👥 Application Accounts
 
@@ -222,7 +222,7 @@ A set lies in `src/main/resources/com/company/dms/demo/<set>/`: `demo-data.json`
 
 The employees and their department roles come from the demo changelog `020-demo-users.xml`. Delete it before the first start of a real deployment.
 
-> **Warning:** these are development credentials, and the `local` profile pre-fills them in the login form. Before you deploy the application anywhere, change the `admin` password and set `DMS_ACTIVE_PROFILE` to another value, for example `prod`.
+> **Warning:** these are development credentials, and the `local` profile pre-fills them in the login form. Before you deploy the application anywhere, change the `admin` password and set `DOCAI_ACTIVE_PROFILE` to another value, for example `prod`.
 
 ## ⚙️ Domain Model
 
@@ -333,7 +333,7 @@ classDiagram
 
 A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.
 
-Deleting from the trash forever needs the specific policy `dms.trash.purge`: Full Access has it, the Employee role does not.
+Deleting from the trash forever needs the specific policy `docai.trash.purge`: Full Access has it, the Employee role does not.
 
 Everyone who sees a document comments on it. Only the author edits and deletes a comment, and Full Access deletes any comment but edits only its own: `access-rl` reads the comments by the access of their document and lets an employee save or delete only a comment written in their name, and the comment service checks the stored author and the rest.
 
@@ -436,14 +436,14 @@ With the AI on, the search field in the header has a second mode. **By words** i
 - The AI search finds the fragments of the documents nearest to the query by meaning, and the OpenAI chat model checks every candidate: the page shows up to 20 documents that fit, the nearest first, each with its fragment and the quote that fits the query marked. When nothing fits, the page offers the search by words.
 - The assistant in the menu finds passages by meaning too, for a question about what the documents say or which of them concern something, and answers with quotes and links to the cards.
 - The rights apply when a person searches: the index holds the fragments of all documents, and the application asks it only among the documents the person may open, so a closed document is neither shown, nor checked, nor quoted.
-- **The texts of all documents go to OpenAI.** While the key is set, every document is sent to the OpenAI model of vectors when it is uploaded, gets another current version or another name, whoever opens it later: its name and the first 40,000 characters of its text (`dms.semantic.max-text-length`), in fragments of about 1,000 characters. A file without text is searched by its name. A search sends the query, and the results page also the names and fragments of up to 20 documents for the check. Indexing costs about $0.0002 for a document of two pages, a search on the page about $0.002.
-- The fragments live in the OpenSearch index `dms_document_vectors`, next to the index of full-text search, with the vectors of `text-embedding-3-large` (3,072 numbers each). A document is found by meaning a few seconds after an upload. At start the application checks the index against the documents: it indexes what changed while it was stopped, removes what is gone, and fills the index anew when the model of vectors changes. Until then the results page says that part of the documents cannot be found by meaning yet. Without OpenSearch the AI search says that search is unavailable.
+- **The texts of all documents go to OpenAI.** While the key is set, every document is sent to the OpenAI model of vectors when it is uploaded, gets another current version or another name, whoever opens it later: its name and the first 40,000 characters of its text (`docai.semantic.max-text-length`), in fragments of about 1,000 characters. A file without text is searched by its name. A search sends the query, and the results page also the names and fragments of up to 20 documents for the check. Indexing costs about $0.0002 for a document of two pages, a search on the page about $0.002.
+- The fragments live in the OpenSearch index `docai_document_vectors`, next to the index of full-text search, with the vectors of `text-embedding-3-large` (3,072 numbers each). A document is found by meaning a few seconds after an upload. At start the application checks the index against the documents: it indexes what changed while it was stopped, removes what is gone, and fills the index anew when the model of vectors changes. Until then the results page says that part of the documents cannot be found by meaning yet. Without OpenSearch the AI search says that search is unavailable.
 
 ## 🎨 Branding
 
-Jmix DMS has its own look on the Aura theme of Vaadin: an indigo accent, the Manrope font, a diamond mark and a sign-in page over a lattice of diamonds.
+Jmix DocAI has its own look on the Aura theme of Vaadin: an indigo accent, the Manrope font, a diamond mark and a sign-in page over a lattice of diamonds.
 
-- The theme lives in `src/main/resources/META-INF/resources/themes/jmix-dms-aura/`. `brand.css` sets Aura's own properties — accent, background, radius, font and weights; the views style themselves in `view/`.
+- The theme lives in `src/main/resources/META-INF/resources/themes/jmix-docai-aura/`. `brand.css` sets Aura's own properties — accent, background, radius, font and weights; the views style themselves in `view/`.
 - **Theme** in the user menu offers **System**, **Light**, **Dark** and **Mixed**. **Mixed** keeps the drawer dark and the header, the content, the dialogs and the notifications light. `UserMenuThemeSwitchAction` adds the item to the theme switch of Jmix, and the stylesheet draws the scheme from the `theme="mixed"` attribute of the page.
 - The font files of Manrope ship with the theme under the SIL Open Font License (`fonts/manrope/OFL.txt`): the content security policy lets a page load fonts from the application only.
 - `icons/icon.png` is the source of the favicons and of the icons of the installed application; `icon-16x16.png` and `icon-32x32.png` replace the two smallest with a bolder mark.

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <data>
+        <collection id="commentsDc" class="com.company.docai.model.document.DocumentComment">
+            <fetchPlan extends="_base"/>
+            <!-- the fragment shares the data context of the card, so the loader keeps the comments out of it -->
+            <loader id="commentsDl" readOnly="true">
+                <query>
+                    <![CDATA[select c from DocumentComment c where c.document = :document
+                    order by c.createdDate desc, c.id desc]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <content>
+        <vbox id="commentsRoot" classNames="document-comments" width="100%" height="100%" padding="false">
+            <textArea id="commentField" width="100%" minRows="2" maxRows="8" valueChangeMode="EAGER"
+                      trimEnabled="false" placeholder="msg://commentField.placeholder">
+                <suffix>
+                    <button id="postCommentButton" icon="PAPERPLANE" themeNames="tertiary"
+                            classNames="document-comment-send" ariaLabel="msg://postCommentButton.text">
+                        <tooltip text="msg://postCommentButton.text"/>
+                    </button>
+                </suffix>
+            </textArea>
+            <hbox id="postPanel" width="100%" justifyContent="END">
+                <span id="commentLength" classNames="document-comment-meta"/>
+            </hbox>
+            <span id="noComments" classNames="document-comment-meta" text="msg://noComments"/>
+            <virtualList id="commentsList" itemsContainer="commentsDc" classNames="document-comments-list"
+                         width="100%">
+                <fragmentRenderer class="com.company.docai.view.document.DocumentCommentItemFragment"/>
+            </virtualList>
+        </vbox>
+    </content>
+</fragment>

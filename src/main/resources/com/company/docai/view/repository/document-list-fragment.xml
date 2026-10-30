@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <data readOnly="true">
+        <collection id="documentsDc" class="com.company.docai.model.document.Document">
+            <fetchPlan extends="_base">
+                <property name="currentRevision" fetchPlan="_base"/>
+                <property name="category" fetchPlan="_instance_name"/>
+                <property name="tags" fetchPlan="_base"/>
+                <property name="accessSet" fetchPlan="_instance_name"/>
+            </fetchPlan>
+            <loader id="documentsDl">
+                <query>
+                    <![CDATA[select d from Document d where d.folder = :folder order by d.name]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <fragmentSettings id="settings" auto="true"/>
+    </facets>
+    <content>
+        <vbox id="documentListRoot" width="100%" height="100%" padding="false">
+            <hbox id="documentToolbar" width="100%" alignItems="START">
+                <hbox id="documentActions" classNames="buttons-panel" alignItems="CENTER" width="100%">
+                    <upload id="documentsUpload" classNames="upload-button"
+                            uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="20" dropAllowed="true"
+                            uploadText="msg://documentsUpload.uploadText" uploadIcon="UPLOAD"/>
+                    <button id="createDocumentButton" text="msg://createDocumentButton.text" icon="FILE_ADD"/>
+                    <button id="openButton" action="documentsGrid.openAction" text=""
+                            title="msg://openAction.text"/>
+                    <upload id="versionUpload" classNames="upload-button"
+                            uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="1" dropAllowed="false" enabled="false"
+                            uploadIcon="REFRESH"/>
+                    <button id="moveButton" action="documentsGrid.moveAction" text=""
+                            title="msg://moveAction.text"/>
+                    <dropdownButton id="statusButton" title="msg://statusButton.text" icon="FLAG"
+                                    themeNames="no-dropdown-indicators" enabled="false">
+                        <items>
+                            <actionItem id="activateItem" ref="documentsGrid.activateAction"/>
+                            <actionItem id="archiveItem" ref="documentsGrid.archiveAction"/>
+                            <actionItem id="unarchiveItem" ref="documentsGrid.unarchiveAction"/>
+                        </items>
+                    </dropdownButton>
+                    <button id="accessButton" action="documentsGrid.accessAction" text=""
+                            title="msg://accessAction.text"/>
+                    <button id="favoriteButton" action="documentsGrid.favoriteAction" text=""
+                            title="msg://com.company.docai.view.favorite/favoriteAction.text"/>
+                    <button id="deleteButton" action="documentsGrid.deleteAction" text=""
+                            title="msg://deleteAction.text"/>
+                </hbox>
+                <button id="discussButton" action="documentsGrid.discussAction" text=""
+                        title="msg://discussAction.text" classNames="aura-accent-purple ai-button"/>
+                <gridColumnVisibility id="columnsButton" dataGrid="documentsGrid" icon="TABLE"
+                                      exclude="name" hideAllEnabled="false"/>
+                <button id="previewButton" text="msg://previewButton.text" icon="EYE"/>
+            </hbox>
+            <dataGrid id="documentsGrid" dataContainer="documentsDc" selectionMode="MULTI" rowsDraggable="true"
+                      width="100%" height="100%" minHeight="12em" emptyStateText="msg://documentsGrid.emptyStateText">
+                <actions showInContextMenuEnabled="false">
+                    <action id="openAction" type="list_itemTracking"
+                            text="msg://openAction.text" icon="FILE_TEXT"/>
+                    <action id="downloadAction" type="list_itemTracking"
+                            text="msg://downloadAction.text" icon="DOWNLOAD"/>
+                    <action id="discussAction" type="list_itemTracking"
+                            text="msg://discussAction.text" icon="COMMENTS_O"/>
+                    <action id="moveAction" type="list_itemTracking"
+                            text="msg://moveAction.text" icon="ARROW_RIGHT"/>
+                    <action id="activateAction" type="list_itemTracking"
+                            text="msg://activateAction.text" icon="CHECK"/>
+                    <action id="archiveAction" type="list_itemTracking"
+                            text="msg://archiveAction.text" icon="ARCHIVE"/>
+                    <action id="unarchiveAction" type="list_itemTracking"
+                            text="msg://unarchiveAction.text" icon="UNDO"/>
+                    <action id="accessAction" type="list_itemTracking"
+                            text="msg://accessAction.text" icon="KEY"/>
+                    <action id="favoriteAction" type="docai_favoriteList"/>
+                    <action id="deleteAction" type="list_itemTracking" actionVariant="DANGER"
+                            text="msg://deleteAction.text" icon="TRASH"/>
+                </actions>
+                <contextMenu>
+                    <item id="openDocumentItem" action="documentsGrid.openAction"/>
+                    <item id="downloadDocumentItem" action="documentsGrid.downloadAction"/>
+                    <item id="discussDocumentItem" action="documentsGrid.discussAction"
+                          classNames="aura-accent-purple main-menu-item"/>
+                    <item id="moveDocumentItem" action="documentsGrid.moveAction"/>
+                    <item id="activateDocumentItem" action="documentsGrid.activateAction"/>
+                    <item id="archiveDocumentItem" action="documentsGrid.archiveAction"/>
+                    <item id="unarchiveDocumentItem" action="documentsGrid.unarchiveAction"/>
+                    <item id="accessDocumentItem" action="documentsGrid.accessAction"/>
+                    <item id="favoriteDocumentItem" action="documentsGrid.favoriteAction"/>
+                    <item id="deleteDocumentItem" action="documentsGrid.deleteAction" classNames="danger-menu-item"/>
+                </contextMenu>
+                <columns resizable="true">
+                    <column property="name" width="15em"/>
+                    <column property="category" autoWidth="true" flexGrow="0"/>
+                    <column property="tags" autoWidth="true" flexGrow="0" sortable="false"/>
+                    <column property="status" autoWidth="true" flexGrow="0"/>
+                    <column property="documentDate" autoWidth="true" flexGrow="0" visible="false"/>
+                    <column key="fileSize" property="currentRevision.fileSize" autoWidth="true" flexGrow="0"
+                            visible="false"/>
+                    <column property="changedDate" autoWidth="true" flexGrow="0"/>
+                </columns>
+            </dataGrid>
+        </vbox>
+    </content>
+</fragment>

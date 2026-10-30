@@ -1,5 +1,5 @@
 # OpenSearch for full-text search: docker compose up -d --wait, which returns once OpenSearch answers
-name: dms
+name: docai
 
 services:
   opensearch:

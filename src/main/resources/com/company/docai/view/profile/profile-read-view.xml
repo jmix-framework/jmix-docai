@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://ProfileReadView.title">
+    <data>
+        <instance id="userDc" class="com.company.docai.model.user.User">
+            <fetchPlan>
+                <property name="username"/>
+                <property name="firstName"/>
+                <property name="lastName"/>
+                <property name="email"/>
+                <property name="timeZoneId"/>
+            </fetchPlan>
+            <loader id="userDl"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="closeAction" type="view_close" text="msg:///actions.Close" icon="CLOSE"/>
+    </actions>
+    <layout>
+        <formLayout id="form" dataContainer="userDc">
+            <textField id="firstNameField" property="firstName"/>
+            <textField id="lastNameField" property="lastName"/>
+            <textField id="usernameField" property="username"/>
+            <textField id="emailField" property="email"/>
+            <textField id="timeZoneField" label="msg://com.company.docai.model.user/User.timeZoneId" readOnly="true"/>
+        </formLayout>
+        <hbox id="readActions">
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+    </layout>
+</view>

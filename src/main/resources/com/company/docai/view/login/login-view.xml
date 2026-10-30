@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      focusComponent="login"
+      title="msg://LoginView.title">
+    <layout justifyContent="CENTER" classNames="login-view">
+        <div classNames="login-card">
+            <div classNames="login-brand">
+                <svgIcon id="brandLogo" resource="themes/jmix-docai-aura/images/logo.svg" size="40px"
+                         classNames="login-brand-logo"/>
+                <h1 id="brandName" text="msg://brandName" classNames="login-brand-name"/>
+            </div>
+            <loginForm id="login"
+                       forgotPasswordButtonVisible="false"
+                       rememberMeVisible="false">
+                <form title="msg://loginForm.headerTitle"
+                      username="msg://loginForm.username"
+                      password="msg://loginForm.password"
+                      rememberMe="msg://loginForm.rememberMe"
+                      submit="msg://loginForm.submit"
+                      forgotPassword="msg://loginForm.forgotPassword"/>
+                <errorMessage title="msg://loginForm.errorTitle"
+                              message="msg://loginForm.badCredentials"
+                              username="msg://loginForm.errorUsername"
+                              password="msg://loginForm.errorPassword"/>
+            </loginForm>
+        </div>
+    </layout>
+</view>

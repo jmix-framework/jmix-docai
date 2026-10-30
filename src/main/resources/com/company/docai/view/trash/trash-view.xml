@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://trashView.title">
+    <data readOnly="true">
+        <collection id="trashItemsDc" class="com.company.docai.model.trash.TrashItem">
+            <loader id="trashItemsDl"/>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <settings auto="true"/>
+    </facets>
+    <actions>
+        <action id="emptyAction" text="msg://emptyAction.text" icon="ERASER" actionVariant="DANGER"/>
+    </actions>
+    <layout>
+        <sidePanelLayout id="previewLayout" classNames="repository-preview-layout" width="100%" height="100%"
+                         sidePanelPosition="RIGHT" sidePanelOverlay="false" modal="false"
+                         closeOnOutsideClick="false" sidePanelResizable="true" themeNames="resizer-small"
+                         sidePanelHorizontalSize="40%" sidePanelHorizontalMinSize="20em">
+            <vbox id="trashPane" width="100%" height="100%" padding="false" expand="trashItemsGrid">
+                <hbox id="trashToolbar" width="100%" alignItems="START">
+                    <hbox id="trashActions" classNames="buttons-panel" alignItems="CENTER" width="100%">
+                        <button id="restoreButton" action="trashItemsGrid.restoreAction"/>
+                        <button id="purgeButton" action="trashItemsGrid.purgeAction"/>
+                    </hbox>
+                    <button id="emptyButton" action="emptyAction"/>
+                    <button id="previewButton" text="msg://previewButton.text" icon="EYE"/>
+                </hbox>
+                <dataGrid id="trashItemsGrid" dataContainer="trashItemsDc" selectionMode="MULTI"
+                          width="100%" minHeight="12em" emptyStateText="msg://trashItemsGrid.emptyStateText">
+                    <actions showInContextMenuEnabled="false">
+                        <action id="restoreAction" type="list_itemTracking" actionVariant="PRIMARY"
+                                text="msg://restoreAction.text" icon="ARROW_BACKWARD"/>
+                        <action id="purgeAction" type="list_itemTracking" actionVariant="DANGER"
+                                text="msg://purgeAction.text" icon="TRASH"/>
+                    </actions>
+                    <columns resizable="true">
+                        <column property="name" flexGrow="2"/>
+                        <column property="location"/>
+                        <column property="deletedBy" width="14em" flexGrow="0"/>
+                        <column property="deletedDate" width="13em" flexGrow="0"/>
+                    </columns>
+                </dataGrid>
+            </vbox>
+            <vbox id="previewPanel" classNames="repository-preview-panel" width="100%" height="100%" expand="preview">
+                <hbox id="previewHeader" width="100%" alignItems="CENTER">
+                    <h4 id="previewTitle" text="msg://previewTitle.text" width="100%"/>
+                    <sidePanelLayoutCloser id="previewCloser" sidePanelLayoutId="previewLayout"/>
+                </hbox>
+                <fragment id="preview" classNames="repository-preview"
+                          class="com.company.docai.view.trash.TrashPreviewFragment"/>
+            </vbox>
+        </sidePanelLayout>
+    </layout>
+</view>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://documentDetailView.title"
+      focusComponent="nameField">
+    <data>
+        <instance id="documentDc" class="com.company.docai.model.document.Document">
+            <fetchPlan extends="_base">
+                <property name="folder" fetchPlan="_base"/>
+                <property name="category" fetchPlan="_instance_name"/>
+                <property name="tags" fetchPlan="_base"/>
+                <property name="accessSet" fetchPlan="_instance_name"/>
+                <property name="currentRevision" fetchPlan="_base"/>
+                <property name="revisions" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="documentDl"/>
+            <collection id="revisionsDc" property="revisions"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <settings auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+        <action id="fillWithAiAction" type="docai_fillWithAi"/>
+        <action id="favoriteAction" type="docai_favoriteCard"/>
+    </actions>
+    <layout>
+        <hbox id="cardHeader" classNames="document-card-header" width="100%" alignItems="CENTER" wrap="true">
+            <h3 id="documentTitle"/>
+            <badge id="statusBadge" dataContainer="documentDc" property="status"/>
+            <span id="documentTags"/>
+            <span id="pendingChanges" classNames="document-card-pending"/>
+            <hbox id="headerActions" classNames="document-card-actions" alignItems="CENTER" wrap="true">
+                <button id="activateButton" text="msg://activateButton.text" icon="CHECK"/>
+                <button id="archiveButton" text="msg://archiveButton.text" icon="ARCHIVE"/>
+                <button id="unarchiveButton" text="msg://unarchiveButton.text" icon="UNDO"/>
+                <button id="fillWithAiButton" action="fillWithAiAction"
+                        classNames="aura-accent-purple ai-button"/>
+                <upload id="newVersionUpload" classNames="upload-button"
+                        uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="1"
+                        dropAllowed="false" uploadText="msg://newVersionUpload.uploadText" uploadIcon="UPLOAD"/>
+                <button id="downloadButton" icon="DOWNLOAD" ariaLabel="msg://downloadButton.text">
+                    <tooltip text="msg://downloadButton.text"/>
+                </button>
+                <button id="accessButton" icon="KEY" ariaLabel="msg://accessButton.text">
+                    <tooltip text="msg://accessButton.text"/>
+                </button>
+                <button id="favoriteButton" action="favoriteAction" text="">
+                    <tooltip text="msg://com.company.docai.view.favorite/favoriteAction.text"/>
+                </button>
+            </hbox>
+        </hbox>
+        <tabSheet id="cardTabs" classNames="document-card-tabs" width="100%" height="100%">
+            <tab id="generalTab" label="msg://generalTab.label">
+                <hbox id="generalContent" width="100%" minHeight="100%" wrap="true">
+                    <formLayout id="form" classNames="document-card-form" dataContainer="documentDc">
+                        <textField id="nameField" property="name"/>
+                        <datePicker id="documentDateField" property="documentDate"/>
+                        <multiSelectComboBox id="tagsField" property="tags" allowCustomValue="true"
+                                             helperText="msg://tagsField.helperText">
+                            <itemsQuery class="com.company.docai.model.tag.Tag"
+                                        searchStringFormat="(?i)%${inputString}%" escapeValueForLike="true">
+                                <query>
+                                    <![CDATA[
+                                    select t from Tag t
+                                    where t.nameKey like :searchString escape '\'
+                                    order by t.nameKey
+                                    ]]>
+                                </query>
+                            </itemsQuery>
+                        </multiSelectComboBox>
+                        <textField id="folderField" label="msg://folderField.label" readOnly="true"/>
+                        <textField id="currentVersionField" label="msg://currentVersionField.label" readOnly="true"/>
+                        <textField id="createdField" label="msg://createdField.label" readOnly="true"/>
+                        <textField id="modifiedField" label="msg://modifiedField.label" readOnly="true"/>
+                    </formLayout>
+                    <fragment id="preview" classNames="document-card-preview"
+                              class="com.company.docai.view.document.DocumentPreviewFragment"/>
+                </hbox>
+            </tab>
+            <tab id="propertiesTab" label="msg://propertiesTab.label">
+                <fragment id="propertiesFragment" class="com.company.docai.view.document.DocumentPropertiesFragment"/>
+            </tab>
+            <tab id="versionsTab" label="msg://versionsTab.label">
+                <vbox id="versionsContent" width="100%" height="100%" padding="false">
+                    <hbox id="revisionActions" classNames="buttons-panel">
+                        <button id="downloadRevisionButton" action="revisionsGrid.downloadRevisionAction"/>
+                        <button id="showRevisionButton" action="revisionsGrid.showRevisionAction"/>
+                        <button id="restoreRevisionButton" action="revisionsGrid.restoreRevisionAction"/>
+                    </hbox>
+                    <dataGrid id="revisionsGrid" dataContainer="revisionsDc" width="100%" height="100%">
+                        <actions showInContextMenuEnabled="true">
+                            <action id="downloadRevisionAction" type="list_itemTracking"
+                                    text="msg://downloadRevisionAction.text" icon="DOWNLOAD"/>
+                            <action id="showRevisionAction" type="list_itemTracking"
+                                    text="msg://showRevisionAction.text" icon="EYE"/>
+                            <action id="restoreRevisionAction" type="list_itemTracking"
+                                    text="msg://restoreRevisionAction.text" icon="UNDO"/>
+                        </actions>
+                        <columns>
+                            <column property="number" width="5rem" flexGrow="0"/>
+                            <column property="fileName" sortable="true"/>
+                            <column property="contentType"/>
+                            <column property="fileSize"/>
+                            <column property="createdBy"/>
+                            <column property="createdDate"/>
+                        </columns>
+                    </dataGrid>
+                </vbox>
+            </tab>
+            <tab id="commentsTab" label="msg://commentsTab.label">
+                <fragment id="comments" class="com.company.docai.view.document.DocumentCommentsFragment"/>
+            </tab>
+            <tab id="assistantTab" label="msg://assistantTab.label">
+                <hbox id="assistantContent" width="100%" minHeight="100%" wrap="true">
+                    <fragment id="assistant" classNames="document-card-assistant"
+                              class="com.company.docai.view.document.DocumentAssistantFragment"/>
+                    <fragment id="assistantPreview" classNames="document-card-preview"
+                              class="com.company.docai.view.document.DocumentPreviewFragment"/>
+                </hbox>
+            </tab>
+        </tabSheet>
+        <hbox id="detailActions">
+            <button id="saveButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+    </layout>
+</view>
