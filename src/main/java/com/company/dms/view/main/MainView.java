@@ -71,7 +71,6 @@ public class MainView extends StandardMainView {
     private UserSettingsService userSettingsService;
 
     private boolean aiSearch;
-    private boolean searchOpen;
 
     @Subscribe
     public void onInit(final InitEvent event) {
@@ -94,14 +93,10 @@ public class MainView extends StandardMainView {
         showSearchMode();
     }
 
+    // the open results stay until Enter runs the query in the chosen mode
     @Subscribe(id = "searchModeButton", subject = "clickListener")
     public void onSearchModeButtonClick(final ClickEvent<JmixButton> event) {
         chooseSearchMode(!aiSearch);
-
-        // the open search runs again at once in the other mode
-        if (searchOpen) {
-            openSearch();
-        }
     }
 
     @Override
@@ -109,7 +104,7 @@ public class MainView extends StandardMainView {
         super.afterNavigation(event);
 
         // the field shows the words and the mode of the open search and is empty elsewhere
-        searchOpen = event.getActiveChain().stream().anyMatch(DocumentSearchView.class::isInstance);
+        boolean searchOpen = event.getActiveChain().stream().anyMatch(DocumentSearchView.class::isInstance);
         QueryParameters parameters = event.getLocation().getQueryParameters();
         searchField.setValue(searchOpen ? DocumentSearchView.queryOf(parameters) : "");
 

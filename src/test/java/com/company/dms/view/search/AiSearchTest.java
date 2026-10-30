@@ -60,6 +60,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -169,19 +170,21 @@ class AiSearchTest {
     }
 
     @Test
-    void aClickOnTheSearchPageRepeatsTheQueryInTheOtherMode() {
+    void aClickOnTheSearchPageOnlySwitchesTheModeAndEnterSearchesInIt() {
         enter(QUERY);
         assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
 
         modeButton(mainView()).click();
 
+        assertThat(pressed(modeButton(mainView()))).isTrue();
+        assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
+        verify(semanticSearch, never()).search(anyString());
+
+        enter(QUERY);
+
         assertThat(DocumentSearchView.queryOf(currentQueryParameters())).isEqualTo(QUERY);
         assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isTrue();
         verify(semanticSearch, timeout(5_000)).search(QUERY);
-
-        modeButton(mainView()).click();
-
-        assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
     }
 
     @Test
