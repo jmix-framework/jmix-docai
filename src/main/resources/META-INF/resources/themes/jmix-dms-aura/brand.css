@@ -51,6 +51,15 @@ html[theme~='mixed'] .jmix-main-view-header {
     color: var(--vaadin-text-color);
 }
 
+/* The border under the header lets the page show through, which is dark here and cut the light header from the light
+   content: the line takes the color it has over the light frame of the light scheme. An inset shadow draws it between
+   the side borders, which stay dark, so its ends do not stick out into the edge of the tile as the corners of a
+   border would */
+html[theme~='mixed'] vaadin-app-layout.jmix-main-view-app-layout .jmix-main-view-header {
+    border-bottom-width: 0;
+    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--vaadin-text-color) 8%, var(--aura-background-color-light));
+}
+
 /* The side dialog of Jmix lies on the dark body and is no dialog of Aura, so it takes the scheme of the content here;
    aura-accent-color on the window makes Aura derive its colors in it, as on the header */
 html[theme~='mixed'] jmix-side-dialog {
