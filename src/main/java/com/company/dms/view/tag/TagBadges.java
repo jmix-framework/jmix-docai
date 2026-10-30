@@ -65,7 +65,7 @@ public class TagBadges {
             Badge badge = uiComponents.create(Badge.class);
             badge.setText(tag.getName());
             badge.setIcon(icons.get(JmixFontIcon.TAG));
-            badge.addClassName("aura-accent-blue");
+            badge.addClassName("aura-accent-color");
 
             NativeButton button = uiComponents.create(NativeButton.class);
             button.addClassName("tag-badge");

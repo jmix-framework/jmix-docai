@@ -1,9 +1,73 @@
-/* Predefined styles for the LoginView */
+/* The sign-in page: the lattice of the brand covers it, and the card with the form floats over its calm left part */
 
-.jmix-login-main-layout jmix-login-form::part(form) {
-    --vaadin-login-form-border-radius: var(--vaadin-radius-l);
-    --vaadin-login-form-background: var(--aura-surface-color);
+.login-view {
+    align-items: flex-start;
+    padding-inline: clamp(var(--vaadin-padding-m), 8vw, 140px);
+    background: #E3E7FB url('../images/login-light.svg') center / cover no-repeat;
+}
 
-    box-shadow: var(--aura-shadow-s);
-    border: 1px solid var(--vaadin-border-color);
+html[theme~='dark'] .login-view {
+    background-color: #0F0D33;
+    background-image: url('../images/login-dark.svg');
+}
+
+.login-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-s);
+    width: min(400px, 100%);
+    box-sizing: border-box;
+    padding: var(--vaadin-padding-xl) var(--vaadin-padding-l) var(--vaadin-padding-l);
+    border: 1px solid color-mix(in srgb, var(--vaadin-border-color) 60%, transparent);
+    border-radius: var(--vaadin-radius-l);
+    background: color-mix(in srgb, var(--aura-surface-color-solid) 84%, transparent);
+    backdrop-filter: blur(18px) saturate(1.2);
+    box-shadow: var(--aura-shadow-m);
+}
+
+.login-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vaadin-gap-s);
+}
+
+.login-brand-logo {
+    flex: none;
+    color: var(--aura-accent-color);
+}
+
+.login-brand-name {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+/* The name stands above the form, so the form drops its own title and frame */
+.login-card jmix-login-form::part(form-title) {
+    display: none;
+}
+
+.login-card jmix-login-form::part(form) {
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Aura draws the error box for vaadin-login-form only; the same for the login form of Jmix */
+jmix-login-form::part(error-message) {
+    padding: var(--vaadin-padding-m);
+    border-radius: var(--vaadin-radius-m);
+    background: color-mix(in srgb, var(--aura-red) 10%, transparent);
+}
+
+jmix-login-form::part(error-message-title) {
+    font-weight: var(--aura-font-weight-semibold);
+}
+
+@media (max-width: 900px) {
+    .login-view {
+        align-items: center;
+    }
 }

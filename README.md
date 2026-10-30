@@ -23,6 +23,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Document Types](#-document-types)
 - [Full-Text Search](#-full-text-search)
 - [Semantic Search](#-semantic-search)
+- [Branding](#-branding)
 
 ## 📖 Overview
 
@@ -433,3 +434,13 @@ With the AI on, the search field in the header has a second mode. **By words** i
 - The rights apply when a person searches: the index holds the fragments of all documents, and the application asks it only among the documents the person may open, so a closed document is neither shown, nor checked, nor quoted.
 - **The texts of all documents go to OpenAI.** While the key is set, every document is sent to the OpenAI model of vectors when it is uploaded, gets another current version or another name, whoever opens it later: its name and the first 40,000 characters of its text (`dms.semantic.max-text-length`), in fragments of about 1,000 characters. A file without text is searched by its name. A search sends the query, and the results page also the names and fragments of up to 20 documents for the check. Indexing costs about $0.0002 for a document of two pages, a search on the page about $0.002.
 - The fragments live in the OpenSearch index `dms_document_vectors`, next to the index of full-text search, with the vectors of `text-embedding-3-large` (3,072 numbers each). A document is found by meaning a few seconds after an upload. At start the application checks the index against the documents: it indexes what changed while it was stopped, removes what is gone, and fills the index anew when the model of vectors changes. Until then the results page says that part of the documents cannot be found by meaning yet. Without OpenSearch the AI search says that search is unavailable.
+
+## 🎨 Branding
+
+Jmix DMS has its own look on the Aura theme of Vaadin: an indigo accent, the Manrope font, a diamond mark and a sign-in page over a lattice of diamonds.
+
+- The theme lives in `src/main/resources/META-INF/resources/themes/jmix-dms-aura/`. `brand.css` sets Aura's own properties — accent, background, radius, font and weights; the views style themselves in `view/`.
+- **Theme** in the user menu offers **System**, **Light**, **Dark** and **Mixed**. **Mixed** keeps the drawer dark and the header, the content, the dialogs and the notifications light. `UserMenuThemeSwitchAction` adds the item to the theme switch of Jmix, and the stylesheet draws the scheme from the `theme="mixed"` attribute of the page.
+- The font files of Manrope ship with the theme under the SIL Open Font License (`fonts/manrope/OFL.txt`): the content security policy lets a page load fonts from the application only.
+- `icons/icon.png` is the source of the favicons and of the icons of the installed application; `icon-16x16.png` and `icon-32x32.png` replace the two smallest with a bolder mark.
+- The AI controls wear the fuchsia accent of AI, the tags the indigo accent of the brand.

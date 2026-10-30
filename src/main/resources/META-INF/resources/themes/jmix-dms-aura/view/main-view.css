@@ -2,6 +2,8 @@
 
 .jmix-main-view-app-layout {
     --vaadin-app-layout-drawer-width: 256px;
+    /* the header and the brand card share one height: the padding of the header and the button of the user menu */
+    --main-view-bar-height: 62px;
 }
 
 vaadin-app-layout.jmix-main-view-app-layout:not([primary-section='navbar']) {
@@ -62,6 +64,7 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     align-items: center;
     width: 100%;
     box-sizing: border-box;
+    min-height: var(--main-view-bar-height);
     gap: var(--vaadin-gap-m);
 }
 
@@ -81,17 +84,43 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     min-height: 100%;
 }
 
+/* The brand card starts at the inset of the content, as the header does, so the two stand in one line */
 .jmix-main-view-application-title {
     display: flex;
     align-items: center;
     margin: 0;
-    padding: var(--vaadin-padding-m);
+    padding: var(--aura-app-layout-inset) var(--vaadin-padding-s) var(--vaadin-padding-s);
     font-size: var(--aura-font-size-l);
 }
 
 .jmix-main-view-application-title-base-link {
     color: var(--vaadin-text-color);
     text-decoration: none;
+}
+
+/* The brand: the mark and the name in the middle of a band as high as the header, on the background of the drawer */
+.brand-card {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vaadin-gap-s);
+    min-width: 0;
+    box-sizing: border-box;
+    height: var(--main-view-bar-height);
+    padding: var(--vaadin-padding-s);
+    border-radius: var(--vaadin-radius-l);
+}
+
+.brand-card-logo {
+    flex: none;
+    color: var(--aura-accent-color);
+}
+
+.brand-card-name {
+    font-size: var(--aura-font-size-l);
+    font-weight: var(--aura-font-weight-semibold);
+    line-height: var(--aura-line-height-s);
 }
 
 .jmix-main-view-navigation {

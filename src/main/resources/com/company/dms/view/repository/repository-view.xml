@@ -10,7 +10,7 @@
                          sidePanelPosition="RIGHT" sidePanelOverlay="false" modal="false"
                          closeOnOutsideClick="false" sidePanelResizable="true" themeNames="resizer-small"
                          sidePanelHorizontalSize="40%" sidePanelHorizontalMinSize="20em">
-            <split id="split" classNames="repository-split" width="100%" height="100%" splitterPosition="20"
+            <split id="split" classNames="repository-split" width="100%" height="100%" splitterPosition="22"
                    themeNames="splitter-spacing">
                 <fragment id="folderTree" class="com.company.dms.view.repository.FolderTreeFragment"/>
                 <vbox id="documentPane" classNames="repository-documents" width="100%" height="100%" padding="false">

@@ -1,0 +1,64 @@
+/* The brand of DMS: Aura's own properties on html, which outweighs the :where(:root) defaults of Aura */
+
+html {
+    --aura-accent-color-light: #4F39F6;
+    --aura-accent-color-dark: #615FFF;
+    --aura-background-color-light: oklch(0.82 0.06 274);
+    --aura-background-color-dark: #0C0B2F;
+    /* the derived accent text is too light for the active menu item on the light frame */
+    --aura-accent-text-color-light: oklch(0.42 0.22 277);
+    --aura-base-font-size: 15;
+    --aura-base-radius: 7;
+    --aura-surface-level: 3;
+
+    --aura-font-family: 'Manrope', var(--aura-font-family-system);
+    --aura-font-weight-regular: 500;
+    --aura-font-weight-medium: 600;
+    --aura-font-weight-semibold: 700;
+    --vaadin-button-font-weight: 600;
+    --vaadin-message-name-font-weight: 600;
+    --vaadin-grid-header-font-weight: 600;
+    --vaadin-input-field-value-font-weight: 500;
+
+    /* only the AI controls wear aura-accent-purple, so this palette entry is the accent of AI */
+    --aura-purple: oklch(0.6 0.25 330);
+}
+
+/* The labels of checkboxes and radio buttons have no font weight property in Vaadin 25.3 */
+vaadin-checkbox > label[slot='label'],
+vaadin-radio-button > label[slot='label'] {
+    font-weight: var(--aura-font-weight-medium);
+}
+
+/* The mixed scheme: a dark drawer next to light content, dialogs and notifications. The switching script of Jmix
+   writes the name of the scheme into the inline color-scheme of the page, which would outweigh this rule without
+   !important */
+html[theme~='mixed'] {
+    color-scheme: dark !important;
+    --aura-content-color-scheme: light;
+    --aura-notification-color-scheme: light;
+}
+
+/* The background color is a registered color: the app layout computes it in the dark scheme of the page and the
+   content would inherit it as it is, so the content computes it again in its own scheme */
+html[theme~='mixed'] vaadin-app-layout::part(content) {
+    --vaadin-background-color: var(--aura-surface-color-solid);
+}
+
+/* The header belongs to the content: aura-accent-color on it makes Aura derive its colors in its own scheme */
+html[theme~='mixed'] .jmix-main-view-header {
+    color-scheme: light;
+    color: var(--vaadin-text-color);
+}
+
+/* The side dialog of Jmix lies on the dark body and is no dialog of Aura, so it takes the scheme of the content here;
+   aura-accent-color on the window makes Aura derive its colors in it, as on the header */
+html[theme~='mixed'] jmix-side-dialog {
+    color-scheme: light;
+    --vaadin-background-color: var(--aura-surface-color-solid);
+}
+
+/* A page without the app layout, as the login view, has no content area and takes the light scheme */
+html[theme~='mixed']:not(:has(vaadin-app-layout)) {
+    color-scheme: light !important;
+}

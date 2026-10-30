@@ -12,7 +12,7 @@
 }
 
 /* The mode of the search inside the field: a wand, grey while the search goes by words and pressed in the soft
-   purple of the AI buttons for the search by meaning */
+   tint of the AI accent for the search by meaning */
 vaadin-button.main-view-search-mode {
     /* a button is taller than a line of the field, so the wand is a small one and takes some of the field's padding */
     margin: -2px 0;

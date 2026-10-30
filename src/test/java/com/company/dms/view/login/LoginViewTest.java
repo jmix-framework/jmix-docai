@@ -4,6 +4,8 @@ import com.company.dms.DMSApplication;
 import com.company.dms.test_support.AnonymousUiTestAuthenticator;
 import com.company.dms.view.repository.RepositoryView;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
 import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.component.loginform.JmixLoginForm;
@@ -38,6 +40,16 @@ class LoginViewTest {
 
         assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(LoginView.class);
         assertThat(form.isError()).isTrue();
+    }
+
+    @Test
+    void theMarkAndTheNameStandAboveTheForm() {
+        View<?> view = UiTestUtils.getCurrentView();
+        SvgIcon logo = UiTestUtils.getComponent(view, "brandLogo");
+        H1 name = UiTestUtils.getComponent(view, "brandName");
+
+        assertThat(logo.getSrc()).isEqualTo("themes/jmix-dms-aura/images/logo.svg");
+        assertThat(name.getText()).isEqualTo("Jmix DMS");
     }
 
     private JmixLoginForm login(String username, String password) {

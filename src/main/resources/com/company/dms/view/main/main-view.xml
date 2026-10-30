@@ -6,7 +6,7 @@
     </actions>
     <appLayout classNames="jmix-main-view-app-layout">
         <navigationBar>
-            <header id="header" classNames="jmix-main-view-header">
+            <header id="header" classNames="jmix-main-view-header aura-accent-color">
                 <drawerToggle id="drawerToggle"
                               classNames="jmix-main-view-drawer-toggle"
                               ariaLabel="msg://drawerToggle.ariaLabel"/>
@@ -54,8 +54,11 @@
                     classNames="jmix-main-view-application-title">
                     <anchor id="baseLink"
                             href="."
-                            text="msg://applicationTitle.text"
-                            classNames="jmix-main-view-application-title-base-link"/>
+                            classNames="jmix-main-view-application-title-base-link brand-card">
+                        <svgIcon id="brandLogo" resource="themes/jmix-dms-aura/images/logo.svg" size="32px"
+                                 classNames="brand-card-logo"/>
+                        <span id="brandName" text="msg://applicationTitle.text" classNames="brand-card-name"/>
+                    </anchor>
                 </h2>
                 <nav id="navigation"
                      classNames="jmix-main-view-navigation"

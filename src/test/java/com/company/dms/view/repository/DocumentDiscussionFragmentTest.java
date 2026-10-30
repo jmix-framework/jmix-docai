@@ -183,6 +183,30 @@ class DocumentDiscussionFragmentTest {
     }
 
     @Test
+    void theWindowDerivesItsColorsForTheMixedScheme() {
+        Document lease = upload("lease.txt");
+        RepositoryView view = open();
+        DataGrid<Document> grid = listComponent(view, "documentsGrid");
+
+        grid.select(lease);
+        discuss(view);
+
+        assertThat(sideDialog().getClassNames()).contains("aura-accent-color");
+    }
+
+    @Test
+    void theWindowWearsTheTintOfTheAiAccent() {
+        Document lease = upload("lease.txt");
+        RepositoryView view = open();
+        DataGrid<Document> grid = listComponent(view, "documentsGrid");
+
+        grid.select(lease);
+        discuss(view);
+
+        assertThat(sideDialog().getClassNames()).contains("document-discussion-window");
+    }
+
+    @Test
     void theSelectionTakesNoMoreDocumentsThanItsLimit() {
         List<Document> documents = systemAuthenticator.withUser(ADMIN, () -> documentService.upload(sandbox,
                         IntStream.rangeClosed(1, 11)
@@ -462,6 +486,18 @@ class DocumentDiscussionFragmentTest {
     }
 
     // a dialog joins the page right before the response to the browser
+    private SideDialog sideDialog() {
+        UI ui = UI.getCurrent();
+        ui.getInternals().getStateTree().runExecutionsBeforeClientResponse();
+
+        return ui.getChildren()
+                .filter(SideDialog.class::isInstance)
+                .map(SideDialog.class::cast)
+                .filter(SideDialog::isOpened)
+                .findFirst()
+                .orElseThrow();
+    }
+
     private Optional<DocumentDiscussionFragment> window() {
         UI ui = UI.getCurrent();
         ui.getInternals().getStateTree().runExecutionsBeforeClientResponse();

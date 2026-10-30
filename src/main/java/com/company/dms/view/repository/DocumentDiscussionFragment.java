@@ -131,6 +131,9 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
                 .withHorizontalSize(WIDTH)
                 .withHorizontalMinSize(MIN_WIDTH)
                 .withModal(false)
+                // Aura derives the colors of the window in its own scheme, which the theme makes light in the mixed
+                // scheme, as the content around it; the theme tints the window with the accent of AI
+                .withClassName("aura-accent-color document-discussion-window")
                 // the table stays in use: a click on it selects documents and a drag brings them here
                 .withCloseOnOutsideClick(false)
                 .withOpenedChangeListener(event -> {

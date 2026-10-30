@@ -86,7 +86,7 @@ vaadin-upload.upload-button::part(drop-label) {
     margin-inline-start: auto;
 }
 
-/* An AI action wears the purple tint of the AI search; aura-accent-purple colors its text */
+/* An AI action wears the tint of the AI accent, as the AI search does; aura-accent-purple colors its text */
 .ai-button {
     --vaadin-button-background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
 }
@@ -163,6 +163,11 @@ vaadin-button.document-comment-send {
     min-width: 0;
 }
 
+/* The window of a discussion with AI lies over the page, so it stays opaque, with a light tint of the AI accent */
+jmix-side-dialog.document-discussion-window::part(overlay) {
+    background: color-mix(in oklab, var(--aura-purple) 5%, var(--aura-surface-color-solid));
+}
+
 /* The selection of a discussion with AI is where documents are dropped, and lights up while a row is dragged over
    the window; a long selection scrolls instead of squeezing the chat, and a short one keeps its height, since a
    scrolling flex item may otherwise shrink below its content */
@@ -209,6 +214,13 @@ vaadin-button.document-comment-send {
 /* The side panel shrinks the preview to the rest of its height, so a long text scrolls inside the preview */
 .repository-preview {
     min-height: 0;
+}
+
+/* The docked preview is a part of the content, as the tree and the table are, so it takes the surface of the content
+   instead of a sheet of its own; on a small screen the panel opens in a dialog that keeps its background */
+.repository-preview-layout:not([overlay])::part(sidePanel) {
+    background: transparent;
+    box-shadow: none;
 }
 
 /* An open preview panel keeps the gap that splitter-spacing gives the tree's splitter; the side panel has no such theme */
