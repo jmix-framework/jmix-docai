@@ -144,6 +144,20 @@ class FolderTreeFragmentTest {
         assertThat(TestGrids.render(tree, "name", empty).getElement().getTextRecursively()).isEqualTo("Empty (0)");
     }
 
+    @Test
+    void aRightClickSelectsTheFolderUnderThePointer() {
+        Folder contracts = folder(sandbox, "Contracts");
+        Folder invoices = folder(sandbox, "Invoices");
+        FolderTreeFragment folderTree = open(contracts);
+        TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
+
+        TestGrids.openContextMenu(tree, invoices);
+
+        assertThat(tree.getSelectedItems()).containsExactly(invoices);
+        // the menu acts on that folder, and its documents are on screen, as after a left click
+        assertThat(folderTree.getSelectedFolder()).isEqualTo(invoices);
+    }
+
     private FolderTreeFragment open(Folder folder) {
         viewNavigators.view(UiTestUtils.getCurrentView(), RepositoryView.class)
                 .withQueryParameters(QueryParameters.of("folder", folder.getId().toString()))

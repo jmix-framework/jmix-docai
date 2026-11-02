@@ -18,6 +18,7 @@ import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.grid.TreeDataGrid;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
@@ -54,10 +55,20 @@ public final class TestGrids {
      * A right click on a row: the browser names the row in a grid property and opens the context menu.
      */
     public static <T> void openContextMenu(DataGrid<T> grid, T item) {
+        openContextMenu(grid, grid.getContextMenu(), item);
+    }
+
+    /**
+     * A right click on a row of a tree, as on a row of a grid.
+     */
+    public static <T> void openContextMenu(TreeDataGrid<T> tree, T item) {
+        openContextMenu(tree, tree.getContextMenu(), item);
+    }
+
+    private static <T> void openContextMenu(Grid<T> grid, GridContextMenu<T> menu, T item) {
         String itemKey = grid.getDataCommunicator().getKeyMapper().key(item);
         grid.getElement().setProperty("_contextMenuTargetItemKey", itemKey);
 
-        GridContextMenu<T> menu = grid.getContextMenu();
         menu.getElement().setProperty("opened", true);
         ComponentUtil.fireEvent(menu, new ContextMenuBase.OpenedChangeEvent<>(menu, true));
     }

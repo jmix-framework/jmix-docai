@@ -294,6 +294,13 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         // the whole section takes a drop, the header of the closed one too
         DropTarget.create(favoritesDetails)
                 .addDropListener(this::onFavoritesDrop);
+
+        // a right click selects the folder under the pointer, so the menu acts on that folder
+        foldersTree.getContextMenu().addGridContextMenuOpenedListener(menu -> {
+            if (menu.isOpened()) {
+                menu.getItem().ifPresent(foldersTree::select);
+            }
+        });
     }
 
     @Subscribe("foldersTree")
