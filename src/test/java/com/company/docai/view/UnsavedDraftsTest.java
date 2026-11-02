@@ -13,7 +13,11 @@ import com.company.docai.view.main.MainView;
 import com.company.docai.view.repository.RepositoryView;
 import com.company.docai.view.user.UserDetailView;
 import io.jmix.core.DataManager;
+import io.jmix.core.FetchPlan;
 import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.entity.EntityValues;
+import io.jmix.dynattr.DynAttrQueryHints;
+import io.jmix.dynattr.model.Category;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -21,7 +25,9 @@ import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.testassist.dialog.DialogInfo;
 import io.jmix.flowui.view.DialogWindow;
+import io.jmix.flowui.view.ViewControllerUtils;
 import io.jmix.uirecovery.entity.ViewDraft;
+import io.jmix.uirecoveryflowui.facet.DraftsFacet;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,8 +35,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,10 +95,7 @@ class UnsavedDraftsTest {
 
     @Test
     void anUnsavedEditOfTheDocumentCardComesBackWhenTheCardIsOpenedAgain() {
-        Document document = documentService.upload(sandbox, List.of(TestFiles.file(tempDir, "lease.txt", "text")))
-                .created()
-                .getFirst();
-
+        Document document = upload("lease.txt");
         DocumentDetailView card = openCard(document);
         card.getEditedEntity().setName("Lease with a draft");
         // a closed browser tab leaves the card without saving or discarding its edits
@@ -99,6 +105,28 @@ class UnsavedDraftsTest {
         restoreDraft();
 
         assertThat(reopened.getEditedEntity().getName()).isEqualTo("Lease with a draft");
+    }
+
+    @Test
+    void theFieldsOfTheTypeOfADocumentComeBackWithTheDraft() {
+        Document contract = asContract(upload("contract.txt"));
+        DocumentDetailView card = openCard(contract);
+        Document edited = card.getEditedEntity();
+        EntityValues.setValue(edited, "+counterparty", "Wind-2 LLC");
+        EntityValues.setValue(edited, "+contractAmount", new BigDecimal("4620000.75"));
+        EntityValues.setValue(edited, "+validUntil", LocalDate.of(2027, 2, 28));
+        // the facet writes the first edit at once and the rest after its save interval or when the tab closes
+        ((DraftsFacet) Objects.requireNonNull(ViewControllerUtils.getViewFacets(card).getFacet("draftsFacet")))
+                .saveDraftNow();
+        card.clearChanges();
+
+        DocumentDetailView reopened = openCard(contract);
+        restoreDraft();
+
+        Document restored = reopened.getEditedEntity();
+        assertThat(EntityValues.<String>getValue(restored, "+counterparty")).isEqualTo("Wind-2 LLC");
+        assertThat(EntityValues.<BigDecimal>getValue(restored, "+contractAmount")).isEqualByComparingTo("4620000.75");
+        assertThat(EntityValues.<LocalDate>getValue(restored, "+validUntil")).isEqualTo(LocalDate.of(2027, 2, 28));
     }
 
     @Test
@@ -125,6 +153,29 @@ class UnsavedDraftsTest {
         assertThat(dialog.getButtons()).hasSize(3);
 
         dialog.getButtons().getFirst().click();
+    }
+
+    private Document upload(String fileName) {
+        return documentService.upload(sandbox, List.of(TestFiles.file(tempDir, fileName, "text")))
+                .created()
+                .getFirst();
+    }
+
+    // the Contract type and its fields come with the changelogs
+    private Document asContract(Document document) {
+        Document edited = dataManager.load(Document.class)
+                .id(document.getId())
+                .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("folder", FetchPlan.BASE)
+                        .add("category", FetchPlan.INSTANCE_NAME))
+                .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
+                .one();
+
+        edited.setCategory(dataManager.load(Category.class)
+                .query("select c from dynat_Category c where c.name = 'Contract' and c.entityType = 'Document'")
+                .one());
+
+        return documentService.save(edited, null, null);
     }
 
     private DocumentDetailView openCard(Document document) {
