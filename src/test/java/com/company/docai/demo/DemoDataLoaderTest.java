@@ -15,6 +15,7 @@ import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.favorite.Favorite;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
+import com.company.docai.model.user.User;
 import com.company.docai.security.role.EmployeeRole;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestTrash;
@@ -121,6 +122,7 @@ class DemoDataLoaderTest {
 
         assertLoadedAsDescribed("ru");
         assertFavoritesAsDescribed("ru");
+        assertUsersAsDescribed("ru", Character.UnicodeScript.CYRILLIC);
     }
 
     @Test
@@ -132,6 +134,7 @@ class DemoDataLoaderTest {
 
         assertLoadedAsDescribed("en");
         assertFavoritesAsDescribed("en");
+        assertUsersAsDescribed("en", Character.UnicodeScript.LATIN);
     }
 
     private void assertLoadedAsDescribed(String set) {
@@ -162,6 +165,34 @@ class DemoDataLoaderTest {
                 .filter(Visibility::byPeter)
                 .map(Visibility::id)
                 .toList());
+    }
+
+    // every demo user takes the name and the address of the set, written in its script; the English set loads after
+    // the Russian one, so it gives the users their English names back
+    private void assertUsersAsDescribed(String set, Character.UnicodeScript script) {
+        List<DemoSet.User> described = read(set).users();
+        assertThat(described)
+                .extracting(DemoSet.User::login)
+                .containsExactlyInAnyOrder("peter", "alice", "helen", "maria", "john");
+
+        for (DemoSet.User names : described) {
+            User user = unconstrainedDataManager.load(User.class)
+                    .query("e.username = :login")
+                    .parameter("login", names.login())
+                    .one();
+
+            assertThat(user)
+                    .extracting(User::getFirstName, User::getLastName, User::getEmail)
+                    .containsExactly(names.firstName(), names.lastName(), names.email());
+
+            assertThat(names.firstName() + names.lastName())
+                    .matches(name -> isWrittenIn(name, script), "written in " + script);
+        }
+    }
+
+    private static boolean isWrittenIn(String text, Character.UnicodeScript script) {
+        return text.codePoints()
+                .allMatch(codePoint -> Character.UnicodeScript.of(codePoint) == script);
     }
 
     // every login of a favoriteOf has its mark on the item; the folders of the other sets have marks of their own

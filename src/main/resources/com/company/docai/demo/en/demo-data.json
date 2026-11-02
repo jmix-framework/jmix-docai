@@ -1,4 +1,36 @@
 {
+  "users": [
+    {
+      "login": "peter",
+      "firstName": "Peter",
+      "lastName": "Wilson",
+      "email": "peter.wilson@example.com"
+    },
+    {
+      "login": "alice",
+      "firstName": "Alice",
+      "lastName": "Morgan",
+      "email": "alice.morgan@example.com"
+    },
+    {
+      "login": "helen",
+      "firstName": "Helen",
+      "lastName": "Carter",
+      "email": "helen.carter@example.com"
+    },
+    {
+      "login": "maria",
+      "firstName": "Maria",
+      "lastName": "Lopez",
+      "email": "maria.lopez@example.com"
+    },
+    {
+      "login": "john",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com"
+    }
+  ],
   "folders": [
     {
       "name": "Inbox",

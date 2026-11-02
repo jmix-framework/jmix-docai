@@ -1,4 +1,36 @@
 {
+  "users": [
+    {
+      "login": "peter",
+      "firstName": "Пётр",
+      "lastName": "Волков",
+      "email": "p.volkov@example.com"
+    },
+    {
+      "login": "alice",
+      "firstName": "Алиса",
+      "lastName": "Морозова",
+      "email": "a.morozova@example.com"
+    },
+    {
+      "login": "helen",
+      "firstName": "Елена",
+      "lastName": "Карпова",
+      "email": "e.karpova@example.com"
+    },
+    {
+      "login": "maria",
+      "firstName": "Мария",
+      "lastName": "Лебедева",
+      "email": "m.lebedeva@example.com"
+    },
+    {
+      "login": "john",
+      "firstName": "Иван",
+      "lastName": "Иванов",
+      "email": "i.ivanov@example.com"
+    }
+  ],
   "folders": [
     {
       "name": "Входящие",

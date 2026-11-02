@@ -208,7 +208,7 @@ The set loads once, into a database with no document and no folder but the root.
 
 It deletes the database, the document files and the search indexes `docai_document` and `docai_document_vectors`, and the next start loads the set of `DOCAI_DEMO_DATA` again. With an OpenAI key, the semantic search indexes a set in about a minute for about a cent.
 
-A set lies in `src/main/resources/com/company/docai/demo/<set>/`: `demo-data.json` describes the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, the comments with their authors and times, and who deleted an item of the trash and when; `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
+A set lies in `src/main/resources/com/company/docai/demo/<set>/`: `demo-data.json` describes the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, the comments with their authors and times, and who deleted an item of the trash and when; `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them, and the set only names the users in its language. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
 
 ## 👥 Application Accounts
 
@@ -221,7 +221,7 @@ A set lies in `src/main/resources/com/company/docai/demo/<set>/`: `demo-data.jso
 | `maria` | `maria` | Maria Lopez | Employee, Accounting | Accountant |
 | `john` | `john` | John Doe | Employee, Legal department | Lawyer |
 
-The employees and their department roles come from the demo changelog `020-demo-users.xml`. Delete it before the first start of a real deployment.
+The employees and their department roles come from the demo changelog `020-demo-users.xml`. Delete it before the first start of a real deployment. A demo set names the employees in its language: the Russian set gives them Russian names and addresses, with the same logins and passwords.
 
 > **Warning:** these are development credentials, and the `local` profile pre-fills them in the login form. Before you deploy the application anywhere, change the `admin` password and set `DOCAI_ACTIVE_PROFILE` to another value, for example `prod`.
 

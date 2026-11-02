@@ -23,6 +23,7 @@ class DemoDataCheckTest {
     void everyMistakeOfADescriptionIsListed() {
         assertThat(loader.check("broken"))
                 .containsExactlyInAnyOrder(
+                        "users: there is no user 'nobody'",
                         "/Broken: there is no user 'nobody'",
                         "/Broken: there is no role 'no-such-role'",
                         "/Broken: an access entry must name a user or a role",

@@ -20,6 +20,7 @@ import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
+import com.company.docai.model.user.User;
 import io.jmix.core.DataManager;
 import io.jmix.core.Metadata;
 import io.jmix.core.SaveContext;
@@ -238,6 +239,8 @@ public class DemoDataLoader {
         Loaded loaded = new Loaded();
 
         transaction.executeWithoutResult(status -> systemAuthenticator.runWithUser(ADMIN, () -> {
+            nameUsers(description.users());
+
             Folder root = folderService.getRoot();
 
             for (DemoSet.Folder folder : description.folders()) {
@@ -270,6 +273,7 @@ public class DemoDataLoader {
                 .toList());
 
         List<String> problems = new ArrayList<>();
+        checkUsers(description.users(), users, problems);
         checkFolders(set, description.folders(), "", users, problems);
         checkTags(description.folders(), "", new HashMap<>(), problems);
         checkFavorites(description.folders(), "", false, users, problems);
@@ -294,6 +298,14 @@ public class DemoDataLoader {
 
         // the root folder comes with the changelogs
         return folders == 1 && documents == 0;
+    }
+
+    private static void checkUsers(List<DemoSet.User> described, Set<String> users, List<String> problems) {
+        for (DemoSet.User names : described) {
+            if (!users.contains(names.login())) {
+                problems.add("users: there is no user '" + names.login() + "'");
+            }
+        }
     }
 
     private void checkFolders(String set, List<DemoSet.Folder> folders, String path, Set<String> users,
@@ -491,6 +503,21 @@ public class DemoDataLoader {
             if (entry.level() == null || parse(AccessLevel.class, entry.level()) == null) {
                 problems.add(where + ": there is no access level '" + entry.level() + "'");
             }
+        }
+    }
+
+    // the changelogs create the users with English names, and the set names them in its language
+    private void nameUsers(List<DemoSet.User> described) {
+        for (DemoSet.User names : described) {
+            User user = unconstrainedDataManager.load(User.class)
+                    .query("e.username = :login")
+                    .parameter("login", names.login())
+                    .one();
+
+            user.setFirstName(names.firstName());
+            user.setLastName(names.lastName());
+            user.setEmail(names.email());
+            unconstrainedDataManager.save(user);
         }
     }
 

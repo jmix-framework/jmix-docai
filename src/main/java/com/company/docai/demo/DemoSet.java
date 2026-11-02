@@ -8,18 +8,31 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The description of a demo set, as its {@code demo-data.json} gives it: the folders under the root with their own
- * access and their documents, some of them in the trash. Users, roles and document types are not described: they come
- * from the changelogs and the code, and the description refers to them by login, role code and the English name of the
- * type.
+ * The description of a demo set, as its {@code demo-data.json} gives it: the names of the users in the language of the
+ * set, and the folders under the root with their own access and their documents, some of them in the trash. Users,
+ * roles and document types come from the changelogs and the code, and the description refers to them by login, role
+ * code and the English name of the type.
  *
+ * @param users   the names the set gives the users of the changelogs
  * @param folders the folders under the root
  */
-public record DemoSet(List<Folder> folders) {
+public record DemoSet(List<User> users, List<Folder> folders) {
 
     // a list the description leaves out is empty
     public DemoSet {
+        users = users == null ? List.of() : users;
         folders = folders == null ? List.of() : folders;
+    }
+
+    /**
+     * A user of the changelogs, named in the language of the set.
+     *
+     * @param login     the login of the user
+     * @param firstName the first name
+     * @param lastName  the last name
+     * @param email     the e-mail address
+     */
+    public record User(String login, String firstName, String lastName, String email) {
     }
 
     /**

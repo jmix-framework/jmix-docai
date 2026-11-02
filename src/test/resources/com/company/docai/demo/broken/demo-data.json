@@ -1,4 +1,12 @@
 {
+  "users": [
+    {
+      "login": "nobody",
+      "firstName": "No",
+      "lastName": "Body",
+      "email": "nobody@example.com"
+    }
+  ],
   "folders": [
     {
       "name": "Broken",
