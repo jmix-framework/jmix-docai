@@ -53,6 +53,7 @@ dependencies {
     implementation 'io.jmix.aitools:jmix-aitools-starter'
     implementation 'io.jmix.aitools:jmix-aitools-flowui-starter'
     implementation 'io.jmix.aitools:jmix-aitools-flowui-data-starter'
+    implementation 'io.jmix.uirecovery:jmix-uirecovery-flowui-starter'
     implementation 'io.jmix.translations:jmix-translations-ru'
     implementation 'org.apache.tika:tika-core'
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'

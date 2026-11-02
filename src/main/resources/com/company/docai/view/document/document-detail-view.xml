@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:uirec="http://jmix.io/schema/uirecovery/ui"
       title="msg://documentDetailView.title"
       focusComponent="nameField">
     <data>
@@ -19,6 +20,7 @@
     <facets>
         <dataLoadCoordinator auto="true"/>
         <settings auto="true"/>
+        <uirec:drafts id="draftsFacet"/>
     </facets>
     <actions>
         <action id="saveAction" type="detail_saveClose"/>

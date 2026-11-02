@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:uirec="http://jmix.io/schema/uirecovery/ui"
       title="msg://UserDetailView.title"
       focusComponent="form">
     <data>
@@ -15,6 +16,7 @@
     </actions>
     <facets>
         <dataLoadCoordinator auto="true"/>
+        <uirec:drafts id="draftsFacet"/>
     </facets>
     <layout>
         <formLayout id="form" dataContainer="userDc">

@@ -14,6 +14,7 @@
     <include file="/io/jmix/search/liquibase/changelog.xml"/>
     <include file="/io/jmix/quartz/liquibase/changelog.xml"/>
     <include file="/io/jmix/aitoolsflowuidata/liquibase/changelog.xml"/>
+    <include file="/io/jmix/uirecovery/liquibase/changelog.xml"/>
 
     <includeAll path="/com/company/docai/liquibase/changelog"/>
 
