@@ -30,6 +30,7 @@ import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.internal.PendingJavaScriptInvocation;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.component.upload.UploadDropZone;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.AbstractStreamResource;
 import com.vaadin.flow.server.StreamResourceRegistry;
@@ -204,6 +205,22 @@ class RepositoryViewTest {
         TestUploads.finishAll(upload);
 
         assertThat(documentNames(view)).containsExactly("a.txt", "b.txt");
+    }
+
+    @Test
+    void theTableTakesDroppedFilesAndNamesTheFolderTheyGoTo() {
+        Folder contracts = folder(sandbox, "Contracts");
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+
+        assertThat(grid.getParent()).get().isInstanceOf(UploadDropZone.class);
+
+        UploadDropZone zone = (UploadDropZone) grid.getParent().orElseThrow();
+        assertThat(zone.isEnabled()).isTrue();
+        assertThat(zone.getElement().getAttribute("data-hint")).contains(sandbox.getName());
+
+        UiTestUtils.<FolderTreeFragment>getComponent(view, "folderTree").select(contracts);
+        assertThat(zone.getElement().getAttribute("data-hint")).contains("Contracts");
     }
 
     @Test

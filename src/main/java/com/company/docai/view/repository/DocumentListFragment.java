@@ -40,6 +40,7 @@ import com.vaadin.flow.component.upload.AllFinishedEvent;
 import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.component.upload.StartedEvent;
+import com.vaadin.flow.component.upload.UploadManager;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
@@ -82,9 +83,16 @@ import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.*;
+import com.vaadin.flow.server.streams.UploadHandler;
+import com.vaadin.flow.server.streams.UploadMetadata;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
@@ -96,6 +104,8 @@ import java.util.stream.Collectors;
  */
 @FragmentDescriptor("document-list-fragment.xml")
 public class DocumentListFragment extends Fragment<VerticalLayout> {
+
+    private static final Logger log = LoggerFactory.getLogger(DocumentListFragment.class);
 
     private static final String ASSISTANT_CHAT_VIEW = "aitls_AiChatView";
 
@@ -183,6 +193,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Nullable
     private Folder uploadFolder;
     @Nullable
+    private Folder dropFolder;
+    @Nullable
     private Document versionDocument;
     @Nullable
     private DocumentDiscussionFragment discussion;
@@ -191,6 +203,9 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Map<String, String> userNames = Map.of();
     private Set<UUID> markedIds = Set.of();
     private final Map<UUID, UploadedFile> uploadedFiles = new LinkedHashMap<>();
+    private final List<UploadedFile> droppedFiles = new ArrayList<>();
+    private DocumentsDropZone documentsDropZone;
+    private UploadManager dropUploads;
 
     private Consumer<@Nullable Document> focusHandler = document -> {
     };
@@ -219,6 +234,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Subscribe
     public void onReady(final ReadyEvent event) {
         configureUploads();
+        configureDropZone();
         configureDocumentsGridContextMenu();
         configureDiscussion();
         // the descriptor gives the column chooser no title, and an icon alone needs one
@@ -247,6 +263,67 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
         // a page reload or a session timeout removes the list before the rest of the batch arrives
         addDetachListener(detachEvent -> discardUploadedFiles());
+    }
+
+    // files dropped from the computer onto the table go the way of the upload button; Jmix has no element for the
+    // zone, so it wraps the table here
+    private void configureDropZone() {
+        dropUploads = new UploadManager(getContent(), UploadHandler.toTempFile(this::onFileDropped));
+        dropUploads.setMaxFiles(documentsUpload.getMaxFiles());
+        dropUploads.setMaxFileSize(filesProperties.maxFileSize().toBytes());
+        dropUploads.addFileRejectedListener(this::onDroppedFileRejected);
+        dropUploads.addAllFinishedListener(event -> onDroppedFilesFinished());
+
+        documentsDropZone = new DocumentsDropZone(dropUploads);
+        documentsDropZone.addClassName("documents-drop-zone");
+        documentsDropZone.setSizeFull();
+
+        getContent().replace(documentsGrid, documentsDropZone);
+        documentsDropZone.setContent(documentsGrid);
+        getContent().setFlexGrow(1, documentsDropZone);
+
+        documentsDropZone.addAttachListener(event -> configureDragEvents());
+
+        if (documentsDropZone.isAttached()) {
+            configureDragEvents();
+        }
+
+        // a page reload or a session timeout leaves the files of an unfinished drop in the temporary directory
+        addDetachListener(detachEvent -> discardDroppedFiles());
+    }
+
+    // The zone answers any drag, so the table passes on to it only the drags of files: its rows still go to the
+    // folders and the favorites. The zone forgets the files only on a dragleave of its own, which never comes while
+    // the table covers it, so it is told so when the files leave the table or the drag stops without a drop: the
+    // browser repeats dragover while the files are over the table.
+    private void configureDragEvents() {
+        documentsDropZone.getElement().executeJs("""
+                const zone = this;
+                if (zone.docaiDragEvents) {
+                    return;
+                }
+                zone.docaiDragEvents = true;
+                for (const type of ['dragenter', 'dragover']) {
+                    zone.querySelector('vaadin-grid').addEventListener(type, event => {
+                        if (!event.dataTransfer || !Array.from(event.dataTransfer.types).includes('Files')) {
+                            event.stopPropagation();
+                        }
+                    });
+                }
+                let silence;
+                const forget = () => {
+                    clearTimeout(silence);
+                    zone.dispatchEvent(new DragEvent('dragleave'));
+                };
+                zone.addEventListener('dragover', () => {
+                    clearTimeout(silence);
+                    silence = setTimeout(forget, 700);
+                });
+                zone.addEventListener('dragleave', event => {
+                    if (event.target !== zone && !zone.contains(event.relatedTarget)) {
+                        forget();
+                    }
+                });""");
     }
 
     private void configureDocumentsGridContextMenu() {
@@ -352,6 +429,13 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         // a folder the user only views, or only passes through, takes no new documents
         boolean folderEditable = folder != null && levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
         documentsUpload.setEnabled(folderEditable);
+        documentsDropZone.setEnabled(folderEditable);
+
+        if (folder != null) {
+            documentsDropZone.getElement().setAttribute("data-hint",
+                    messageBundle.formatMessage("dropZoneHint", metadataTools.getInstanceName(folder)));
+        }
+
         createDocumentButton.setEnabled(folderEditable);
 
         Set<Document> selected = documentsGrid.getSelectedItems();
@@ -711,11 +795,67 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         }
 
         try {
-            showUploadReport(documentService.upload(target, new ArrayList<>(uploadedFiles.values())));
+            uploadInto(target, new ArrayList<>(uploadedFiles.values()));
         } finally {
             discardUploadedFiles();
+        }
+    }
+
+    // the dropped files go into the folder shown when the first of them arrived
+    private void onFileDropped(UploadMetadata metadata, File file) {
+        if (dropFolder == null) {
+            dropFolder = folder;
+        }
+
+        droppedFiles.add(new UploadedFile(metadata.fileName(), file.toPath()));
+    }
+
+    private void onDroppedFilesFinished() {
+        Folder target = dropFolder;
+        dropFolder = null;
+        dropUploads.clearFileList();
+
+        try {
+            if (target != null && !droppedFiles.isEmpty()) {
+                uploadInto(target, List.copyOf(droppedFiles));
+            }
+        } finally {
+            discardDroppedFiles();
+        }
+    }
+
+    private void onDroppedFileRejected(UploadManager.FileRejectedEvent event) {
+        String key = switch (event.getReason()) {
+            case TOO_MANY_FILES -> "dropRejected.tooManyFiles";
+            case FILE_TOO_LARGE -> "dropRejected.fileTooLarge";
+            default -> "dropRejected.other";
+        };
+
+        notifications.create(messageBundle.formatMessage(key, event.getFileName()))
+                .withType(Notifications.Type.WARNING)
+                .show();
+    }
+
+    // the upload button and the drop zone both end here
+    private void uploadInto(Folder target, List<UploadedFile> files) {
+        try {
+            showUploadReport(documentService.upload(target, files));
+        } finally {
             contentsChanged();
         }
+    }
+
+    // the zone keeps its files in the temporary directory of the system, not in the temporary storage of Jmix
+    private void discardDroppedFiles() {
+        for (UploadedFile file : droppedFiles) {
+            try {
+                Files.deleteIfExists(file.content());
+            } catch (IOException e) {
+                log.warn("A dropped file is left in the temporary directory: {}", file.content(), e);
+            }
+        }
+
+        droppedFiles.clear();
     }
 
     // the version goes to the document selected when the upload began, even if the selection changes meanwhile

@@ -295,12 +295,40 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         DropTarget.create(favoritesDetails)
                 .addDropListener(this::onFavoritesDrop);
 
+        favoritesDetails.addAttachListener(attachEvent -> passFilesBy());
+
+        if (favoritesDetails.isAttached()) {
+            passFilesBy();
+        }
+
         // a right click selects the folder under the pointer, so the menu acts on that folder
         foldersTree.getContextMenu().addGridContextMenuOpenedListener(menu -> {
             if (menu.isOpened()) {
                 menu.getItem().ifPresent(foldersTree::select);
             }
         });
+    }
+
+    // The drop target lights up for anything dragged over it, files from the computer too, and their drop does
+    // nothing: the section takes only folders and documents. Files pass it by, and the cursor shows they can't be
+    // dropped here, so the browser doesn't open a file dropped on it either.
+    private void passFilesBy() {
+        favoritesDetails.getElement().executeJs("""
+                const section = this;
+                if (section.docaiFileDrags) {
+                    return;
+                }
+                
+                section.docaiFileDrags = true;
+                for (const type of ['dragenter', 'dragover', 'drop']) {
+                    section.addEventListener(type, event => {
+                        if (event.dataTransfer && Array.from(event.dataTransfer.types).includes('Files')) {
+                            event.stopImmediatePropagation();
+                            event.preventDefault();
+                            event.dataTransfer.dropEffect = 'none';
+                        }
+                    }, true);
+                }""");
     }
 
     @Subscribe("foldersTree")

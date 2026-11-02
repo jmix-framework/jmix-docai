@@ -26,6 +26,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.upload.UploadDropZone;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
@@ -247,6 +248,8 @@ class AccessUiTest {
         TestGrids.clickRow(grid, priceList, false);
 
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "documentsUpload").isEnabled()).isFalse();
+        assertThat(documentsGrid(view).getParent()).get()
+                .isInstanceOfSatisfying(UploadDropZone.class, zone -> assertThat(zone.isEnabled()).isFalse());
         assertThat(this.<JmixButton>fragmentComponent(view, "documentList", "createDocumentButton").isEnabled())
                 .isFalse();
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "versionUpload").isEnabled()).isFalse();
@@ -257,6 +260,8 @@ class AccessUiTest {
         TestGrids.clickRow(grid, offer, false);
 
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "documentsUpload").isEnabled()).isTrue();
+        assertThat(documentsGrid(view).getParent()).get()
+                .isInstanceOfSatisfying(UploadDropZone.class, zone -> assertThat(zone.isEnabled()).isTrue());
         assertThat(List.of("moveAction", "activateAction", "deleteAction"))
                 .allSatisfy(id -> assertThat(grid.getAction(id).isEnabled()).as(id).isTrue());
     }
