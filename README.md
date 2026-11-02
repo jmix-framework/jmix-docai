@@ -106,6 +106,7 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 | `DOCAI_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
 | `DOCAI_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
 | `OPENAI_API_KEY` | empty | Key of the OpenAI API; without it the application shows no AI features |
+| `DOCAI_AI_ENABLED` | `true` | `false` turns the AI features off while the key is set |
 | `DOCAI_AI_MODEL` | `gpt-5.6-luna` | OpenAI model of the AI features |
 | `DOCAI_AI_EMBEDDING_MODEL` | `text-embedding-3-large` | OpenAI model of the vectors of the semantic search, of the text-embedding-3 family; another model fills the index anew |
 | `DOCAI_AI_EMBEDDING_DIMENSIONS` | `3072` | Size of the vectors of the semantic search, set with the model: at most 3072 for text-embedding-3-large and 1536 for text-embedding-3-small; another size fills the index anew |
@@ -155,7 +156,7 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 
 ## 🤖 AI Assistant
 
-The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the application works as before and shows none of them. They run on [Spring AI](https://docs.spring.io/spring-ai/reference/): another provider, a local model included, takes a different Spring AI starter, its properties and a new check in `AiSettings`, which turns the AI features on while the OpenAI key is set.
+The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the application works as before and shows none of them. `DOCAI_AI_ENABLED=false`, or `docai.ai.enabled=false` in `application-local.properties`, turns them off while the key is set: a key in the environment outranks the property files. They run on [Spring AI](https://docs.spring.io/spring-ai/reference/): another provider, a local model included, takes a different Spring AI starter, its properties and a new check in `AiSettings`, which turns the AI features on while the OpenAI key is set.
 
 - **Fill with AI.** The button in the header of the document card reads the file the card shows, the saved one or a file just uploaded, and fills the type of the document, the fields of the type and the document date, and adds up to three tags to those the document has (see [Tags](#️-tags)). The values go into the form only: you check them and save the document as usual. A document that already has a type or a date asks before the AI replaces them.
 - The types and their fields come from the document types the administrator defines, so a new type or field reaches the AI without a change of the code. Fields that hold a list of values or a reference to another record are left for you to fill.
