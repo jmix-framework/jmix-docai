@@ -168,9 +168,9 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     background: color-mix(in oklab, var(--aura-purple) 5%, var(--aura-surface-color-solid));
 }
 
-/* The selection of a discussion with AI is where documents are dropped, and lights up while a row is dragged over
-   the window; a long selection scrolls instead of squeezing the chat, and a short one keeps its height, since a
-   scrolling flex item may otherwise shrink below its content */
+/* The selection of a discussion with AI is where documents are dropped: it calls for the rows while the table drags
+   them and lights up under them, as the favorites do. A long selection scrolls instead of squeezing the chat, and a
+   short one keeps its height, since a scrolling flex item may otherwise shrink below its content */
 .document-discussion-selection {
     flex-shrink: 0;
     max-height: 9rem;
@@ -181,8 +181,11 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     border-radius: var(--vaadin-radius-m);
 }
 
-.document-discussion.v-drag-over-target .document-discussion-selection {
+.document-discussion-selection-awaiting {
     border-color: var(--aura-accent-color);
+}
+
+.document-discussion-selection-awaiting.v-drag-over-target {
     background: color-mix(in oklab, var(--aura-accent-color) 10%, transparent);
 }
 
@@ -190,9 +193,15 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     color: var(--vaadin-text-color-secondary);
 }
 
+.document-discussion-selection-awaiting .document-discussion-hint {
+    color: var(--aura-accent-text-color);
+}
+
+/* A chip keeps its border within the width of the selection, which a long name would scroll sideways otherwise */
 .document-discussion-chip {
     display: inline-flex;
     align-items: center;
+    box-sizing: border-box;
     max-width: 100%;
     border: 1px solid var(--vaadin-border-color);
     border-radius: var(--vaadin-radius-m);

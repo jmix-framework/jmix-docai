@@ -250,8 +250,13 @@ class AccessUiTest {
         TestGrids.clickRow(grid, priceList, false);
 
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "documentsUpload").isEnabled()).isFalse();
-        assertThat(documentsGrid(view).getParent()).get()
-                .isInstanceOfSatisfying(UploadDropZone.class, zone -> assertThat(zone.isEnabled()).isFalse());
+        // the table of a viewed folder stays in use: only the uploads of the zone around it are off
+        assertThat(grid.isEnabled()).isTrue();
+        assertThat(grid.getParent()).get()
+                .isInstanceOfSatisfying(UploadDropZone.class, zone -> {
+                    assertThat(zone.isEnabled()).isTrue();
+                    assertThat(zone.getUploadManager().isEnabled()).isFalse();
+                });
         assertThat(this.<JmixButton>fragmentComponent(view, "documentList", "createDocumentButton").isEnabled())
                 .isFalse();
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "versionUpload").isEnabled()).isFalse();
@@ -264,8 +269,9 @@ class AccessUiTest {
         TestGrids.clickRow(grid, offer, false);
 
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "documentsUpload").isEnabled()).isTrue();
-        assertThat(documentsGrid(view).getParent()).get()
-                .isInstanceOfSatisfying(UploadDropZone.class, zone -> assertThat(zone.isEnabled()).isTrue());
+        assertThat(grid.getParent()).get()
+                .isInstanceOfSatisfying(UploadDropZone.class,
+                        zone -> assertThat(zone.getUploadManager().isEnabled()).isTrue());
         assertThat(List.of("moveAction", "deleteAction"))
                 .allSatisfy(id -> assertThat(grid.getAction(id).isEnabled()).as(id).isTrue());
         assertThat(this.<DropdownButton>fragmentComponent(view, "documentList", "statusButton").isEnabled()).isTrue();

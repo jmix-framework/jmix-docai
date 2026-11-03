@@ -61,8 +61,8 @@ import java.util.function.Consumer;
 
 /**
  * The window of the repository in which a person discusses a selection of documents with the assistant: the
- * selection, which takes the rows of a document table dropped on the window, and the chat, whose conversation
- * the history of the assistant keeps from the first question on.
+ * selection, which calls for the rows of the document table while the table drags them and takes the ones dropped
+ * on it, and the chat, whose conversation the history of the assistant keeps from the first question on.
  */
 @FragmentDescriptor("document-discussion-fragment.xml")
 public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
@@ -112,13 +112,15 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     private ThinkingStatusItem lastStatus;
     @Nullable
     private Registration cardLinks;
+    private boolean documentsDragged;
     private Consumer<Document> cardOpener = document -> {
     };
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
         chat.setLlmProvider(request -> Flux.create(answer -> ask(request.userMessage(), answer)));
-        DropTarget.create(getContent())
+        // the chat and the rest of the window take no rows, the selection only while the table drags them
+        DropTarget.configure(selection, false)
                 .addDropListener(this::onDrop);
     }
 
@@ -183,6 +185,17 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
                     .show();
         }
 
+        showSelection();
+    }
+
+    /**
+     * Tells whether the document table drags rows: meanwhile the selection calls for them and takes the ones dropped
+     * on it.
+     */
+    public void setDocumentsDragged(boolean documentsDragged) {
+        this.documentsDragged = documentsDragged;
+        DropTarget.configure(selection, documentsDragged);
+        selection.setClassName("document-discussion-selection-awaiting", documentsDragged);
         showSelection();
     }
 
@@ -272,7 +285,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     }
 
     // the table puts the rows it drags into the drag data: all the selected rows when one of them is dragged
-    private void onDrop(DropEvent<VerticalLayout> event) {
+    private void onDrop(DropEvent<HorizontalLayout> event) {
         if (event.getDragData().orElse(null) instanceof Collection<?> rows) {
             add(rows.stream()
                     .filter(Document.class::isInstance)
@@ -292,11 +305,11 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     private void showSelection() {
         selection.removeAll();
         List<Document> documents = discussion.getDocuments();
+        documents.forEach(document -> selection.add(chip(document)));
 
-        if (documents.isEmpty()) {
+        // an empty selection asks for documents, and a full one too while the table drags rows
+        if (documents.isEmpty() || documentsDragged) {
             selection.add(dropHint);
-        } else {
-            documents.forEach(document -> selection.add(chip(document)));
         }
     }
 

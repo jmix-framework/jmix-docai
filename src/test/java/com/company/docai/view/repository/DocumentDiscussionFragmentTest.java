@@ -14,6 +14,7 @@ import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -256,7 +257,7 @@ class DocumentDiscussionFragmentTest {
     }
 
     @Test
-    void rowsDroppedOnTheWindowJoinTheSelection() {
+    void rowsDroppedOnTheSelectionJoinIt() {
         Document lease = upload("lease.txt");
         Document invoice = upload("invoice.txt");
         Document act = upload("act.txt");
@@ -266,13 +267,58 @@ class DocumentDiscussionFragmentTest {
         discuss(view);
         DocumentDiscussionFragment discussion = window().orElseThrow();
 
-        TestGrids.dragRows(grid, List.of(invoice, act), this.<VerticalLayout>component(discussion, "discussionRoot"));
+        TestGrids.dragRows(grid, List.of(invoice, act), this.<HorizontalLayout>component(discussion, "selection"));
 
         assertThat(chips(discussion)).containsExactly("lease.txt", "invoice.txt", "act.txt");
     }
 
+    // the rest of the window, the chat and its input among it, takes no rows
     @Test
-    void aFolderDraggedOntoTheWindowStaysOutOfTheSelection() {
+    void rowsDroppedBesideTheSelectionStayOutOfIt() {
+        Document lease = upload("lease.txt");
+        Document invoice = upload("invoice.txt");
+        RepositoryView view = open();
+        DataGrid<Document> grid = listComponent(view, "documentsGrid");
+        grid.select(lease);
+        discuss(view);
+        DocumentDiscussionFragment discussion = window().orElseThrow();
+
+        TestGrids.dragRows(grid, List.of(invoice), this.<VerticalLayout>component(discussion, "discussionRoot"));
+
+        assertThat(chips(discussion)).containsExactly("lease.txt");
+    }
+
+    @Test
+    void theSelectionCallsForTheRowsWhileTheTableDragsThem() {
+        Document lease = upload("lease.txt");
+        Document invoice = upload("invoice.txt");
+        RepositoryView view = open();
+        DataGrid<Document> grid = listComponent(view, "documentsGrid");
+        grid.select(lease);
+        discuss(view);
+        DocumentDiscussionFragment discussion = window().orElseThrow();
+        HorizontalLayout selection = component(discussion, "selection");
+
+        assertThat(DropTarget.configure(selection).isActive()).isFalse();
+
+        TestGrids.startDrag(grid, List.of(invoice));
+
+        assertThat(DropTarget.configure(selection).isActive()).isTrue();
+        assertThat(selection.getClassNames()).contains("document-discussion-selection-awaiting");
+        assertThat(chips(discussion)).containsExactly("lease.txt");
+        assertThat(selection.getChildren().map(FragmentUtils::getComponentId))
+                .last()
+                .isEqualTo(Optional.of("dropHint"));
+
+        TestGrids.endDrag(grid);
+
+        assertThat(DropTarget.configure(selection).isActive()).isFalse();
+        assertThat(selection.getClassNames()).doesNotContain("document-discussion-selection-awaiting");
+        assertThat(selection.getChildren().map(FragmentUtils::getComponentId)).doesNotContain(Optional.of("dropHint"));
+    }
+
+    @Test
+    void aFolderDraggedOntoTheSelectionStaysOutOfIt() {
         Document lease = upload("lease.txt");
         RepositoryView view = open();
         DataGrid<Document> grid = listComponent(view, "documentsGrid");
@@ -283,7 +329,7 @@ class DocumentDiscussionFragmentTest {
         TreeDataGrid<Folder> tree = (TreeDataGrid<Folder>) FragmentUtils.getComponent(
                 UiTestUtils.getComponent(view, "folderTree"), "foldersTree");
 
-        TestGrids.dragRows(tree, List.of(sandbox), this.<VerticalLayout>component(discussion, "discussionRoot"));
+        TestGrids.dragRows(tree, List.of(sandbox), this.<HorizontalLayout>component(discussion, "selection"));
 
         assertThat(chips(discussion)).containsExactly("lease.txt");
     }

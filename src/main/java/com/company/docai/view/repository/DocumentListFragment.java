@@ -435,7 +435,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         // a folder the user only views, or only passes through, takes no new documents
         boolean folderEditable = folder != null && levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
         documentsUpload.setEnabled(folderEditable);
-        documentsDropZone.setEnabled(folderEditable);
+        // a disabled zone would disable the table inside it, so only the uploads of the zone go off
+        dropUploads.setEnabled(folderEditable);
 
         if (folder != null) {
             documentsDropZone.getElement().setAttribute("data-hint",
@@ -512,7 +513,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         event.getResizedColumn().setAutoWidth(false);
     }
 
-    // the folder tree takes the rows only when the user may move all of them; the discussion window takes them anyway
+    // the folder tree takes the rows only when the user may move all of them; the discussion window takes them anyway,
+    // and its selection calls for them until the drag ends
     @Subscribe("documentsGrid")
     public void onDocumentsGridDragStart(final GridDragStartEvent<Document> event) {
         List<Document> documents = event.getDraggedItems();
@@ -520,11 +522,19 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         if (documents.stream().allMatch(document -> levels.allows(document.getAccessSet(), AccessLevel.EDIT))) {
             dragHandler.accept(documents);
         }
+
+        if (discussion != null && discussion.isOpened()) {
+            discussion.setDocumentsDragged(true);
+        }
     }
 
     @Subscribe("documentsGrid")
     public void onDocumentsGridDragEnd(final GridDragEndEvent<Document> event) {
         dragHandler.accept(List.of());
+
+        if (discussion != null && discussion.isOpened()) {
+            discussion.setDocumentsDragged(false);
+        }
     }
 
     /**

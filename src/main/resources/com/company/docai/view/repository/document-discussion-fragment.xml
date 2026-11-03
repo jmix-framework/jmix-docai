@@ -2,7 +2,7 @@
 <fragment xmlns="http://jmix.io/schema/flowui/fragment"
           xmlns:aichat="http://jmix.io/schema/aichat/ui">
     <content>
-        <vbox id="discussionRoot" classNames="document-discussion" width="100%" height="100%" padding="false">
+        <vbox id="discussionRoot" width="100%" height="100%" padding="false">
             <hbox id="discussionHeader" width="100%" alignItems="CENTER">
                 <h4 id="discussionTitle" text="msg://discussionTitle.text" width="100%"/>
                 <button id="fullChatButton" icon="EXPAND_SQUARE" title="msg://fullChatButton.title"
