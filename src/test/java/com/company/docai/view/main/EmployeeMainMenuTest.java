@@ -32,6 +32,7 @@ class EmployeeMainMenuTest {
         assertThat(menu.getMenuItem("TrashView")).isNotNull();
         assertThat(menu.getMenuItem("documentTypes")).isNull();
         assertThat(menu.getMenuItem("Tag.list")).isNull();
+        assertThat(menu.getMenuItem("DocumentStatus.list")).isNull();
     }
 
     @Test

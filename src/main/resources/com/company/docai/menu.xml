@@ -9,6 +9,8 @@
              need ids of their own -->
         <item id="documentTypes" view="dynat_CategoryView.list"
               title="msg://com.company.docai/menu.documentTypes.title" icon="FILE_TEXT_O"/>
+        <item view="DocumentStatus.list"
+              title="msg://com.company.docai.view.status/documentStatusListView.title" icon="FLAG"/>
         <item view="Tag.list" title="msg://com.company.docai.view.tag/tagListView.title" icon="TAGS"/>
         <item id="assistantChat" view="aitls_AiChatHubView"
               title="msg://com.company.docai/menu.assistantChat.title" icon="COMMENTS_O"/>

@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
  * A change needs edit access to the document, a new document to its folder. A change of the
  * document itself, its file, name, date, type, fields or status, stamps who made it and when; a move
  * does not. A document keeps only the fields of its type: the values of other types go on save. Its tags change
- * with it, also when it is archived, and are no change of the document itself; a new tag joins the vocabulary
+ * with it, also in a locked status, and are no change of the document itself; a new tag joins the vocabulary
  * with the document.
  */
 @Service
@@ -73,6 +73,7 @@ public class DocumentService {
     private final FolderService folderService;
     private final DocumentFields documentFields;
     private final TagService tagService;
+    private final DocumentStatusService statusService;
     private final AccessChecker accessChecker;
     private final AccessService accessService;
     private final FileStorageLocator fileStorageLocator;
@@ -87,16 +88,18 @@ public class DocumentService {
 
     public DocumentService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager,
                            FolderService folderService, DocumentFields documentFields, TagService tagService,
-                           AccessChecker accessChecker, AccessService accessService,
-                           FileStorageLocator fileStorageLocator, ContentTypeDetector contentTypeDetector,
-                           FilesProperties filesProperties, Messages messages, MetadataTools metadataTools,
-                           EntityStates entityStates, CurrentAuthentication currentAuthentication,
-                           TimeSource timeSource, PlatformTransactionManager transactionManager) {
+                           DocumentStatusService statusService, AccessChecker accessChecker,
+                           AccessService accessService, FileStorageLocator fileStorageLocator,
+                           ContentTypeDetector contentTypeDetector, FilesProperties filesProperties,
+                           Messages messages, MetadataTools metadataTools, EntityStates entityStates,
+                           CurrentAuthentication currentAuthentication, TimeSource timeSource,
+                           PlatformTransactionManager transactionManager) {
         this.dataManager = dataManager;
         this.unconstrainedDataManager = unconstrainedDataManager;
         this.folderService = folderService;
         this.documentFields = documentFields;
         this.tagService = tagService;
+        this.statusService = statusService;
         this.accessChecker = accessChecker;
         this.accessService = accessService;
         this.fileStorageLocator = fileStorageLocator;
@@ -143,7 +146,7 @@ public class DocumentService {
     }
 
     /**
-     * Creates a document with its first revision. The document starts as a draft and then
+     * Creates a document with its first revision. The document starts in the initial status and then
      * moves to the target status, if one is given.
      *
      * @throws OperationRejectedException if the folder is unavailable or only viewed by the user, the name
@@ -161,7 +164,8 @@ public class DocumentService {
 
             draft.setFolder(folder);
             draft.setName(name);
-            draft.setStatus(DocumentStatus.DRAFT);
+            DocumentStatus initial = statusService.getInitial();
+            draft.setStatus(initial);
 
             documentFields.keepOwnType(draft);
             stamp(draft);
@@ -175,8 +179,9 @@ public class DocumentService {
             Document document = saved.get(draft);
             document.setCurrentRevision(saved.get(revision));
 
-            if (targetStatus != null && targetStatus != DocumentStatus.DRAFT) {
-                document.setStatus(checkTransition(document, DocumentStatus.DRAFT, targetStatus));
+            // the saved document refers to its status by id only, so the move starts from the initial one
+            if (targetStatus != null && !targetStatus.equals(initial)) {
+                document.setStatus(checkTransition(document, initial, targetStatus));
             }
 
             return dataManager.save(document);
@@ -185,11 +190,11 @@ public class DocumentService {
 
     /**
      * Saves the changes of the document card: the edited fields, the type and its fields, a new version,
-     * and the status transition last, because an archived document accepts no other change.
+     * and the status transition last, because a document in a locked status accepts no other change.
      *
-     * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is
-     *                                    archived and its content changes, the name is taken or too long, the file
-     *                                    is too large, or the status cannot be reached
+     * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is in
+     *                                    a locked status and its content changes, the name is taken or too long,
+     *                                    the file is too large, or the status cannot be reached
      */
     public Document save(Document document, @Nullable NewVersion newVersion, @Nullable DocumentStatus targetStatus) {
         String name = checkName(document.getName());
@@ -204,10 +209,11 @@ public class DocumentService {
                     || !Objects.equals(document.getDocumentDate(), persisted.getDocumentDate())
                     || newVersion != null
                     || documentFields.differ(document, persisted);
-            boolean statusChanged = targetStatus != null && targetStatus != persisted.getStatus();
+            boolean statusChanged = targetStatus != null && !targetStatus.equals(persisted.getStatus());
+            DocumentStatus current = statusService.reload(persisted.getStatus());
 
-            if (contentChanged && persisted.getStatus() == DocumentStatus.ARCHIVED) {
-                throw reject("documentArchived", persisted.getName());
+            if (contentChanged && Boolean.TRUE.equals(current.getLocked())) {
+                throw reject("documentLocked", persisted.getName(), current.getName());
             }
 
             if (!name.equals(persisted.getName())) {
@@ -247,8 +253,8 @@ public class DocumentService {
     /**
      * Adds a new version from the repository, outside the card.
      *
-     * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is
-     *                                    archived, or the file is too large
+     * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is in
+     *                                    a locked status, or the file is too large
      */
     public Document uploadRevision(Document document, UploadedFile file) {
         Document persisted = loadEditable(document);
@@ -265,7 +271,7 @@ public class DocumentService {
         List<Document> changed = new ArrayList<>();
         for (Document document : documents) {
             Document persisted = loadEditable(document);
-            if (persisted.getStatus() != target) {
+            if (!target.equals(persisted.getStatus())) {
                 persisted.setStatus(checkTransition(persisted, persisted.getStatus(), target));
                 stamp(persisted);
                 changed.add(persisted);
@@ -347,7 +353,9 @@ public class DocumentService {
                 .id(document.getId())
                 .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
                         .add("folder", FetchPlan.BASE)
-                        .add("category", FetchPlan.INSTANCE_NAME))
+                        .add("category", FetchPlan.INSTANCE_NAME)
+                        .add("status", status -> status.addFetchPlan(FetchPlan.BASE)
+                                .add("targets", FetchPlan.BASE)))
                 .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
                 .optional()
                 .orElseThrow(() -> reject("documentUnavailable", metadataTools.getInstanceName(document)));
@@ -497,12 +505,16 @@ public class DocumentService {
     }
 
     private DocumentStatus checkTransition(Document document, DocumentStatus from, DocumentStatus to) {
-        if (!from.canTransitionTo(to)) {
-            throw reject("statusTransitionNotAllowed", document.getName(),
-                    messages.getMessage(from), messages.getMessage(to));
+        DocumentStatus source = statusService.reload(from);
+        // a card or the table may still offer a status that the administrator has deleted meanwhile
+        DocumentStatus target = statusService.findById(to.getId())
+                .orElseThrow(() -> reject("statusGone", to.getName()));
+
+        if (!source.canMoveTo(target)) {
+            throw reject("statusTransitionNotAllowed", document.getName(), source.getName(), target.getName());
         }
 
-        return to;
+        return target;
     }
 
     private OperationRejectedException reject(String key, Object... args) {

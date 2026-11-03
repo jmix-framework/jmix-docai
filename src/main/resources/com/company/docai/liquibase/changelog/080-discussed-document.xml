@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
-        logicalFilePath="com/company/docai/liquibase/changelog/070-discussed-document.xml">
+        logicalFilePath="com/company/docai/liquibase/changelog/080-discussed-document.xml">
     <changeSet id="1" author="jmix-docai" context="!cuba">
         <createTable tableName="DISCUSSED_DOCUMENT">
             <column name="ID" type="${uuid.type}">

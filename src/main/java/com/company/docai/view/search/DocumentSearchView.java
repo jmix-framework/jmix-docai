@@ -3,7 +3,6 @@ package com.company.docai.view.search;
 import com.company.docai.ai.AiSettings;
 import com.company.docai.app.service.tag.TagService;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.search.DocumentSearch;
 import com.company.docai.search.DocumentSearchHit;
@@ -13,6 +12,7 @@ import com.company.docai.search.semantic.DocumentVectorIndexer;
 import com.company.docai.search.semantic.SemanticSearch;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.status.StatusBadges;
 import com.company.docai.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
@@ -111,6 +111,8 @@ public class DocumentSearchView extends StandardView {
     private TagService tagService;
     @Autowired
     private TagBadges tagBadges;
+    @Autowired
+    private StatusBadges statusBadges;
     @Autowired
     private SemanticSearch semanticSearch;
     @Autowired
@@ -355,11 +357,13 @@ public class DocumentSearchView extends StandardView {
         title.add(name);
 
         if (document.getCategory() != null) {
-            title.add(badge(metadataTools.getInstanceName(document.getCategory()), "v-neutral"));
+            Badge type = uiComponents.create(Badge.class);
+            type.setText(metadataTools.getInstanceName(document.getCategory()));
+            type.addClassName("v-neutral");
+            title.add(type);
         }
 
-        DocumentStatus status = document.getStatus();
-        title.add(badge(messages.getMessage(status), DocumentDetailView.statusColor(status)));
+        title.add(statusBadges.create(document.getStatus()));
 
         if (!document.getTags().isEmpty()) {
             title.add(tagBadges.create(document.getTags()));
@@ -379,13 +383,6 @@ public class DocumentSearchView extends StandardView {
         }
 
         return row;
-    }
-
-    private Badge badge(String text, String colorClass) {
-        Badge badge = uiComponents.create(Badge.class);
-        badge.setText(text);
-        badge.addClassName(colorClass);
-        return badge;
     }
 
     /**

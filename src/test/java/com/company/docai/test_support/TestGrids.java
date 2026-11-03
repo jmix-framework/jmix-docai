@@ -99,10 +99,17 @@ public final class TestGrids {
      * A drop on top of a row, as the grid that takes it reports it. The drop comes before the end of the drag.
      */
     public static <T> void dropOnRow(Grid<T> grid, T item) {
+        dropOnRow(grid, item, GridDropLocation.ON_TOP);
+    }
+
+    /**
+     * A drop on a row, above it, on top of it or below it, as the grid that takes it reports it.
+     */
+    public static <T> void dropOnRow(Grid<T> grid, T item, GridDropLocation location) {
         ObjectNode target = JsonNodeFactory.instance.objectNode()
                 .put("key", grid.getDataCommunicator().getKeyMapper().key(item));
 
-        ComponentUtil.fireEvent(grid, new GridDropEvent<>(grid, true, target, GridDropLocation.ON_TOP.getClientName(),
+        ComponentUtil.fireEvent(grid, new GridDropEvent<>(grid, true, target, location.getClientName(),
                 JsonNodeFactory.instance.arrayNode()));
     }
 

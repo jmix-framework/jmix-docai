@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        logicalFilePath="com/company/docai/liquibase/changelog/040-document-status.xml">
+
+    <!-- before 050-document.xml: a document refers to its status -->
+    <changeSet id="1" author="jmix-docai" context="!cuba">
+        <createTable tableName="DOCUMENT_STATUS">
+            <column name="ID" type="${uuid.type}">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_DOCUMENT_STATUS"/>
+            </column>
+            <column name="VERSION" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME_KEY" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="COLOR" type="varchar(7)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="POSITION_" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="INITIAL_" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LOCKED" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ANY_TARGET" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="DOCUMENT_STATUS_TARGET">
+            <column name="STATUS_ID" type="${uuid.type}">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_DOCUMENT_STATUS_TARGET"/>
+            </column>
+            <column name="TARGET_ID" type="${uuid.type}">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_DOCUMENT_STATUS_TARGET"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="jmix-docai" context="!cuba">
+        <addUniqueConstraint tableName="DOCUMENT_STATUS" columnNames="NAME_KEY"
+                             constraintName="UK_DOCUMENT_STATUS_NAME_KEY"/>
+        <createIndex indexName="IDX_DOCUMENT_STATUS_TARGET_TARGET" tableName="DOCUMENT_STATUS_TARGET">
+            <column name="TARGET_ID"/>
+        </createIndex>
+        <!-- plain keys, as Studio maps a many-to-many join table: the status service takes a deleted status out of
+             the lists of the others in the same save -->
+        <addForeignKeyConstraint baseTableName="DOCUMENT_STATUS_TARGET" baseColumnNames="STATUS_ID"
+                                 referencedTableName="DOCUMENT_STATUS" referencedColumnNames="ID"
+                                 constraintName="FK_DOCUMENT_STATUS_TARGET_ON_STATUS"/>
+        <addForeignKeyConstraint baseTableName="DOCUMENT_STATUS_TARGET" baseColumnNames="TARGET_ID"
+                                 referencedTableName="DOCUMENT_STATUS" referencedColumnNames="ID"
+                                 constraintName="FK_DOCUMENT_STATUS_TARGET_ON_TARGET"/>
+    </changeSet>
+
+    <!-- the defaults keep the lifecycle of the former enum: Draft -> Active <-> Archived -->
+    <changeSet id="3" author="jmix-docai" context="!cuba">
+        <insert tableName="DOCUMENT_STATUS" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e01"/>
+            <column name="VERSION" valueNumeric="1"/>
+            <column name="NAME" value="Draft"/>
+            <column name="NAME_KEY" value="draft"/>
+            <column name="COLOR" value="#717171"/>
+            <column name="POSITION_" valueNumeric="1"/>
+            <column name="INITIAL_" valueBoolean="true"/>
+            <column name="LOCKED" valueBoolean="false"/>
+            <column name="ANY_TARGET" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e02"/>
+            <column name="VERSION" valueNumeric="1"/>
+            <column name="NAME" value="Active"/>
+            <column name="NAME_KEY" value="active"/>
+            <column name="COLOR" value="#00a045"/>
+            <column name="POSITION_" valueNumeric="2"/>
+            <column name="INITIAL_" valueBoolean="false"/>
+            <column name="LOCKED" valueBoolean="false"/>
+            <column name="ANY_TARGET" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e03"/>
+            <column name="VERSION" valueNumeric="1"/>
+            <column name="NAME" value="Archived"/>
+            <column name="NAME_KEY" value="archived"/>
+            <column name="COLOR" value="#ffd400"/>
+            <column name="POSITION_" valueNumeric="3"/>
+            <column name="INITIAL_" valueBoolean="false"/>
+            <column name="LOCKED" valueBoolean="true"/>
+            <column name="ANY_TARGET" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS_TARGET" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="STATUS_ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e01"/>
+            <column name="TARGET_ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e02"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS_TARGET" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="STATUS_ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e02"/>
+            <column name="TARGET_ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e03"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS_TARGET" dbms="postgresql, mssql, hsqldb, h2">
+            <column name="STATUS_ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e03"/>
+            <column name="TARGET_ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e02"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e01"/>
+            <column name="VERSION" valueNumeric="1"/>
+            <column name="NAME" value="Draft"/>
+            <column name="NAME_KEY" value="draft"/>
+            <column name="COLOR" value="#717171"/>
+            <column name="POSITION_" valueNumeric="1"/>
+            <column name="INITIAL_" valueBoolean="true"/>
+            <column name="LOCKED" valueBoolean="false"/>
+            <column name="ANY_TARGET" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e02"/>
+            <column name="VERSION" valueNumeric="1"/>
+            <column name="NAME" value="Active"/>
+            <column name="NAME_KEY" value="active"/>
+            <column name="COLOR" value="#00a045"/>
+            <column name="POSITION_" valueNumeric="2"/>
+            <column name="INITIAL_" valueBoolean="false"/>
+            <column name="LOCKED" valueBoolean="false"/>
+            <column name="ANY_TARGET" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e03"/>
+            <column name="VERSION" valueNumeric="1"/>
+            <column name="NAME" value="Archived"/>
+            <column name="NAME_KEY" value="archived"/>
+            <column name="COLOR" value="#ffd400"/>
+            <column name="POSITION_" valueNumeric="3"/>
+            <column name="INITIAL_" valueBoolean="false"/>
+            <column name="LOCKED" valueBoolean="true"/>
+            <column name="ANY_TARGET" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS_TARGET" dbms="oracle, mysql, mariadb">
+            <column name="STATUS_ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e01"/>
+            <column name="TARGET_ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e02"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS_TARGET" dbms="oracle, mysql, mariadb">
+            <column name="STATUS_ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e02"/>
+            <column name="TARGET_ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e03"/>
+        </insert>
+
+        <insert tableName="DOCUMENT_STATUS_TARGET" dbms="oracle, mysql, mariadb">
+            <column name="STATUS_ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e03"/>
+            <column name="TARGET_ID" value="0f6b1b3e5c1a4b9e8a526a1f3d2c7e02"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

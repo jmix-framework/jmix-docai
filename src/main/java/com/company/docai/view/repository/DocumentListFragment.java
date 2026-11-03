@@ -5,6 +5,7 @@ import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.access.AccessLevels;
 import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.document.DocumentService;
+import com.company.docai.app.service.document.DocumentStatusService;
 import com.company.docai.app.service.document.UploadReport;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.favorite.FavoriteService;
@@ -23,15 +24,16 @@ import com.company.docai.view.document.RevisionDownloader;
 import com.company.docai.view.favorite.FavoriteListAction;
 import com.company.docai.view.folder.FolderLookupView;
 import com.company.docai.view.folder.FolderRenderers;
+import com.company.docai.view.status.StatusBadges;
 import com.company.docai.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnResizeEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.component.html.Span;
@@ -144,6 +146,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private DocumentService documentService;
     @Autowired
+    private DocumentStatusService statusService;
+    @Autowired
     private AccessService accessService;
     @Autowired
     private DataManager dataManager;
@@ -165,6 +169,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private UiComponents uiComponents;
     @Autowired
     private TagBadges tagBadges;
+    @Autowired
+    private StatusBadges statusBadges;
     @Autowired
     private FavoriteService favoriteService;
     @Autowired
@@ -619,21 +625,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 .open();
     }
 
-    @Subscribe("documentsGrid.activateAction")
-    public void onActivateAction(final ActionPerformedEvent event) {
-        changeStatus(DocumentStatus.ACTIVE);
-    }
-
-    @Subscribe("documentsGrid.archiveAction")
-    public void onArchiveAction(final ActionPerformedEvent event) {
-        changeStatus(DocumentStatus.ARCHIVED);
-    }
-
-    @Subscribe("documentsGrid.unarchiveAction")
-    public void onUnarchiveAction(final ActionPerformedEvent event) {
-        changeStatus(DocumentStatus.ACTIVE);
-    }
-
     @Install(to = "documentsGrid.openAction", subject = "enabledRule")
     private boolean openActionEnabledRule() {
         return documentsGrid.getSelectedItems().size() == 1;
@@ -647,21 +638,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Install(to = "documentsGrid.moveAction", subject = "enabledRule")
     private boolean moveActionEnabledRule() {
         return allSelectedEditable();
-    }
-
-    @Install(to = "documentsGrid.activateAction", subject = "enabledRule")
-    private boolean activateActionEnabledRule() {
-        return allSelectedHave(DocumentStatus.DRAFT) && allSelectedEditable();
-    }
-
-    @Install(to = "documentsGrid.archiveAction", subject = "enabledRule")
-    private boolean archiveActionEnabledRule() {
-        return allSelectedHave(DocumentStatus.ACTIVE) && allSelectedEditable();
-    }
-
-    @Install(to = "documentsGrid.unarchiveAction", subject = "enabledRule")
-    private boolean unarchiveActionEnabledRule() {
-        return allSelectedHave(DocumentStatus.ARCHIVED) && allSelectedEditable();
     }
 
     @Install(to = "documentsGrid.accessAction", subject = "enabledRule")
@@ -711,12 +687,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @Supply(to = "documentsGrid.status", subject = "renderer")
     private Renderer<Document> statusRenderer() {
-        return new ComponentRenderer<>(document -> {
-            Badge badge = uiComponents.create(Badge.class);
-            badge.setText(messages.getMessage(document.getStatus()));
-            badge.addClassName(DocumentDetailView.statusColor(document.getStatus()));
-            return badge;
-        });
+        return new ComponentRenderer<>(document -> statusBadges.create(document.getStatus()));
     }
 
     @Supply(to = "documentsGrid.fileSize", subject = "renderer")
@@ -986,11 +957,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         contentsChangeHandler.run();
     }
 
-    private boolean allSelectedHave(DocumentStatus status) {
-        Set<Document> selected = documentsGrid.getSelectedItems();
-        return !selected.isEmpty() && selected.stream().allMatch(document -> document.getStatus() == status);
-    }
-
     private boolean allSelectedEditable() {
         Set<Document> selected = documentsGrid.getSelectedItems();
         return !selected.isEmpty() && selected.stream()
@@ -1000,7 +966,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private void updateVersionUpload() {
         Document document = documentsGrid.getSelectedItems().size() == 1 ? documentsGrid.getSingleSelectedItem() : null;
         versionUpload.setEnabled(document != null
-                && document.getStatus() != DocumentStatus.ARCHIVED
+                && !Boolean.TRUE.equals(document.getStatus().getLocked())
                 && levels.allows(document.getAccessSet(), AccessLevel.EDIT));
     }
 
@@ -1050,11 +1016,33 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 .open();
     }
 
-    // with no transition that fits every selected document, the menu would hold only disabled items
+    // the statuses that fit every selected document, in the toolbar and in the submenu of the context menu, which
+    // the dictionary can make long
     private void updateStatusButton() {
-        statusButton.setEnabled(activateActionEnabledRule()
-                || archiveActionEnabledRule()
-                || unarchiveActionEnabledRule());
+        Set<Document> selected = documentsGrid.getSelectedItems();
+        List<DocumentStatus> targets = allSelectedEditable()
+                ? statusService.loadCommonTargets(selected.stream()
+                        .map(Document::getStatus)
+                        .collect(Collectors.toSet()))
+                : List.of();
+
+        // a fragment keeps the id of a menu item in the component data, where @ViewComponent does not look
+        GridMenuItem<Document> statusItem = documentsGrid.getContextMenu().getItems().stream()
+                .filter(item -> FragmentUtils.sameId(item, "statusDocumentItem"))
+                .findFirst()
+                .orElseThrow();
+
+        statusButton.removeAll();
+        statusItem.getSubMenu().removeAll();
+
+        for (DocumentStatus target : targets) {
+            statusButton.addItem("status-" + target.getId(), statusBadges.option(target),
+                    click -> changeStatus(target));
+            statusItem.getSubMenu().addItem(statusBadges.option(target), click -> changeStatus(target));
+        }
+
+        statusButton.setEnabled(!targets.isEmpty());
+        statusItem.setEnabled(!targets.isEmpty());
     }
 
     private static JmixFontIcon fileIcon(Document document) {

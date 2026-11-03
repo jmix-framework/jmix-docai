@@ -8,7 +8,6 @@ import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.access.AccessSet;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.trash.TrashItem;
 import com.company.docai.security.role.EmployeeRole;
@@ -16,6 +15,7 @@ import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import io.jmix.core.DataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.FetchPlan;
@@ -233,8 +233,8 @@ class TrashRestoreTest {
     void anArchivedDocumentWhoseTypeWasDeletedComesBackWithoutIt() {
         Category type = newType();
         Document document = typed(upload(sandbox, "typed.txt"), type);
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
         documentService.delete(List.of(document));
         // a type that only documents in the trash are marked with can be deleted
         dataManager.remove(dataManager.load(Id.of(type)).one());
@@ -247,7 +247,7 @@ class TrashRestoreTest {
                         .add("category", FetchPlan.INSTANCE_NAME))
                 .one();
         assertThat(restored.getCategory()).isNull();
-        assertThat(restored.getStatus()).isEqualTo(DocumentStatus.ARCHIVED);
+        assertThat(restored.getStatus()).isEqualTo(TestStatuses.archived(dataManager));
         assertThat(dataManager.load(CategoryAttributeValue.class)
                 .query("e.entity.entityId = :id")
                 .parameter("id", document.getId())

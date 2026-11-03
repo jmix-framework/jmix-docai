@@ -24,6 +24,13 @@ class DemoDataCheckTest {
         assertThat(loader.check("broken"))
                 .containsExactlyInAnyOrder(
                         "users: there is no user 'nobody'",
+                        "statuses: the status 'LOST' moves to no status 'NOWHERE'",
+                        "statuses: the new status 'NAMELESS' needs a name and a color",
+                        "statuses: the color of the status 'ACTIVE' is not #rrggbb",
+                        "statuses: the status 'DRAFT' is given to new documents and cannot lock them",
+                        "statuses: the status 'LOST' cannot be reached from the initial status",
+                        "statuses: the status 'NAMELESS' cannot be reached from the initial status",
+                        "statuses: the status 'ARCHIVED' cannot be reached from the initial status",
                         "/Broken: there is no user 'nobody'",
                         "/Broken: there is no role 'no-such-role'",
                         "/Broken: an access entry must name a user or a role",

@@ -6,11 +6,11 @@ import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentComment;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestComments;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
 import io.jmix.core.Messages;
@@ -188,8 +188,8 @@ class DocumentCommentServiceTest {
 
     @Test
     void anArchivedDocumentTakesComments() {
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
 
         DocumentComment comment = post(AUTHOR, "Archived after the signature");
 

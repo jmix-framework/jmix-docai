@@ -7,6 +7,7 @@ import com.company.docai.app.service.OperationRejectedException;
 import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.document.DocumentCommentService;
 import com.company.docai.app.service.document.DocumentService;
+import com.company.docai.app.service.document.DocumentStatusService;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.favorite.FavoriteService;
 import com.company.docai.app.service.folder.FolderService;
@@ -22,6 +23,7 @@ import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.model.user.User;
 import io.jmix.core.DataManager;
+import io.jmix.core.FetchPlan;
 import io.jmix.core.Metadata;
 import io.jmix.core.SaveContext;
 import io.jmix.core.UnconstrainedDataManager;
@@ -54,21 +56,28 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 /**
- * Loads a demo set into an empty database when the application starts: the folders under the root with their own
- * access, then the documents with their versions, types, fields, tags, access and statuses, and last what lies in
- * the trash.
+ * Loads a demo set into an empty database when the application starts: the statuses of the set, the folders under
+ * the root with their own access, then the documents with their versions, types, fields, tags, access and statuses,
+ * and last what lies in the trash.
  * The set is chosen by {@code docai.demo-data} ({@code en}, {@code ru} or {@code none}); its description is
  * {@code com/company/docai/demo/<set>/demo-data.json}, the files of its versions lie in {@code files} next to it. A set
  * loads in one transaction, all of it or nothing.
@@ -120,11 +129,20 @@ public class DemoDataLoader {
     // folders, access and statuses are created by the administrator, who manages every folder
     private static final String ADMIN = "admin";
 
+    // the keys of the default statuses of the changelog, which a set names in its language
+    private static final Map<String, UUID> DEFAULT_STATUSES = Map.of(
+            "DRAFT", DocumentStatus.DRAFT_ID,
+            "ACTIVE", DocumentStatus.ACTIVE_ID,
+            "ARCHIVED", DocumentStatus.ARCHIVED_ID);
+
+    private static final Pattern COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
+
     private final String chosenSet;
     private final DataManager dataManager;
     private final UnconstrainedDataManager unconstrainedDataManager;
     private final FolderService folderService;
     private final DocumentService documentService;
+    private final DocumentStatusService statusService;
     private final DocumentCommentService commentService;
     private final AccessService accessService;
     private final DocumentClassifier documentClassifier;
@@ -144,6 +162,7 @@ public class DemoDataLoader {
                           UnconstrainedDataManager unconstrainedDataManager,
                           FolderService folderService,
                           DocumentService documentService,
+                          DocumentStatusService statusService,
                           DocumentCommentService commentService,
                           AccessService accessService,
                           DocumentClassifier documentClassifier,
@@ -158,6 +177,7 @@ public class DemoDataLoader {
         this.unconstrainedDataManager = unconstrainedDataManager;
         this.folderService = folderService;
         this.documentService = documentService;
+        this.statusService = statusService;
         this.commentService = commentService;
         this.accessService = accessService;
         this.documentClassifier = documentClassifier;
@@ -240,6 +260,7 @@ public class DemoDataLoader {
 
         transaction.executeWithoutResult(status -> systemAuthenticator.runWithUser(ADMIN, () -> {
             nameUsers(description.users());
+            nameStatuses(description.statuses(), loaded);
 
             Folder root = folderService.getRoot();
 
@@ -272,9 +293,14 @@ public class DemoDataLoader {
                 .map(row -> (String) row.getValue("username"))
                 .toList());
 
+        Set<String> statusKeys = new HashSet<>(DEFAULT_STATUSES.keySet());
+        description.statuses().forEach(entry -> statusKeys.add(entry.key()));
+        Set<String> documentStatusKeys = new HashSet<>();
+
         List<String> problems = new ArrayList<>();
         checkUsers(description.users(), users, problems);
-        checkFolders(set, description.folders(), "", users, problems);
+        checkFolders(set, description.folders(), "", users, statusKeys, documentStatusKeys, problems);
+        checkStatuses(description.statuses(), documentStatusKeys, problems);
         checkTags(description.folders(), "", new HashMap<>(), problems);
         checkFavorites(description.folders(), "", false, users, problems);
 
@@ -308,8 +334,106 @@ public class DemoDataLoader {
         }
     }
 
+    // the statuses of the set over the defaults: a new one has a name and a color, a color is #rrggbb, a target is
+    // a key, one status is given to new documents, and every status of the set or of a document can be reached from
+    // that one
+    private static void checkStatuses(List<DemoSet.Status> described, Set<String> documentStatusKeys,
+                                      List<String> problems) {
+        Map<String, Set<String>> targets = new LinkedHashMap<>();
+        Map<String, Boolean> anyTarget = new HashMap<>();
+        Map<String, Boolean> initial = new HashMap<>();
+        Map<String, Boolean> locked = new HashMap<>();
+        targets.put("DRAFT", new HashSet<>(Set.of("ACTIVE")));
+        targets.put("ACTIVE", new HashSet<>(Set.of("ARCHIVED")));
+        targets.put("ARCHIVED", new HashSet<>(Set.of("ACTIVE")));
+        targets.keySet().forEach(key -> anyTarget.put(key, false));
+        targets.keySet().forEach(key -> initial.put(key, key.equals("DRAFT")));
+        targets.keySet().forEach(key -> locked.put(key, key.equals("ARCHIVED")));
+
+        for (DemoSet.Status entry : described) {
+            boolean isNew = !DEFAULT_STATUSES.containsKey(entry.key());
+
+            if (isNew && (isBlank(entry.name()) || entry.color() == null)) {
+                problems.add("statuses: the new status '" + entry.key() + "' needs a name and a color");
+            }
+
+            if (entry.color() != null && !COLOR.matcher(entry.color()).matches()) {
+                problems.add("statuses: the color of the status '" + entry.key() + "' is not #rrggbb");
+            }
+
+            targets.putIfAbsent(entry.key(), new HashSet<>());
+            anyTarget.putIfAbsent(entry.key(), true);
+            initial.putIfAbsent(entry.key(), false);
+            locked.putIfAbsent(entry.key(), false);
+
+            if (entry.anyTarget() != null) {
+                anyTarget.put(entry.key(), entry.anyTarget());
+            }
+
+            if (entry.initial() != null) {
+                initial.put(entry.key(), entry.initial());
+            }
+
+            if (entry.locked() != null) {
+                locked.put(entry.key(), entry.locked());
+            }
+        }
+
+        for (DemoSet.Status entry : described) {
+            if (entry.targets() != null) {
+                targets.put(entry.key(), new HashSet<>(entry.targets()));
+                entry.targets().stream()
+                        .filter(key -> !targets.containsKey(key))
+                        .forEach(key -> problems.add("statuses: the status '" + entry.key()
+                                + "' moves to no status '" + key + "'"));
+            }
+        }
+
+        List<String> initialKeys = initial.entrySet().stream()
+                .filter(Map.Entry::getValue)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        if (initialKeys.size() != 1) {
+            problems.add("statuses: exactly one status is given to new documents");
+            return;
+        }
+
+        if (Boolean.TRUE.equals(locked.get(initialKeys.getFirst()))) {
+            problems.add("statuses: the status '" + initialKeys.getFirst()
+                    + "' is given to new documents and cannot lock them");
+        }
+
+        Set<String> reached = new HashSet<>(initialKeys);
+        Deque<String> queue = new ArrayDeque<>(initialKeys);
+
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+
+            for (String next : targets.keySet()) {
+                boolean moves = Boolean.TRUE.equals(anyTarget.get(current)) || targets.get(current).contains(next);
+
+                if (!next.equals(current) && moves && reached.add(next)) {
+                    queue.add(next);
+                }
+            }
+        }
+
+        // a key of a document that names no status has its own problem already
+        Set<String> checked = new LinkedHashSet<>();
+        described.forEach(entry -> checked.add(entry.key()));
+        documentStatusKeys.stream()
+                .filter(targets::containsKey)
+                .forEach(checked::add);
+
+        checked.stream()
+                .filter(key -> !reached.contains(key))
+                .forEach(key -> problems.add("statuses: the status '" + key
+                        + "' cannot be reached from the initial status"));
+    }
+
     private void checkFolders(String set, List<DemoSet.Folder> folders, String path, Set<String> users,
-                              List<String> problems) {
+                              Set<String> statusKeys, Set<String> documentStatusKeys, List<String> problems) {
         Set<String> names = new HashSet<>();
 
         for (DemoSet.Folder folder : folders) {
@@ -323,13 +447,13 @@ public class DemoDataLoader {
 
             checkAccess(folder.access(), where, users, problems);
             checkDeletion(folder.deleted(), where, users, problems);
-            checkFolders(set, folder.folders(), where, users, problems);
-            checkDocuments(set, folder.documents(), where, users, problems);
+            checkFolders(set, folder.folders(), where, users, statusKeys, documentStatusKeys, problems);
+            checkDocuments(set, folder.documents(), where, users, statusKeys, documentStatusKeys, problems);
         }
     }
 
     private void checkDocuments(String set, List<DemoSet.Document> documents, String path, Set<String> users,
-                                List<String> problems) {
+                                Set<String> statusKeys, Set<String> documentStatusKeys, List<String> problems) {
         Set<String> names = new HashSet<>();
 
         for (DemoSet.Document document : documents) {
@@ -359,9 +483,11 @@ public class DemoDataLoader {
                 }
             }
 
-            if (document.status() != null && parse(DocumentStatus.class, document.status()) == null) {
+            if (document.status() != null && !statusKeys.contains(document.status())) {
                 problems.add(where + ": there is no status '" + document.status() + "'");
             }
+
+            documentStatusKeys.add(document.status() == null ? "DRAFT" : document.status());
 
             checkType(document, where, problems);
             checkAccess(document.access(), where, users, problems);
@@ -500,7 +626,7 @@ public class DemoDataLoader {
                 problems.add(where + ": there is no role '" + entry.role() + "'");
             }
 
-            if (entry.level() == null || parse(AccessLevel.class, entry.level()) == null) {
+            if (entry.level() == null || levelOf(entry.level()) == null) {
                 problems.add(where + ": there is no access level '" + entry.level() + "'");
             }
         }
@@ -519,6 +645,78 @@ public class DemoDataLoader {
             user.setEmail(names.email());
             unconstrainedDataManager.save(user);
         }
+    }
+
+    // the set names the default statuses in its language and adds its own before any document takes one; the targets
+    // name keys, so they wait until every status of the set exists
+    private void nameStatuses(List<DemoSet.Status> described, Loaded loaded) {
+        for (DemoSet.Status entry : described) {
+            DocumentStatus status = statusOf(entry);
+
+            if (entry.name() != null) {
+                status.setName(entry.name());
+            }
+
+            if (entry.color() != null) {
+                status.setColor(entry.color());
+            }
+
+            if (entry.position() != null) {
+                status.setPosition(entry.position());
+            }
+
+            if (entry.initial() != null) {
+                status.setInitial(entry.initial());
+            }
+
+            if (entry.locked() != null) {
+                status.setLocked(entry.locked());
+            }
+
+            if (entry.anyTarget() != null) {
+                status.setAnyTarget(entry.anyTarget());
+            }
+
+            loaded.statuses.put(entry.key(), statusService.save(status));
+        }
+
+        for (DemoSet.Status entry : described) {
+            if (entry.targets() != null) {
+                DocumentStatus status = loadStatus(loaded.statuses.get(entry.key()).getId());
+                status.getTargets().clear();
+                entry.targets().forEach(key -> status.getTargets().add(statusFor(key, loaded)));
+                loaded.statuses.put(entry.key(), statusService.save(status));
+            }
+        }
+    }
+
+    private DocumentStatus statusOf(DemoSet.Status entry) {
+        UUID id = DEFAULT_STATUSES.get(entry.key());
+
+        if (id != null) {
+            return loadStatus(id);
+        }
+
+        return statusService.find(Objects.requireNonNull(entry.name()))
+                .map(found -> loadStatus(found.getId()))
+                .orElseGet(() -> {
+                    DocumentStatus status = dataManager.create(DocumentStatus.class);
+                    status.setPosition(statusService.nextPosition());
+                    return status;
+                });
+    }
+
+    private DocumentStatus statusFor(String key, Loaded loaded) {
+        DocumentStatus status = loaded.statuses.get(key);
+        return status != null ? status : loadStatus(DEFAULT_STATUSES.get(key));
+    }
+
+    private DocumentStatus loadStatus(UUID id) {
+        return dataManager.load(DocumentStatus.class)
+                .id(id)
+                .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("targets", FetchPlan.BASE))
+                .one();
     }
 
     private void createFolder(String set, DemoSet.Folder description, Folder parent, Loaded loaded) {
@@ -547,9 +745,7 @@ public class DemoDataLoader {
     }
 
     private void createDocument(String set, DemoSet.Document description, Folder folder, Loaded loaded) {
-        DocumentStatus status = description.status() == null
-                ? DocumentStatus.DRAFT
-                : parse(DocumentStatus.class, description.status());
+        String statusKey = description.status() == null ? "DRAFT" : description.status();
 
         Document draft = dataManager.create(Document.class);
         draft.setFolder(folder);
@@ -566,11 +762,10 @@ public class DemoDataLoader {
 
         List<DemoSet.Version> versions = description.versions();
         DemoSet.Version first = versions.getFirst();
-        DocumentStatus created = status == DocumentStatus.DRAFT ? null : DocumentStatus.ACTIVE;
 
         // every version is uploaded by its author, with the rights the author has
         Document document = systemAuthenticator.withUser(first.author(), () -> upload(set, first, description,
-                file -> documentService.create(draft, file, created)));
+                file -> documentService.create(draft, file, null)));
 
         for (DemoSet.Version version : versions.subList(1, versions.size())) {
             Document current = document;
@@ -582,10 +777,7 @@ public class DemoDataLoader {
             giveOwnAccess(accessService.describe(document), description.access());
         }
 
-        // an archived document takes no other change, so its status comes last
-        if (status == DocumentStatus.ARCHIVED) {
-            documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
-        }
+        moveTo(document, statusFor(statusKey, loaded));
 
         backdate(document, versions);
         writeComments(document, description.comments());
@@ -596,6 +788,45 @@ public class DemoDataLoader {
         if (description.deleted() != null) {
             loaded.deleted.add(new Deleted(document, description.deleted()));
         }
+    }
+
+    // a document starts in the initial status and walks the shortest way of transitions to its own, after its
+    // versions and access, because a locked status takes no other change
+    private void moveTo(Document document, DocumentStatus target) {
+        List<DocumentStatus> all = statusService.loadAll();
+        DocumentStatus initial = all.stream()
+                .filter(status -> Boolean.TRUE.equals(status.getInitial()))
+                .findFirst()
+                .orElseThrow();
+
+        for (DocumentStatus step : shortestWay(all, initial, target)) {
+            documentService.changeStatus(List.of(document), step);
+        }
+    }
+
+    private static List<DocumentStatus> shortestWay(List<DocumentStatus> all, DocumentStatus from, DocumentStatus to) {
+        Map<DocumentStatus, DocumentStatus> previous = new HashMap<>();
+        previous.put(from, from);
+        Deque<DocumentStatus> queue = new ArrayDeque<>(List.of(from));
+
+        while (!queue.isEmpty() && !previous.containsKey(to)) {
+            DocumentStatus current = queue.poll();
+
+            for (DocumentStatus next : all) {
+                if (!previous.containsKey(next) && current.canMoveTo(next)) {
+                    previous.put(next, current);
+                    queue.add(next);
+                }
+            }
+        }
+
+        LinkedList<DocumentStatus> steps = new LinkedList<>();
+
+        for (DocumentStatus step = to; !step.equals(from); step = previous.get(step)) {
+            steps.addFirst(step);
+        }
+
+        return steps;
     }
 
     private Document upload(String set, DemoSet.Version version, DemoSet.Document description,
@@ -630,7 +861,7 @@ public class DemoDataLoader {
                     entryDraft.setUsername(entry.user());
                     entryDraft.setRoleCode(entry.role());
                     entryDraft.setSubjectName(entry.user() != null ? entry.user() : entry.role());
-                    entryDraft.setAccessLevel(parse(AccessLevel.class, entry.level()));
+                    entryDraft.setAccessLevel(levelOf(entry.level()));
                     return entryDraft;
                 })
                 .toList());
@@ -777,9 +1008,9 @@ public class DemoDataLoader {
         return time.atZone(ZoneId.systemDefault()).toOffsetDateTime();
     }
 
-    private static <E extends Enum<E>> @Nullable E parse(Class<E> type, String name) {
+    private static @Nullable AccessLevel levelOf(String name) {
         try {
-            return Enum.valueOf(type, name);
+            return AccessLevel.valueOf(name);
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -793,6 +1024,7 @@ public class DemoDataLoader {
 
         private final List<Deleted> deleted = new ArrayList<>();
         private final List<Marked> marked = new ArrayList<>();
+        private final Map<String, DocumentStatus> statuses = new HashMap<>();
         private int folders;
         private int documents;
         private int versions;

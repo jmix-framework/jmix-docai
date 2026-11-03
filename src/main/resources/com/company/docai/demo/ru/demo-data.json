@@ -31,6 +31,12 @@
       "email": "i.ivanov@example.com"
     }
   ],
+  "statuses": [
+    {"key": "DRAFT", "name": "Черновик", "anyTarget": false, "targets": ["IN_REVIEW", "ACTIVE"]},
+    {"key": "IN_REVIEW", "name": "На согласовании", "color": "#3266e4", "position": 2, "anyTarget": true},
+    {"key": "ACTIVE", "name": "Действующий", "position": 3},
+    {"key": "ARCHIVED", "name": "Архив", "position": 4}
+  ],
   "folders": [
     {
       "name": "Входящие",
@@ -171,7 +177,7 @@
             "contractAmount": "1240000.00",
             "validUntil": "2026-12-31"
           },
-          "status": "ACTIVE",
+          "status": "IN_REVIEW",
           "versions": [
             {
               "file": "works-15.pdf",
@@ -548,7 +554,7 @@
           "tags": [
             "поставка"
           ],
-          "status": "ACTIVE",
+          "status": "IN_REVIEW",
           "versions": [
             {
               "file": "ramochnyj-dogovor-postavki-3-2026.pdf",
@@ -839,7 +845,7 @@
             "counterparty": "ООО «Щит-М»",
             "validUntil": "2027-01-31"
           },
-          "status": "ACTIVE",
+          "status": "IN_REVIEW",
           "versions": [
             {
               "file": "ohrana-12.pdf",

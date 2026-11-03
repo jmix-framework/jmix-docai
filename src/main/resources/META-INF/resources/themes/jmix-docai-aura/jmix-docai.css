@@ -161,3 +161,71 @@ vaadin-upload-drop-zone.documents-drop-zone[dragover]::after {
 [disabled] :is(.favorite-star, .favorite-star-unmarked) {
     color: inherit;
 }
+
+/* a status as a color dot and its name, in the lists and menus that offer statuses */
+.status-option {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vaadin-gap-xs);
+}
+
+/* the ring keeps a white dot in sight on a light surface and a black one on a dark surface */
+.status-dot {
+    inline-size: 0.625em;
+    block-size: 0.625em;
+    border-radius: 50%;
+    flex: none;
+    box-shadow: inset 0 0 0 1px var(--vaadin-border-color);
+}
+
+/* the palette and the custom color of a status, all of them round swatches */
+.status-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+}
+
+.status-swatch {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+}
+
+.status-swatch[aria-pressed="true"] {
+    outline: 2px solid var(--vaadin-focus-ring-color);
+    outline-offset: 2px;
+}
+
+input[type="color"].status-swatch::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"].status-swatch::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+input[type="color"].status-swatch::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+/* the custom swatch is a color wheel until a color off the palette is chosen and then takes that color, so it never
+   repeats a swatch of the palette */
+input[type="color"].status-swatch:not([aria-pressed="true"]) {
+    background: conic-gradient(var(--aura-red), var(--aura-orange), var(--aura-yellow), var(--aura-green),
+            var(--aura-blue), var(--aura-purple), var(--aura-red));
+}
+
+input[type="color"].status-swatch:not([aria-pressed="true"])::-webkit-color-swatch {
+    opacity: 0;
+}
+
+input[type="color"].status-swatch:not([aria-pressed="true"])::-moz-color-swatch {
+    opacity: 0;
+}

@@ -6,13 +6,13 @@ import com.company.docai.app.service.favorite.FavoriteService;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.favorite.Favorite;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.repository.DocumentListFragment;
@@ -156,8 +156,8 @@ class FavoriteStarsTest {
                 upload(sandbox, "viewed.txt"), TestAccess.Grant.user(EmployeeUiTestAuthenticator.USERNAME,
                         AccessLevel.VIEW)));
         Document archived = upload(sandbox, "archived.txt");
-        documentService.changeStatus(List.of(archived), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(archived), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(archived), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(archived), TestStatuses.archived(dataManager));
         RepositoryView view = open(sandbox);
 
         for (Document document : List.of(viewed, archived)) {

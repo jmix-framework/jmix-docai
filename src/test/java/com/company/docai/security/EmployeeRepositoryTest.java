@@ -4,10 +4,10 @@ import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
@@ -70,7 +70,7 @@ class EmployeeRepositoryTest {
                     List.of(TestFiles.file(tempDir, "a.txt", "text"))).created().getFirst();
 
             documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "text 2"));
-            documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+            documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
             documentService.move(List.of(document), archive);
 
             Document moved = dataManager.load(Document.class)

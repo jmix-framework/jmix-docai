@@ -7,7 +7,6 @@ import com.company.docai.ai.classification.ClassificationResult;
 import com.company.docai.ai.classification.DocumentClassifier;
 import com.company.docai.app.service.document.NewVersion;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
@@ -113,7 +112,7 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
         return super.isApplicable()
                 && document != null
                 && !target.isReadOnly()
-                && document.getStatus() != DocumentStatus.ARCHIVED
+                && !Boolean.TRUE.equals(document.getStatus().getLocked())
                 && target.getShownVersion() != null;
     }
 

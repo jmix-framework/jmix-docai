@@ -8,11 +8,11 @@ import com.company.docai.app.service.tag.TagService;
 import com.company.docai.app.service.trash.TrashService;
 import com.company.docai.model.access.AccessDraft;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
@@ -172,7 +172,7 @@ class TagDeletionTest {
         target = folderService.save(target);
 
         documentService.move(List.of(document), target);
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
         documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "second"));
 
         assertThat(tagsOf(document)).containsExactly(lease);

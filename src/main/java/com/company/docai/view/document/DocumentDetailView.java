@@ -5,6 +5,7 @@ import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.access.AccessChecker;
 import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.document.DocumentService;
+import com.company.docai.app.service.document.DocumentStatusService;
 import com.company.docai.app.service.document.NewVersion;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.folder.FolderService;
@@ -19,12 +20,13 @@ import com.company.docai.model.user.User;
 import com.company.docai.view.access.AccessDetailView;
 import com.company.docai.view.favorite.FavoriteCardAction;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.status.StatusBadges;
 import com.company.docai.view.tag.TagBadges;
 import com.google.common.base.Strings;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBoxBase;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
@@ -33,6 +35,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
@@ -49,6 +52,7 @@ import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.datepicker.TypedDatePicker;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.select.JmixSelect;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
@@ -101,12 +105,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @ViewComponent
     private JmixButton downloadButton;
     @ViewComponent
-    private JmixButton activateButton;
-    @ViewComponent
-    private JmixButton archiveButton;
-    @ViewComponent
-    private JmixButton unarchiveButton;
-    @ViewComponent
     private JmixButton accessButton;
     @ViewComponent
     private JmixButton favoriteButton;
@@ -115,6 +113,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private TypedTextField<String> nameField;
     @ViewComponent
     private TypedDatePicker<LocalDate> documentDateField;
+    @ViewComponent
+    private JmixSelect<DocumentStatus> statusField;
     @ViewComponent
     private TypedTextField<String> folderField;
     @ViewComponent
@@ -163,11 +163,15 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @Autowired
     private DocumentService documentService;
     @Autowired
+    private DocumentStatusService statusService;
+    @Autowired
     private FolderService folderService;
     @Autowired
     private TagService tagService;
     @Autowired
     private TagBadges tagBadges;
+    @Autowired
+    private StatusBadges statusBadges;
     @Autowired
     private AccessService accessService;
     @Autowired
@@ -211,6 +215,9 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     // the repository passes the open folder; a new document opened by its address goes into the root
     @Subscribe
     public void onInitEntity(final InitEntityEvent<Document> event) {
+        // the badge shows the status before the first save, which gives the document the initial status too
+        event.getEntity().setStatus(statusService.getInitial());
+
         if (event.getEntity().getFolder() == null) {
             event.getEntity().setFolder(folderService.getRoot());
         }
@@ -314,19 +321,25 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         revisionDownloader.download(getEditedEntity().getCurrentRevision());
     }
 
-    @Subscribe("activateButton")
-    public void onActivateButtonClick(final ClickEvent<JmixButton> event) {
-        toggleTransition(DocumentStatus.ACTIVE);
+    // the field stages the status like a new version: the change applies on OK, last, as the service wants it
+    @Subscribe("statusField")
+    public void onStatusFieldComponentValueChange(
+            final AbstractField.ComponentValueChangeEvent<JmixSelect<DocumentStatus>, DocumentStatus> event) {
+        if (event.isFromClient()) {
+            DocumentStatus target = event.getValue();
+            changes.changeStatus(target == null || target.equals(getEditedEntity().getStatus()) ? null : target);
+            afterStaging();
+        }
     }
 
-    @Subscribe("archiveButton")
-    public void onArchiveButtonClick(final ClickEvent<JmixButton> event) {
-        toggleTransition(DocumentStatus.ARCHIVED);
+    @Install(to = "statusField", subject = "itemLabelGenerator")
+    private String statusFieldItemLabelGenerator(final DocumentStatus status) {
+        return status.getName();
     }
 
-    @Subscribe("unarchiveButton")
-    public void onUnarchiveButtonClick(final ClickEvent<JmixButton> event) {
-        toggleTransition(DocumentStatus.ACTIVE);
+    @Supply(to = "statusField", subject = "renderer")
+    private ComponentRenderer<Span, DocumentStatus> statusFieldRenderer() {
+        return new ComponentRenderer<>(statusBadges::option);
     }
 
     @Subscribe("accessButton")
@@ -377,7 +390,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private boolean restoreRevisionActionEnabledRule() {
         DocumentRevision revision = revisionsGrid.getSingleSelectedItem();
         return revision != null
-                && !isArchived()
+                && !isLocked()
                 && !isReadOnly()
                 && !revision.equals(getEditedEntity().getCurrentRevision());
     }
@@ -422,11 +435,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         showDocument();
     }
 
-    private void toggleTransition(DocumentStatus target) {
-        changes.changeStatus(changes.getTargetStatus() == target ? null : target);
-        afterStaging();
-    }
-
     /**
      * The staged changes are not attributes of the entity, so the data context is told explicitly:
      * otherwise it would skip the save and the unsaved-changes dialog would stay silent.
@@ -435,9 +443,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         getViewData().getDataContext().setModified(getEditedEntity(), true);
 
         pendingChanges.setText(describePendingChanges());
-        highlightTransition(activateButton, DocumentStatus.ACTIVE);
-        highlightTransition(archiveButton, DocumentStatus.ARCHIVED);
-        highlightTransition(unarchiveButton, DocumentStatus.ACTIVE);
         fillWithAiAction.refreshState();
     }
 
@@ -447,13 +452,16 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private void showDocument() {
         Document document = getEditedEntity();
         DocumentStatus status = document.getStatus();
-        boolean archived = isArchived();
         // the view turns read-only before it is shown when the user only views the document
-        boolean locked = archived || isReadOnly();
+        boolean locked = isLocked() || isReadOnly();
 
         updateTitle();
-        statusBadge.addClassName(statusColor(status));
+        StatusBadges.paint(statusBadge, status);
         showTags();
+
+        statusField.setItems(statusService.loadChoices(status));
+        statusField.setValue(status);
+        statusField.setReadOnly(isReadOnly());
 
         nameField.setReadOnly(locked);
         documentDateField.setReadOnly(locked);
@@ -469,9 +477,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
         downloadButton.setVisible(document.getCurrentRevision() != null);
 
-        activateButton.setVisible(status == DocumentStatus.DRAFT && !isReadOnly());
-        archiveButton.setVisible(status == DocumentStatus.ACTIVE && !isReadOnly());
-        unarchiveButton.setVisible(archived && !isReadOnly());
         accessButton.setVisible(!isNew() && accessChecker.getLevel(document.getAccessSet()) == AccessLevel.MANAGE);
 
         favoriteAction.refreshState();
@@ -555,14 +560,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         documentTitle.setText(name.isEmpty() && isNew() ? messageBundle.getMessage("newDocument") : name);
     }
 
-    private void highlightTransition(JmixButton button, DocumentStatus target) {
-        if (changes.getTargetStatus() == target) {
-            button.addThemeVariants(ButtonVariant.PRIMARY);
-        } else {
-            button.removeThemeVariants(ButtonVariant.PRIMARY);
-        }
-    }
-
     private String describePendingChanges() {
         List<String> parts = new ArrayList<>();
         switch (changes.getNewVersion()) {
@@ -576,7 +573,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         }
 
         if (changes.getTargetStatus() != null) {
-            parts.add("→ " + messages.getMessage(changes.getTargetStatus()));
+            parts.add("→ " + changes.getTargetStatus().getName());
         }
 
         return String.join(" · ", parts);
@@ -607,23 +604,11 @@ public class DocumentDetailView extends StandardDetailView<Document> {
                 .collect(Collectors.toMap(User::getUsername, metadataTools::getInstanceName));
     }
 
-    /**
-     * Returns the Aura color class of a status badge. Aura has no neutral badge variant, so all three use its
-     * color classes.
-     */
-    public static String statusColor(DocumentStatus status) {
-        return switch (status) {
-            case DRAFT -> "v-neutral";
-            case ACTIVE -> "v-success";
-            case ARCHIVED -> "v-warning";
-        };
-    }
-
     private boolean isNew() {
         return entityStates.isNew(getEditedEntity());
     }
 
-    private boolean isArchived() {
-        return getEditedEntity().getStatus() == DocumentStatus.ARCHIVED;
+    private boolean isLocked() {
+        return Boolean.TRUE.equals(getEditedEntity().getStatus().getLocked());
     }
 }

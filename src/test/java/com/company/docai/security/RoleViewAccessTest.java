@@ -41,6 +41,8 @@ class RoleViewAccessTest {
             "peter, dynat_CategoryView.list, false",
             "peter, Tag.list, false",
             "peter, Tag.detail, false",
+            "peter, DocumentStatus.list, false",
+            "peter, DocumentStatus.detail, false",
             "admin, MainView, true",
             "admin, ProfileReadView, true",
             "admin, User.list, true",
@@ -51,6 +53,8 @@ class RoleViewAccessTest {
             "admin, TrashView, true",
             "admin, Tag.list, true",
             "admin, Tag.detail, true",
+            "admin, DocumentStatus.list, true",
+            "admin, DocumentStatus.detail, true",
             "admin, aitls_AiChatHubView, true"
     })
     void theUserOpensOnlyTheViewsOfTheirRoles(String username, String viewId, boolean permitted) {

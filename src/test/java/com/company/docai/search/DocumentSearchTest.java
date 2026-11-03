@@ -5,13 +5,13 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.app.service.trash.TrashService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
@@ -172,7 +172,7 @@ class DocumentSearchTest {
     void theStatusAndTheFolderAreNotSearched() {
         Folder folder = folder(sandbox, token());
         Document document = upload(folder, "Nothing about statuses or folders here.");
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
         index();
 
         assertThat(ids(documentSearch.search(folder.getName()))).doesNotContain(document.getId());

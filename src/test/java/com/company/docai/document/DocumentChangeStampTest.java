@@ -6,11 +6,11 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.access.AccessDraft;
 import com.company.docai.model.access.AccessSet;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
@@ -108,7 +108,7 @@ class DocumentChangeStampTest {
         Document document = stampedLongAgo(upload("a.txt"));
 
         systemAuthenticator.runWithUser(EMPLOYEE, () ->
-                documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE));
+                documentService.changeStatus(List.of(document), TestStatuses.active(dataManager)));
 
         assertStampedBy(EMPLOYEE, document);
     }

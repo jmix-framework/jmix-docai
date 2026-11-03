@@ -47,7 +47,7 @@ class MainMenuTest {
 
         assertThat(application.getChildItems())
                 .extracting(ListMenu.MenuItem::getId)
-                .containsSubsequence("documentTypes", "Tag.list", "TrashView")
+                .containsSubsequence("documentTypes", "DocumentStatus.list", "Tag.list", "TrashView")
                 .endsWith("TrashView");
     }
 

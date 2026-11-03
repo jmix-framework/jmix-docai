@@ -11,6 +11,7 @@ import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTags;
 import com.company.docai.test_support.TestUploads;
 import com.company.docai.view.document.DocumentDetailView;
@@ -18,19 +19,23 @@ import com.company.docai.view.folder.FolderDetailView;
 import com.company.docai.view.folder.FolderLookupView;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.search.DocumentSearchView;
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.grid.ColumnResizeEvent;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.internal.PendingJavaScriptInvocation;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.upload.UploadDropZone;
+import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.AbstractStreamResource;
 import com.vaadin.flow.server.StreamResourceRegistry;
@@ -55,7 +60,9 @@ import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.data.grid.DataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.kit.component.dropdownbutton.ComponentItem;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
+import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
 import io.jmix.flowui.settings.UserSettingsCache;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
@@ -342,8 +349,8 @@ class RepositoryViewTest {
         assertThat(items)
                 .extracting(item -> FragmentUtils.getComponentId(item).orElse(""))
                 .containsExactly("openDocumentItem", "downloadDocumentItem", "discussDocumentItem",
-                        "moveDocumentItem", "activateDocumentItem", "archiveDocumentItem", "unarchiveDocumentItem",
-                        "accessDocumentItem", "favoriteDocumentItem", "deleteDocumentItem");
+                        "moveDocumentItem", "statusDocumentItem", "accessDocumentItem", "favoriteDocumentItem",
+                        "deleteDocumentItem");
         assertThat(items.getLast().getClassNames()).contains("danger-menu-item");
     }
 
@@ -409,11 +416,11 @@ class RepositoryViewTest {
         grid.getItems().getItems().forEach(document -> TestGrids.clickRow(grid, document, true));
         assertThat(documentList.getFocusedDocument()).isEqualTo(b);
 
-        grid.getAction("activateAction").actionPerform(grid);
+        clickStatus(fragmentComponent(view, "documentList", "statusButton"), TestStatuses.active(dataManager));
 
         assertThat(previewLayout.isSidePanelOpened()).isTrue();
         assertThat(documentList.getFocusedDocument()).isEqualTo(b);
-        assertThat(documentList.getFocusedDocument().getStatus()).isEqualTo(DocumentStatus.ACTIVE);
+        assertThat(documentList.getFocusedDocument().getStatus()).isEqualTo(TestStatuses.active(dataManager));
     }
 
     @Test
@@ -438,34 +445,76 @@ class RepositoryViewTest {
         TestGrids.clickRow(grid, document, false);
         String shown = frame.getElement().getAttribute("src");
 
-        grid.getAction("activateAction").actionPerform(grid);
+        clickStatus(fragmentComponent(view, "documentList", "statusButton"), TestStatuses.active(dataManager));
 
         assertThat(frame.getElement().getAttribute("src")).isEqualTo(shown);
     }
 
+    // the column follows the lifecycle of the statuses, not the alphabet of their names
     @Test
-    void theStatusActionsOfferOnlyWhatEverySelectedDocumentAllows() {
-        Document draft = upload(sandbox, "draft.txt");
-        Document active = upload(sandbox, "active.txt");
-        documentService.changeStatus(List.of(active), DocumentStatus.ACTIVE);
+    void theStatusColumnSortsTheDocumentsByThePlaceOfTheirStatus() {
+        upload(sandbox, "a-draft.txt");
+        Document active = upload(sandbox, "b-active.txt");
+        Document archived = upload(sandbox, "c-archived.txt");
+        documentService.changeStatus(List.of(active, archived), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(archived), TestStatuses.archived(dataManager));
         RepositoryView view = open(sandbox, false);
         DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
 
-        TestGrids.clickRow(grid, draft, false);
-        TestGrids.clickRow(grid, active, true);
-        assertThat(List.of("activateAction", "archiveAction", "unarchiveAction"))
-                .allSatisfy(actionId -> assertThat(grid.getAction(actionId).isEnabled()).as(actionId).isFalse());
+        grid.sort(List.of(new GridSortOrder<>(grid.getColumnByKey("status"), SortDirection.DESCENDING)));
 
-        TestGrids.clickRow(grid, active, false);
-        assertThat(grid.getAction("archiveAction").isEnabled()).isTrue();
-        assertThat(grid.getAction("activateAction").isEnabled()).isFalse();
+        assertThat(grid.getItems()).isNotNull();
+        assertThat(grid.getItems().getItems()).extracting(Document::getName)
+                .containsExactly("c-archived.txt", "b-active.txt", "a-draft.txt");
     }
 
     @Test
-    void theStatusButtonIsEnabledOnlyWhenATransitionFitsTheSelection() {
+    void theStatusMenuOffersTheStatusesEverySelectedDocumentMayHave() {
         Document draft = upload(sandbox, "draft.txt");
         Document active = upload(sandbox, "active.txt");
-        documentService.changeStatus(List.of(active), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(active), TestStatuses.active(dataManager));
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        DropdownButton statusButton = fragmentComponent(view, "documentList", "statusButton");
+
+        TestGrids.clickRow(grid, draft, false);
+        TestGrids.clickRow(grid, active, true);
+        // a draft may become active, and an active document is active already
+        assertThat(statusButton.getItems()).extracting(DropdownButtonItem::getId)
+                .containsExactly("status-" + DocumentStatus.ACTIVE_ID);
+
+        TestGrids.clickRow(grid, active, false);
+        assertThat(statusButton.getItems()).extracting(DropdownButtonItem::getId)
+                .containsExactly("status-" + DocumentStatus.ARCHIVED_ID);
+
+        clickStatus(statusButton, TestStatuses.archived(dataManager));
+
+        assertThat(dataManager.load(Document.class).id(active.getId()).one().getStatus())
+                .isEqualTo(TestStatuses.archived(dataManager));
+    }
+
+    @Test
+    void theContextMenuOffersTheSameStatusesInASubmenu() {
+        Document active = upload(sandbox, "active.txt");
+        documentService.changeStatus(List.of(active), TestStatuses.active(dataManager));
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+
+        TestGrids.openContextMenu(grid, active);
+        GridMenuItem<Document> statusItem = grid.getContextMenu().getItems().stream()
+                .filter(item -> FragmentUtils.getComponentId(item).orElse("").equals("statusDocumentItem"))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(statusItem.isEnabled()).isTrue();
+        assertThat(statusItem.getSubMenu().getItems()).hasSize(1);
+    }
+
+    @Test
+    void theStatusButtonIsEnabledWhenTheSelectionHasAStatusToMoveTo() {
+        Document draft = upload(sandbox, "draft.txt");
+        Document active = upload(sandbox, "active.txt");
+        documentService.changeStatus(List.of(active), TestStatuses.active(dataManager));
         RepositoryView view = open(sandbox, false);
         DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
         DropdownButton statusButton = fragmentComponent(view, "documentList", "statusButton");
@@ -475,8 +524,9 @@ class RepositoryViewTest {
         TestGrids.clickRow(grid, draft, false);
         assertThat(statusButton.isEnabled()).isTrue();
 
+        // the draft may become active, and the active document stays as it is
         TestGrids.clickRow(grid, active, true);
-        assertThat(statusButton.isEnabled()).isFalse();
+        assertThat(statusButton.isEnabled()).isTrue();
     }
 
     @Test
@@ -795,6 +845,17 @@ class RepositoryViewTest {
                 .map(step -> step.getElement().getTextRecursively())
                 .filter(text -> !text.equals("/"))
                 .toList();
+    }
+
+    // a dropdown item has no click of its own: its listener hangs on the menu item that holds its content
+    private static void clickStatus(DropdownButton button, DocumentStatus status) {
+        ComponentItem item = (ComponentItem) button.getItems().stream()
+                .filter(candidate -> candidate.getId().equals("status-" + status.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        MenuItem menuItem = (MenuItem) item.getContent().getParent().orElseThrow();
+        ComponentUtil.fireEvent(menuItem, new ClickEvent<>(menuItem));
     }
 
     @SuppressWarnings("unchecked")

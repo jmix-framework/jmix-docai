@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://documentStatusListView.title"
+      focusComponent="statusesDataGrid">
+    <data>
+        <collection id="statusesDc" class="com.company.docai.model.document.DocumentStatus">
+            <fetchPlan extends="_base"/>
+            <loader id="statusesDl" readOnly="true">
+                <query>
+                    <![CDATA[select s from DocumentStatus s order by s.position, s.nameKey]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <layout>
+        <hbox id="buttonsPanel" classNames="buttons-panel">
+            <button id="createButton" action="statusesDataGrid.createAction"/>
+            <button id="editButton" action="statusesDataGrid.editAction"/>
+            <button id="removeButton" action="statusesDataGrid.removeAction"/>
+            <!-- the arrows go without text: the description of the action names them as title and aria-label -->
+            <button id="moveUpButton" action="statusesDataGrid.moveUpAction" text=""/>
+            <button id="moveDownButton" action="statusesDataGrid.moveDownAction" text=""/>
+        </hbox>
+        <!-- the rows keep the order of the statuses, which a drag of a row changes, so the columns don't sort -->
+        <dataGrid id="statusesDataGrid" dataContainer="statusesDc" width="100%" minHeight="20em"
+                  rowsDraggable="true" dropMode="BETWEEN">
+            <actions>
+                <action id="createAction" type="list_create">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="editAction" type="list_edit">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="removeAction" type="list_remove"/>
+                <action id="moveUpAction" type="list_itemTracking" text="msg://moveUpAction.text"
+                        description="msg://moveUpAction.text" icon="ARROW_UP"/>
+                <action id="moveDownAction" type="list_itemTracking" text="msg://moveDownAction.text"
+                        description="msg://moveDownAction.text" icon="ARROW_DOWN"/>
+            </actions>
+            <columns>
+                <column property="name" sortable="false"/>
+                <column property="position" sortable="false"/>
+                <column property="initial" sortable="false"/>
+                <column property="locked" sortable="false"/>
+                <column property="anyTarget" sortable="false"/>
+            </columns>
+        </dataGrid>
+    </layout>
+</view>

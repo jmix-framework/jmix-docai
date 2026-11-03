@@ -32,6 +32,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -47,7 +48,8 @@ import java.util.UUID;
  * A document in a folder. Its files are revisions, and {@code currentRevision} points to the one
  * in use. Names are unique among the live documents of one folder and are case-sensitive. Its type
  * is a category of the dynamic attributes add-on, and the fields of the type are the dynamic attributes
- * of the category, properties named {@code +code}.
+ * of the category, properties named {@code +code}. Its status comes from the dictionary of
+ * {@link DocumentStatus}.
  */
 @JmixEntity
 @Entity
@@ -55,7 +57,8 @@ import java.util.UUID;
         @Index(name = "IDX_DOCUMENT_FOLDER", columnList = "FOLDER_ID"),
         @Index(name = "IDX_DOCUMENT_CURRENT_REVISION", columnList = "CURRENT_REVISION_ID"),
         @Index(name = "IDX_DOCUMENT_ACCESS_SET", columnList = "ACCESS_SET_ID"),
-        @Index(name = "IDX_DOCUMENT_CATEGORY", columnList = "CATEGORY_ID")
+        @Index(name = "IDX_DOCUMENT_CATEGORY", columnList = "CATEGORY_ID"),
+        @Index(name = "IDX_DOCUMENT_STATUS", columnList = "STATUS_ID")
 }, uniqueConstraints = {
         @UniqueConstraint(name = "UK_DOCUMENT_NAME_KEY", columnNames = {"FOLDER_ID", "NAME_KEY"})
 })
@@ -105,8 +108,11 @@ public class Document implements Categorized {
     @OneToMany(mappedBy = "document")
     private List<DocumentRevision> revisions;
 
-    @Column(name = "STATUS", nullable = false, length = 50)
-    private String status = DocumentStatus.DRAFT.getId();
+    @NotNull
+    @OnDeleteInverse(DeletePolicy.DENY)
+    @JoinColumn(name = "STATUS_ID", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private DocumentStatus status;
 
     @Column(name = "DOCUMENT_DATE")
     private LocalDate documentDate;
@@ -241,11 +247,11 @@ public class Document implements Categorized {
     }
 
     public DocumentStatus getStatus() {
-        return status == null ? null : DocumentStatus.fromId(status);
+        return status;
     }
 
     public void setStatus(DocumentStatus status) {
-        this.status = status == null ? null : status.getId();
+        this.status = status;
     }
 
     public LocalDate getDocumentDate() {

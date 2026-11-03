@@ -7,6 +7,12 @@
       "email": "nobody@example.com"
     }
   ],
+  "statuses": [
+    {"key": "LOST", "name": "Lost", "color": "#3266e4", "anyTarget": false, "targets": ["NOWHERE"]},
+    {"key": "NAMELESS"},
+    {"key": "ACTIVE", "color": "blue", "targets": []},
+    {"key": "DRAFT", "locked": true}
+  ],
   "folders": [
     {
       "name": "Broken",
@@ -33,6 +39,7 @@
         },
         {
           "name": "Unknown type",
+          "status": "ARCHIVED",
           "type": "Receipt",
           "versions": [{"file": "note.txt", "author": "alice", "uploaded": "2026-01-01T10:00"}]
         },

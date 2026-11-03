@@ -6,7 +6,6 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.app.service.trash.TrashService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.InMemoryVectorIndex;
@@ -15,6 +14,7 @@ import com.company.docai.test_support.StubEmbeddingModel;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
@@ -132,7 +132,7 @@ class DocumentVectorIndexerTest {
         await().untilAsserted(() -> assertThat(index.replacements(document.getId())).isEqualTo(1));
 
         documentService.move(List.of(editable(document)), folder("vector-indexer-target-" + UUID.randomUUID()));
-        documentService.changeStatus(List.of(editable(document)), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(editable(document)), TestStatuses.active(dataManager));
         Document typed = editable(document);
         typed.setCategory(dataManager.load(Category.class)
                 .query("select c from dynat_Category c where c.name = 'Contract' and c.entityType = 'Document'")

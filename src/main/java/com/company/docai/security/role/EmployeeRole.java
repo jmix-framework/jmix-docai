@@ -8,6 +8,7 @@ import com.company.docai.model.discussion.DiscussedDocument;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentComment;
 import com.company.docai.model.document.DocumentRevision;
+import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.favorite.Favorite;
 import com.company.docai.model.favorite.FavoriteItem;
 import com.company.docai.model.folder.Folder;
@@ -64,9 +65,9 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
 
     /**
      * Works with the documents of every folder; the document service and listener keep
-     * the status graph and the archive lock. Every attribute is open for change: the fields of
-     * a document type are attributes named {@code +code} that the administrator adds later, so a role
-     * cannot list them. Attribute policies guard only the views; what is written is decided by
+     * the transitions of the statuses and the lock of a locked status. Every attribute is open for change:
+     * the fields of a document type are attributes named {@code +code} that the administrator adds later,
+     * so a role cannot list them. Attribute policies guard only the views; what is written is decided by
      * the document service, edit access is checked there and by {@link AccessRowLevelRole}, and
      * the views of an employee have no editable fields for the access set or the change stamps.
      */
@@ -83,6 +84,14 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     @EntityPolicy(entityClass = Tag.class, actions = {EntityPolicyAction.READ, EntityPolicyAction.CREATE})
     @EntityAttributePolicy(entityClass = Tag.class, attributes = "*", action = EntityAttributePolicyAction.MODIFY)
     void tag();
+
+    /**
+     * Reads the document statuses with their rules. Only the administrator keeps the dictionary.
+     */
+    @EntityPolicy(entityClass = DocumentStatus.class, actions = EntityPolicyAction.READ)
+    @EntityAttributePolicy(entityClass = DocumentStatus.class, attributes = "*",
+            action = EntityAttributePolicyAction.VIEW)
+    void documentStatus();
 
     /**
      * Reads the document types and their fields. Only the administrator changes them.

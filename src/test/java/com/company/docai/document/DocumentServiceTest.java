@@ -8,10 +8,10 @@ import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FileStorageLocator;
@@ -164,27 +164,28 @@ class DocumentServiceTest {
     void theStatusFollowsItsTransitions() {
         Document document = upload("a.txt");
 
-        assertThatThrownBy(() -> documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED))
+        assertThatThrownBy(() -> documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager)))
                 .isInstanceOf(OperationRejectedException.class);
 
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
 
-        assertThat(reload(document).getStatus()).isEqualTo(DocumentStatus.ACTIVE);
+        assertThat(reload(document).getStatus()).isEqualTo(TestStatuses.active(dataManager));
     }
 
     @Test
     void severalDocumentsChangeTheirStatusAllOrNone() {
         Document draft = upload("draft.txt");
         Document active = upload("active.txt");
-        documentService.changeStatus(List.of(active), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(active), TestStatuses.active(dataManager));
 
         // the active document goes first, so its change is ready when the draft is rejected
-        assertThatThrownBy(() -> documentService.changeStatus(List.of(active, draft), DocumentStatus.ARCHIVED))
+        assertThatThrownBy(() -> documentService.changeStatus(List.of(active, draft),
+                TestStatuses.archived(dataManager)))
                 .isInstanceOf(OperationRejectedException.class);
 
-        assertThat(reload(active).getStatus()).isEqualTo(DocumentStatus.ACTIVE);
+        assertThat(reload(active).getStatus()).isEqualTo(TestStatuses.active(dataManager));
     }
 
     @Test
@@ -195,10 +196,10 @@ class DocumentServiceTest {
         draft.setDocumentDate(LocalDate.of(2026, 10, 1));
 
         Document created = documentService.create(draft, TestFiles.file(tempDir, "scan.pdf", "text"),
-                DocumentStatus.ACTIVE);
+                TestStatuses.active(dataManager));
 
         Document reloaded = reload(created);
-        assertThat(reloaded.getStatus()).isEqualTo(DocumentStatus.ACTIVE);
+        assertThat(reloaded.getStatus()).isEqualTo(TestStatuses.active(dataManager));
         assertThat(reloaded.getDocumentDate()).isEqualTo(LocalDate.of(2026, 10, 1));
         assertThat(reloaded.getCurrentRevision().getNumber()).isEqualTo(1);
     }
@@ -217,8 +218,8 @@ class DocumentServiceTest {
     @Test
     void anArchivedDocumentKeepsItsNameDateAndVersion() {
         Document document = upload("a.txt");
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
 
         Document renamed = reload(document);
         renamed.setName("b.txt");
@@ -237,8 +238,8 @@ class DocumentServiceTest {
     @Test
     void anArchivedDocumentCanBeMovedAndDeleted() {
         Document document = upload("a.txt");
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
         Folder target = folder("Archive");
 
         documentService.move(List.of(document), target);

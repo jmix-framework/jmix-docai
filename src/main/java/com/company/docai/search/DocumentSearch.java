@@ -242,6 +242,7 @@ public class DocumentSearch {
         fetchPlan.addFetchPlan(FetchPlan.BASE)
                 .add("category", FetchPlan.INSTANCE_NAME)
                 .add("folder", FetchPlan.INSTANCE_NAME)
+                .add("status", FetchPlan.BASE)
                 .add("tags", FetchPlan.BASE);
     }
 }

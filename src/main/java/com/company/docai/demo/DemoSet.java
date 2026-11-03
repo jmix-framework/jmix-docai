@@ -9,18 +9,21 @@ import java.util.Map;
 
 /**
  * The description of a demo set, as its {@code demo-data.json} gives it: the names of the users in the language of the
- * set, and the folders under the root with their own access and their documents, some of them in the trash. Users,
- * roles and document types come from the changelogs and the code, and the description refers to them by login, role
- * code and the English name of the type.
+ * set, the statuses of the set (the names of the default statuses in the language of the set and new statuses), and
+ * the folders under the root with their own access and their documents, some of them in the trash. Users, roles and
+ * document types come from the changelogs and the code, and the description refers to them by login, role code and
+ * the English name of the type.
  *
- * @param users   the names the set gives the users of the changelogs
- * @param folders the folders under the root
+ * @param users    the names the set gives the users of the changelogs
+ * @param statuses the statuses of the set: the default ones renamed in the language of the set, and new ones
+ * @param folders  the folders under the root
  */
-public record DemoSet(List<User> users, List<Folder> folders) {
+public record DemoSet(List<User> users, List<Status> statuses, List<Folder> folders) {
 
     // a list the description leaves out is empty
     public DemoSet {
         users = users == null ? List.of() : users;
+        statuses = statuses == null ? List.of() : statuses;
         folders = folders == null ? List.of() : folders;
     }
 
@@ -33,6 +36,25 @@ public record DemoSet(List<User> users, List<Folder> folders) {
      * @param email     the e-mail address
      */
     public record User(String login, String firstName, String lastName, String email) {
+    }
+
+    /**
+     * A status of the set. The keys {@code DRAFT}, {@code ACTIVE} and {@code ARCHIVED} are the default statuses of the
+     * changelog; another key makes a new status, or takes the status that has the name already. A field left out
+     * keeps what the status has.
+     *
+     * @param key       the key the documents and the targets of the set refer to
+     * @param name      the name of the status in the language of the set
+     * @param color     the color, {@code #rrggbb}
+     * @param position  the place of the status in the lists
+     * @param initial   whether new documents get the status
+     * @param locked    whether the documents in the status keep their content
+     * @param anyTarget whether a document moves from the status to any status
+     * @param targets   the keys of the statuses a document moves to from this one
+     */
+    public record Status(String key, @Nullable String name, @Nullable String color, @Nullable Integer position,
+                         @Nullable Boolean initial, @Nullable Boolean locked, @Nullable Boolean anyTarget,
+                         @Nullable List<String> targets) {
     }
 
     /**

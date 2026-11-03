@@ -6,6 +6,7 @@
                 <property name="currentRevision" fetchPlan="_base"/>
                 <property name="category" fetchPlan="_instance_name"/>
                 <property name="tags" fetchPlan="_base"/>
+                <property name="status" fetchPlan="_base"/>
                 <property name="accessSet" fetchPlan="_instance_name"/>
             </fetchPlan>
             <loader id="documentsDl">
@@ -34,13 +35,7 @@
                     <button id="moveButton" action="documentsGrid.moveAction" text=""
                             title="msg://moveAction.text"/>
                     <dropdownButton id="statusButton" title="msg://statusButton.text" icon="FLAG"
-                                    themeNames="no-dropdown-indicators" enabled="false">
-                        <items>
-                            <actionItem id="activateItem" ref="documentsGrid.activateAction"/>
-                            <actionItem id="archiveItem" ref="documentsGrid.archiveAction"/>
-                            <actionItem id="unarchiveItem" ref="documentsGrid.unarchiveAction"/>
-                        </items>
-                    </dropdownButton>
+                                    themeNames="no-dropdown-indicators" enabled="false"/>
                     <button id="accessButton" action="documentsGrid.accessAction" text=""
                             title="msg://accessAction.text"/>
                     <button id="favoriteButton" action="documentsGrid.favoriteAction" text=""
@@ -65,12 +60,6 @@
                             text="msg://discussAction.text" icon="COMMENTS_O"/>
                     <action id="moveAction" type="list_itemTracking"
                             text="msg://moveAction.text" icon="ARROW_RIGHT"/>
-                    <action id="activateAction" type="list_itemTracking"
-                            text="msg://activateAction.text" icon="CHECK"/>
-                    <action id="archiveAction" type="list_itemTracking"
-                            text="msg://archiveAction.text" icon="ARCHIVE"/>
-                    <action id="unarchiveAction" type="list_itemTracking"
-                            text="msg://unarchiveAction.text" icon="UNDO"/>
                     <action id="accessAction" type="list_itemTracking"
                             text="msg://accessAction.text" icon="KEY"/>
                     <action id="favoriteAction" type="docai_favoriteList"/>
@@ -83,9 +72,7 @@
                     <item id="discussDocumentItem" action="documentsGrid.discussAction"
                           classNames="aura-accent-purple main-menu-item"/>
                     <item id="moveDocumentItem" action="documentsGrid.moveAction"/>
-                    <item id="activateDocumentItem" action="documentsGrid.activateAction"/>
-                    <item id="archiveDocumentItem" action="documentsGrid.archiveAction"/>
-                    <item id="unarchiveDocumentItem" action="documentsGrid.unarchiveAction"/>
+                    <item id="statusDocumentItem" text="msg://statusItem.text" icon="FLAG"/>
                     <item id="accessDocumentItem" action="documentsGrid.accessAction"/>
                     <item id="favoriteDocumentItem" action="documentsGrid.favoriteAction"/>
                     <item id="deleteDocumentItem" action="documentsGrid.deleteAction" classNames="danger-menu-item"/>
@@ -94,7 +81,10 @@
                     <column property="name" width="15em"/>
                     <column property="category" autoWidth="true" flexGrow="0"/>
                     <column property="tags" autoWidth="true" flexGrow="0" sortable="false"/>
-                    <column property="status" autoWidth="true" flexGrow="0"/>
+                    <!-- the badge shows the status, the column sorts by its place in the lifecycle -->
+                    <column key="status" property="status.position"
+                            header="msg://com.company.docai.model.document/Document.status"
+                            autoWidth="true" flexGrow="0"/>
                     <column property="documentDate" autoWidth="true" flexGrow="0" visible="false"/>
                     <column key="fileSize" property="currentRevision.fileSize" autoWidth="true" flexGrow="0"
                             visible="false"/>

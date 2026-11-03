@@ -18,6 +18,7 @@ import com.company.docai.model.tag.Tag;
 import com.company.docai.model.user.User;
 import com.company.docai.security.role.EmployeeRole;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
@@ -45,6 +46,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -89,6 +91,9 @@ class DemoDataLoaderTest {
     @Autowired
     private SystemAuthenticator systemAuthenticator;
 
+    // the names of the statuses that the keys of the set being checked stand for
+    private Map<String, String> statusNames = Map.of();
+
     @Test
     @Order(1)
     void aSetThatFailsHalfwayLeavesTheDatabaseEmpty() {
@@ -123,6 +128,7 @@ class DemoDataLoaderTest {
         assertLoadedAsDescribed("ru");
         assertFavoritesAsDescribed("ru");
         assertUsersAsDescribed("ru", Character.UnicodeScript.CYRILLIC);
+        assertStatusesAsDescribed("ru", Character.UnicodeScript.CYRILLIC);
     }
 
     @Test
@@ -135,9 +141,11 @@ class DemoDataLoaderTest {
         assertLoadedAsDescribed("en");
         assertFavoritesAsDescribed("en");
         assertUsersAsDescribed("en", Character.UnicodeScript.LATIN);
+        assertStatusesAsDescribed("en", Character.UnicodeScript.LATIN);
     }
 
     private void assertLoadedAsDescribed(String set) {
+        statusNames = statusNamesOf(read(set));
         List<Visibility> visibility = new ArrayList<>();
         Trash trash = new Trash(new ArrayList<>(), new ArrayList<>());
 
@@ -188,6 +196,69 @@ class DemoDataLoaderTest {
             assertThat(names.firstName() + names.lastName())
                     .matches(name -> isWrittenIn(name, script), "written in " + script);
         }
+    }
+
+    // every status of the set has the name, the color, the place, the flags and the targets the set gives it, and
+    // its name is written in the script of the set; the English set loads after the Russian one, so it gives the
+    // default statuses their English names back and adds its own In review beside the Russian one
+    private void assertStatusesAsDescribed(String set, Character.UnicodeScript script) {
+        List<DemoSet.Status> described = read(set).statuses();
+        assertThat(described)
+                .extracting(DemoSet.Status::key)
+                .containsExactly("DRAFT", "IN_REVIEW", "ACTIVE", "ARCHIVED");
+
+        Map<String, DocumentStatus> statuses = described.stream()
+                .collect(Collectors.toMap(DemoSet.Status::key, this::statusOf));
+
+        for (DemoSet.Status entry : described) {
+            DocumentStatus status = statuses.get(entry.key());
+
+            assertThat(status.getName()).isEqualTo(entry.name());
+            assertThat(status.getName().replace(" ", ""))
+                    .matches(name -> isWrittenIn(name, script), "written in " + script);
+
+            if (entry.color() != null) {
+                assertThat(status.getColor()).isEqualTo(entry.color());
+            }
+
+            if (entry.position() != null) {
+                assertThat(status.getPosition()).isEqualTo(entry.position());
+            }
+
+            if (entry.initial() != null) {
+                assertThat(status.getInitial()).isEqualTo(entry.initial());
+            }
+
+            if (entry.locked() != null) {
+                assertThat(status.getLocked()).isEqualTo(entry.locked());
+            }
+
+            if (entry.anyTarget() != null) {
+                assertThat(status.getAnyTarget()).isEqualTo(entry.anyTarget());
+            }
+
+            if (entry.targets() != null) {
+                assertThat(status.getTargets())
+                        .containsExactlyInAnyOrderElementsOf(entry.targets().stream()
+                                .map(statuses::get)
+                                .toList());
+            }
+        }
+    }
+
+    // a default status by its id, another one by its name
+    private DocumentStatus statusOf(DemoSet.Status entry) {
+        return switch (entry.key()) {
+            case "DRAFT" -> TestStatuses.draft(dataManager);
+            case "ACTIVE" -> TestStatuses.active(dataManager);
+            case "ARCHIVED" -> TestStatuses.archived(dataManager);
+            default -> dataManager.load(DocumentStatus.class)
+                    .query("e.name = :name")
+                    .parameter("name", entry.name())
+                    .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                            .add("targets", FetchPlan.BASE))
+                    .one();
+        };
     }
 
     private static boolean isWrittenIn(String text, Character.UnicodeScript script) {
@@ -320,7 +391,8 @@ class DemoDataLoaderTest {
                 .parameter("folder", folder)
                 .parameter("name", description.name())
                 .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
-                        .add("category", FetchPlan.BASE))
+                        .add("category", FetchPlan.BASE)
+                        .add("status", FetchPlan.BASE))
                 .hint(DynAttrQueryHints.LOAD_DYN_ATTR, true)
                 .hint(PersistenceHints.SOFT_DELETION, false)
                 .one();
@@ -328,10 +400,8 @@ class DemoDataLoaderTest {
         assertDeletion(document.getDeletedBy(), document.getDeletedDate(), deletion);
 
         assertThat(document.getDocumentDate()).isEqualTo(description.date());
-        assertThat(document.getStatus())
-                .isEqualTo(description.status() == null
-                        ? DocumentStatus.DRAFT
-                        : DocumentStatus.valueOf(description.status()));
+        assertThat(document.getStatus().getName())
+                .isEqualTo(statusNames.get(description.status() == null ? "DRAFT" : description.status()));
         assertThat(document.getCategory() == null ? null : document.getCategory().getName())
                 .isEqualTo(description.type());
         assertFields(description, document);
@@ -431,6 +501,19 @@ class DemoDataLoaderTest {
 
     private static Instant instantOf(LocalDateTime time) {
         return time.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    // a key of the set names its status by the name the set gives it, a default status by the name it has
+    private Map<String, String> statusNamesOf(DemoSet set) {
+        Map<String, String> names = new HashMap<>(Map.of(
+                "DRAFT", TestStatuses.draft(dataManager).getName(),
+                "ACTIVE", TestStatuses.active(dataManager).getName(),
+                "ARCHIVED", TestStatuses.archived(dataManager).getName()));
+        set.statuses().stream()
+                .filter(status -> status.name() != null)
+                .forEach(status -> names.put(status.key(), status.name()));
+
+        return names;
     }
 
     private static DemoSet read(String set) {

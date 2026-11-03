@@ -6,12 +6,12 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.access.AccessEntryDraft;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestUploads;
 import com.company.docai.view.access.AccessDetailView;
 import com.company.docai.view.main.MainView;
@@ -180,8 +180,8 @@ class DocumentPropertiesTest {
     @Test
     void anArchivedDocumentShowsItsTypeAndFieldsReadOnly() {
         Document document = contract(upload());
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
 
         DocumentDetailView card = openProperties(document);
 

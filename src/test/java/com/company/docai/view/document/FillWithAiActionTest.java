@@ -6,7 +6,6 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
@@ -15,6 +14,7 @@ import com.company.docai.test_support.StubChatModel;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTags;
 import com.company.docai.test_support.TestUploads;
 import com.company.docai.view.main.MainView;
@@ -168,8 +168,8 @@ class FillWithAiActionTest {
     void anArchivedDocumentCannotBeFilled() {
         Document document = upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8));
         systemAuthenticator.runWithUser(ADMIN, () -> {
-            documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-            documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+            documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+            documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
         });
 
         JmixButton button = button(openCard(stored(document)));

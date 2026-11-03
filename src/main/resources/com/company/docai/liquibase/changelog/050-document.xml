@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
-        logicalFilePath="com/company/docai/liquibase/changelog/040-document.xml">
+        logicalFilePath="com/company/docai/liquibase/changelog/050-document.xml">
 
     <changeSet id="1" author="jmix-docai" context="!cuba">
         <createTable tableName="DOCUMENT">
@@ -22,7 +22,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="CURRENT_REVISION_ID" type="${uuid.type}"/>
-            <column name="STATUS" type="varchar(50)">
+            <column name="STATUS_ID" type="${uuid.type}">
                 <constraints nullable="false"/>
             </column>
             <column name="DOCUMENT_DATE" type="date"/>
@@ -78,6 +78,13 @@
         <addForeignKeyConstraint baseTableName="DOCUMENT" baseColumnNames="FOLDER_ID"
                                  referencedTableName="FOLDER" referencedColumnNames="ID"
                                  constraintName="FK_DOCUMENT_ON_FOLDER"/>
+        <createIndex indexName="IDX_DOCUMENT_STATUS" tableName="DOCUMENT">
+            <column name="STATUS_ID"/>
+        </createIndex>
+        <!-- no cascade: a status in use is not deleted, and this key stands behind the status service -->
+        <addForeignKeyConstraint baseTableName="DOCUMENT" baseColumnNames="STATUS_ID"
+                                 referencedTableName="DOCUMENT_STATUS" referencedColumnNames="ID"
+                                 constraintName="FK_DOCUMENT_ON_STATUS"/>
 
         <createIndex indexName="IDX_DOCUMENT_REVISION_DOCUMENT" tableName="DOCUMENT_REVISION">
             <column name="DOCUMENT_ID"/>

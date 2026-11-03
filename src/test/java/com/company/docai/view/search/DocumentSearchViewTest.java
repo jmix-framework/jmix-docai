@@ -144,7 +144,7 @@ class DocumentSearchViewTest {
                         + "…supply of tractors and combines…");
         assertThat(this.<Span>byClass(row, "document-search-match").getText()).isEqualTo("tractors");
         assertThat(row.getElement().getTextRecursively())
-                .contains(messages.getMessage(document.getStatus()));
+                .contains(document.getStatus().getName());
     }
 
     @Test

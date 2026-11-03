@@ -31,6 +31,12 @@
       "email": "john.doe@example.com"
     }
   ],
+  "statuses": [
+    {"key": "DRAFT", "name": "Draft", "anyTarget": false, "targets": ["IN_REVIEW", "ACTIVE"]},
+    {"key": "IN_REVIEW", "name": "In review", "color": "#3266e4", "position": 2, "anyTarget": true},
+    {"key": "ACTIVE", "name": "Active", "position": 3},
+    {"key": "ARCHIVED", "name": "Archived", "position": 4}
+  ],
   "folders": [
     {
       "name": "Inbox",
@@ -171,7 +177,7 @@
             "contractAmount": "13800.00",
             "validUntil": "2026-12-31"
           },
-          "status": "ACTIVE",
+          "status": "IN_REVIEW",
           "versions": [
             {
               "file": "works-15.pdf",
@@ -548,7 +554,7 @@
           "tags": [
             "supply"
           ],
-          "status": "ACTIVE",
+          "status": "IN_REVIEW",
           "versions": [
             {
               "file": "framework-supply-3-2026.pdf",
@@ -839,7 +845,7 @@
             "counterparty": "Shield Security LLC",
             "validUntil": "2027-01-31"
           },
-          "status": "ACTIVE",
+          "status": "IN_REVIEW",
           "versions": [
             {
               "file": "security-12.pdf",

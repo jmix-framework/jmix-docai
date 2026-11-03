@@ -8,6 +8,7 @@ import com.company.docai.model.access.AccessEntryDraft;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.access.AccessSet;
 import com.company.docai.model.document.Document;
+import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.security.role.AccessRowLevelRole;
 import com.company.docai.security.role.EmployeeRole;
@@ -41,6 +42,7 @@ import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.checkbox.JmixCheckbox;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.TreeDataGrid;
+import io.jmix.flowui.component.select.JmixSelect;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.fragment.FragmentUtils;
@@ -253,8 +255,10 @@ class AccessUiTest {
         assertThat(this.<JmixButton>fragmentComponent(view, "documentList", "createDocumentButton").isEnabled())
                 .isFalse();
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "versionUpload").isEnabled()).isFalse();
-        assertThat(List.of("moveAction", "activateAction", "accessAction", "deleteAction"))
+        assertThat(List.of("moveAction", "accessAction", "deleteAction"))
                 .allSatisfy(id -> assertThat(grid.getAction(id).isEnabled()).as(id).isFalse());
+        assertThat(this.<DropdownButton>fragmentComponent(view, "documentList", "statusButton").isEnabled())
+                .isFalse();
 
         folderTree(view).select(sandbox);
         TestGrids.clickRow(grid, offer, false);
@@ -262,8 +266,9 @@ class AccessUiTest {
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "documentsUpload").isEnabled()).isTrue();
         assertThat(documentsGrid(view).getParent()).get()
                 .isInstanceOfSatisfying(UploadDropZone.class, zone -> assertThat(zone.isEnabled()).isTrue());
-        assertThat(List.of("moveAction", "activateAction", "deleteAction"))
+        assertThat(List.of("moveAction", "deleteAction"))
                 .allSatisfy(id -> assertThat(grid.getAction(id).isEnabled()).as(id).isTrue());
+        assertThat(this.<DropdownButton>fragmentComponent(view, "documentList", "statusButton").isEnabled()).isTrue();
     }
 
     @Test
@@ -273,13 +278,16 @@ class AccessUiTest {
 
         assertThat(viewed.isReadOnly()).isTrue();
         assertThat(UiTestUtils.<TypedTextField<String>>getComponent(viewed, "nameField").isReadOnly()).isTrue();
-        assertThat(List.of("newVersionUpload", "activateButton", "accessButton"))
+        assertThat(List.of("newVersionUpload", "accessButton"))
                 .allSatisfy(id -> assertThat(UiTestUtils.<Component>getComponent(viewed, id).isVisible()).as(id)
                         .isFalse());
+        assertThat(UiTestUtils.<JmixSelect<DocumentStatus>>getComponent(viewed, "statusField").isReadOnly()).isTrue();
         assertThat(changed.isReadOnly()).isFalse();
-        assertThat(List.of("newVersionUpload", "activateButton", "accessButton"))
+        assertThat(List.of("newVersionUpload", "accessButton"))
                 .allSatisfy(id -> assertThat(UiTestUtils.<Component>getComponent(changed, id).isVisible()).as(id)
                         .isTrue());
+        assertThat(UiTestUtils.<JmixSelect<DocumentStatus>>getComponent(changed, "statusField").isReadOnly())
+                .isFalse();
     }
 
     @Test

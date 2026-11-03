@@ -10,13 +10,13 @@ import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.access.AccessSet;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.trash.TrashItem;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import io.jmix.core.DataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.FetchPlan;
@@ -120,8 +120,8 @@ class TrashPurgeTest {
         Document supply = upload(contracts, "supply.txt");
         documentService.uploadRevision(supply, TestFiles.file(tempDir, "supply-v2.txt", "second"));
         Document invoice = asInvoice(upload(contracts, "invoice.txt"));
-        documentService.changeStatus(List.of(invoice), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(invoice), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(invoice), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(invoice), TestStatuses.archived(dataManager));
         Document lease = TestAccess.giveOwnAccess(dataManager, upload(leases, "lease.txt"),
                 Grant.user("alice", AccessLevel.VIEW));
         Document draft = upload(contracts, "draft.txt");

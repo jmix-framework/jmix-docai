@@ -5,10 +5,10 @@ import com.company.docai.app.service.document.DocumentFields;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import io.jmix.core.DataManager;
 import io.jmix.core.DeletePolicyException;
 import io.jmix.core.FetchPlan;
@@ -221,7 +221,7 @@ class DocumentTypesTest {
         Document edited = reloadWithFields(document);
         edited.setCategory(type("Invoice"));
         // a draft does not go to the archive
-        assertThatThrownBy(() -> documentService.save(edited, null, DocumentStatus.ARCHIVED))
+        assertThatThrownBy(() -> documentService.save(edited, null, TestStatuses.archived(dataManager)))
                 .isInstanceOf(OperationRejectedException.class);
 
         assertThat(field(edited, "counterparty")).isEqualTo("Acme Ltd");
@@ -316,7 +316,7 @@ class DocumentTypesTest {
         Folder target = folder(sandbox, "Target");
 
         documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "second"));
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
         documentService.move(List.of(document), target);
 
         assertThat(field(reloadWithFields(document), "counterparty")).isEqualTo("Acme Ltd");
@@ -449,8 +449,8 @@ class DocumentTypesTest {
     }
 
     private Document archived(Document document) {
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
         return document;
     }
 

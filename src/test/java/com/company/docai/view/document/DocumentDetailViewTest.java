@@ -12,15 +12,16 @@ import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTags;
 import com.company.docai.test_support.TestUploads;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.search.DocumentSearchView;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBoxBase;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Pre;
@@ -39,6 +40,7 @@ import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
+import io.jmix.flowui.component.select.JmixSelect;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.data.grid.DataGridItems;
@@ -107,6 +109,9 @@ class DocumentDetailViewTest {
 
     @Autowired
     private CurrentAuthentication currentAuthentication;
+
+    @Autowired
+    private FileSizeFormatter fileSizeFormatter;
 
     @TempDir
     private Path tempDir;
@@ -253,57 +258,108 @@ class DocumentDetailViewTest {
     }
 
     @Test
-    void aStagedStatusChangeIsSavedOnOk() {
+    void aStatusChosenInTheFieldIsSavedOnOk() {
         Document document = upload("a.txt");
         DocumentDetailView card = openCard(document);
+        JmixSelect<DocumentStatus> statusField = component(card, "statusField");
+        DocumentStatus active = TestStatuses.active(dataManager);
 
-        this.<JmixButton>component(card, "activateButton").click();
+        statusField.setValue(active);
+        ComponentUtil.fireEvent(statusField, new AbstractField.ComponentValueChangeEvent<>(statusField, statusField,
+                TestStatuses.draft(dataManager), true));
         assertThat(card.hasUnsavedChanges()).isTrue();
-        assertThat(this.<Span>component(card, "pendingChanges").getText())
-                .isEqualTo("→ " + messages.getMessage(DocumentStatus.ACTIVE));
-
-        assertThat(this.<JmixButton>component(card, "activateButton").getThemeNames())
-                .contains(ButtonVariant.PRIMARY.getVariantName());
+        assertThat(this.<Span>component(card, "pendingChanges").getText()).isEqualTo("→ " + active.getName());
 
         this.<JmixButton>component(card, "saveButton").click();
 
-        assertThat(reload(document).getStatus()).isEqualTo(DocumentStatus.ACTIVE);
+        assertThat(reload(document).getStatus()).isEqualTo(active);
     }
 
     @Test
-    void anArchivedDocumentIsReadOnly() {
+    void theStatusFieldOffersTheCurrentStatusAndItsTargets() {
         Document document = upload("a.txt");
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        DocumentDetailView card = openCard(reload(document));
+        JmixSelect<DocumentStatus> statusField = component(card, "statusField");
+
+        assertThat(statusField.getValue()).isEqualTo(TestStatuses.active(dataManager));
+        assertThat(statusField.getListDataView().getItems())
+                .containsExactly(TestStatuses.active(dataManager), TestStatuses.archived(dataManager));
+    }
+
+    // the current status keeps its own place among the others, not the first one
+    @Test
+    void theStatusFieldListsTheStatusesInTheirOrder() {
+        Document document = upload("a.txt");
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
+        DocumentDetailView card = openCard(reload(document));
+        JmixSelect<DocumentStatus> statusField = component(card, "statusField");
+
+        assertThat(statusField.getValue()).isEqualTo(TestStatuses.archived(dataManager));
+        assertThat(statusField.getListDataView().getItems())
+                .containsExactly(TestStatuses.active(dataManager), TestStatuses.archived(dataManager));
+    }
+
+    // the closed field names the status, and its list draws each status with its dot
+    @Test
+    void theStatusFieldNamesTheStatusesAndDrawsTheirDots() {
+        DocumentDetailView card = openCard(reload(upload("a.txt")));
+        JmixSelect<DocumentStatus> statusField = component(card, "statusField");
+        DocumentStatus draft = TestStatuses.draft(dataManager);
+
+        assertThat(statusField.getItemLabelGenerator().apply(draft)).isEqualTo(draft.getName());
+        assertThat(statusField.getItemRenderer().createComponent(draft).getElement().getClassList())
+                .contains("status-option");
+    }
+
+    @Test
+    void aNewCardShowsTheInitialStatus() {
+        DocumentDetailView card = openNewCard();
+        DocumentStatus draft = TestStatuses.draft(dataManager);
+
+        assertThat(this.<Badge>component(card, "statusBadge").getText()).isEqualTo(draft.getName());
+        assertThat(this.<JmixSelect<DocumentStatus>>component(card, "statusField").getValue()).isEqualTo(draft);
+    }
+
+    @Test
+    void aDocumentInALockedStatusIsReadOnlyButItsStatusIsNot() {
+        Document document = upload("a.txt");
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
 
         DocumentDetailView card = openCard(reload(document));
+        JmixSelect<DocumentStatus> statusField = component(card, "statusField");
 
         assertThat(this.<TypedTextField<String>>component(card, "nameField").isReadOnly()).isTrue();
         assertThat(this.<JmixUpload<?>>component(card, "newVersionUpload").isVisible()).isFalse();
-        assertThat(this.<JmixButton>component(card, "unarchiveButton").isVisible()).isTrue();
-        assertThat(this.<JmixButton>component(card, "archiveButton").isVisible()).isFalse();
+        assertThat(statusField.isReadOnly()).isFalse();
+        assertThat(statusField.getListDataView().getItems()).contains(TestStatuses.active(dataManager));
     }
 
     @Test
     void theStatusShowsAsABadgeInItsColor() {
         Document document = upload("a.txt");
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
 
         DocumentDetailView card = openCard(reload(document));
 
         Badge badge = component(card, "statusBadge");
-        assertThat(badge.getText()).isEqualTo(messages.getMessage(DocumentStatus.ACTIVE));
-        assertThat(badge.getClassNames()).containsExactly("v-success");
+        DocumentStatus active = TestStatuses.active(dataManager);
+        assertThat(badge.getText()).isEqualTo(active.getName());
+        assertThat(badge.getClassNames()).isEmpty();
+        assertThat(badge.getStyle().get("--aura-accent-color-light")).isEqualTo(active.getColor());
+        assertThat(badge.getStyle().get("--vaadin-badge-border-color")).isEqualTo(active.getColor());
     }
 
     @Test
-    void theStatusLeadsTheActionsAndTheIconsCloseThem() {
+    void theAiActionLeadsAndTheIconsCloseTheActions() {
         DocumentDetailView card = openCard(upload("a.txt"));
 
         assertThat(this.<Component>component(card, "headerActions").getChildren()
                 .map(action -> action.getId().orElseThrow()))
-                .containsExactly("activateButton", "archiveButton", "unarchiveButton", "fillWithAiButton",
-                        "newVersionUpload", "downloadButton", "accessButton", "favoriteButton");
+                .containsExactly("fillWithAiButton", "newVersionUpload", "downloadButton", "accessButton",
+                        "favoriteButton");
     }
 
     @Test
@@ -483,6 +539,16 @@ class DocumentDetailViewTest {
     }
 
     @Test
+    void theVersionFieldShowsTheNumberTheFileAndTheSizeOfTheCurrentVersion() {
+        Document document = upload("a.txt");
+        DocumentDetailView card = openCard(document);
+
+        assertThat(this.<TypedTextField<String>>component(card, "currentVersionField").getValue())
+                .isEqualTo("1 · a.txt · "
+                        + fileSizeFormatter.format(reload(document).getCurrentRevision().getFileSize()));
+    }
+
+    @Test
     void theVersionsNameWhoUploadedThem() {
         DocumentDetailView card = openCard(upload("a.txt"));
         DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
@@ -559,8 +625,8 @@ class DocumentDetailViewTest {
     @Test
     void theTagsOfAnArchivedDocumentStayOpenForChange() {
         Document document = upload("a.txt");
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
 
         DocumentDetailView card = openCard(reload(document));
 

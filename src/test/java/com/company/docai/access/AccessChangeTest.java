@@ -9,13 +9,13 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.security.role.EmployeeRole;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
@@ -116,7 +116,8 @@ class AccessChangeTest {
 
         assertRejected(() -> documentService.save(renamed(priceList, "prices.txt"), null, null), readOnly);
         assertRejected(() -> documentService.uploadRevision(priceList, file("price-list-v2.txt")), readOnly);
-        assertRejected(() -> documentService.changeStatus(List.of(priceList), DocumentStatus.ACTIVE), readOnly);
+        assertRejected(() -> documentService.changeStatus(List.of(priceList), TestStatuses.active(dataManager)),
+                readOnly);
         assertRejected(() -> documentService.move(List.of(priceList), sandbox), readOnly);
         assertRejected(() -> documentService.delete(List.of(priceList)), readOnly);
     }
@@ -141,7 +142,8 @@ class AccessChangeTest {
 
         assertRejected(() -> documentService.save(budget, null, null), unavailable);
         assertRejected(() -> documentService.uploadRevision(budget, file("budget-v2.txt")), unavailable);
-        assertRejected(() -> documentService.changeStatus(List.of(budget), DocumentStatus.ACTIVE), unavailable);
+        assertRejected(() -> documentService.changeStatus(List.of(budget), TestStatuses.active(dataManager)),
+                unavailable);
         assertRejected(() -> documentService.move(List.of(budget), sandbox), unavailable);
         assertRejected(() -> documentService.delete(List.of(budget)), unavailable);
     }

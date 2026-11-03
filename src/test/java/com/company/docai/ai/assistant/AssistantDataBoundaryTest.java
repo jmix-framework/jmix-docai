@@ -2,9 +2,11 @@ package com.company.docai.ai.assistant;
 
 import com.company.docai.DocAiApplication;
 import com.company.docai.app.service.document.DocumentService;
+import com.company.docai.app.service.document.DocumentStatusService;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
+import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
@@ -12,6 +14,7 @@ import com.company.docai.test_support.StubAiConfiguration;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTags;
 import io.jmix.aitools.dataload.execution.GeneratedJpqlParameter;
 import io.jmix.aitools.dataload.execution.GeneratedJpqlResult;
@@ -45,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -73,6 +77,9 @@ class AssistantDataBoundaryTest {
 
     @Autowired
     private DocumentService documentService;
+
+    @Autowired
+    private DocumentStatusService statusService;
 
     @Autowired
     private FolderService folderService;
@@ -111,7 +118,7 @@ class AssistantDataBoundaryTest {
     }
 
     @Test
-    void theModelLearnsOfTheDocumentsTheFoldersTheTypesAndTheTagsOnly() {
+    void theModelLearnsOfTheDocumentsTheFoldersTheTypesTheTagsAndTheStatusesOnly() {
         List<String> entities = asTheEmployee(() -> discovery.getAvailableEntities(toolContext())
                 .stream()
                 .map(EntitySummary::getEntityName)
@@ -125,9 +132,19 @@ class AssistantDataBoundaryTest {
                 .map(EntityPropertyDescriptor::getName)
                 .toList());
 
-        assertThat(entities).containsExactlyInAnyOrder("Document", "Folder", "dynat_Category", "Tag");
+        List<String> statusAttributes = asTheEmployee(() -> discovery.getDomainModelForEntities(
+                        List.of("DocumentStatus"), toolContext())
+                .getFirst()
+                .getProperties()
+                .stream()
+                .map(EntityPropertyDescriptor::getName)
+                .toList());
+
+        assertThat(entities).containsExactlyInAnyOrder("Document", "Folder", "dynat_Category", "Tag", "DocumentStatus");
         assertThat(attributes).contains("name", "folder", "category", "tags", "status", "documentDate")
                 .doesNotContain("nameKey", "accessSet", "currentRevision", "revisions");
+        assertThat(statusAttributes).contains("name", "color", "position", "initial", "locked", "anyTarget", "targets")
+                .doesNotContain("nameKey");
     }
 
     @Test
@@ -163,6 +180,32 @@ class AssistantDataBoundaryTest {
 
         assertThat(totalOf(execute(count, List.of("total"), tag))).isEqualTo(2);
         assertThat(asTheEmployee(() -> totalOf(execute(count, List.of("total"), tag)))).isEqualTo(1);
+    }
+
+    @Test
+    void aCountByStatusTellsEachPersonOfTheDocumentsTheyMayOpen() {
+        DocumentStatus active = TestStatuses.active(dataManager);
+        Document visible = upload(open, "visible.txt");
+        Document hidden = upload(open, "hidden.txt");
+        documentService.changeStatus(List.of(visible, hidden), active);
+        TestAccess.giveOwnAccess(dataManager, hidden, Grant.user("maria", AccessLevel.VIEW));
+        String count = "select count(d) as total from Document d where d.status.name = :status"
+                + " and d.name like :prefix";
+        JpqlExecutionParameter status = new JpqlExecutionParameter("status", "String", active.getName());
+
+        assertThat(totalOf(execute(count, List.of("total"), status))).isEqualTo(2);
+        assertThat(asTheEmployee(() -> totalOf(execute(count, List.of("total"), status)))).isEqualTo(1);
+    }
+
+    @Test
+    void theRulesNameTheStatusesAndHowToCompareThem() throws IOException {
+        String names = statusService.loadAll().stream()
+                .map(DocumentStatus::getName)
+                .collect(Collectors.joining(", "));
+
+        assertThat(promptProvider.getResource().getContentAsString(StandardCharsets.UTF_8))
+                .contains("d.status.name")
+                .contains("Document statuses: " + names);
     }
 
     @Test

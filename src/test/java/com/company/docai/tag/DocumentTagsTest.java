@@ -6,12 +6,12 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.app.service.trash.TrashService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
@@ -142,8 +142,8 @@ class DocumentTagsTest {
     void theTagsOfAnArchivedDocumentChangeAndItsStampStays() {
         Tag lease = tag("Lease " + suffix);
         Document document = upload("a.txt");
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
         stampedLongAgo(document);
 
         systemAuthenticator.runWithUser(EMPLOYEE, () -> {
@@ -154,7 +154,7 @@ class DocumentTagsTest {
 
         Document stored = dataManager.load(Id.of(document)).one();
         assertThat(tagsOf(document)).containsExactly(lease);
-        assertThat(stored.getStatus()).isEqualTo(DocumentStatus.ARCHIVED);
+        assertThat(stored.getStatus()).isEqualTo(TestStatuses.archived(dataManager));
         assertThat(stored.getChangedDate()).isAtSameInstantAs(LONG_AGO);
     }
 
@@ -164,8 +164,8 @@ class DocumentTagsTest {
     void aChangeOfTheTagsAloneRaisesTheVersionOfTheDocument() {
         Tag lease = tag("Lease " + suffix);
         Document document = upload("a.txt");
-        documentService.changeStatus(List.of(document), DocumentStatus.ACTIVE);
-        documentService.changeStatus(List.of(document), DocumentStatus.ARCHIVED);
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
         Integer version = dataManager.load(Id.of(document)).one().getVersion();
 
         Document edited = editable(document);

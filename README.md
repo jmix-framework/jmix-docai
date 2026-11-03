@@ -21,6 +21,7 @@ A reference document management system built on [Jmix](https://www.jmix.io).
 - [Tags](#️-tags)
 - [Comments](#-comments)
 - [Document Types](#-document-types)
+- [Document Statuses](#-document-statuses)
 - [Full-Text Search](#-full-text-search)
 - [Semantic Search](#-semantic-search)
 - [Branding](#-branding)
@@ -194,6 +195,8 @@ Both sets have the same folders, people and scenes:
 | Trash | As before the deletion | The Drafts folder with two drafts, deleted by Alice, and the first edition of Lease Agreement No. 112, deleted by John from Contracts: preview and restore them, or delete them forever as `admin` |
 | Favorites | Personal | Two or three marks of each employee and of `admin` in the Favorites section of the folder tree: John has Contracts and Lease Agreement No. 112 |
 
+Both sets add the status *In review*, blue, between Draft and Active and named in the language of the set, and three contracts wait in it: Works Contract No. 15/2026 in Contracts, Framework Supply Agreement No. 3/2026 and Security Services Agreement No. 12/OKH in Procurement.
+
 Both sets tag 39 documents with seven tags, such as *lease*, *supply* and *IT*, that cross the folders: *lease* marks leases in Contracts, Procurement and Archive 2025, so the page of the tag is shorter for `peter`. The scans of the Inbox have no tags: **Fill with AI** proposes them. No tag names farm machinery.
 
 The corpus holds 12 documents about farm machinery, such as a tractor lease, a combine harvester purchase and a memo about a baler, and 18 about other machinery and goods. None of them says "agricultural": search by words for *agricultural machinery* finds nothing, *tractor* and *combine* find a few documents each, and **AI search** finds the 12. Signed in as `peter`, who may not open Archive 2025, the AI search finds 9. Search by words for *fumigation* finds the one contract that has the word inside its PDF only; the Russian set has the Russian word for it.
@@ -208,7 +211,7 @@ The set loads once, into a database with no document and no folder but the root.
 
 It deletes the database, the document files and the search indexes `docai_document` and `docai_document_vectors`, and the next start loads the set of `DOCAI_DEMO_DATA` again. With an OpenAI key, the semantic search indexes a set in about a minute for about a cent.
 
-A set lies in `src/main/resources/com/company/docai/demo/<set>/`: `demo-data.json` describes the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, the comments with their authors and times, and who deleted an item of the trash and when; `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them, and the set only names the users in its language. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
+A set lies in `src/main/resources/com/company/docai/demo/<set>/`: `demo-data.json` describes the statuses (the names of the default ones in the language of the set and new ones with their rules), the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, the comments with their authors and times, and who deleted an item of the trash and when; `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them, and the set only names the users in its language. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
 
 ## 👥 Application Accounts
 
@@ -261,10 +264,12 @@ classDiagram
         contentType
     }
     class DocumentStatus {
-        <<enumeration>>
-        DRAFT
-        ACTIVE
-        ARCHIVED
+        name
+        color
+        position
+        initial
+        locked
+        anyTarget
     }
     class AccessSet
     class AccessEntry {
@@ -296,6 +301,7 @@ classDiagram
     Document "1" *-- "1..*" DocumentRevision : revisions
     Document --> DocumentRevision : currentRevision
     Document --> DocumentStatus : status
+    DocumentStatus "*" --> "*" DocumentStatus : targets
     Folder --> AccessSet : accessSet
     Document --> AccessSet : accessSet
     Document --> Category : category
@@ -312,7 +318,7 @@ classDiagram
 
 - One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
 - A revision never changes. A new file or a restored version adds a revision, and the document points to its current one.
-- A new document is a draft. Draft → Active ⇄ Archived; an archived document keeps its name, date, type, fields and versions until it returns to Active.
+- A document has a status of a dictionary the administrator keeps (`DocumentStatus`): a name, a color and an order; one status is given to new documents, a status moves to the statuses it lists or to any status, and a locked status keeps the name, date, type, fields and versions of its documents. The defaults are Draft → Active ⇄ Archived, with Archived locked.
 - "Modified" shows who changed the document itself and when: a new version, name, date, type, field or status. A move, an access change or a change of tags leaves it as it is, while the Jmix audit stamps of the record change with every save.
 - The type of a document is a category of the Dynamic Attributes add-on (`Category`), and the fields of the type are its attributes (`CategoryAttribute`), properties of the document named `+code`.
 - A document carries tags of a shared vocabulary (`Tag`, many-to-many owned by the document): a tag knows nothing of its documents, and a tag that a document carries, one in the trash included, is not deleted.
@@ -413,11 +419,29 @@ A document may have a type, and each type has fields of its own. Types and field
 | Completion certificate | Contractor, Amount, Work completed on, Basis contract |
 | HR document | Employee, Department, Hire date |
 
-- The four types come from the changelog `060-document-types.xml` with English and Russian names; the documents bring the values of their fields.
+- The four types come from the changelog `070-document-types.xml` with English and Russian names; the documents bring the values of their fields.
 - The type and its fields are on the **Properties** tab of the document card. A new type replaces the fields on the tab, and OK deletes the values of the fields that the new type does not have.
 - A type is optional. A field marked as required makes the card ask for it, once the **Properties** tab has been shown.
 - The administrator opens **Document types** in the main menu: the add-on's view of categories and their attributes. A saved type or field shows in the cards at once, with no **Apply changes**.
 - A type that documents are marked with cannot be deleted; change the type of those documents first.
+
+## 📌 Document Statuses
+
+A document has a status of the dictionary **Document statuses**, which the administrator keeps in the main menu, next to **Document types** and **Tags**. With the default statuses a document goes Draft → Active ⇄ Archived, as before.
+
+| Rule | What it does |
+|---|---|
+| Name | Unique whatever its case, up to 50 characters |
+| Color | A swatch of the palette (gray, green, yellow, orange, red, blue) or any other color from the custom swatch; the badge of the status takes it |
+| Position | The order of the statuses in the lists and menus |
+| Given to new documents | Exactly one status has it; checking it on another status moves it there |
+| Documents can't be changed | A document in the status keeps its name, date, type, fields and versions; its tags, comments, access, folder and status still change |
+| Can move to any status / Can move to | The statuses a document may go to from this one; the list hides while "any status" is checked, which a new status has by default |
+
+- The card shows the status as a badge in the header and as the field **Status** on the General tab: the current status and the ones it may move to. A chosen status waits for OK, like a new version.
+- The documents table offers the statuses that every selected document may move to, in the **Status** button of the toolbar and in the **Status ▸** submenu of the context menu.
+- A status that new documents get, or that a document has, one in the trash included, cannot be deleted; a deleted status leaves the lists of the others.
+- The assistant in the menu counts and lists documents by the name of the status (`d.status.name`) and gets the names of the statuses in its prompt.
 
 ## 🔎 Full-Text Search
 
