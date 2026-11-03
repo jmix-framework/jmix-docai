@@ -1,4 +1,6 @@
-# OpenSearch for full-text search: docker compose up -d --wait, which returns once OpenSearch answers
+# OpenSearch for full-text search: docker compose up -d --wait, which returns once OpenSearch answers.
+# The stand: docker compose --profile app up -d --build puts the jar built by Gradle into an image and runs it next
+# to OpenSearch, see README, Stand
 name: docai
 
 services:
@@ -19,5 +21,27 @@ services:
       timeout: 3s
       retries: 60
 
+  app:
+    profiles: [app]
+    container_name: jmix-docai
+    image: jmix-docai
+    build: .
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    # the pipeline sets the profile, the demo set and the key of the stand
+    environment:
+      - DOCAI_SEARCH_URL=http://opensearch:9200
+      - DOCAI_ACTIVE_PROFILE
+      - DOCAI_DEMO_DATA
+      - DOCAI_AI_ENABLED
+      - OPENAI_API_KEY
+    ports:
+      - "8080:8080"
+    # the database and the files of the application, under its working directory
+    volumes:
+      - docai-data:/.jmix
+
 volumes:
   opensearch-data:
+  docai-data:

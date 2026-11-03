@@ -26,8 +26,12 @@ repositories {
     maven {
         url = 'https://nexus.jmix.io/repository/premium'
         credentials {
-            username = rootProject['premiumRepoUser']
-            password = rootProject['premiumRepoPass']
+            username = rootProject.hasProperty('premiumRepoUser')
+                    ? rootProject['premiumRepoUser']
+                    : System.getenv('CUBA_PREMIUM_USER')
+            password = rootProject.hasProperty('premiumRepoPass')
+                    ? rootProject['premiumRepoPass']
+                    : System.getenv('CUBA_PREMIUM_PASSWORD')
         }
     }
 }
@@ -168,6 +172,11 @@ idea {
         excludeDirs.addAll(files '.jmix', 'node_modules', 'src/main/frontend/generated/', 'src/main/bundles', 'target',
                 '.claude', '.agents', '.skills', '.superpowers', 'docs/superpowers')
     }
+}
+
+// the image of the stand copies the jar by this name, see Dockerfile
+bootJar {
+    archiveFileName = 'jmix-docai.jar'
 }
 
 vaadin {

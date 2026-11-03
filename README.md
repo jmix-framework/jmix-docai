@@ -78,7 +78,7 @@ Further add-ons come with the modules that need them.
 - Docker with Docker Compose, for OpenSearch
 - Credentials of the Jmix premium repository, for the AI Chat add-on: they come with a Jmix Enterprise subscription or its trial
 
-The build takes the AI Chat add-on from the premium repository of Jmix. Put the credentials into `~/.gradle/gradle.properties`: the part of your license key before the dash is the user name, and the part after it is the password.
+The build takes the AI Chat add-on from the premium repository of Jmix. Put the credentials into `~/.gradle/gradle.properties`: the part of your license key before the dash is the user name, and the part after it is the password. Without these properties the build reads `CUBA_PREMIUM_USER` and `CUBA_PREMIUM_PASSWORD` from the environment, as CI does.
 
 ```properties
 premiumRepoUser=123456123456
@@ -113,10 +113,30 @@ By default the application keeps its data in the HSQLDB file database `.jmix/hsq
 | `DOCAI_AI_EMBEDDING_DIMENSIONS` | `3072` | Size of the vectors of the semantic search, set with the model: at most 3072 for text-embedding-3-large and 1536 for text-embedding-3-small; another size fills the index anew |
 | `DOCAI_AI_REASONING_EFFORT` | `none` | Reasoning effort of the model; gpt-5.6-luna calls tools only with `none`, and a model that does not reason, such as gpt-4o-mini, refuses the setting: remove `spring.ai.openai.chat.reasoning-effort` from `application.properties` for it |
 | `DOCAI_AI_TEMPERATURE` | `0` | Temperature of the model; a model that reasons takes only `1` |
-| `DOCAI_DEMO_DATA` | `en` | Demo set an empty database gets at the start in the `local` profile: `en`, `ru` or `none` |
+| `DOCAI_DEMO_DATA` | `en` in the `local` profile, `none` in others | Demo set an empty database gets at the start: `en`, `ru` or `none` |
 | `SERVER_PORT` | `8080` | HTTP port |
 
 The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together. The search indexes follow them: `./gradlew resetDemoData` deletes all three for a fresh start, see [Demo Data](#-demo-data). After the database is replaced in another way, run `docker compose down -v` to remove the indexes, and the application fills them again at start.
+
+### Run on a stand
+
+Gradle builds the jar, and Docker Compose puts it into an image and runs it next to OpenSearch:
+
+```bash
+./gradlew -Pvaadin.productionMode=true bootJar
+docker compose --profile app up -d --build
+```
+
+The application answers on port 8080 of the host at `/docai`. Its database and files live in the `docai-data` volume, the search indexes in `opensearch-data`: `docker compose --profile app down -v` deletes them, and the next start fills the empty database with the demo set again. Without the `app` profile, `docker compose up -d --wait` starts only OpenSearch, as for development.
+
+By default the stand runs with the `local` profile, as the development does: the login form comes pre-filled with the administrator, and the first start fills the empty database with the English demo set. The pipeline changes that with the variables of the table above, and Compose passes these to the application:
+
+| Variable | Meaning |
+|---|---|
+| `DOCAI_ACTIVE_PROFILE` | Spring profile; another than `local` leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one |
+| `DOCAI_DEMO_DATA` | Demo set an empty database gets at the start: `en` by default, `ru` or `none` |
+| `OPENAI_API_KEY` | Key of the OpenAI API; without it the stand shows no AI features |
+| `DOCAI_AI_ENABLED` | `false` turns the AI features off while the key is set |
 
 ### Run the tests
 
