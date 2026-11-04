@@ -53,7 +53,7 @@
                                 text="msg://renameFolderAction.text" icon="PENCIL"/>
                         <action id="moveFolderAction" type="list_itemTracking"
                                 text="msg://moveFolderAction.text" icon="ARROW_RIGHT"/>
-                        <action id="accessFolderAction" type="list_itemTracking"
+                        <action id="accessFolderAction" type="docai_accessList"
                                 text="msg://accessAction.text" icon="KEY"/>
                         <action id="favoriteAction" type="docai_favoriteList"/>
                         <action id="deleteFolderAction" type="list_itemTracking" actionVariant="DANGER"

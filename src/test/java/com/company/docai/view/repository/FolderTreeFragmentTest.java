@@ -86,6 +86,23 @@ class FolderTreeFragmentTest {
     }
 
     @Test
+    void reloadingTheTreeKeepsTheFilterTheFieldHolds() {
+        Folder contracts = folder(sandbox, "Contracts");
+        Folder signed = folder(contracts, "Signed 2026");
+        Folder invoices = folder(sandbox, "Invoices");
+        FolderTreeFragment folderTree = open(sandbox);
+        this.<TypedTextField<String>>component(folderTree, "folderFilterField").setValue("SIGNED");
+
+        folderTree.load();
+
+        TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
+
+        assertThat(tree.getItems().getItems())
+                .contains(folderService.getRoot(), sandbox, contracts, signed)
+                .doesNotContain(invoices);
+    }
+
+    @Test
     void clearingTheFilterSelectsTheShownFolderAgain() {
         Folder contracts = folder(sandbox, "Contracts");
         Folder invoices = folder(sandbox, "Invoices");

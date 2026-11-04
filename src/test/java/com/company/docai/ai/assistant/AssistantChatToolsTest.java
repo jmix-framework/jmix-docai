@@ -2,6 +2,7 @@ package com.company.docai.ai.assistant;
 
 import com.company.docai.DocAiApplication;
 import com.company.docai.app.service.document.DocumentService;
+import com.company.docai.app.service.document.DocumentTypes;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
@@ -25,6 +26,7 @@ import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
+import io.jmix.dynattr.AttributeDefinition;
 import io.jmix.dynattr.DynAttrQueryHints;
 import io.jmix.dynattr.model.Category;
 import org.jspecify.annotations.Nullable;
@@ -38,12 +40,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -87,6 +92,9 @@ class AssistantChatToolsTest {
 
     @Autowired
     private FolderService folderService;
+
+    @Autowired
+    private DocumentTypes documentTypes;
 
     @Autowired
     private DataManager dataManager;
@@ -144,6 +152,26 @@ class AssistantChatToolsTest {
         String found = find("Amount", amount.toPlainString());
 
         assertThat(found).contains(invoice.getId().toString(), contract.getId().toString())
+                .doesNotContain(hidden.getId().toString());
+    }
+
+    @Test
+    void aFieldIsFoundByItsNameInAnotherLanguage() throws IOException {
+        AttributeDefinition invoiceAmount = documentTypes.fields()
+                .stream()
+                .filter(field -> field.getCode().equals("invoiceAmount"))
+                .findFirst()
+                .orElseThrow();
+
+        Properties names = new Properties();
+        names.load(new StringReader(invoiceAmount.getNameMsgBundle()));
+        String russianName = names.getProperty("ru");
+
+        assertThat(russianName).isNotBlank().isNotEqualTo("Amount");
+
+        String found = find(russianName, amount.toPlainString());
+
+        assertThat(found).contains(invoice.getId().toString())
                 .doesNotContain(hidden.getId().toString());
     }
 

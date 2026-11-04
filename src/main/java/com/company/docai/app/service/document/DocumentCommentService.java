@@ -2,6 +2,7 @@ package com.company.docai.app.service.document;
 
 import com.company.docai.app.service.OperationRejectedException;
 import com.company.docai.app.service.access.AccessChecker;
+import com.company.docai.app.service.user.UserService;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentComment;
 import com.company.docai.model.user.User;
@@ -16,10 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Writes the comments people leave on documents. Everyone who sees a document comments on it, the author changes and
@@ -31,16 +28,18 @@ public class DocumentCommentService {
 
     private final DataManager dataManager;
     private final AccessChecker accessChecker;
+    private final UserService userService;
     private final CurrentAuthentication currentAuthentication;
     private final TimeSource timeSource;
     private final MetadataTools metadataTools;
     private final Messages messages;
 
-    public DocumentCommentService(DataManager dataManager, AccessChecker accessChecker,
+    public DocumentCommentService(DataManager dataManager, AccessChecker accessChecker, UserService userService,
                                   CurrentAuthentication currentAuthentication, TimeSource timeSource,
                                   MetadataTools metadataTools, Messages messages) {
         this.dataManager = dataManager;
         this.accessChecker = accessChecker;
+        this.userService = userService;
         this.currentAuthentication = currentAuthentication;
         this.timeSource = timeSource;
         this.metadataTools = metadataTools;
@@ -132,22 +131,9 @@ public class DocumentCommentService {
      * keep the username.
      */
     public Map<String, User> authorsOf(Collection<DocumentComment> comments) {
-        Set<String> usernames = comments.stream()
+        return userService.usersOf(comments.stream()
                 .map(DocumentComment::getCreatedBy)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        if (usernames.isEmpty()) {
-            return Map.of();
-        }
-
-        return dataManager.load(User.class)
-                .query("select u from User u where u.username in :usernames")
-                .parameter("usernames", usernames)
-                .fetchPlan(FetchPlan.INSTANCE_NAME)
-                .list()
-                .stream()
-                .collect(Collectors.toMap(User::getUsername, Function.identity()));
+                .toList());
     }
 
     // a comment deleted since, or one of a document hidden from the user or lying in the trash, is not found

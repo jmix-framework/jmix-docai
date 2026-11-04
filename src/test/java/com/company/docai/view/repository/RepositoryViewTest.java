@@ -339,6 +339,24 @@ class RepositoryViewTest {
         assertThat(grid.getSelectedItems()).containsExactlyInAnyOrder(a, b);
     }
 
+    // an open menu shows none of the items sent to it later, so the row is selected and the items go before it opens
+    @Test
+    void aRightClickSelectsTheRowBeforeTheMenuOpens() {
+        Document a = upload(sandbox, "a.txt");
+        Document b = upload(sandbox, "b.txt");
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        TestGrids.clickRow(grid, a, false);
+        pendingClientCalls();
+
+        TestGrids.requestContextMenu(grid, b);
+        assertThat(grid.getSelectedItems()).containsExactly(b);
+        assertThat(pendingClientCalls()).anyMatch(call -> call.contains("generateItems"));
+
+        TestGrids.reportContextMenuOpened(grid.getContextMenu());
+        assertThat(pendingClientCalls()).noneMatch(call -> call.contains("generateItems"));
+    }
+
     // menu items take no action variant, so the stylesheet colours the delete item by its class
     @Test
     void theMenuOfADocumentOffersEveryActionAndMarksItsDeleteItem() {

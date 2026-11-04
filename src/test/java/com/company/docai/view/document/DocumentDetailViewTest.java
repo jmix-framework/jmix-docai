@@ -113,6 +113,9 @@ class DocumentDetailViewTest {
     @Autowired
     private FileSizeFormatter fileSizeFormatter;
 
+    @Autowired
+    private DocumentRenderers documentRenderers;
+
     @TempDir
     private Path tempDir;
 
@@ -557,6 +560,26 @@ class DocumentDetailViewTest {
         assertThat(versions).isNotNull();
         assertThat(TestGrids.text(revisionsGrid, "createdBy", versions.getItems().iterator().next()))
                 .isEqualTo(nameOf(EmployeeUiTestAuthenticator.USERNAME));
+    }
+
+    @Test
+    void theVersionsShowWhenTheyWereUploadedInThePersonsTimeZone() {
+        // the person works in Kiritimati, far from the zone of the server; the user of the test's login is loaded
+        // for this test alone
+        ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
+        assertThat(currentAuthentication.getTimeZone().getID()).isEqualTo("Pacific/Kiritimati");
+
+        DocumentDetailView card = openCard(upload("a.txt"));
+        DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
+        DataGridItems<DocumentRevision> versions = revisionsGrid.getItems();
+
+        assertThat(versions).isNotNull();
+        DocumentRevision revision = versions.getItems().iterator().next();
+
+        assertThat(revision.getCreatedDate()).isNotNull();
+
+        assertThat(TestGrids.text(revisionsGrid, "createdDate", revision))
+                .isEqualTo(documentRenderers.userDateTime(revision.getCreatedDate()));
     }
 
     @Test

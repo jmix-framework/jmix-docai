@@ -10,34 +10,18 @@ import com.company.docai.search.DocumentSearchPage;
 import com.company.docai.search.SearchUnavailableException;
 import com.company.docai.search.semantic.DocumentVectorIndexer;
 import com.company.docai.search.semantic.SemanticSearch;
-import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
-import com.company.docai.view.status.StatusBadges;
-import com.company.docai.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.badge.Badge;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
-import io.jmix.core.DataManager;
-import io.jmix.core.Id;
-import io.jmix.core.Messages;
-import io.jmix.core.MetadataTools;
-import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.Notifications;
-import io.jmix.flowui.UiComponents;
+import io.jmix.flowui.Fragments;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.asynctask.UiAsyncTasks;
-import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.component.button.JmixButton;
-import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.view.MessageBundle;
-import io.jmix.flowui.view.StandardOutcome;
 import io.jmix.flowui.view.StandardView;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewComponent;
@@ -87,9 +71,6 @@ public class DocumentSearchView extends StandardView {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentSearchView.class);
 
-    private static final String MATCH_START = "<b>";
-    private static final String MATCH_END = "</b>";
-
     @ViewComponent
     private Span messageText;
     @ViewComponent
@@ -110,10 +91,6 @@ public class DocumentSearchView extends StandardView {
     @Autowired
     private TagService tagService;
     @Autowired
-    private TagBadges tagBadges;
-    @Autowired
-    private StatusBadges statusBadges;
-    @Autowired
     private SemanticSearch semanticSearch;
     @Autowired
     private DocumentVectorIndexer vectorIndexer;
@@ -124,19 +101,7 @@ public class DocumentSearchView extends StandardView {
     @Autowired
     private ViewNavigators viewNavigators;
     @Autowired
-    private DataManager dataManager;
-    @Autowired
-    private DialogWindows dialogWindows;
-    @Autowired
-    private Notifications notifications;
-    @Autowired
-    private UiComponents uiComponents;
-    @Autowired
-    private Icons icons;
-    @Autowired
-    private Messages messages;
-    @Autowired
-    private MetadataTools metadataTools;
+    private Fragments fragments;
 
     @Nullable
     private DocumentSearchPage lastPage;
@@ -344,106 +309,11 @@ public class DocumentSearchView extends StandardView {
     }
 
     private Component createHitRow(DocumentSearchHit hit) {
-        Document document = hit.document();
-
-        JmixButton name = uiComponents.create(JmixButton.class);
-        name.setText(document.getName());
-        name.setIcon(icons.get(JmixFontIcon.FILE_TEXT));
-        name.addClassName("document-search-name");
-        name.addThemeVariants(ButtonVariant.TERTIARY);
-
-        Div title = uiComponents.create(Div.class);
-        title.addClassName("document-search-title");
-        title.add(name);
-
-        if (document.getCategory() != null) {
-            Badge type = uiComponents.create(Badge.class);
-            type.setText(metadataTools.getInstanceName(document.getCategory()));
-            type.addClassName("v-neutral");
-            title.add(type);
-        }
-
-        title.add(statusBadges.create(document.getStatus()));
-
-        if (!document.getTags().isEmpty()) {
-            title.add(tagBadges.create(document.getTags()));
-        }
-
-        Span path = uiComponents.create(Span.class);
-        path.addClassName("document-search-path");
-        path.setText(String.join(" / ", hit.folderPath()));
-
-        Div row = uiComponents.create(Div.class);
-        row.addClassName("document-search-hit");
-        row.add(title, path);
-        name.addClickListener(event -> openCard(hit, row));
-
-        if (hit.snippet() != null) {
-            row.add(createSnippet(hit.field(), hit.snippet()));
-        }
+        DocumentSearchHitFragment row = fragments.create(this, DocumentSearchHitFragment.class);
+        row.setHit(hit);
+        row.setAfterSaveHandler(() -> showSaved(hit, row));
 
         return row;
-    }
-
-    /**
-     * Builds the matched text from text nodes and match spans: the text comes from the users, so it is never
-     * put into the page as HTML.
-     */
-    private Div createSnippet(@Nullable String field, String snippet) {
-        Div div = uiComponents.create(Div.class);
-        div.addClassName("document-search-snippet");
-
-        if (field != null) {
-            Span caption = uiComponents.create(Span.class);
-            caption.addClassName("document-search-field");
-            caption.setText(field);
-            div.add(caption);
-        }
-
-        int position = 0;
-
-        while (position < snippet.length()) {
-            int start = snippet.indexOf(MATCH_START, position);
-            int end = start < 0 ? -1 : snippet.indexOf(MATCH_END, start);
-
-            if (end < 0) {
-                div.add(new Text(snippet.substring(position)));
-                break;
-            }
-
-            div.add(new Text(snippet.substring(position, start)));
-
-            Span match = uiComponents.create(Span.class);
-            match.addClassName("document-search-match");
-            match.setText(snippet.substring(start + MATCH_START.length(), end));
-            div.add(match);
-
-            position = end + MATCH_END.length();
-        }
-
-        return div;
-    }
-
-    private void openCard(DocumentSearchHit hit, Component row) {
-        Document document = hit.document();
-
-        // the card fails on a document deleted or hidden from the user since the search
-        if (dataManager.load(Id.of(document)).optional().isEmpty()) {
-            notifications.create(messages.getMessage(DocumentDetailView.class, "documentUnavailable"))
-                    .withType(Notifications.Type.WARNING)
-                    .show();
-            return;
-        }
-
-        dialogWindows.detail(this, Document.class)
-                .withViewClass(DocumentDetailView.class)
-                .editEntity(document)
-                .withAfterCloseListener(closeEvent -> {
-                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
-                        showSaved(hit, row);
-                    }
-                })
-                .open();
     }
 
     // the row shows the document as the card saved it; one the user may no longer see, or that lost the tag

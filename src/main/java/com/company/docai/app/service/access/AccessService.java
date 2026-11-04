@@ -19,6 +19,7 @@ import io.jmix.core.FetchPlanBuilder;
 import io.jmix.core.Messages;
 import io.jmix.core.Metadata;
 import io.jmix.core.MetadataTools;
+import io.jmix.core.QueryUtils;
 import io.jmix.core.SaveContext;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.data.PersistenceHints;
@@ -131,7 +132,9 @@ public class AccessService {
                 .lockMode(LockModeType.PESSIMISTIC_WRITE)
                 .one();
 
-        SaveContext saveContext = new SaveContext().setHint(PersistenceHints.SOFT_DELETION, false);
+        SaveContext saveContext = new SaveContext()
+                .setHint(PersistenceHints.SOFT_DELETION, false)
+                .setDiscardSaved(true);
 
         if (draft.getFolder() != null) {
             Folder folder = loadFolder(draft.getFolder());
@@ -213,7 +216,8 @@ public class AccessService {
             dataManager.load(User.class)
                     .query("select u from User u where " + USER_NAME + " like :part escape '\\'"
                             + " order by u.firstName, u.lastName, u.username")
-                    .parameter("part", "%" + escapeForLike(part) + "%")
+                    // what the user types is matched as it is: a percent sign or an underscore is not a wildcard
+                    .parameter("part", "%" + QueryUtils.escapeForLike(part) + "%")
                     .firstResult(Math.max(0, offset - roles.size()))
                     .maxResults(limit - page.size())
                     .list()
@@ -560,13 +564,6 @@ public class AccessService {
                 .maxResults(1)
                 .optional()
                 .isPresent();
-    }
-
-    // what the user types is matched as it is: a percent sign or an underscore is not a wildcard
-    private static String escapeForLike(String text) {
-        return text.replace("\\", "\\\\")
-                .replace("%", "\\%")
-                .replace("_", "\\_");
     }
 
     private OperationRejectedException reject(String key, Object... args) {

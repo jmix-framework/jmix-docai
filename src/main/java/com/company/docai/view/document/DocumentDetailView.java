@@ -1,7 +1,6 @@
 package com.company.docai.view.document;
 
 import com.company.docai.ai.AiSettings;
-import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.access.AccessChecker;
 import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.document.DocumentService;
@@ -10,13 +9,13 @@ import com.company.docai.app.service.document.NewVersion;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.app.service.tag.TagService;
+import com.company.docai.app.service.user.UserService;
 import com.company.docai.model.access.AccessDraft;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.tag.Tag;
-import com.company.docai.model.user.User;
 import com.company.docai.view.access.AccessDetailView;
 import com.company.docai.view.favorite.FavoriteCardAction;
 import com.company.docai.view.main.MainView;
@@ -37,17 +36,11 @@ import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.Route;
-import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
-import io.jmix.core.FetchPlan;
-import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
-import io.jmix.core.metamodel.datatype.DatatypeFormatter;
-import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.datepicker.TypedDatePicker;
@@ -68,7 +61,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -159,8 +151,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private MessageBundle messageBundle;
 
     @Autowired
-    private DataManager dataManager;
-    @Autowired
     private DocumentService documentService;
     @Autowired
     private DocumentStatusService statusService;
@@ -177,15 +167,13 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @Autowired
     private AccessChecker accessChecker;
     @Autowired
-    private TemporaryStorage temporaryStorage;
+    private UserService userService;
     @Autowired
-    private FilesProperties filesProperties;
+    private DocumentUploads documentUploads;
     @Autowired
-    private FileSizeFormatter fileSizeFormatter;
+    private DocumentRenderers documentRenderers;
     @Autowired
-    private DatatypeFormatter datatypeFormatter;
-    @Autowired
-    private CurrentAuthentication currentAuthentication;
+    private DocumentCards documentCards;
     @Autowired
     private EntityStates entityStates;
     @Autowired
@@ -200,16 +188,16 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private RevisionDownloader revisionDownloader;
     @Autowired
     private AiSettings aiSettings;
-
+    @Autowired
     private DocumentCardChanges changes;
+
     private Map<String, String> userNames = Map.of();
 
     @Subscribe
     public void onInit(final InitEvent event) {
-        changes = new DocumentCardChanges(temporaryStorage);
         // a session timeout or a page reload removes the card without closing it
         addDetachListener(detachEvent -> changes.clear());
-        newVersionUpload.setMaxFileSize((int) filesProperties.maxFileSize().toBytes());
+        documentUploads.limitFileSize(newVersionUpload);
     }
 
     // the repository passes the open folder; a new document opened by its address goes into the root
@@ -304,16 +292,12 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @Subscribe("newVersionUpload")
     public void onNewVersionUploadFileRejected(final FileRejectedEvent event) {
-        notifications.create(event.getFileName() + ": " + event.getErrorMessage())
-                .withType(Notifications.Type.WARNING)
-                .show();
+        documentUploads.showRejected(event);
     }
 
     @Subscribe("newVersionUpload")
     public void onNewVersionUploadFailed(final FailedEvent event) {
-        notifications.create(messageBundle.formatMessage("uploadFailed", event.getFileName()))
-                .withType(Notifications.Type.ERROR)
-                .show();
+        documentUploads.showFailed(event);
     }
 
     @Subscribe("downloadButton")
@@ -397,14 +381,17 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @Supply(to = "revisionsGrid.fileSize", subject = "renderer")
     private Renderer<DocumentRevision> revisionSizeRenderer() {
-        return new TextRenderer<>(revision -> fileSizeFormatter.format(revision.getFileSize()));
+        return documentRenderers.revisionSizeRenderer();
+    }
+
+    @Supply(to = "revisionsGrid.createdDate", subject = "renderer")
+    private Renderer<DocumentRevision> revisionDateRenderer() {
+        return documentRenderers.userDateTimeRenderer(DocumentRevision::getCreatedDate);
     }
 
     @Supply(to = "revisionsGrid.createdBy", subject = "renderer")
     private Renderer<DocumentRevision> revisionAuthorRenderer() {
-        return new TextRenderer<>(revision -> revision.getCreatedBy() == null
-                ? ""
-                : userNames.getOrDefault(revision.getCreatedBy(), revision.getCreatedBy()));
+        return documentRenderers.revisionAuthorRenderer(username -> userNames.getOrDefault(username, username));
     }
 
     // a version opens over the card, so showing it does not replace the card's own preview
@@ -420,10 +407,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
      * and the card follows the new level of the user. A user who gave the document up sees the card close.
      */
     private void takeDocumentAgain() {
-        if (dataManager.load(Id.of(getEditedEntity())).optional().isEmpty()) {
-            notifications.create(messageBundle.getMessage("documentUnavailable"))
-                    .withType(Notifications.Type.WARNING)
-                    .show();
+        if (!documentCards.checkAvailable(getEditedEntity())) {
             // the repository reloads its list after a card that saved
             close(StandardOutcome.SAVE);
             return;
@@ -442,7 +426,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private void afterStaging() {
         getViewData().getDataContext().setModified(getEditedEntity(), true);
 
-        pendingChanges.setText(describePendingChanges());
+        pendingChanges.setText(changes.describe());
         fillWithAiAction.refreshState();
     }
 
@@ -485,16 +469,11 @@ public class DocumentDetailView extends StandardDetailView<Document> {
                 .map(metadataTools::getInstanceName)
                 .collect(Collectors.joining(" / ")));
 
-        DocumentRevision current = document.getCurrentRevision();
-        currentVersionField.setValue(current == null
-                ? ""
-                : "%d · %s · %s".formatted(current.getNumber(), current.getFile().getFileName(),
-                fileSizeFormatter.format(current.getFileSize())));
+        currentVersionField.setValue(documentRenderers.versionText(document.getCurrentRevision()));
 
-        userNames = userNames(Stream.concat(Stream.of(document.getCreatedBy(), document.getChangedBy()),
+        userNames = userService.namesOf(Stream.concat(Stream.of(document.getCreatedBy(), document.getChangedBy()),
                         revisionsDc.getItems().stream().map(DocumentRevision::getCreatedBy))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet()));
+                .toList());
 
         createdField.setValue(describeChange(document.getCreatedBy(), document.getCreatedDate()));
         modifiedField.setValue(describeChange(document.getChangedBy(), document.getChangedDate()));
@@ -560,48 +539,12 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         documentTitle.setText(name.isEmpty() && isNew() ? messageBundle.getMessage("newDocument") : name);
     }
 
-    private String describePendingChanges() {
-        List<String> parts = new ArrayList<>();
-        switch (changes.getNewVersion()) {
-            case NewVersion.FromFile(UploadedFile file) ->
-                    parts.add(messageBundle.formatMessage("pendingNewVersion", file.fileName()));
-            case NewVersion.FromRevision(DocumentRevision revision) ->
-                    parts.add(messageBundle.formatMessage("pendingRestoredVersion", revision.getNumber()));
-            case null -> {
-                // do nothing
-            }
-        }
-
-        if (changes.getTargetStatus() != null) {
-            parts.add("→ " + changes.getTargetStatus().getName());
-        }
-
-        return String.join(" · ", parts);
-    }
-
     private String describeChange(String user, OffsetDateTime date) {
         if (user == null || date == null) {
             return "";
         }
 
-        LocalDateTime time = date.atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId()).toLocalDateTime();
-
-        return "%s, %s".formatted(userNames.getOrDefault(user, user), datatypeFormatter.formatLocalDateTime(time));
-    }
-
-    // the names of the users as the application shows them; a user deleted since keeps the username
-    private Map<String, String> userNames(Set<String> usernames) {
-        if (usernames.isEmpty()) {
-            return Map.of();
-        }
-
-        return dataManager.load(User.class)
-                .query("select u from User u where u.username in :usernames")
-                .parameter("usernames", usernames)
-                .fetchPlan(FetchPlan.INSTANCE_NAME)
-                .list()
-                .stream()
-                .collect(Collectors.toMap(User::getUsername, metadataTools::getInstanceName));
+        return "%s, %s".formatted(userNames.getOrDefault(user, user), documentRenderers.userDateTime(date));
     }
 
     private boolean isNew() {

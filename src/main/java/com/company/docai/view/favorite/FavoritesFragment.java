@@ -4,16 +4,12 @@ import com.company.docai.app.service.favorite.FavoriteService;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.favorite.FavoriteItem;
 import com.company.docai.model.folder.Folder;
-import com.company.docai.view.document.DocumentDetailView;
+import com.company.docai.view.document.DocumentCards;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import io.jmix.core.DataManager;
-import io.jmix.core.Id;
-import io.jmix.core.Messages;
-import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
@@ -53,11 +49,7 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
     @Autowired
     private Icons icons;
     @Autowired
-    private DataManager dataManager;
-    @Autowired
-    private Notifications notifications;
-    @Autowired
-    private Messages messages;
+    private DocumentCards documentCards;
 
     private Consumer<Folder> folderOpenHandler = folder -> {
     };
@@ -166,11 +158,7 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
             return;
         }
 
-        if (dataManager.load(Id.of(item.getDocument())).optional().isEmpty()) {
-            notifications.create(messages.getMessage(DocumentDetailView.class, "documentUnavailable"))
-                    .withType(Notifications.Type.WARNING)
-                    .show();
-
+        if (!documentCards.checkAvailable(item.getDocument())) {
             reload();
             return;
         }

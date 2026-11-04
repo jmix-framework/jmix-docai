@@ -27,13 +27,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -230,14 +228,13 @@ public class FolderService {
                 .list()
                 .forEach(value -> reached.add(value.getValue("folderId")));
 
-        Map<UUID, Folder> byId = folders.stream()
-                .collect(Collectors.toMap(Folder::getId, Function.identity()));
+        FolderIndex index = FolderIndex.of(folders);
 
         Set<UUID> shown = new HashSet<>();
         for (UUID id : reached) {
-            Folder current = byId.get(id);
+            Folder current = index.get(id);
             while (current != null && shown.add(current.getId())) {
-                current = current.getParent() == null ? null : byId.get(current.getParent().getId());
+                current = index.parentOf(current);
             }
         }
 
@@ -257,11 +254,11 @@ public class FolderService {
      * nothing through its parent. A folder without documents gets 0.
      */
     public Map<UUID, Long> countDocuments(Collection<Folder> folders) {
-        Map<UUID, Folder> byId = folders.stream()
-                .collect(Collectors.toMap(Folder::getId, Function.identity()));
+        FolderIndex index = FolderIndex.of(folders);
 
         Map<UUID, Long> counts = new HashMap<>();
-        byId.keySet().forEach(id -> counts.put(id, 0L));
+        index.folders()
+                .forEach(folder -> counts.put(folder.getId(), 0L));
 
         List<KeyValueEntity> ownCounts = dataManager.loadValues(
                         "select d.folder.id, count(d) from Document d group by d.folder.id")
@@ -270,41 +267,13 @@ public class FolderService {
 
         for (KeyValueEntity ownCount : ownCounts) {
             long documents = ownCount.<Long>getValue("documents");
-            for (Folder current = byId.get(ownCount.<UUID>getValue("folderId")); current != null;
-                 current = current.getParent() == null ? null : byId.get(current.getParent().getId())) {
+            for (Folder current = index.get(ownCount.getValue("folderId")); current != null;
+                 current = index.parentOf(current)) {
                 counts.merge(current.getId(), documents, Long::sum);
             }
         }
 
         return counts;
-    }
-
-    /**
-     * Returns the folders whose shown name contains the text, ignoring case, together with their parents among
-     * the given folders, in the given order. An empty text keeps every folder.
-     */
-    public List<Folder> filterByName(Collection<Folder> folders, @Nullable String text) {
-        if (text == null || text.isBlank()) {
-            return List.copyOf(folders);
-        }
-
-        String part = text.strip().toLowerCase(Locale.ROOT);
-        Map<UUID, Folder> byId = folders.stream()
-                .collect(Collectors.toMap(Folder::getId, Function.identity()));
-
-        Set<Folder> shown = new HashSet<>();
-        for (Folder folder : folders) {
-            if (metadataTools.getInstanceName(folder).toLowerCase(Locale.ROOT).contains(part)) {
-                Folder current = folder;
-                while (current != null && shown.add(current)) {
-                    current = current.getParent() == null ? null : byId.get(current.getParent().getId());
-                }
-            }
-        }
-
-        return folders.stream()
-                .filter(shown::contains)
-                .toList();
     }
 
     /**

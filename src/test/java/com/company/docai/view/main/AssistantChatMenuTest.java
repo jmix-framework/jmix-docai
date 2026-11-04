@@ -4,6 +4,7 @@ import com.company.docai.DocAiApplication;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.StubAiConfiguration;
 import com.company.docai.test_support.TestMenus;
+import com.vaadin.flow.dom.Element;
 import io.jmix.aitoolsflowui.service.AiChatService;
 import io.jmix.aitoolsflowui.view.chathub.AiChatHubView;
 import io.jmix.flowui.ViewNavigators;
@@ -53,5 +54,28 @@ class AssistantChatMenuTest {
 
         assertThat(chatService.isAvailable()).isTrue();
         assertThat(opened).isInstanceOf(AiChatHubView.class);
+    }
+
+    @Test
+    void theAssistantAndTheViewsEachStandInTheirOwnLabelledNavigationLandmark() {
+        viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
+
+        String assistantLabel = landmarkLabel(TestMenus.listMenu("assistantMenu"));
+        String viewsLabel = landmarkLabel(TestMenus.listMenu("menu"));
+
+        assertThat(assistantLabel).isNotBlank();
+        assertThat(viewsLabel).isNotBlank().isNotEqualTo(assistantLabel);
+    }
+
+    private static String landmarkLabel(JmixListMenu menu) {
+        Element element = menu.getElement();
+
+        while (element != null && !"nav".equals(element.getTag())) {
+            element = element.getParent();
+        }
+
+        assertThat(element).as("the nav element around the menu").isNotNull();
+
+        return element.getAttribute("aria-label");
     }
 }

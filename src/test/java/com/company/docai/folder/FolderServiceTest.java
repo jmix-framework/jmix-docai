@@ -221,17 +221,6 @@ class FolderServiceTest {
     }
 
     @Test
-    void filteringByNameKeepsTheMatchesWithTheirParents() {
-        Folder contracts = folder(sandbox, "Contracts");
-        Folder signed = folder(contracts, "Signed 2026");
-        Folder invoices = folder(sandbox, "Invoices");
-
-        List<Folder> shown = folderService.filterByName(List.of(sandbox, contracts, signed, invoices), "SIGNED");
-
-        assertThat(shown).containsExactly(sandbox, contracts, signed);
-    }
-
-    @Test
     void onlyTheGivenFoldersAddTheirDocumentsToTheParent() {
         Folder parent = folder(sandbox, "Parent");
         Folder hidden = folder(parent, "Hidden");

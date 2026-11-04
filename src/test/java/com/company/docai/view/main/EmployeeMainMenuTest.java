@@ -3,6 +3,7 @@ package com.company.docai.view.main;
 import com.company.docai.DocAiApplication;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestMenus;
+import com.vaadin.flow.dom.Element;
 import io.jmix.aitoolsflowui.service.AiChatService;
 import io.jmix.flowui.component.main.JmixListMenu;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -45,5 +46,18 @@ class EmployeeMainMenuTest {
         assertThat(menu.getMenuItem("assistantChat")).isNull();
         assertThat(assistantMenu.getMenuItems()).isEmpty();
         assertThat(chatService.isAvailable()).isFalse();
+    }
+
+    @Test
+    void withoutTheAssistantNoEmptyNavigationLandmarkStaysOnThePage() {
+        JmixListMenu assistantMenu = TestMenus.listMenu("assistantMenu");
+        Element element = assistantMenu.getElement();
+
+        while (element != null && !"nav".equals(element.getTag())) {
+            element = element.getParent();
+        }
+
+        assertThat(element).as("the nav element around the assistant menu").isNotNull();
+        assertThat(element.isVisible()).isFalse();
     }
 }

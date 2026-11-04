@@ -60,7 +60,7 @@
                             text="msg://discussAction.text" icon="COMMENTS"/>
                     <action id="moveAction" type="list_itemTracking"
                             text="msg://moveAction.text" icon="ARROW_RIGHT"/>
-                    <action id="accessAction" type="list_itemTracking"
+                    <action id="accessAction" type="docai_accessList"
                             text="msg://accessAction.text" icon="KEY"/>
                     <action id="favoriteAction" type="docai_favoriteList"/>
                     <action id="deleteAction" type="list_itemTracking" actionVariant="DANGER"

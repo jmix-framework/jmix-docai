@@ -17,6 +17,8 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.renderer.TextRenderer;
+import com.vaadin.flow.dom.DomEvent;
+import com.vaadin.flow.internal.nodefeature.ElementListenerMap;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import tools.jackson.databind.node.ArrayNode;
@@ -52,23 +54,48 @@ public final class TestGrids {
     }
 
     /**
-     * A right click on a row: the browser names the row in a grid property and opens the context menu.
+     * A right click on a row: the browser asks the server about the row, opens the context menu when the server
+     * tells it to and reports the menu opened.
      */
     public static <T> void openContextMenu(DataGrid<T> grid, T item) {
-        openContextMenu(grid, grid.getContextMenu(), item);
+        requestContextMenu(grid, item);
+        reportContextMenuOpened(grid.getContextMenu());
     }
 
     /**
      * A right click on a row of a tree, as on a row of a grid.
      */
     public static <T> void openContextMenu(TreeDataGrid<T> tree, T item) {
-        openContextMenu(tree, tree.getContextMenu(), item);
+        requestContextMenu(tree, item);
+        reportContextMenuOpened(tree.getContextMenu());
     }
 
-    private static <T> void openContextMenu(Grid<T> grid, GridContextMenu<T> menu, T item) {
+    /**
+     * The first round trip of a right click on a row: the browser names the row and asks the server to open the
+     * context menu, which the server may change before it opens.
+     */
+    public static <T> void requestContextMenu(Grid<T> grid, T item) {
         String itemKey = grid.getDataCommunicator().getKeyMapper().key(item);
         grid.getElement().setProperty("_contextMenuTargetItemKey", itemKey);
 
+        ObjectNode detail = JsonNodeFactory.instance.objectNode()
+                .put("key", itemKey)
+                .put("columnId", "");
+
+        ObjectNode eventData = JsonNodeFactory.instance.objectNode();
+        eventData.set(ContextMenuBase.EVENT_DETAIL, detail);
+
+        // no public API fires a browser event in a server-side test, so the event goes through Flow's listener map
+        grid.getElement()
+                .getNode()
+                .getFeature(ElementListenerMap.class)
+                .fireEvent(new DomEvent(grid.getElement(), "vaadin-context-menu-before-open", eventData));
+    }
+
+    /**
+     * The second round trip of a right click: the browser reports the context menu it has opened.
+     */
+    public static <T> void reportContextMenuOpened(GridContextMenu<T> menu) {
         menu.getElement().setProperty("opened", true);
         ComponentUtil.fireEvent(menu, new ContextMenuBase.OpenedChangeEvent<>(menu, true));
     }

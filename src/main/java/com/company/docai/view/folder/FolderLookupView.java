@@ -1,6 +1,7 @@
 package com.company.docai.view.folder;
 
 import com.company.docai.app.service.access.AccessLevels;
+import com.company.docai.app.service.folder.FolderIndex;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.app.service.folder.FolderTree;
 import com.company.docai.model.access.AccessLevel;
@@ -16,8 +17,6 @@ import io.jmix.flowui.view.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Picks the destination of a move. The moved folders and their subfolders are hidden: a folder cannot move
@@ -39,6 +38,8 @@ public class FolderLookupView extends StandardListView<Folder> {
     private FolderService folderService;
     @Autowired
     private FolderRenderers folderRenderers;
+    @Autowired
+    private FolderFilter folderFilter;
 
     private Set<Folder> hiddenFolders = Set.of();
     private List<Folder> availableFolders = List.of();
@@ -72,11 +73,11 @@ public class FolderLookupView extends StandardListView<Folder> {
 
     @Subscribe(id = "foldersDl", target = Target.DATA_LOADER)
     public void onFoldersDlPostLoad(final CollectionLoader.PostLoadEvent<Folder> event) {
-        Map<UUID, Folder> byId = foldersDc.getItems().stream()
-                .collect(Collectors.toMap(Folder::getId, Function.identity()));
+        FolderIndex index = FolderIndex.of(foldersDc.getItems());
 
-        List<Folder> hidden = foldersDc.getItems().stream()
-                .filter(folder -> isHidden(folder, byId))
+        List<Folder> hidden = foldersDc.getItems()
+                .stream()
+                .filter(folder -> isHidden(folder, index))
                 .toList();
 
         foldersDc.getMutableItems().removeAll(hidden);
@@ -91,25 +92,16 @@ public class FolderLookupView extends StandardListView<Folder> {
     @Subscribe("folderFilterField")
     public void onFolderFilterFieldComponentValueChange(
             final AbstractField.ComponentValueChangeEvent<TypedTextField<String>, String> event) {
-        foldersDc.setItems(folderService.filterByName(availableFolders, event.getValue()));
-
-        if (event.getValue() != null && !event.getValue().isBlank()) {
-            foldersTree.expand(foldersDc.getItems());
-        }
+        folderFilter.filterTree(foldersTree, foldersDc, availableFolders, event.getValue());
     }
 
     private boolean isEditable(Folder folder) {
         return levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
     }
 
-    private boolean isHidden(Folder folder, Map<UUID, Folder> byId) {
-        for (Folder current = folder; current != null;
-             current = current.getParent() == null ? null : byId.get(current.getParent().getId())) {
-            if (hiddenFolders.contains(current)) {
-                return true;
-            }
-        }
-
-        return false;
+    private boolean isHidden(Folder folder, FolderIndex index) {
+        return index.pathOf(folder)
+                .stream()
+                .anyMatch(hiddenFolders::contains);
     }
 }

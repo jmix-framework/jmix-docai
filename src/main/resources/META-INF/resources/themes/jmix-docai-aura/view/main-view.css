@@ -1,8 +1,8 @@
 /* Predefined styles for the MainView */
 
 .jmix-main-view-app-layout {
-    /* the menu holds the folder tree, whose names need the room; the user may drag it wider, and the main view sets
-       --main-view-drawer-width then */
+    /* the menu holds the folder tree, whose names need the room; the user may drag it wider, and the drawer handle
+       sets --main-view-drawer-width then */
     --main-view-drawer-width: 18rem;
     --vaadin-app-layout-drawer-width: var(--main-view-drawer-width);
     /* the header and the brand card share one height: the padding of the header and the button of the user menu */
@@ -130,13 +130,14 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
 /* The folders are the main navigation. The brand, the assistant and the folder field with its button stay on top of
    the drawer; under them the favorites, the folders and the views of the menu scroll together in the frame of the
    tree, which shows all its rows. A list menu would shrink to nothing in a low window, so the top keeps its height */
-.jmix-main-view-application-title,
-.assistant-menu {
+.jmix-main-view-application-title {
     flex: none;
 }
 
-/* The assistant stands apart from the folders, as the folder field stands apart from the favorites */
-.assistant-menu {
+/* The assistant stands apart from the folders, as the folder field stands apart from the favorites. Its landmark
+   keeps its height, so the list menu inside, which scrolls on its own, has no reason to shrink and show a scrollbar */
+.assistant-navigation {
+    flex: none;
     margin-block-end: var(--vaadin-gap-s);
 }
 

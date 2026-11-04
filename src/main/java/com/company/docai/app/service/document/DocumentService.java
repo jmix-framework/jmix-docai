@@ -1,6 +1,5 @@
 package com.company.docai.app.service.document;
 
-import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.OperationRejectedException;
 import com.company.docai.app.service.access.AccessChecker;
 import com.company.docai.app.service.access.AccessService;
@@ -10,14 +9,10 @@ import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
-import com.company.docai.model.tag.Tag;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntitySet;
-import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FileRef;
-import io.jmix.core.FileStorage;
-import io.jmix.core.FileStorageLocator;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
@@ -29,27 +24,15 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Creates, versions, moves and deletes documents. A document gets its files as revisions:
@@ -76,24 +59,18 @@ public class DocumentService {
     private final DocumentStatusService statusService;
     private final AccessChecker accessChecker;
     private final AccessService accessService;
-    private final FileStorageLocator fileStorageLocator;
-    private final ContentTypeDetector contentTypeDetector;
-    private final FilesProperties filesProperties;
+    private final RevisionFiles revisionFiles;
     private final Messages messages;
     private final MetadataTools metadataTools;
-    private final EntityStates entityStates;
     private final CurrentAuthentication currentAuthentication;
     private final TimeSource timeSource;
-    private final TransactionTemplate transaction;
 
     public DocumentService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager,
                            FolderService folderService, DocumentFields documentFields, TagService tagService,
                            DocumentStatusService statusService, AccessChecker accessChecker,
-                           AccessService accessService, FileStorageLocator fileStorageLocator,
-                           ContentTypeDetector contentTypeDetector, FilesProperties filesProperties,
-                           Messages messages, MetadataTools metadataTools, EntityStates entityStates,
-                           CurrentAuthentication currentAuthentication, TimeSource timeSource,
-                           PlatformTransactionManager transactionManager) {
+                           AccessService accessService, RevisionFiles revisionFiles,
+                           Messages messages, MetadataTools metadataTools,
+                           CurrentAuthentication currentAuthentication, TimeSource timeSource) {
         this.dataManager = dataManager;
         this.unconstrainedDataManager = unconstrainedDataManager;
         this.folderService = folderService;
@@ -102,15 +79,11 @@ public class DocumentService {
         this.statusService = statusService;
         this.accessChecker = accessChecker;
         this.accessService = accessService;
-        this.fileStorageLocator = fileStorageLocator;
-        this.contentTypeDetector = contentTypeDetector;
-        this.filesProperties = filesProperties;
+        this.revisionFiles = revisionFiles;
         this.messages = messages;
         this.metadataTools = metadataTools;
-        this.entityStates = entityStates;
         this.currentAuthentication = currentAuthentication;
         this.timeSource = timeSource;
-        this.transaction = new TransactionTemplate(transactionManager);
     }
 
     /**
@@ -155,9 +128,9 @@ public class DocumentService {
      */
     public Document create(Document draft, UploadedFile file, @Nullable DocumentStatus targetStatus) {
         String name = checkName(draft.getName());
-        StoredFile stored = store(file);
+        RevisionFiles.StoredFile stored = revisionFiles.store(file);
 
-        return inTransaction(stored, () -> {
+        return revisionFiles.inTransaction(stored, () -> {
             Folder folder = folderService.lockLive(draft.getFolder());
             folderService.checkEditable(folder);
             checkNameFree(folder, name, null);
@@ -172,9 +145,10 @@ public class DocumentService {
 
             // the document and its revision refer to each other, so the current revision is set in a second save
             DocumentRevision revision = newRevision(draft, 1, stored.fileRef(), stored.size(), stored.contentType());
+
             EntitySet saved = dataManager.save(new SaveContext()
                     .saving(draft, revision)
-                    .saving(keepVocabulary(draft)));
+                    .saving(tagService.keepVocabulary(draft)));
 
             Document document = saved.get(draft);
             document.setCurrentRevision(saved.get(revision));
@@ -198,11 +172,12 @@ public class DocumentService {
      */
     public Document save(Document document, @Nullable NewVersion newVersion, @Nullable DocumentStatus targetStatus) {
         String name = checkName(document.getName());
-        StoredFile stored = newVersion instanceof NewVersion.FromFile(UploadedFile file)
-                ? store(file)
+
+        RevisionFiles.StoredFile stored = newVersion instanceof NewVersion.FromFile(UploadedFile file)
+                ? revisionFiles.store(file)
                 : null;
 
-        return inTransaction(stored, () -> {
+        return revisionFiles.inTransaction(stored, () -> {
             Document persisted = loadEditable(document);
 
             boolean contentChanged = !name.equals(persisted.getName())
@@ -227,7 +202,7 @@ public class DocumentService {
 
             SaveContext saveContext = new SaveContext()
                     .saving(document)
-                    .saving(keepVocabulary(document));
+                    .saving(tagService.keepVocabulary(document));
 
             if (newVersion != null) {
                 DocumentRevision revision = switch (newVersion) {
@@ -278,7 +253,9 @@ public class DocumentService {
             }
         }
 
-        dataManager.save(new SaveContext().saving(changed));
+        dataManager.save(new SaveContext()
+                .saving(changed)
+                .setDiscardSaved(true));
     }
 
     /**
@@ -323,7 +300,10 @@ public class DocumentService {
                     String.join(", ", clashes));
         }
 
-        SaveContext saveContext = new SaveContext().saving(moved);
+        SaveContext saveContext = new SaveContext()
+                .saving(moved)
+                .setDiscardSaved(true);
+
         accessService.followMove(moved, destination, saveContext);
         dataManager.save(saveContext);
     }
@@ -334,7 +314,9 @@ public class DocumentService {
      * @throws OperationRejectedException if one of the documents is unavailable or only viewed by the user
      */
     public void delete(Collection<Document> documents) {
-        SaveContext saveContext = new SaveContext();
+        SaveContext saveContext = new SaveContext()
+                .setDiscardSaved(true);
+
         documents.stream()
                 .map(this::loadEditable)
                 .forEach(saveContext::removing);
@@ -367,87 +349,9 @@ public class DocumentService {
         return persisted;
     }
 
-    /**
-     * Puts the tags of the vocabulary in place of the tags of the document: a new tag whose name the vocabulary got
-     * meanwhile becomes that tag, a tag deleted meanwhile drops out, and a name twice stays once, whatever its case.
-     * Returns the new tags, which are saved with the document. A document loaded without its tags keeps them.
-     */
-    private List<Tag> keepVocabulary(Document document) {
-        if (!entityStates.isLoaded(document, "tags") || document.getTags() == null) {
-            return List.of();
-        }
-
-        List<UUID> storedIds = document.getTags().stream()
-                .filter(tag -> !entityStates.isNew(tag))
-                .map(Tag::getId)
-                .toList();
-
-        Map<UUID, Tag> stored = storedIds.isEmpty()
-                ? Map.of()
-                : dataManager.load(Tag.class)
-                        .query("select t from Tag t where t.id in :ids")
-                        .parameter("ids", storedIds)
-                        .list()
-                        .stream()
-                        .collect(Collectors.toMap(Tag::getId, Function.identity()));
-
-        Map<String, Tag> tags = new LinkedHashMap<>();
-
-        for (Tag tag : document.getTags()) {
-            Tag kept = entityStates.isNew(tag)
-                    ? tagService.find(tag.getName())
-                            .orElse(tag)
-                    : stored.get(tag.getId());
-
-            if (kept != null) {
-                tags.putIfAbsent(kept.getName().toLowerCase(Locale.ROOT), kept);
-            }
-        }
-
-        document.setTags(new ArrayList<>(tags.values()));
-
-        return tags.values().stream()
-                .filter(entityStates::isNew)
-                .toList();
-    }
-
     private void stamp(Document document) {
         document.setChangedBy(currentAuthentication.getUser().getUsername());
         document.setChangedDate(timeSource.now().toOffsetDateTime());
-    }
-
-    private StoredFile store(UploadedFile file) {
-        try {
-            long size = Files.size(file.content());
-            if (size > filesProperties.maxFileSize().toBytes()) {
-                throw reject("fileTooLarge", file.fileName(), filesProperties.maxFileSize().toMegabytes());
-            }
-
-            String contentType = contentTypeDetector.detect(file.content(), file.fileName());
-            try (InputStream content = Files.newInputStream(file.content())) {
-                FileRef fileRef = fileStorageLocator.getDefault().saveStream(file.fileName(), content);
-                return new StoredFile(fileRef, size, contentType);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    /**
-     * Runs the work in a transaction and removes the just stored file if the transaction fails:
-     * file storage is not transactional.
-     */
-    private Document inTransaction(@Nullable StoredFile stored, Supplier<Document> work) {
-        try {
-            return Objects.requireNonNull(transaction.execute(status -> work.get()));
-        } catch (RuntimeException e) {
-            if (stored != null) {
-                FileStorage storage = fileStorageLocator.getByName(stored.fileRef().getStorageName());
-                storage.removeFile(stored.fileRef());
-            }
-
-            throw e;
-        }
     }
 
     private DocumentRevision newRevision(Document document, int number, FileRef file, long size, String contentType) {
@@ -519,8 +423,5 @@ public class DocumentService {
 
     private OperationRejectedException reject(String key, Object... args) {
         return new OperationRejectedException(messages.formatMessage(getClass(), key, args));
-    }
-
-    private record StoredFile(FileRef fileRef, long size, String contentType) {
     }
 }

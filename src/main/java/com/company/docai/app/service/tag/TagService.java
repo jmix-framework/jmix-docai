@@ -1,17 +1,25 @@
 package com.company.docai.app.service.tag;
 
 import com.company.docai.app.service.OperationRejectedException;
+import com.company.docai.model.document.Document;
 import com.company.docai.model.tag.Tag;
 import io.jmix.core.DataManager;
+import io.jmix.core.EntityStates;
 import io.jmix.core.Messages;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.data.PersistenceHints;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Finds the tags of the shared vocabulary by name, whatever the case and the spaces around it, and makes new ones.
@@ -25,11 +33,14 @@ public class TagService {
     // whether a document carries a tag is a question of integrity: the documents of the others count too
     private final UnconstrainedDataManager unconstrainedDataManager;
     private final Messages messages;
+    private final EntityStates entityStates;
 
-    public TagService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager, Messages messages) {
+    public TagService(DataManager dataManager, UnconstrainedDataManager unconstrainedDataManager, Messages messages,
+                      EntityStates entityStates) {
         this.dataManager = dataManager;
         this.unconstrainedDataManager = unconstrainedDataManager;
         this.messages = messages;
+        this.entityStates = entityStates;
     }
 
     /**
@@ -83,6 +94,53 @@ public class TagService {
         }
 
         return stripped;
+    }
+
+    /**
+     * Puts the tags of the vocabulary in place of the tags of the document: a new tag whose name the vocabulary got
+     * meanwhile becomes that tag, a tag deleted meanwhile drops out, and a name twice stays once, whatever its case.
+     * Returns the new tags, which are saved with the document. A document loaded without its tags keeps them.
+     */
+    public List<Tag> keepVocabulary(Document document) {
+        if (!entityStates.isLoaded(document, "tags") || document.getTags() == null) {
+            return List.of();
+        }
+
+        List<UUID> storedIds = document.getTags()
+                .stream()
+                .filter(tag -> !entityStates.isNew(tag))
+                .map(Tag::getId)
+                .toList();
+
+        Map<UUID, Tag> stored = storedIds.isEmpty()
+                ? Map.of()
+                : dataManager.load(Tag.class)
+                        .query("select t from Tag t where t.id in :ids")
+                        .parameter("ids", storedIds)
+                        .list()
+                        .stream()
+                        .collect(Collectors.toMap(Tag::getId, Function.identity()));
+
+        Map<String, Tag> tags = new LinkedHashMap<>();
+
+        for (Tag tag : document.getTags()) {
+            Tag kept = entityStates.isNew(tag)
+                    ? find(tag.getName())
+                            .orElse(tag)
+                    : stored.get(tag.getId());
+
+            if (kept != null) {
+                tags.putIfAbsent(kept.getName().toLowerCase(Locale.ROOT),
+                        kept);
+            }
+        }
+
+        document.setTags(new ArrayList<>(tags.values()));
+
+        return tags.values()
+                .stream()
+                .filter(entityStates::isNew)
+                .toList();
     }
 
     /**

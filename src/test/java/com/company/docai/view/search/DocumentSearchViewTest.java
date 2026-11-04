@@ -17,22 +17,27 @@ import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBoxBase;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
+import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.IdSerialization;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.SystemAuthenticator;
+import io.jmix.dynattr.model.Category;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
@@ -145,6 +150,28 @@ class DocumentSearchViewTest {
         assertThat(this.<Span>byClass(row, "document-search-match").getText()).isEqualTo("tractors");
         assertThat(row.getElement().getTextRecursively())
                 .contains(document.getStatus().getName());
+    }
+
+    @Test
+    void aRowShowsTheNameWithTheFileIconThenTheTypeIfTheDocumentHasOneThenTheStatus() {
+        Document typed = upload("contract.txt");
+        Category type = giveType(typed);
+        answer(entry(typed, "<b>word</b>"), entry(upload("note.txt"), "<b>word</b>"));
+
+        DocumentSearchView view = search("word");
+        List<Component> typedTitle = titleParts(view, "contract.txt");
+        List<Component> untypedTitle = titleParts(view, "note.txt");
+        JmixButton name = (JmixButton) typedTitle.getFirst();
+        String fileIcon = JmixFontIcon.FILE_TEXT.create().getElement().getProperty("iconClass");
+
+        assertThat(name.getThemeNames()).contains(ButtonVariant.TERTIARY.getVariantName());
+        assertThat(name.getIcon().getElement().getProperty("iconClass")).isEqualTo(fileIcon);
+        assertThat(typedTitle).hasSize(3);
+        assertThat(typedTitle.get(1).hasClassName("v-neutral")).isTrue();
+        assertThat(((Badge) typedTitle.get(1)).getText()).isEqualTo(metadataTools.getInstanceName(type));
+        assertThat(((Badge) typedTitle.get(2)).getText()).isEqualTo(typed.getStatus().getName());
+        assertThat(untypedTitle).hasSize(2);
+        assertThat(untypedTitle.get(1).hasClassName("v-neutral")).isFalse();
     }
 
     @Test
@@ -420,6 +447,22 @@ class DocumentSearchViewTest {
         return unconstrainedDataManager.save(stored);
     }
 
+    private Category giveType(Document document) {
+        Category contract = unconstrainedDataManager.load(Category.class)
+                .query("select c from dynat_Category c where c.name = 'Contract' and c.entityType = 'Document'")
+                .one();
+
+        Document stored = unconstrainedDataManager.load(Id.of(document))
+                .fetchPlan(fetchPlan -> fetchPlan.addFetchPlan(FetchPlan.BASE)
+                        .add("category", FetchPlan.BASE))
+                .one();
+
+        stored.setCategory(contract);
+        unconstrainedDataManager.saveWithoutReload(stored);
+
+        return contract;
+    }
+
     private Folder secretFolder() {
         return systemAuthenticator.withUser(ADMIN, () -> {
             Folder folder = dataManager.create(Folder.class);
@@ -451,6 +494,17 @@ class DocumentSearchViewTest {
 
     private static List<Component> rows(DocumentSearchView view) {
         return UiTestUtils.<VerticalLayout>getComponent(view, "hitsBox").getChildren().toList();
+    }
+
+    private List<Component> titleParts(DocumentSearchView view, String fileName) {
+        return rows(view).stream()
+                .map(row -> this.<JmixButton>byClass(row, "document-search-name"))
+                .filter(name -> name.getText().equals(fileName))
+                .map(name -> name.getParent().orElseThrow())
+                .findFirst()
+                .orElseThrow()
+                .getChildren()
+                .toList();
     }
 
     private static String message(DocumentSearchView view) {

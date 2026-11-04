@@ -1,26 +1,22 @@
 package com.company.docai.demo;
 
-import com.company.docai.ai.classification.ClassificationProposal;
-import com.company.docai.ai.classification.ClassificationResult;
-import com.company.docai.ai.classification.DocumentClassifier;
 import com.company.docai.app.service.OperationRejectedException;
 import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.document.DocumentCommentService;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.document.DocumentStatusService;
+import com.company.docai.app.service.document.DocumentTypes;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.favorite.FavoriteService;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.app.service.tag.TagService;
 import com.company.docai.model.access.AccessDraft;
 import com.company.docai.model.access.AccessEntryDraft;
-import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentComment;
 import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
-import com.company.docai.model.tag.Tag;
 import com.company.docai.model.user.User;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
@@ -30,10 +26,8 @@ import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.data.PersistenceHints;
-import io.jmix.security.role.ResourceRoleRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,9 +37,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,18 +52,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 /**
  * Loads a demo set into an empty database when the application starts: the statuses of the set, the folders under
@@ -118,24 +103,8 @@ public class DemoDataLoader {
 
     private static final Logger log = LoggerFactory.getLogger(DemoDataLoader.class);
 
-    private static final String LOCATION = "com/company/docai/demo/%s/";
-    private static final String DESCRIPTION = "demo-data.json";
-
-    // a misspelt property of the description is a problem, not a value silently left out
-    private static final JsonMapper JSON = JsonMapper.builder()
-            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .build();
-
     // folders, access and statuses are created by the administrator, who manages every folder
     private static final String ADMIN = "admin";
-
-    // the keys of the default statuses of the changelog, which a set names in its language
-    private static final Map<String, UUID> DEFAULT_STATUSES = Map.of(
-            "DRAFT", DocumentStatus.DRAFT_ID,
-            "ACTIVE", DocumentStatus.ACTIVE_ID,
-            "ARCHIVED", DocumentStatus.ARCHIVED_ID);
-
-    private static final Pattern COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
 
     private final String chosenSet;
     private final DataManager dataManager;
@@ -145,10 +114,10 @@ public class DemoDataLoader {
     private final DocumentStatusService statusService;
     private final DocumentCommentService commentService;
     private final AccessService accessService;
-    private final DocumentClassifier documentClassifier;
+    private final DocumentTypes documentTypes;
     private final TagService tagService;
     private final FavoriteService favoriteService;
-    private final ResourceRoleRepository roleRepository;
+    private final DemoSetChecker checker;
     private final SystemAuthenticator systemAuthenticator;
     private final Metadata metadata;
     private final TransactionTemplate transaction;
@@ -165,10 +134,10 @@ public class DemoDataLoader {
                           DocumentStatusService statusService,
                           DocumentCommentService commentService,
                           AccessService accessService,
-                          DocumentClassifier documentClassifier,
+                          DocumentTypes documentTypes,
                           TagService tagService,
                           FavoriteService favoriteService,
-                          ResourceRoleRepository roleRepository,
+                          DemoSetChecker checker,
                           SystemAuthenticator systemAuthenticator,
                           Metadata metadata,
                           PlatformTransactionManager transactionManager) {
@@ -180,10 +149,10 @@ public class DemoDataLoader {
         this.statusService = statusService;
         this.commentService = commentService;
         this.accessService = accessService;
-        this.documentClassifier = documentClassifier;
+        this.documentTypes = documentTypes;
         this.tagService = tagService;
         this.favoriteService = favoriteService;
-        this.roleRepository = roleRepository;
+        this.checker = checker;
         this.systemAuthenticator = systemAuthenticator;
         this.metadata = metadata;
         this.transaction = new TransactionTemplate(transactionManager);
@@ -207,12 +176,14 @@ public class DemoDataLoader {
             return Outcome.OFF;
         }
 
-        if (!new ClassPathResource(LOCATION.formatted(set) + DESCRIPTION).exists()) {
-            log.error("There is no demo set '{}': {} is missing", set, LOCATION.formatted(set) + DESCRIPTION);
+        if (!new ClassPathResource(DemoSet.LOCATION.formatted(set) + DemoSet.DESCRIPTION).exists()) {
+            log.error("There is no demo set '{}': {} is missing", set,
+                    DemoSet.LOCATION.formatted(set) + DemoSet.DESCRIPTION);
+
             return Outcome.INVALID;
         }
 
-        if (!isEmpty()) {
+        if (!checker.isEmpty()) {
             log.info("The demo set '{}' is not loaded: the database holds folders or documents", set);
             return Outcome.NOT_EMPTY;
         }
@@ -222,6 +193,7 @@ public class DemoDataLoader {
         if (!problems.isEmpty()) {
             log.error("The demo set '{}' is not loaded, its description has problems:\n{}", set,
                     String.join("\n", problems));
+
             return Outcome.INVALID;
         }
 
@@ -238,7 +210,7 @@ public class DemoDataLoader {
      */
     public List<String> check(String set) {
         // the type rules read the names of types and fields in the language of the current user
-        return systemAuthenticator.withSystem(() -> problemsOf(set));
+        return systemAuthenticator.withSystem(() -> checker.problemsOf(set));
     }
 
     /**
@@ -249,7 +221,7 @@ public class DemoDataLoader {
         DemoSet description;
 
         try {
-            description = read(set);
+            description = DemoSet.read(set);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -277,361 +249,6 @@ public class DemoDataLoader {
                 (System.nanoTime() - started) / 1_000_000);
     }
 
-    private List<String> problemsOf(String set) {
-        DemoSet description;
-
-        try {
-            description = read(set);
-        } catch (IOException | JacksonException e) {
-            return List.of("The description of the demo set '%s' cannot be read: %s".formatted(set, e.getMessage()));
-        }
-
-        Set<String> users = new HashSet<>(unconstrainedDataManager.loadValues("select u.username from User u")
-                .properties("username")
-                .list()
-                .stream()
-                .map(row -> (String) row.getValue("username"))
-                .toList());
-
-        Set<String> statusKeys = new HashSet<>(DEFAULT_STATUSES.keySet());
-        description.statuses().forEach(entry -> statusKeys.add(entry.key()));
-        Set<String> documentStatusKeys = new HashSet<>();
-
-        List<String> problems = new ArrayList<>();
-        checkUsers(description.users(), users, problems);
-        checkFolders(set, description.folders(), "", users, statusKeys, documentStatusKeys, problems);
-        checkStatuses(description.statuses(), documentStatusKeys, problems);
-        checkTags(description.folders(), "", new HashMap<>(), problems);
-        checkFavorites(description.folders(), "", false, users, problems);
-
-        return problems;
-    }
-
-    private DemoSet read(String set) throws IOException {
-        try (InputStream content = new ClassPathResource(LOCATION.formatted(set) + DESCRIPTION).getInputStream()) {
-            return JSON.readValue(content, DemoSet.class);
-        }
-    }
-
-    private boolean isEmpty() {
-        long folders = unconstrainedDataManager.loadValue("select count(f) from Folder f", Long.class)
-                .hint(PersistenceHints.SOFT_DELETION, false)
-                .one();
-
-        long documents = unconstrainedDataManager.loadValue("select count(d) from Document d", Long.class)
-                .hint(PersistenceHints.SOFT_DELETION, false)
-                .one();
-
-        // the root folder comes with the changelogs
-        return folders == 1 && documents == 0;
-    }
-
-    private static void checkUsers(List<DemoSet.User> described, Set<String> users, List<String> problems) {
-        for (DemoSet.User names : described) {
-            if (!users.contains(names.login())) {
-                problems.add("users: there is no user '" + names.login() + "'");
-            }
-        }
-    }
-
-    // the statuses of the set over the defaults: a new one has a name and a color, a color is #rrggbb, a target is
-    // a key, one status is given to new documents, and every status of the set or of a document can be reached from
-    // that one
-    private static void checkStatuses(List<DemoSet.Status> described, Set<String> documentStatusKeys,
-                                      List<String> problems) {
-        Map<String, Set<String>> targets = new LinkedHashMap<>();
-        Map<String, Boolean> anyTarget = new HashMap<>();
-        Map<String, Boolean> initial = new HashMap<>();
-        Map<String, Boolean> locked = new HashMap<>();
-        targets.put("DRAFT", new HashSet<>(Set.of("ACTIVE")));
-        targets.put("ACTIVE", new HashSet<>(Set.of("ARCHIVED")));
-        targets.put("ARCHIVED", new HashSet<>(Set.of("ACTIVE")));
-        targets.keySet().forEach(key -> anyTarget.put(key, false));
-        targets.keySet().forEach(key -> initial.put(key, key.equals("DRAFT")));
-        targets.keySet().forEach(key -> locked.put(key, key.equals("ARCHIVED")));
-
-        for (DemoSet.Status entry : described) {
-            boolean isNew = !DEFAULT_STATUSES.containsKey(entry.key());
-
-            if (isNew && (isBlank(entry.name()) || entry.color() == null)) {
-                problems.add("statuses: the new status '" + entry.key() + "' needs a name and a color");
-            }
-
-            if (entry.color() != null && !COLOR.matcher(entry.color()).matches()) {
-                problems.add("statuses: the color of the status '" + entry.key() + "' is not #rrggbb");
-            }
-
-            targets.putIfAbsent(entry.key(), new HashSet<>());
-            anyTarget.putIfAbsent(entry.key(), true);
-            initial.putIfAbsent(entry.key(), false);
-            locked.putIfAbsent(entry.key(), false);
-
-            if (entry.anyTarget() != null) {
-                anyTarget.put(entry.key(), entry.anyTarget());
-            }
-
-            if (entry.initial() != null) {
-                initial.put(entry.key(), entry.initial());
-            }
-
-            if (entry.locked() != null) {
-                locked.put(entry.key(), entry.locked());
-            }
-        }
-
-        for (DemoSet.Status entry : described) {
-            if (entry.targets() != null) {
-                targets.put(entry.key(), new HashSet<>(entry.targets()));
-                entry.targets().stream()
-                        .filter(key -> !targets.containsKey(key))
-                        .forEach(key -> problems.add("statuses: the status '" + entry.key()
-                                + "' moves to no status '" + key + "'"));
-            }
-        }
-
-        List<String> initialKeys = initial.entrySet().stream()
-                .filter(Map.Entry::getValue)
-                .map(Map.Entry::getKey)
-                .toList();
-
-        if (initialKeys.size() != 1) {
-            problems.add("statuses: exactly one status is given to new documents");
-            return;
-        }
-
-        if (Boolean.TRUE.equals(locked.get(initialKeys.getFirst()))) {
-            problems.add("statuses: the status '" + initialKeys.getFirst()
-                    + "' is given to new documents and cannot lock them");
-        }
-
-        Set<String> reached = new HashSet<>(initialKeys);
-        Deque<String> queue = new ArrayDeque<>(initialKeys);
-
-        while (!queue.isEmpty()) {
-            String current = queue.poll();
-
-            for (String next : targets.keySet()) {
-                boolean moves = Boolean.TRUE.equals(anyTarget.get(current)) || targets.get(current).contains(next);
-
-                if (!next.equals(current) && moves && reached.add(next)) {
-                    queue.add(next);
-                }
-            }
-        }
-
-        // a key of a document that names no status has its own problem already
-        Set<String> checked = new LinkedHashSet<>();
-        described.forEach(entry -> checked.add(entry.key()));
-        documentStatusKeys.stream()
-                .filter(targets::containsKey)
-                .forEach(checked::add);
-
-        checked.stream()
-                .filter(key -> !reached.contains(key))
-                .forEach(key -> problems.add("statuses: the status '" + key
-                        + "' cannot be reached from the initial status"));
-    }
-
-    private void checkFolders(String set, List<DemoSet.Folder> folders, String path, Set<String> users,
-                              Set<String> statusKeys, Set<String> documentStatusKeys, List<String> problems) {
-        Set<String> names = new HashSet<>();
-
-        for (DemoSet.Folder folder : folders) {
-            String where = path + "/" + folder.name();
-
-            if (isBlank(folder.name())) {
-                problems.add(path + "/: a folder has no name");
-            } else if (!names.add(folder.name())) {
-                problems.add(where + ": two folders have this name");
-            }
-
-            checkAccess(folder.access(), where, users, problems);
-            checkDeletion(folder.deleted(), where, users, problems);
-            checkFolders(set, folder.folders(), where, users, statusKeys, documentStatusKeys, problems);
-            checkDocuments(set, folder.documents(), where, users, statusKeys, documentStatusKeys, problems);
-        }
-    }
-
-    private void checkDocuments(String set, List<DemoSet.Document> documents, String path, Set<String> users,
-                                Set<String> statusKeys, Set<String> documentStatusKeys, List<String> problems) {
-        Set<String> names = new HashSet<>();
-
-        for (DemoSet.Document document : documents) {
-            String where = path + "/" + document.name();
-
-            if (isBlank(document.name())) {
-                problems.add(path + ": a document has no name");
-            } else if (!names.add(document.name())) {
-                problems.add(where + ": two documents have this name");
-            }
-
-            if (document.versions().isEmpty()) {
-                problems.add(where + ": the document has no versions");
-            }
-
-            for (DemoSet.Version version : document.versions()) {
-                if (isBlank(version.file()) || !file(set, version.file()).exists()) {
-                    problems.add(where + ": there is no file '" + version.file() + "'");
-                }
-
-                if (!users.contains(version.author())) {
-                    problems.add(where + ": there is no user '" + version.author() + "'");
-                }
-
-                if (version.uploaded() == null) {
-                    problems.add(where + ": a version has no upload time");
-                }
-            }
-
-            if (document.status() != null && !statusKeys.contains(document.status())) {
-                problems.add(where + ": there is no status '" + document.status() + "'");
-            }
-
-            documentStatusKeys.add(document.status() == null ? "DRAFT" : document.status());
-
-            checkType(document, where, problems);
-            checkAccess(document.access(), where, users, problems);
-            checkDeletion(document.deleted(), where, users, problems);
-            checkComments(document.comments(), where, users, problems);
-        }
-    }
-
-    // the vocabulary keeps one tag for a name whatever its case, so a set writes a name one way
-    private static void checkTags(List<DemoSet.Folder> folders, String path, Map<String, String> spellings,
-                                  List<String> problems) {
-        for (DemoSet.Folder folder : folders) {
-            String folderPath = path + "/" + folder.name();
-
-            for (DemoSet.Document document : folder.documents()) {
-                String where = folderPath + "/" + document.name();
-
-                for (String tag : document.tags()) {
-                    String spelling = isBlank(tag) ? null : spellings.putIfAbsent(tag.toLowerCase(Locale.ROOT), tag);
-
-                    if (isBlank(tag)) {
-                        problems.add(where + ": a tag has no name");
-                    } else if (tag.length() > Tag.MAX_NAME_LENGTH) {
-                        problems.add(where + ": the tag '" + tag + "' is longer than " + Tag.MAX_NAME_LENGTH
-                                + " characters");
-                    } else if (spelling != null && !spelling.equals(tag)) {
-                        problems.add(where + ": the tag '" + tag + "' is written '" + spelling + "' elsewhere");
-                    }
-                }
-            }
-
-            checkTags(folder.folders(), folderPath, spellings, problems);
-        }
-    }
-
-    // a mark of a folder or a document that the loader puts into the trash would never show
-    private static void checkFavorites(List<DemoSet.Folder> folders, String path, boolean deleted, Set<String> users,
-                                       List<String> problems) {
-        for (DemoSet.Folder folder : folders) {
-            String folderPath = path + "/" + folder.name();
-            boolean folderDeleted = deleted || folder.deleted() != null;
-            checkMarks(folder.favoriteOf(), folderPath, folderDeleted, users, problems);
-
-            for (DemoSet.Document document : folder.documents()) {
-                checkMarks(document.favoriteOf(), folderPath + "/" + document.name(),
-                        folderDeleted || document.deleted() != null, users, problems);
-            }
-
-            checkFavorites(folder.folders(), folderPath, folderDeleted, users, problems);
-        }
-    }
-
-    private static void checkMarks(List<String> logins, String where, boolean deleted, Set<String> users,
-                                   List<String> problems) {
-        if (deleted && !logins.isEmpty()) {
-            problems.add(where + ": an item in the trash cannot be a favorite");
-        }
-
-        for (String login : logins) {
-            if (!users.contains(login)) {
-                problems.add(where + ": there is no user '" + login + "'");
-            }
-        }
-    }
-
-    private static void checkDeletion(DemoSet.@Nullable Deletion deletion, String where, Set<String> users,
-                                      List<String> problems) {
-        if (deletion == null) {
-            return;
-        }
-
-        if (!users.contains(deletion.by())) {
-            problems.add(where + ": there is no user '" + deletion.by() + "'");
-        }
-
-        if (deletion.at() == null) {
-            problems.add(where + ": the deletion has no time");
-        }
-    }
-
-    private static void checkComments(List<DemoSet.Comment> comments, String where, Set<String> users,
-                                      List<String> problems) {
-        for (DemoSet.Comment comment : comments) {
-            if (!users.contains(comment.author())) {
-                problems.add(where + ": there is no user '" + comment.author() + "'");
-            }
-
-            if (isBlank(comment.text())) {
-                problems.add(where + ": a comment has no text");
-            } else if (comment.text().strip().length() > DocumentComment.MAX_TEXT_LENGTH) {
-                problems.add(where + ": a comment is longer than " + DocumentComment.MAX_TEXT_LENGTH + " characters");
-            }
-
-            if (comment.at() == null) {
-                problems.add(where + ": a comment has no time");
-            } else if (comment.edited() != null && comment.edited().isBefore(comment.at())) {
-                problems.add(where + ": a comment is edited before it is written");
-            }
-        }
-    }
-
-    private void checkType(DemoSet.Document document, String where, List<String> problems) {
-        if (document.type() == null) {
-            if (!document.fields().isEmpty()) {
-                problems.add(where + ": the fields need a type");
-            }
-
-            return;
-        }
-
-        // the same rules the AI follows when it fills the type of a document
-        ClassificationResult result = documentClassifier.apply(proposalOf(document),
-                dataManager.create(Document.class));
-
-        if (result.typeName() == null) {
-            problems.add(where + ": there is no type '" + document.type() + "'");
-        }
-
-        for (String skipped : result.skipped()) {
-            problems.add(where + ": the type does not accept " + skipped);
-        }
-    }
-
-    private void checkAccess(@Nullable List<DemoSet.Access> entries, String where, Set<String> users,
-                             List<String> problems) {
-        if (entries == null) {
-            return;
-        }
-
-        for (DemoSet.Access entry : entries) {
-            if ((entry.user() == null) == (entry.role() == null)) {
-                problems.add(where + ": an access entry must name a user or a role");
-            } else if (entry.user() != null && !users.contains(entry.user())) {
-                problems.add(where + ": there is no user '" + entry.user() + "'");
-            } else if (entry.role() != null && roleRepository.findRoleByCode(entry.role()) == null) {
-                problems.add(where + ": there is no role '" + entry.role() + "'");
-            }
-
-            if (entry.level() == null || levelOf(entry.level()) == null) {
-                problems.add(where + ": there is no access level '" + entry.level() + "'");
-            }
-        }
-    }
-
     // the changelogs create the users with English names, and the set names them in its language
     private void nameUsers(List<DemoSet.User> described) {
         for (DemoSet.User names : described) {
@@ -643,7 +260,7 @@ public class DemoDataLoader {
             user.setFirstName(names.firstName());
             user.setLastName(names.lastName());
             user.setEmail(names.email());
-            unconstrainedDataManager.save(user);
+            unconstrainedDataManager.saveWithoutReload(user);
         }
     }
 
@@ -691,7 +308,7 @@ public class DemoDataLoader {
     }
 
     private DocumentStatus statusOf(DemoSet.Status entry) {
-        UUID id = DEFAULT_STATUSES.get(entry.key());
+        UUID id = DemoSet.DEFAULT_STATUSES.get(entry.key());
 
         if (id != null) {
             return loadStatus(id);
@@ -708,7 +325,8 @@ public class DemoDataLoader {
 
     private DocumentStatus statusFor(String key, Loaded loaded) {
         DocumentStatus status = loaded.statuses.get(key);
-        return status != null ? status : loadStatus(DEFAULT_STATUSES.get(key));
+
+        return status != null ? status : loadStatus(DemoSet.DEFAULT_STATUSES.get(key));
     }
 
     private DocumentStatus loadStatus(UUID id) {
@@ -757,7 +375,8 @@ public class DemoDataLoader {
                 .toList()));
 
         if (description.type() != null) {
-            documentClassifier.apply(proposalOf(description), draft);
+            documentTypes.find(description.type())
+                    .ifPresent(type -> documentTypes.fill(draft, type, DemoSet.fieldValuesOf(description), null));
         }
 
         List<DemoSet.Version> versions = description.versions();
@@ -840,7 +459,7 @@ public class DemoDataLoader {
             Path content = Files.createTempFile("docai-demo-", extension);
 
             try {
-                try (InputStream source = file(set, version.file()).getInputStream()) {
+                try (InputStream source = DemoSet.file(set, version.file()).getInputStream()) {
                     Files.copy(source, content, StandardCopyOption.REPLACE_EXISTING);
                 }
 
@@ -855,13 +474,14 @@ public class DemoDataLoader {
 
     private void giveOwnAccess(AccessDraft draft, List<DemoSet.Access> entries) {
         draft.setInherit(false);
+
         draft.setEntries(entries.stream()
                 .map(entry -> {
                     AccessEntryDraft entryDraft = metadata.create(AccessEntryDraft.class);
                     entryDraft.setUsername(entry.user());
                     entryDraft.setRoleCode(entry.role());
                     entryDraft.setSubjectName(entry.user() != null ? entry.user() : entry.role());
-                    entryDraft.setAccessLevel(levelOf(entry.level()));
+                    entryDraft.setAccessLevel(DemoSet.levelOf(entry.level()));
                     return entryDraft;
                 })
                 .toList());
@@ -971,9 +591,11 @@ public class DemoDataLoader {
                 EntityValues.setDeletedDate(row, at(deleted.description().at()));
                 EntityValues.setDeletedBy(row, deleted.description().by());
             });
+
             unconstrainedDataManager.save(new SaveContext()
                     .saving(rows)
-                    .setHint(PersistenceHints.SOFT_DELETION, false));
+                    .setHint(PersistenceHints.SOFT_DELETION, false)
+                    .setDiscardSaved(true));
         }
     }
 
@@ -989,35 +611,8 @@ public class DemoDataLoader {
                 .list();
     }
 
-    private static ClassificationProposal proposalOf(DemoSet.Document document) {
-        List<ClassificationProposal.Field> fields = document.fields()
-                .entrySet()
-                .stream()
-                .map((Map.Entry<String, String> field) -> new ClassificationProposal.Field(field.getKey(),
-                        field.getValue()))
-                .toList();
-
-        return new ClassificationProposal(document.type(), fields, null, List.of());
-    }
-
-    private static ClassPathResource file(String set, String file) {
-        return new ClassPathResource(LOCATION.formatted(set) + "files/" + file);
-    }
-
     private static OffsetDateTime at(LocalDateTime time) {
         return time.atZone(ZoneId.systemDefault()).toOffsetDateTime();
-    }
-
-    private static @Nullable AccessLevel levelOf(String name) {
-        try {
-            return AccessLevel.valueOf(name);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    private static boolean isBlank(@Nullable String text) {
-        return text == null || text.isBlank();
     }
 
     private static final class Loaded {

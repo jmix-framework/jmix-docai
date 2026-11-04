@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <content>
+        <div id="hitRoot" classNames="document-search-hit">
+            <!-- the controller adds the type, status and tags after the name, and the matched text last -->
+            <div id="titleBox" classNames="document-search-title">
+                <button id="nameButton" classNames="document-search-name" icon="FILE_TEXT" themeNames="tertiary"/>
+            </div>
+            <span id="pathText" classNames="document-search-path"/>
+        </div>
+    </content>
+</fragment>

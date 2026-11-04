@@ -10,8 +10,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import io.jmix.core.MetadataTools;
-import io.jmix.core.metamodel.datatype.DatatypeFormatter;
-import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.component.textarea.JmixTextArea;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.fragmentrenderer.FragmentRenderer;
@@ -65,9 +63,7 @@ public class DocumentCommentItemFragment extends FragmentRenderer<HorizontalLayo
     @Autowired
     private MetadataTools metadataTools;
     @Autowired
-    private DatatypeFormatter datatypeFormatter;
-    @Autowired
-    private CurrentAuthentication currentAuthentication;
+    private DocumentRenderers documentRenderers;
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
@@ -90,9 +86,7 @@ public class DocumentCommentItemFragment extends FragmentRenderer<HorizontalLayo
         authorAvatar.setAbbreviation(initials);
         authorAvatar.setColorIndex(Math.floorMod(username.hashCode(), AVATAR_COLORS));
         authorName.setText(name);
-        writtenTime.setText(datatypeFormatter.formatLocalDateTime(comment.getCreatedDate()
-                .atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId())
-                .toLocalDateTime()));
+        writtenTime.setText(documentRenderers.userDateTime(comment.getCreatedDate()));
 
         editedMark.setVisible(comment.getEditedDate() != null);
         editCommentButton.setVisible(commentService.isMine(comment));

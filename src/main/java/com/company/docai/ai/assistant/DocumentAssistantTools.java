@@ -4,16 +4,14 @@ import com.company.docai.ai.AiSettings;
 import com.company.docai.ai.DocumentTextReader;
 import com.company.docai.ai.classification.ClassificationProposal;
 import com.company.docai.ai.classification.DocumentClassifier;
-import com.company.docai.app.service.document.DocumentCommentService;
+import com.company.docai.app.service.user.UserService;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentComment;
-import com.company.docai.model.user.User;
 import io.jmix.aitools.tool.AiToolStatusPublisher;
 import io.jmix.aitools.tool.JmixAiTool;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FetchPlanBuilder;
-import io.jmix.core.MetadataTools;
 import io.jmix.core.security.SystemAuthenticator;
 import org.jspecify.annotations.Nullable;
 import org.springframework.ai.chat.model.ToolContext;
@@ -72,26 +70,23 @@ public class DocumentAssistantTools implements JmixAiTool {
     private final DocumentTextReader documentTextReader;
     private final DocumentClassifier documentClassifier;
     private final AiToolStatusPublisher statusPublisher;
-    private final DocumentCommentService commentService;
+    private final UserService userService;
     private final AiSettings aiSettings;
-    private final MetadataTools metadataTools;
 
     public DocumentAssistantTools(DataManager dataManager,
                                   SystemAuthenticator systemAuthenticator,
                                   DocumentTextReader documentTextReader,
                                   DocumentClassifier documentClassifier,
                                   AiToolStatusPublisher statusPublisher,
-                                  DocumentCommentService commentService,
-                                  AiSettings aiSettings,
-                                  MetadataTools metadataTools) {
+                                  UserService userService,
+                                  AiSettings aiSettings) {
         this.dataManager = dataManager;
         this.systemAuthenticator = systemAuthenticator;
         this.documentTextReader = documentTextReader;
         this.documentClassifier = documentClassifier;
         this.statusPublisher = statusPublisher;
-        this.commentService = commentService;
+        this.userService = userService;
         this.aiSettings = aiSettings;
-        this.metadataTools = metadataTools;
     }
 
     /**
@@ -205,14 +200,16 @@ public class DocumentAssistantTools implements JmixAiTool {
             return NO_COMMENTS;
         }
 
-        Map<String, User> authors = commentService.authorsOf(latest);
+        Map<String, String> authors = userService.namesOf(latest.stream()
+                .map(DocumentComment::getCreatedBy)
+                .toList());
+
         List<String> entries = new ArrayList<>();
         int length = 0;
 
         for (DocumentComment comment : latest.subList(0, Math.min(MAX_COMMENTS, latest.size()))) {
-            User author = authors.get(comment.getCreatedBy());
             String entry = "%s, %s%s:\n%s".formatted(
-                    author == null ? comment.getCreatedBy() : metadataTools.getInstanceName(author),
+                    authors.getOrDefault(comment.getCreatedBy(), comment.getCreatedBy()),
                     COMMENT_TIME.format(comment.getCreatedDate().atZoneSameInstant(ZoneId.systemDefault())),
                     comment.getEditedDate() == null ? "" : ", edited",
                     // on one line, so that a text cannot pass for the next comment and its author

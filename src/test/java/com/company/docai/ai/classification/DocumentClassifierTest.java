@@ -406,6 +406,35 @@ class DocumentClassifierTest {
         assertThat(document.getCategory()).isEqualTo(invoiceType());
     }
 
+    // a model writes a value it did not find as a blank text or as the word null
+    @Test
+    void aBlankValueOrTheWordNullIsNoValue() {
+        Document document = editable(upload());
+
+        ClassificationResult result = documentClassifier.apply(new ClassificationProposal("Invoice", List.of(
+                field("supplier", " "),
+                field("invoiceAmount", "null")), "null", List.of()), document);
+
+        assertThat(result.typeName()).isEqualTo("Invoice");
+        assertThat(result.filled()).isEmpty();
+        assertThat(result.skipped()).isEmpty();
+        assertThat(value(document, "supplier")).isNull();
+        assertThat(value(document, "invoiceAmount")).isNull();
+        assertThat(document.getDocumentDate()).isNull();
+    }
+
+    // a model may write a field the way the metamodel names it
+    @Test
+    void aFieldIsFoundByTheNameOfItsProperty() {
+        Document document = editable(upload());
+
+        ClassificationResult result = documentClassifier.apply(new ClassificationProposal("Invoice", List.of(
+                field("+supplier", "Harbour Logistics LLC")), null, List.of()), document);
+
+        assertThat(result.filled()).hasSize(1);
+        assertThat(value(document, "supplier")).isEqualTo("Harbour Logistics LLC");
+    }
+
     private static String suffix() {
         return UUID.randomUUID().toString().substring(0, 8);
     }

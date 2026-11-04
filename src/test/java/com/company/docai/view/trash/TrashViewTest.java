@@ -8,11 +8,13 @@ import com.company.docai.model.document.Document;
 import com.company.docai.model.favorite.Favorite;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.trash.TrashItem;
+import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
 import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.document.DocumentPreviewFragment;
+import com.company.docai.view.document.DocumentRenderers;
 import com.company.docai.view.favorite.FavoritesFragment;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.repository.FolderTreeFragment;
@@ -25,6 +27,7 @@ import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.core.SaveContext;
 import io.jmix.core.UnconstrainedDataManager;
+import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.action.DialogAction;
@@ -89,6 +92,12 @@ class TrashViewTest {
     @Autowired
     private UnconstrainedDataManager unconstrainedDataManager;
 
+    @Autowired
+    private CurrentAuthentication currentAuthentication;
+
+    @Autowired
+    private DocumentRenderers documentRenderers;
+
     @TempDir
     private Path tempDir;
 
@@ -126,6 +135,26 @@ class TrashViewTest {
         assertThat(nameCell(grid, itemOf(items(grid), note.getId()))).isEqualTo("note.txt");
         assertThat(grid.getEmptyStateText())
                 .isEqualTo(messages.getMessage(TrashView.class, "trashItemsGrid.emptyStateText"));
+    }
+
+    @Test
+    void theTrashShowsWhenAnItemWasDeletedInThePersonsTimeZone() {
+        Document note = upload(sandbox, "note.txt");
+        documentService.delete(List.of(note));
+
+        // the person works in Kiritimati, far from the zone of the server; the user of the test's login is loaded
+        // for this test alone
+        ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
+        assertThat(currentAuthentication.getTimeZone().getID()).isEqualTo("Pacific/Kiritimati");
+
+        TrashView view = open();
+        DataGrid<TrashItem> grid = grid(view);
+        TrashItem item = itemOf(items(grid), note.getId());
+
+        assertThat(item.getDeletedDate()).isNotNull();
+
+        assertThat(TestGrids.text(grid, "deletedDate", item))
+                .isEqualTo(documentRenderers.userDateTime(item.getDeletedDate()));
     }
 
     @Test

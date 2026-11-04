@@ -1,33 +1,26 @@
 package com.company.docai.view.repository;
 
 import com.company.docai.ai.AiSettings;
-import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.access.AccessLevels;
 import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.document.DocumentStatusService;
-import com.company.docai.app.service.document.UploadReport;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.favorite.FavoriteService;
-import com.company.docai.model.access.AccessDraft;
+import com.company.docai.app.service.user.UserService;
+import com.company.docai.app.ui.grid.GridSelectionUtils;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
-import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
-import com.company.docai.model.user.User;
-import com.company.docai.view.access.AccessDetailView;
-import com.company.docai.view.document.DocumentDetailView;
-import com.company.docai.view.document.FileSizeFormatter;
-import com.company.docai.view.document.PreviewType;
+import com.company.docai.view.document.DocumentCards;
+import com.company.docai.view.document.DocumentRenderers;
+import com.company.docai.view.document.DocumentUploads;
 import com.company.docai.view.document.RevisionDownloader;
 import com.company.docai.view.favorite.FavoriteListAction;
-import com.company.docai.view.folder.FolderLookupView;
-import com.company.docai.view.folder.FolderRenderers;
 import com.company.docai.view.status.StatusBadges;
 import com.company.docai.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnResizeEvent;
@@ -36,31 +29,18 @@ import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.AllFinishedEvent;
 import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.component.upload.StartedEvent;
-import com.vaadin.flow.component.upload.UploadManager;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.renderer.TextRenderer;
-import com.vaadin.flow.data.selection.MultiSelectionEvent;
 import com.vaadin.flow.data.selection.SelectionEvent;
 import io.jmix.core.AccessManager;
-import io.jmix.core.DataManager;
-import io.jmix.core.FetchPlan;
-import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
-import io.jmix.core.metamodel.datatype.DatatypeFormatter;
-import io.jmix.core.security.CurrentAuthentication;
-import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Fragments;
-import io.jmix.flowui.Notifications;
-import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.accesscontext.UiShowViewContext;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.DataGrid;
@@ -74,28 +54,18 @@ import io.jmix.flowui.facet.settings.FragmentSettings;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.fragment.FragmentUtils;
-import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.kit.action.ActionVariant;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
-import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.*;
-import com.vaadin.flow.server.streams.UploadHandler;
-import com.vaadin.flow.server.streams.UploadMetadata;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -106,8 +76,6 @@ import java.util.stream.Collectors;
  */
 @FragmentDescriptor("document-list-fragment.xml")
 public class DocumentListFragment extends Fragment<VerticalLayout> {
-
-    private static final Logger log = LoggerFactory.getLogger(DocumentListFragment.class);
 
     private static final String ASSISTANT_CHAT_VIEW = "aitls_AiChatView";
 
@@ -150,23 +118,19 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private AccessService accessService;
     @Autowired
-    private DataManager dataManager;
+    private UserService userService;
     @Autowired
     private TemporaryStorage temporaryStorage;
     @Autowired
-    private FilesProperties filesProperties;
-    @Autowired
-    private FileSizeFormatter fileSizeFormatter;
-    @Autowired
-    private DialogWindows dialogWindows;
+    private DocumentUploads documentUploads;
     @Autowired
     private Dialogs dialogs;
     @Autowired
-    private Notifications notifications;
-    @Autowired
     private RevisionDownloader revisionDownloader;
     @Autowired
-    private UiComponents uiComponents;
+    private RepositoryMoves repositoryMoves;
+    @Autowired
+    private DocumentCards documentCards;
     @Autowired
     private TagBadges tagBadges;
     @Autowired
@@ -174,17 +138,9 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private FavoriteService favoriteService;
     @Autowired
-    private Icons icons;
-    @Autowired
-    private FolderRenderers folderRenderers;
-    @Autowired
-    private Messages messages;
+    private DocumentRenderers documentRenderers;
     @Autowired
     private MetadataTools metadataTools;
-    @Autowired
-    private DatatypeFormatter datatypeFormatter;
-    @Autowired
-    private CurrentAuthentication currentAuthentication;
     @Autowired
     private Fragments fragments;
     @Autowired
@@ -209,9 +165,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Map<String, String> userNames = Map.of();
     private Set<UUID> markedIds = Set.of();
     private final Map<UUID, UploadedFile> uploadedFiles = new LinkedHashMap<>();
-    private final List<UploadedFile> droppedFiles = new ArrayList<>();
     private DocumentsDropZone documentsDropZone;
-    private UploadManager dropUploads;
 
     private Consumer<@Nullable Document> focusHandler = document -> {
     };
@@ -255,9 +209,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     }
 
     private void configureUploads() {
-        int maxFileSize = (int) filesProperties.maxFileSize().toBytes();
-        documentsUpload.setMaxFileSize(maxFileSize);
-        versionUpload.setMaxFileSize(maxFileSize);
+        documentUploads.limitFileSize(documentsUpload);
+        documentUploads.limitFileSize(versionUpload);
 
         // the upload creates its button itself, so the descriptor cannot give the button a variant or a name
         ((Button) documentsUpload.getUploadButton()).addThemeVariants(ButtonVariant.PRIMARY);
@@ -274,72 +227,30 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     // files dropped from the computer onto the table go the way of the upload button; Jmix has no element for the
     // zone, so it wraps the table here
     private void configureDropZone() {
-        dropUploads = new UploadManager(getContent(), UploadHandler.toTempFile(this::onFileDropped));
-        dropUploads.setMaxFiles(documentsUpload.getMaxFiles());
-        dropUploads.setMaxFileSize(filesProperties.maxFileSize().toBytes());
-        dropUploads.addFileRejectedListener(this::onDroppedFileRejected);
-        dropUploads.addAllFinishedListener(event -> onDroppedFilesFinished());
-
-        documentsDropZone = new DocumentsDropZone(dropUploads);
+        documentsDropZone = new DocumentsDropZone();
+        documentsDropZone.setArrivalHandler(this::onFileDropped);
+        documentsDropZone.getUploadManager()
+                .setMaxFiles(documentsUpload.getMaxFiles());
+        documentUploads.limitFileSize(documentsDropZone.getUploadManager());
+        documentsDropZone.setRejectionHandler(documentUploads::showDropRejected);
+        documentsDropZone.setBatchHandler(this::onDroppedFilesFinished);
         documentsDropZone.addClassName("documents-drop-zone");
         documentsDropZone.setSizeFull();
 
         getContent().replace(documentsGrid, documentsDropZone);
         documentsDropZone.setContent(documentsGrid);
         getContent().setFlexGrow(1, documentsDropZone);
-
-        documentsDropZone.addAttachListener(event -> configureDragEvents());
-
-        if (documentsDropZone.isAttached()) {
-            configureDragEvents();
-        }
-
-        // a page reload or a session timeout leaves the files of an unfinished drop in the temporary directory
-        addDetachListener(detachEvent -> discardDroppedFiles());
-    }
-
-    // The zone answers any drag, so the table passes on to it only the drags of files: its rows still go to the
-    // folders and the favorites. The zone forgets the files only on a dragleave of its own, which never comes while
-    // the table covers it, so it is told so when the files leave the table or the drag stops without a drop: the
-    // browser repeats dragover while the files are over the table.
-    private void configureDragEvents() {
-        documentsDropZone.getElement().executeJs("""
-                const zone = this;
-                if (zone.docaiDragEvents) {
-                    return;
-                }
-                zone.docaiDragEvents = true;
-                for (const type of ['dragenter', 'dragover']) {
-                    zone.querySelector('vaadin-grid').addEventListener(type, event => {
-                        if (!event.dataTransfer || !Array.from(event.dataTransfer.types).includes('Files')) {
-                            event.stopPropagation();
-                        }
-                    });
-                }
-                let silence;
-                const forget = () => {
-                    clearTimeout(silence);
-                    zone.dispatchEvent(new DragEvent('dragleave'));
-                };
-                zone.addEventListener('dragover', () => {
-                    clearTimeout(silence);
-                    silence = setTimeout(forget, 700);
-                });
-                zone.addEventListener('dragleave', event => {
-                    if (event.target !== zone && !zone.contains(event.relatedTarget)) {
-                        forget();
-                    }
-                });""");
     }
 
     private void configureDocumentsGridContextMenu() {
-        // a right click outside the selection selects the row under the pointer, so the menu acts on that row
-        documentsGrid.getContextMenu().addGridContextMenuOpenedListener(menu -> {
-            if (menu.isOpened()) {
-                menu.getItem()
-                        .filter(document -> !documentsGrid.getSelectedItems().contains(document))
-                        .ifPresent(this::selectOnly);
+        // a right click outside the selection selects the row under the pointer, so the menu acts on that row; it
+        // happens before the menu opens, as an open menu does not redraw the items that the selection rebuilds
+        documentsGrid.getContextMenu().setDynamicContentHandler(document -> {
+            if (document != null && !documentsGrid.getSelectedItems().contains(document)) {
+                GridSelectionUtils.selectOnly(documentsGrid, document);
             }
+
+            return true;
         });
     }
 
@@ -436,7 +347,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         boolean folderEditable = folder != null && levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
         documentsUpload.setEnabled(folderEditable);
         // a disabled zone would disable the table inside it, so only the uploads of the zone go off
-        dropUploads.setEnabled(folderEditable);
+        documentsDropZone.getUploadManager()
+                .setEnabled(folderEditable);
 
         if (folder != null) {
             documentsDropZone.getElement().setAttribute("data-hint",
@@ -456,35 +368,14 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         updateAccessAction();
     }
 
-    // a click selects only its row, and a click with Ctrl or Cmd adds or removes the row, as in a file manager
     @Subscribe("documentsGrid")
     public void onDocumentsGridItemClick(final ItemClickEvent<Document> event) {
-        Document document = event.getItem();
-
-        if (event.isCtrlKey() || event.isMetaKey()) {
-            if (documentsGrid.getSelectedItems().contains(document)) {
-                documentsGrid.deselect(document);
-            } else {
-                documentsGrid.select(document);
-            }
-
-            return;
-        }
-
-        selectOnly(document);
+        GridSelectionUtils.click(documentsGrid, event);
     }
 
-    // the document that has just joined the selection is the one to preview
     @Subscribe("documentsGrid")
     public void onDocumentsGridSelection(final SelectionEvent<DataGrid<Document>, Document> event) {
-        Set<Document> selected = documentsGrid.getSelectedItems();
-
-        if (event instanceof MultiSelectionEvent<DataGrid<Document>, Document> change
-                && change.getAddedSelection().size() == 1) {
-            focus(change.getAddedSelection().iterator().next());
-        } else if (!selected.contains(focusedDocument)) {
-            focus(selected.stream().findFirst().orElse(null));
-        }
+        GridSelectionUtils.focusAfter(event, focusedDocument, this::focus);
 
         updateVersionUpload();
         updateStatusButton();
@@ -499,10 +390,9 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Subscribe(id = "documentsDc", target = Target.DATA_CONTAINER)
     public void onDocumentsDcCollectionChange(final CollectionContainer.CollectionChangeEvent<Document> event) {
         markedIds = favoriteService.markedIds(event.getSource().getItems());
-        userNames = userNames(event.getSource().getItems().stream()
+        userNames = userService.namesOf(event.getSource().getItems().stream()
                 .map(Document::getChangedBy)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet()));
+                .toList());
 
         documentsGrid.recalculateColumnWidths();
     }
@@ -576,16 +466,11 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @Subscribe("createDocumentButton")
     public void onCreateDocumentButtonClick(final ClickEvent<JmixButton> event) {
-        dialogWindows.detail(hostView(), Document.class)
-                .withViewClass(DocumentDetailView.class)
-                .newEntity()
-                .withInitializer(document -> document.setFolder(folder))
-                .withAfterCloseListener(closeEvent -> {
-                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
-                        contentsChanged();
-                    }
-                })
-                .open();
+        documentCards.create(hostView(), folder, closeEvent -> {
+            if (closeEvent.closedWith(StandardOutcome.SAVE)) {
+                contentsChanged();
+            }
+        });
     }
 
     @Subscribe("documentsGrid.downloadAction")
@@ -597,23 +482,12 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Subscribe("documentsGrid.moveAction")
     public void onMoveAction(final ActionPerformedEvent event) {
         Set<Document> documents = documentsGrid.getSelectedItems();
-        dialogWindows.lookup(hostView(), Folder.class)
-                .withViewClass(FolderLookupView.class)
-                .withSelectHandler(targets -> move(documents, targets.iterator().next()))
-                .open();
+        repositoryMoves.chooseTarget(hostView(), List.of(), target -> move(documents, target));
     }
 
-    @Subscribe("documentsGrid.accessAction")
-    public void onAccessAction(final ActionPerformedEvent event) {
-        dialogWindows.detail(hostView(), AccessDraft.class)
-                .withViewClass(AccessDetailView.class)
-                .editEntity(accessService.describe(documentsGrid.getSingleSelectedItem()))
-                .withAfterCloseListener(closeEvent -> {
-                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
-                        contentsChanged();
-                    }
-                })
-                .open();
+    @Install(to = "documentsGrid.accessAction", subject = "afterSaveHandler")
+    private void documentsGridAccessActionAfterSaveHandler(final Document document) {
+        contentsChanged();
     }
 
     @Subscribe("documentsGrid.deleteAction")
@@ -663,31 +537,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @Supply(to = "documentsGrid.name", subject = "renderer")
     private Renderer<Document> nameRenderer() {
-        String marked = messages.getMessage(FavoriteListAction.class, "markedStar.label");
-
-        return new ComponentRenderer<>(document -> {
-            Span name = uiComponents.create(Span.class);
-            name.addClassName("name-with-icon");
-            Span text = uiComponents.create(Span.class);
-            text.addClassName("name-text");
-            text.setText(document.getName());
-            name.add(icons.get(fileIcon(document)), text);
-
-            // after the name: a long name ends with an ellipsis, and the star stays in sight; a screen reader names
-            // it, as the key of an own access
-            if (markedIds.contains(document.getId())) {
-                Component star = FavoriteListAction.star(icons, true);
-                star.getElement().setAttribute("role", "img");
-                star.getElement().setAttribute("aria-label", marked);
-                name.add(star);
-            }
-
-            if (showsOwnAccess(document)) {
-                folderRenderers.markOwnAccess(name);
-            }
-
-            return name;
-        });
+        return documentRenderers.nameRenderer(document -> markedIds.contains(document.getId()), this::showsOwnAccess);
     }
 
     @Supply(to = "documentsGrid.tags", subject = "renderer")
@@ -702,51 +552,12 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @Supply(to = "documentsGrid.fileSize", subject = "renderer")
     private Renderer<Document> fileSizeRenderer() {
-        return new TextRenderer<>(document -> document.getCurrentRevision() == null
-                ? ""
-                : fileSizeFormatter.format(document.getCurrentRevision().getFileSize()));
+        return documentRenderers.fileSizeRenderer();
     }
 
-    // who and when share one column, as in the card, in the user's time zone: the date in the cell, the time in its
-    // title; a tooltip generator of a grid column throws in the browser of Vaadin 25.3 when a tooltip has no row
     @Supply(to = "documentsGrid.changedDate", subject = "renderer")
     private Renderer<Document> changedDateRenderer() {
-        return LitRenderer.<Document>of("<span title=\"${item.time}\">${item.text}</span>")
-                .withProperty("text", document -> {
-                    if (document.getChangedDate() == null) {
-                        return "";
-                    }
-
-                    String date = datatypeFormatter.formatLocalDate(changedTime(document).toLocalDate());
-
-                    return document.getChangedBy() == null
-                            ? date
-                            : userNames.getOrDefault(document.getChangedBy(), document.getChangedBy()) + " · " + date;
-                })
-                .withProperty("time", document -> document.getChangedDate() == null
-                        ? ""
-                        : datatypeFormatter.formatLocalDateTime(changedTime(document)));
-    }
-
-    private LocalDateTime changedTime(Document document) {
-        return document.getChangedDate()
-                .atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId())
-                .toLocalDateTime();
-    }
-
-    // the names of the users as the application shows them; a user deleted since keeps the username
-    private Map<String, String> userNames(Set<String> usernames) {
-        if (usernames.isEmpty()) {
-            return Map.of();
-        }
-
-        return dataManager.load(User.class)
-                .query("select u from User u where u.username in :usernames")
-                .parameter("usernames", usernames)
-                .fetchPlan(FetchPlan.INSTANCE_NAME)
-                .list()
-                .stream()
-                .collect(Collectors.toMap(User::getUsername, metadataTools::getInstanceName));
+        return documentRenderers.changedRenderer(username -> userNames.getOrDefault(username, username));
     }
 
     // ---- upload of new documents and of a new version
@@ -783,60 +594,28 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     }
 
     // the dropped files go into the folder shown when the first of them arrived
-    private void onFileDropped(UploadMetadata metadata, File file) {
+    private void onFileDropped() {
         if (dropFolder == null) {
             dropFolder = folder;
         }
-
-        droppedFiles.add(new UploadedFile(metadata.fileName(), file.toPath()));
     }
 
-    private void onDroppedFilesFinished() {
+    private void onDroppedFilesFinished(List<UploadedFile> files) {
         Folder target = dropFolder;
         dropFolder = null;
-        dropUploads.clearFileList();
 
-        try {
-            if (target != null && !droppedFiles.isEmpty()) {
-                uploadInto(target, List.copyOf(droppedFiles));
-            }
-        } finally {
-            discardDroppedFiles();
+        if (target != null && !files.isEmpty()) {
+            uploadInto(target, files);
         }
-    }
-
-    private void onDroppedFileRejected(UploadManager.FileRejectedEvent event) {
-        String key = switch (event.getReason()) {
-            case TOO_MANY_FILES -> "dropRejected.tooManyFiles";
-            case FILE_TOO_LARGE -> "dropRejected.fileTooLarge";
-            default -> "dropRejected.other";
-        };
-
-        notifications.create(messageBundle.formatMessage(key, event.getFileName()))
-                .withType(Notifications.Type.WARNING)
-                .show();
     }
 
     // the upload button and the drop zone both end here
     private void uploadInto(Folder target, List<UploadedFile> files) {
         try {
-            showUploadReport(documentService.upload(target, files));
+            documentUploads.showReport(documentService.upload(target, files));
         } finally {
             contentsChanged();
         }
-    }
-
-    // the zone keeps its files in the temporary directory of the system, not in the temporary storage of Jmix
-    private void discardDroppedFiles() {
-        for (UploadedFile file : droppedFiles) {
-            try {
-                Files.deleteIfExists(file.content());
-            } catch (IOException e) {
-                log.warn("A dropped file is left in the temporary directory: {}", file.content(), e);
-            }
-        }
-
-        droppedFiles.clear();
     }
 
     // the version goes to the document selected when the upload began, even if the selection changes meanwhile
@@ -864,9 +643,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @Subscribe("documentsUpload")
     public void onDocumentsUploadFileRejected(final FileRejectedEvent event) {
-        notifications.create(event.getFileName() + ": " + event.getErrorMessage())
-                .withType(Notifications.Type.WARNING)
-                .show();
+        documentUploads.showRejected(event);
     }
 
     @Subscribe("versionUpload")
@@ -876,9 +653,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     @Subscribe("documentsUpload")
     public void onDocumentsUploadFailed(final FailedEvent event) {
-        notifications.create(messageBundle.formatMessage("uploadFailed", event.getFileName()))
-                .withType(Notifications.Type.ERROR)
-                .show();
+        documentUploads.showFailed(event);
     }
 
     @Subscribe("versionUpload")
@@ -893,36 +668,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         documentsUpload.clearFileList();
     }
 
-    private void showUploadReport(UploadReport report) {
-        if (report.skipped().isEmpty()) {
-            notifications.create(messageBundle.formatMessage("uploadDone", report.created().size()))
-                    .withType(Notifications.Type.SUCCESS)
-                    .show();
-
-            return;
-        }
-
-        VerticalLayout content = uiComponents.create(VerticalLayout.class);
-        content.setPadding(false);
-        content.add(textLine(messageBundle.formatMessage("uploadReport.summary",
-                report.created().size(), report.skipped().size())));
-
-        for (UploadReport.SkippedFile skipped : report.skipped()) {
-            content.add(textLine(skipped.fileName() + " — " + skipped.reason()));
-        }
-
-        dialogs.createMessageDialog()
-                .withHeader(messageBundle.getMessage("uploadReport.header"))
-                .withContent(content)
-                .open();
-    }
-
-    private Span textLine(String text) {
-        Span span = uiComponents.create(Span.class);
-        span.setText(text);
-        return span;
-    }
-
     /**
      * Opens the card of the document; after a save the list shows its documents again.
      */
@@ -931,25 +676,15 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
             return;
         }
 
-        dialogWindows.detail(hostView(), Document.class)
-                .withViewClass(DocumentDetailView.class)
-                .editEntity(document)
-                .withAfterCloseListener(closeEvent -> {
-                    // a saved card may have renamed the document, and any card may have marked it with its star
-                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
-                        contentsChanged();
-                    } else {
-                        refreshFavorites();
-                        favoritesChangeHandler.run();
-                    }
-                })
-                .open();
-    }
-
-    private void selectOnly(Document document) {
-        Set<Document> others = new HashSet<>(documentsGrid.getSelectedItems());
-        others.remove(document);
-        documentsGrid.asMultiSelect().updateSelection(Set.of(document), others);
+        documentCards.open(hostView(), document, closeEvent -> {
+            // a saved card may have renamed the document, and any card may have marked it with its star
+            if (closeEvent.closedWith(StandardOutcome.SAVE)) {
+                contentsChanged();
+            } else {
+                refreshFavorites();
+                favoritesChangeHandler.run();
+            }
+        });
     }
 
     private void focus(@Nullable Document document) {
@@ -997,33 +732,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
      * asks first. The documents and the counts of the folder tree are reloaded after the move.
      */
     public void move(Collection<Document> documents, Folder target) {
-        Runnable move = () -> {
-            documentService.move(documents, target);
-            contentsChanged();
-
-            // the documents of the shown folder stay where they are when it is the target
-            if (!target.equals(folder)) {
-                notifications.create(messageBundle.formatMessage("documentsMoved",
-                                metadataTools.getInstanceName(target), documents.size()))
-                        .withType(Notifications.Type.SUCCESS)
-                        .show();
-            }
-        };
-
-        if (!accessService.changesOnMove(documents, target)) {
-            move.run();
-            return;
-        }
-
-        dialogs.createOptionDialog()
-                .withHeader(messageBundle.getMessage("moveChangesAccessDialog.header"))
-                .withText(messageBundle.formatMessage("moveDocumentsChangeAccessDialog.text",
-                        metadataTools.getInstanceName(target)))
-                .withActions(
-                        new DialogAction(DialogAction.Type.YES).withVariant(ActionVariant.PRIMARY)
-                                .withHandler(actionEvent -> move.run()),
-                        new DialogAction(DialogAction.Type.NO))
-                .open();
+        repositoryMoves.move(documents, folder, target, this::contentsChanged);
     }
 
     // the statuses that fit every selected document, in the toolbar and in the submenu of the context menu, which
@@ -1053,15 +762,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
         statusButton.setEnabled(!targets.isEmpty());
         statusItem.setEnabled(!targets.isEmpty());
-    }
-
-    private static JmixFontIcon fileIcon(Document document) {
-        DocumentRevision revision = document.getCurrentRevision();
-        return switch (PreviewType.of(revision == null ? null : revision.getContentType())) {
-            case IMAGE -> JmixFontIcon.FILE_PICTURE;
-            case PDF, TEXT -> JmixFontIcon.FILE_TEXT;
-            case NONE -> JmixFontIcon.FILE;
-        };
     }
 
     private View<?> hostView() {

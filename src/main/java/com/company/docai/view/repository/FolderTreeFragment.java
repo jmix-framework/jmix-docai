@@ -1,18 +1,16 @@
 package com.company.docai.view.repository;
 
 import com.company.docai.app.service.access.AccessLevels;
-import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.folder.FolderContents;
+import com.company.docai.app.service.folder.FolderIndex;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.app.service.folder.FolderTree;
-import com.company.docai.model.access.AccessDraft;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
-import com.company.docai.view.access.AccessDetailView;
 import com.company.docai.view.favorite.FavoritesFragment;
 import com.company.docai.view.folder.FolderDetailView;
-import com.company.docai.view.folder.FolderLookupView;
+import com.company.docai.view.folder.FolderFilter;
 import com.company.docai.view.folder.FolderRenderers;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
@@ -56,8 +54,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * The folder tree of the repository with the folder actions, the folder filter, which narrows the favorites too, and
@@ -98,7 +94,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     @Autowired
     private FolderService folderService;
     @Autowired
-    private AccessService accessService;
+    private RepositoryMoves repositoryMoves;
     @Autowired
     private DialogWindows dialogWindows;
     @Autowired
@@ -110,12 +106,14 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     @Autowired
     private FolderRenderers folderRenderers;
     @Autowired
+    private FolderFilter folderFilter;
+    @Autowired
     private UiComponents uiComponents;
     @Autowired
     private Icons icons;
 
     private FolderTree tree = new FolderTree(List.of(), Set.of(), new AccessLevels(Map.of(), false));
-    private Map<UUID, Folder> allFolders = Map.of();
+    private FolderIndex allFolders = FolderIndex.of(List.of());
     private Map<UUID, Long> documentCounts = Map.of();
     @Nullable
     private Folder selectedFolder;
@@ -174,7 +172,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
      */
     public void loadAndSelect(@Nullable UUID folderId) {
         // the way up as the tree showed it before the reload, the folder itself first
-        List<Folder> way = folderId == null || !allFolders.containsKey(folderId)
+        List<Folder> way = folderId == null || !allFolders.contains(folderId)
                 ? List.of()
                 : getPath(allFolders.get(folderId)).reversed();
 
@@ -207,13 +205,17 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
      */
     public void load() {
         foldersDl.load();
-        allFolders = foldersDc.getItems().stream()
-                .collect(Collectors.toMap(Folder::getId,
-                        Function.identity(),
-                        (first, second) -> first,
-                        LinkedHashMap::new));
+        allFolders = FolderIndex.of(foldersDc.getItems());
 
-        documentCounts = folderService.countDocuments(allFolders.values());
+        documentCounts = folderService.countDocuments(allFolders.folders());
+
+        // the field keeps its text across the reload, so the tree shows what the field says
+        String filter = folderFilterField.getValue();
+
+        if (filter != null && !filter.isBlank()) {
+            applyFilter(filter);
+        }
+
         foldersTree.expand(allFolders.get(Folder.ROOT_ID));
     }
 
@@ -229,7 +231,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
      * Counts the documents again after documents were added, moved or deleted.
      */
     public void refreshDocumentCounts() {
-        documentCounts = folderService.countDocuments(allFolders.values());
+        documentCounts = folderService.countDocuments(allFolders.folders());
         foldersTree.getDataProvider().refreshAll();
     }
 
@@ -285,12 +287,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
      * The folders from the root down to the given one.
      */
     public List<Folder> getPath(Folder folder) {
-        LinkedList<Folder> path = new LinkedList<>();
-        for (Folder current = allFolders.get(folder.getId()); current != null; current = parentOf(current)) {
-            path.addFirst(current);
-        }
-
-        return path;
+        return allFolders.pathOf(folder);
     }
 
     @Install(to = "foldersDl", target = Target.DATA_LOADER)
@@ -352,12 +349,13 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
             return;
         }
 
-        Folder parent = parentOf(folder);
+        Folder parent = allFolders.parentOf(folder);
         draggedFolder = folder;
 
         startDrop(target -> allows(target, AccessLevel.EDIT)
                 && !target.equals(parent)
-                && !getPath(target).contains(folder));
+                && !target.equals(folder)
+                && !allFolders.isBelow(target, folder));
     }
 
     @Subscribe("foldersTree")
@@ -406,15 +404,19 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     @Subscribe("folderFilterField")
     public void onFolderFilterFieldComponentValueChange(
             final AbstractField.ComponentValueChangeEvent<TypedTextField<String>, String> event) {
-        foldersDc.setItems(folderService.filterByName(allFolders.values(), event.getValue()));
-        favorites.setFilter(event.getValue());
+        boolean filtered = applyFilter(event.getValue());
 
-        if (event.getValue() != null && !event.getValue().isBlank()) {
-            foldersTree.expand(foldersDc.getItems());
-        } else if (selectedFolder != null) {
+        if (!filtered && selectedFolder != null) {
             // a cleared filter brings back the folder whose documents are shown
             select(selectedFolder);
         }
+    }
+
+    private boolean applyFilter(@Nullable String filter) {
+        boolean filtered = folderFilter.filterTree(foldersTree, foldersDc, allFolders.folders(), filter);
+        favorites.setFilter(filter);
+
+        return filtered;
     }
 
     @Subscribe("foldersTree.createFolderAction")
@@ -449,27 +451,12 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     @Subscribe("foldersTree.moveFolderAction")
     public void onMoveFolderAction(final ActionPerformedEvent event) {
         Folder folder = getSelectedFolder();
-        DialogWindow<FolderLookupView> window = dialogWindows.lookup(hostView(), Folder.class)
-                .withViewClass(FolderLookupView.class)
-                .withSelectHandler(targets -> move(folder, targets.iterator().next()))
-                .build();
-
-        window.getView().setHiddenFolders(List.of(folder));
-        window.open();
+        repositoryMoves.chooseTarget(hostView(), List.of(folder), target -> move(folder, target));
     }
 
-    @Subscribe("foldersTree.accessFolderAction")
-    public void onAccessFolderAction(final ActionPerformedEvent event) {
-        Folder folder = getSelectedFolder();
-        dialogWindows.detail(hostView(), AccessDraft.class)
-                .withViewClass(AccessDetailView.class)
-                .editEntity(accessService.describe(folder))
-                .withAfterCloseListener(closeEvent -> {
-                    if (closeEvent.closedWith(StandardOutcome.SAVE)) {
-                        loadAndSelect(folder.getId());
-                    }
-                })
-                .open();
+    @Install(to = "foldersTree.accessFolderAction", subject = "afterSaveHandler")
+    private void foldersTreeAccessFolderActionAfterSaveHandler(final Folder folder) {
+        loadAndSelect(folder.getId());
     }
 
     @Subscribe("foldersTree.deleteFolderAction")
@@ -553,7 +540,8 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
 
     // the key tells a manager where access stops being inherited
     private boolean showsOwnAccess(Folder folder) {
-        Folder parent = parentOf(folder);
+        Folder parent = allFolders.parentOf(folder);
+
         return parent != null
                 && !folder.getAccessSet().equals(parent.getAccessSet())
                 && allows(folder, AccessLevel.MANAGE);
@@ -572,38 +560,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     private void move(Folder folder, Folder target) {
-        Runnable move = () -> {
-            folderService.move(folder, target);
-            loadAndSelect(folder.getId());
-
-            // a folder put back into its parent stays where it was
-            if (!target.equals(folder.getParent())) {
-                notifications.create(messageBundle.formatMessage("folderMoved",
-                                metadataTools.getInstanceName(folder), metadataTools.getInstanceName(target)))
-                        .withType(Notifications.Type.SUCCESS)
-                        .show();
-            }
-        };
-
-        if (!accessService.changesOnMove(folder, target)) {
-            move.run();
-            return;
-        }
-
-        dialogs.createOptionDialog()
-                .withHeader(messageBundle.getMessage("moveChangesAccessDialog.header"))
-                .withText(messageBundle.formatMessage("moveFolderChangesAccessDialog.text",
-                        metadataTools.getInstanceName(folder), metadataTools.getInstanceName(target)))
-                .withActions(
-                        new DialogAction(DialogAction.Type.YES).withVariant(ActionVariant.PRIMARY)
-                                .withHandler(actionEvent -> move.run()),
-                        new DialogAction(DialogAction.Type.NO))
-                .open();
-    }
-
-    @Nullable
-    private Folder parentOf(Folder folder) {
-        return folder.getParent() == null ? null : allFolders.get(folder.getParent().getId());
+        repositoryMoves.move(folder, target, () -> loadAndSelect(folder.getId()));
     }
 
     private View<?> hostView() {

@@ -1,5 +1,6 @@
 package com.company.docai.ai.assistant;
 
+import com.company.docai.app.service.document.DocumentTypes;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.search.semantic.DocumentVectorIndexer;
@@ -9,7 +10,6 @@ import io.jmix.aitools.tool.AiToolStatusPublisher;
 import io.jmix.aitools.tool.JmixAiTool;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
-import io.jmix.core.Metadata;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.Sort;
 import io.jmix.core.entity.EntityValues;
@@ -18,12 +18,8 @@ import io.jmix.core.querycondition.LogicalCondition;
 import io.jmix.core.querycondition.PropertyCondition;
 import io.jmix.dynattr.AttributeDefinition;
 import io.jmix.dynattr.AttributeType;
-import io.jmix.dynattr.CategoryDefinition;
-import io.jmix.dynattr.DynAttrMetadata;
 import io.jmix.dynattr.DynAttrQueryHints;
 import io.jmix.dynattr.DynAttrUtils;
-import io.jmix.dynattr.MsgBundleTools;
-import io.jmix.dynattr.model.Category;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +42,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The tool the assistant in the menu calls to find documents by the fields of their types. Those fields are
@@ -101,29 +96,23 @@ public class AssistantChatTools implements JmixAiTool {
             AttributeType.DECIMAL, AttributeType.DATE_WITHOUT_TIME);
 
     private final DataManager dataManager;
-    private final Metadata metadata;
     private final MetadataTools metadataTools;
-    private final DynAttrMetadata dynAttrMetadata;
-    private final MsgBundleTools msgBundleTools;
+    private final DocumentTypes documentTypes;
     private final AiToolsDataLoadProperties dataLoadProperties;
     private final AiToolStatusPublisher statusPublisher;
     private final SemanticSearch semanticSearch;
     private final DocumentVectorIndexer vectorIndexer;
 
     public AssistantChatTools(DataManager dataManager,
-                              Metadata metadata,
                               MetadataTools metadataTools,
-                              DynAttrMetadata dynAttrMetadata,
-                              MsgBundleTools msgBundleTools,
+                              DocumentTypes documentTypes,
                               AiToolsDataLoadProperties dataLoadProperties,
                               AiToolStatusPublisher statusPublisher,
                               SemanticSearch semanticSearch,
                               DocumentVectorIndexer vectorIndexer) {
         this.dataManager = dataManager;
-        this.metadata = metadata;
         this.metadataTools = metadataTools;
-        this.dynAttrMetadata = dynAttrMetadata;
-        this.msgBundleTools = msgBundleTools;
+        this.documentTypes = documentTypes;
         this.dataLoadProperties = dataLoadProperties;
         this.statusPublisher = statusPublisher;
         this.semanticSearch = semanticSearch;
@@ -274,11 +263,14 @@ public class AssistantChatTools implements JmixAiTool {
      * Describes the document types and the fields this tool can search, for the prompt of the model.
      */
     public String describeFields() {
-        return dynAttrMetadata.getCategories(metadata.getClass(Document.class)).stream()
-                .map(type -> Map.entry(nameOf(type), type.getAttributeDefinitions().stream()
+        return documentTypes.types()
+                .stream()
+                .map(type -> Map.entry(documentTypes.nameOf(type), type.getAttributeDefinitions()
+                        .stream()
                         .filter(AssistantChatTools::isSearchable)
                         .sorted(Comparator.comparingInt(AttributeDefinition::getOrderNo))
-                        .map(attribute -> "%s (%s, %s)".formatted(attribute.getCode(), nameOf(attribute),
+                        .map(attribute -> "%s (%s, %s)".formatted(attribute.getCode(),
+                                documentTypes.nameOf(attribute),
                                 kindOf(attribute)))
                         .collect(Collectors.joining(", "))))
                 .filter(type -> !type.getValue().isEmpty())
@@ -287,7 +279,7 @@ public class AssistantChatTools implements JmixAiTool {
     }
 
     private List<AttributeDefinition> fieldsCalled(@Nullable String field) {
-        Collection<AttributeDefinition> all = allAttributes();
+        Collection<AttributeDefinition> all = documentTypes.fields();
 
         if (field == null || field.isBlank()) {
             return all.stream()
@@ -299,17 +291,9 @@ public class AssistantChatTools implements JmixAiTool {
         String wanted = field.strip().replaceFirst("^\\+", "");
 
         return all.stream()
-                .filter(attribute -> namesOf(attribute).anyMatch(wanted::equalsIgnoreCase))
+                .filter(attribute -> documentTypes.namesOf(attribute)
+                        .anyMatch(wanted::equalsIgnoreCase))
                 .toList();
-    }
-
-    private Stream<String> namesOf(AttributeDefinition attribute) {
-        String names = attribute.getNameMsgBundle();
-        Stream<String> ownNames = Stream.of(attribute.getCode(), attribute.getName());
-
-        return names == null
-                ? ownNames
-                : Stream.concat(ownNames, msgBundleTools.getMsgBundleValues(names).values().stream());
     }
 
     private static Optional<Condition> condition(AttributeDefinition attribute, String value) {
@@ -411,9 +395,10 @@ public class AssistantChatTools implements JmixAiTool {
         facts.add("uploaded by %s on %s".formatted(document.getCreatedBy(),
                 document.getCreatedDate().toLocalDateTime().truncatedTo(ChronoUnit.MINUTES)));
 
-        String values = allAttributes().stream()
+        String values = documentTypes.fields()
+                .stream()
                 .filter(attribute -> valueOf(document, attribute) != null)
-                .map(attribute -> nameOf(attribute) + ": " + valueOf(document, attribute))
+                .map(attribute -> documentTypes.nameOf(attribute) + ": " + valueOf(document, attribute))
                 .collect(Collectors.joining("; "));
 
         return "- id %s: %s".formatted(document.getId(), String.join(", ", facts))
@@ -424,32 +409,15 @@ public class AssistantChatTools implements JmixAiTool {
         return EntityValues.getValue(document, DynAttrUtils.getPropertyFromAttributeCode(attribute.getCode()));
     }
 
-    private Collection<AttributeDefinition> allAttributes() {
-        return dynAttrMetadata.getAttributes(metadata.getClass(Document.class));
-    }
-
     private String allFields() {
-        return names(allAttributes());
+        return names(documentTypes.fields());
     }
 
     private String names(Collection<AttributeDefinition> fields) {
         return fields.stream()
-                .map(attribute -> "%s (%s)".formatted(attribute.getCode(), nameOf(attribute)))
+                .map(attribute -> "%s (%s)".formatted(attribute.getCode(), documentTypes.nameOf(attribute)))
                 .distinct()
                 .collect(Collectors.joining(", "));
-    }
-
-    private String nameOf(CategoryDefinition type) {
-        return type.getSource() instanceof Category category
-                ? metadataTools.getInstanceName(category)
-                : type.getName();
-    }
-
-    private String nameOf(AttributeDefinition attribute) {
-        String name = attribute.getName() == null ? attribute.getCode() : attribute.getName();
-        String names = attribute.getNameMsgBundle();
-
-        return names == null ? name : msgBundleTools.getLocalizedValue(names, name);
     }
 
     private static String bound(@Nullable String bound) {

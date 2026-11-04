@@ -61,8 +61,11 @@
                     </anchor>
                 </h2>
                 <!-- the main view moves the assistant here from the menu below, so it stands above the folders -->
-                <listMenu id="assistantMenu" classNames="assistant-menu" themeNames="toggle-reverse"
-                          loadMenuConfig="false"/>
+                <nav id="assistantNavigation" classNames="assistant-navigation"
+                     ariaLabel="msg://com.company.docai/menu.assistantChat.title">
+                    <listMenu id="assistantMenu" themeNames="toggle-reverse"
+                              loadMenuConfig="false"/>
+                </nav>
                 <!-- the folders are the main navigation of the application, so their tree is a part of the menu -->
                 <fragment id="folderTree" classNames="main-view-folder-tree"
                           class="com.company.docai.view.repository.FolderTreeFragment"/>
@@ -72,7 +75,7 @@
                     <listMenu id="menu" themeNames="toggle-reverse"/>
                 </nav>
                 <!-- the edge of the menu: a drag widens the menu for long names -->
-                <div id="drawerHandle" classNames="main-view-drawer-handle"/>
+                <component id="drawerHandle" class="com.company.docai.view.main.DrawerHandle"/>
             </section>
         </drawerLayout>
         <initialLayout id="initialLayout" classNames="jmix-initial-layout">

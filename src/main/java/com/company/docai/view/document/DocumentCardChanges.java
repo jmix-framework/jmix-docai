@@ -4,18 +4,28 @@ import com.company.docai.app.service.document.NewVersion;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.model.document.DocumentStatus;
+import io.jmix.core.Messages;
 import io.jmix.flowui.upload.TemporaryStorage;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * The changes of the document card that apply only on OK: a new version, from an uploaded
- * file or from an earlier revision, and a status transition. Owns the temporary file.
+ * file or from an earlier revision, and a status transition. Owns the temporary file. Each card gets its own
+ * instance: the bean is a prototype.
  */
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DocumentCardChanges {
 
     private final TemporaryStorage temporaryStorage;
+    private final Messages messages;
 
     @Nullable
     private UUID temporaryFileId;
@@ -26,8 +36,9 @@ public class DocumentCardChanges {
     @Nullable
     private DocumentStatus targetStatus;
 
-    public DocumentCardChanges(TemporaryStorage temporaryStorage) {
+    public DocumentCardChanges(TemporaryStorage temporaryStorage, Messages messages) {
         this.temporaryStorage = temporaryStorage;
+        this.messages = messages;
     }
 
     /**
@@ -70,6 +81,30 @@ public class DocumentCardChanges {
     @Nullable
     public DocumentStatus getTargetStatus() {
         return targetStatus;
+    }
+
+    /**
+     * Describes the staged changes in the texts of the card: the new or the restored version, then the target
+     * status; an empty text when nothing is staged.
+     */
+    public String describe() {
+        List<String> parts = new ArrayList<>();
+
+        switch (newVersion) {
+            case NewVersion.FromFile(UploadedFile file) ->
+                    parts.add(messages.formatMessage(getClass(), "pendingNewVersion", file.fileName()));
+            case NewVersion.FromRevision(DocumentRevision revision) ->
+                    parts.add(messages.formatMessage(getClass(), "pendingRestoredVersion", revision.getNumber()));
+            case null -> {
+                // do nothing
+            }
+        }
+
+        if (targetStatus != null) {
+            parts.add("→ " + targetStatus.getName());
+        }
+
+        return String.join(" · ", parts);
     }
 
     /**

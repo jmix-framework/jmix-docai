@@ -1,18 +1,27 @@
 package com.company.docai.demo;
 
+import com.company.docai.app.service.document.DocumentTypes;
+import com.company.docai.model.access.AccessLevel;
+import com.company.docai.model.document.DocumentStatus;
 import org.jspecify.annotations.Nullable;
+import org.springframework.core.io.ClassPathResource;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * The description of a demo set, as its {@code demo-data.json} gives it: the names of the users in the language of the
  * set, the statuses of the set (the names of the default statuses in the language of the set and new statuses), and
  * the folders under the root with their own access and their documents, some of them in the trash. Users, roles and
  * document types come from the changelogs and the code, and the description refers to them by login, role code and
- * the English name of the type.
+ * the English name of the type. The loader and its check read a set and its files through it.
  *
  * @param users    the names the set gives the users of the changelogs
  * @param statuses the statuses of the set: the default ones renamed in the language of the set, and new ones
@@ -20,11 +29,73 @@ import java.util.Map;
  */
 public record DemoSet(List<User> users, List<Status> statuses, List<Folder> folders) {
 
+    /**
+     * The classpath folder of a demo set, a format that takes the name of the set.
+     */
+    public static final String LOCATION = "com/company/docai/demo/%s/";
+
+    /**
+     * The file in the folder of a set that describes the set.
+     */
+    public static final String DESCRIPTION = "demo-data.json";
+
+    /**
+     * The keys of the default statuses of the changelog, which a set names in its language.
+     */
+    public static final Map<String, UUID> DEFAULT_STATUSES = Map.of(
+            "DRAFT", DocumentStatus.DRAFT_ID,
+            "ACTIVE", DocumentStatus.ACTIVE_ID,
+            "ARCHIVED", DocumentStatus.ARCHIVED_ID);
+
+    // a misspelt property of the description is a problem, not a value silently left out
+    private static final JsonMapper JSON = JsonMapper.builder()
+            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
+
     // a list the description leaves out is empty
     public DemoSet {
         users = users == null ? List.of() : users;
         statuses = statuses == null ? List.of() : statuses;
         folders = folders == null ? List.of() : folders;
+    }
+
+    /**
+     * Reads the description of the set from its folder.
+     */
+    public static DemoSet read(String set) throws IOException {
+        try (InputStream content = new ClassPathResource(LOCATION.formatted(set) + DESCRIPTION).getInputStream()) {
+            return JSON.readValue(content, DemoSet.class);
+        }
+    }
+
+    /**
+     * Returns a file of the set from the {@code files} folder of the set.
+     */
+    public static ClassPathResource file(String set, String file) {
+        return new ClassPathResource(LOCATION.formatted(set) + "files/" + file);
+    }
+
+    /**
+     * Returns the values of the fields of the document, as text, in the form {@link DocumentTypes#fill} takes.
+     */
+    public static List<DocumentTypes.FieldValue> fieldValuesOf(Document document) {
+        return document.fields()
+                .entrySet()
+                .stream()
+                .map((Map.Entry<String, String> field) -> new DocumentTypes.FieldValue(field.getKey(),
+                        field.getValue()))
+                .toList();
+    }
+
+    /**
+     * Returns the access level with the name, or null for a name that is not a level.
+     */
+    public static @Nullable AccessLevel levelOf(String name) {
+        try {
+            return AccessLevel.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**

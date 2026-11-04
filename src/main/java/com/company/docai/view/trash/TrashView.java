@@ -1,7 +1,9 @@
 package com.company.docai.view.trash;
 
 import com.company.docai.app.service.trash.TrashService;
+import com.company.docai.app.ui.grid.GridSelectionUtils;
 import com.company.docai.model.trash.TrashItem;
+import com.company.docai.view.document.DocumentRenderers;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.repository.FolderTreeFragment;
 import com.vaadin.flow.component.ClickEvent;
@@ -11,7 +13,6 @@ import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.selection.MultiSelectionEvent;
 import com.vaadin.flow.data.selection.SelectionEvent;
 import com.vaadin.flow.router.Route;
 import io.jmix.core.LoadContext;
@@ -41,9 +42,7 @@ import io.jmix.flowui.view.ViewDescriptor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -89,6 +88,8 @@ public class TrashView extends StandardView {
     private UiComponents uiComponents;
     @Autowired
     private Icons icons;
+    @Autowired
+    private DocumentRenderers documentRenderers;
 
     @Nullable
     private TrashItem focusedItem;
@@ -118,37 +119,14 @@ public class TrashView extends StandardView {
         emptyAction.setEnabled(!event.getSource().getItems().isEmpty());
     }
 
-    // a click selects only its row, and a click with Ctrl or Cmd adds or removes the row, as in the repository
     @Subscribe("trashItemsGrid")
     public void onTrashItemsGridItemClick(final ItemClickEvent<TrashItem> event) {
-        TrashItem item = event.getItem();
-
-        if (event.isCtrlKey() || event.isMetaKey()) {
-            if (trashItemsGrid.getSelectedItems().contains(item)) {
-                trashItemsGrid.deselect(item);
-            } else {
-                trashItemsGrid.select(item);
-            }
-
-            return;
-        }
-
-        Set<TrashItem> others = new HashSet<>(trashItemsGrid.getSelectedItems());
-        others.remove(item);
-        trashItemsGrid.asMultiSelect().updateSelection(Set.of(item), others);
+        GridSelectionUtils.click(trashItemsGrid, event);
     }
 
-    // the item that has just joined the selection is the one to preview
     @Subscribe("trashItemsGrid")
     public void onTrashItemsGridSelection(final SelectionEvent<DataGrid<TrashItem>, TrashItem> event) {
-        Set<TrashItem> selected = trashItemsGrid.getSelectedItems();
-
-        if (event instanceof MultiSelectionEvent<DataGrid<TrashItem>, TrashItem> change
-                && change.getAddedSelection().size() == 1) {
-            focusedItem = change.getAddedSelection().iterator().next();
-        } else if (!selected.contains(focusedItem)) {
-            focusedItem = selected.stream().findFirst().orElse(null);
-        }
+        GridSelectionUtils.focusAfter(event, focusedItem, item -> focusedItem = item);
 
         showPreview();
     }
@@ -204,6 +182,11 @@ public class TrashView extends StandardView {
 
             return name;
         });
+    }
+
+    @Supply(to = "trashItemsGrid.deletedDate", subject = "renderer")
+    private Renderer<TrashItem> trashItemsGridDeletedDateRenderer() {
+        return documentRenderers.userDateTimeRenderer(TrashItem::getDeletedDate);
     }
 
     private void confirm(String header, String question, Runnable deletion) {

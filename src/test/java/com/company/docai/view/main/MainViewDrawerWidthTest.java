@@ -4,7 +4,6 @@ import com.company.docai.DocAiApplication;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestMenus;
 import com.vaadin.flow.component.ComponentUtil;
-import com.vaadin.flow.component.html.Div;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.settings.UserSettingsService;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -37,19 +36,19 @@ class MainViewDrawerWidthTest {
     static void rememberAWidth(@Autowired SystemAuthenticator systemAuthenticator,
                                @Autowired UserSettingsService userSettingsService) {
         systemAuthenticator.runWithUser(EmployeeUiTestAuthenticator.USERNAME,
-                () -> userSettingsService.save(MainView.DRAWER_WIDTH_SETTING, LEFT_WIDTH));
+                () -> userSettingsService.save(DrawerHandle.DRAWER_WIDTH_SETTING, LEFT_WIDTH));
     }
 
     @AfterEach
     void leaveTheWidthAsItWas() {
-        userSettingsService.save(MainView.DRAWER_WIDTH_SETTING, LEFT_WIDTH);
+        userSettingsService.save(DrawerHandle.DRAWER_WIDTH_SETTING, LEFT_WIDTH);
     }
 
     @AfterAll
     static void forgetTheWidth(@Autowired SystemAuthenticator systemAuthenticator,
                                @Autowired UserSettingsService userSettingsService) {
         systemAuthenticator.runWithUser(EmployeeUiTestAuthenticator.USERNAME,
-                () -> userSettingsService.delete(MainView.DRAWER_WIDTH_SETTING));
+                () -> userSettingsService.delete(DrawerHandle.DRAWER_WIDTH_SETTING));
     }
 
     @Test
@@ -59,16 +58,16 @@ class MainViewDrawerWidthTest {
 
     @Test
     void aDraggedEdgeKeepsTheMenuWithinItsLimitsAndRemembersItsWidth() {
-        Div handle = UiTestUtils.getComponent(TestMenus.mainView(), "drawerHandle");
+        DrawerHandle handle = UiTestUtils.getComponent(TestMenus.mainView(), "drawerHandle");
 
-        ComponentUtil.fireEvent(handle, new MainView.DrawerResizeEvent(handle, true, 40));
+        ComponentUtil.fireEvent(handle, new DrawerHandle.DrawerResizeEvent(handle, true, 40));
 
         assertThat(TestMenus.mainView().getElement().getStyle().get(DRAWER_WIDTH)).isEqualTo("32.0rem");
-        assertThat(userSettingsService.load(MainView.DRAWER_WIDTH_SETTING)).contains("32.0");
+        assertThat(userSettingsService.load(DrawerHandle.DRAWER_WIDTH_SETTING)).contains("32.0");
 
-        ComponentUtil.fireEvent(handle, new MainView.DrawerResizeEvent(handle, true, 19.1));
+        ComponentUtil.fireEvent(handle, new DrawerHandle.DrawerResizeEvent(handle, true, 19.1));
 
         assertThat(TestMenus.mainView().getElement().getStyle().get(DRAWER_WIDTH)).isEqualTo("19.0rem");
-        assertThat(userSettingsService.load(MainView.DRAWER_WIDTH_SETTING)).contains("19.0");
+        assertThat(userSettingsService.load(DrawerHandle.DRAWER_WIDTH_SETTING)).contains("19.0");
     }
 }

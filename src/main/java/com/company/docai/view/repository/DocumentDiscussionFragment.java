@@ -2,6 +2,7 @@ package com.company.docai.view.repository;
 
 import com.company.docai.ai.assistant.DocumentDiscussion;
 import com.company.docai.model.document.Document;
+import com.company.docai.view.document.DocumentCards;
 import com.company.docai.view.document.DocumentDetailView;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
@@ -24,7 +25,6 @@ import io.jmix.aichat.data.SimpleAiChatMessage;
 import io.jmix.aitools.tool.AiToolStatusUpdate;
 import io.jmix.aitoolsflowui.AiToolsFlowuiProperties;
 import io.jmix.aitoolsflowui.view.chat.AiChatView;
-import io.jmix.core.DataManager;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
@@ -88,7 +88,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     @Autowired
     private DocumentDiscussion discussion;
     @Autowired
-    private DataManager dataManager;
+    private DocumentCards documentCards;
     @Autowired
     private BackgroundWorker backgroundWorker;
     @Autowired
@@ -279,9 +279,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
             return Optional.empty();
         }
 
-        return dataManager.load(Document.class)
-                .id(documentId)
-                .optional();
+        return documentCards.find(documentId);
     }
 
     // the table puts the rows it drags into the drag data: all the selected rows when one of them is dragged
