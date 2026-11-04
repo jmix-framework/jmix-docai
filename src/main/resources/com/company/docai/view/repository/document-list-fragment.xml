@@ -57,7 +57,7 @@
                     <action id="downloadAction" type="list_itemTracking"
                             text="msg://downloadAction.text" icon="DOWNLOAD"/>
                     <action id="discussAction" type="list_itemTracking"
-                            text="msg://discussAction.text" icon="COMMENTS_O"/>
+                            text="msg://discussAction.text" icon="COMMENTS"/>
                     <action id="moveAction" type="list_itemTracking"
                             text="msg://moveAction.text" icon="ARROW_RIGHT"/>
                     <action id="accessAction" type="list_itemTracking"

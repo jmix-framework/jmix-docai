@@ -50,7 +50,6 @@
 
 /* Menu items take no action variant, so the menus mark their main and their dangerous items here: a dropdown item by
    its id, a context menu item by a class, as the items of a grid menu keep their ids on the server */
-vaadin-menu-bar-item#createFolderItem:not([disabled]),
 vaadin-context-menu-item.main-menu-item:not([disabled]) {
     color: var(--aura-accent-text-color);
 }
@@ -81,8 +80,7 @@ vaadin-upload.upload-button::part(drop-label) {
     box-sizing: border-box;
 }
 
-.document-card-actions,
-.folder-tree-buttons {
+.document-card-actions {
     margin-inline-start: auto;
 }
 
@@ -232,32 +230,17 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     box-shadow: none;
 }
 
-/* An open preview panel keeps the gap that splitter-spacing gives the tree's splitter; the side panel has no such theme */
+/* An open preview panel keeps a gap from the documents; the side panel has no theme for it */
 .repository-preview-layout[side-panel-opened]::part(content) {
     padding-inline-end: var(--vaadin-gap-s);
 }
 
-/* The same gap after the resize handle of the panel, so the handle sits between two gaps as the tree's splitter does */
+/* The same gap after the resize handle of the panel, so the handle sits between two gaps */
 .repository-preview-panel {
     padding-inline-start: var(--vaadin-gap-s);
 }
 
-/* The splitter of the tree and the edge of the preview are hairlines with the grip shown on hover, and still as easy to
-   grab as the bands they were. The splitter gets its look from the properties of the split layout: in Aura its small
-   theme makes everything inside the layout small too */
-vaadin-split-layout.repository-split {
-    --vaadin-split-layout-splitter-size: 1px;
-    --vaadin-split-layout-splitter-target-size: 8px;
-    --vaadin-split-layout-handle-size: 3px;
-    --vaadin-split-layout-handle-background: transparent;
-}
-
-vaadin-split-layout.repository-split::part(splitter):hover,
-vaadin-split-layout.repository-split::part(splitter):active,
-vaadin-split-layout.repository-split[focus-ring]::part(splitter) {
-    --vaadin-split-layout-handle-background: var(--vaadin-text-color-secondary);
-}
-
+/* The edge of the preview is a hairline with the grip shown on hover, and still as easy to grab as the band it was */
 .repository-preview-layout {
     --jmix-side-panel-layout-splitter-target-size: 8px;
 }

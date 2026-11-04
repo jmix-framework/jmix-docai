@@ -2,21 +2,29 @@ package com.company.docai.view.trash;
 
 import com.company.docai.DocAiApplication;
 import com.company.docai.app.service.document.DocumentService;
+import com.company.docai.app.service.favorite.FavoriteService;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.document.Document;
+import com.company.docai.model.favorite.Favorite;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.trash.TrashItem;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.document.DocumentPreviewFragment;
+import com.company.docai.view.favorite.FavoritesFragment;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.repository.FolderTreeFragment;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
+import io.jmix.core.SaveContext;
+import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.action.DialogAction;
@@ -75,6 +83,12 @@ class TrashViewTest {
     @Autowired
     private UserSettingsCache userSettingsCache;
 
+    @Autowired
+    private FavoriteService favoriteService;
+
+    @Autowired
+    private UnconstrainedDataManager unconstrainedDataManager;
+
     @TempDir
     private Path tempDir;
 
@@ -85,8 +99,11 @@ class TrashViewTest {
         sandbox = folder(folderService.getRoot(), "trash-view-test-" + UUID.randomUUID());
     }
 
+    // no other test keeps favorites, so the marks of every user go
     @AfterEach
     void deleteSandbox() {
+        unconstrainedDataManager.save(new SaveContext()
+                .removing(unconstrainedDataManager.load(Favorite.class).all().list()));
         folderService.delete(sandbox);
         // leaving the view saves its column settings for the user
         userSettingsCache.delete("TrashView");
@@ -130,6 +147,40 @@ class TrashViewTest {
                 .isEqualTo(messages.formatMessage(TrashView.class, "restoredNotification", 1));
         assertThat(ids(items(grid))).doesNotContain(note.getId());
         assertThat(isDeleted(dataManager, Document.class, note.getId())).isFalse();
+    }
+
+    @Test
+    void aRestoredFolderComesBackToTheTreeOfTheMenu() {
+        Folder contracts = folder(sandbox, "Contracts");
+        folderService.delete(contracts);
+        TrashView view = open();
+        FolderTreeFragment folderTree = TestMenus.folderTree();
+        // the tree took its folders when the menu was drawn, before the test made its own
+        folderTree.load();
+        DataGrid<TrashItem> grid = grid(view);
+
+        grid.select(itemOf(items(grid), contracts.getId()));
+        UiTestUtils.<JmixButton>getComponent(view, "restoreButton").click();
+
+        assertThat(folderTree.getPath(contracts)).extracting(Folder::getName).endsWith("Contracts");
+    }
+
+    @Test
+    void aRestoredFavoriteComesBackToTheFavoritesOfTheMenu() {
+        Document note = upload(sandbox, "note.txt");
+        favoriteService.mark(List.of(note));
+        documentService.delete(List.of(note));
+        TrashView view = open();
+        FavoritesFragment favorites = TestMenus.folderTree().getFavorites();
+        // the favorites were taken when the menu was drawn, before the test marked the document
+        favorites.reload();
+        DataGrid<TrashItem> grid = grid(view);
+        assertThat(favoriteNames(favorites)).doesNotContain("note.txt");
+
+        grid.select(itemOf(items(grid), note.getId()));
+        UiTestUtils.<JmixButton>getComponent(view, "restoreButton").click();
+
+        assertThat(favoriteNames(favorites)).contains("note.txt");
     }
 
     @Test
@@ -320,6 +371,15 @@ class TrashViewTest {
     @SuppressWarnings("unchecked")
     private <T> T fragmentComponent(Fragment<?> fragment, String componentId) {
         return (T) FragmentUtils.getComponent(fragment, componentId);
+    }
+
+    // the names of the rows of the favorites section of the menu
+    private static List<String> favoriteNames(FavoritesFragment favorites) {
+        VerticalLayout box = (VerticalLayout) FragmentUtils.getComponent(favorites, "favoritesBox");
+
+        return box.getChildren()
+                .map(row -> row.getChildren().findFirst().orElseThrow().getElement().getTextRecursively())
+                .toList();
     }
 
     private static String dialogText() {

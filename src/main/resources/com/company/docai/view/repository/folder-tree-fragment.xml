@@ -11,10 +11,20 @@
     <content>
         <vbox id="folderTreeRoot" classNames="folder-tree" width="100%" height="100%"
               minWidth="12em" padding="false" expand="treeFrame">
-            <hbox id="folderToolbar" width="100%" alignItems="CENTER" wrap="true">
-                <dropdownButton id="folderActionsButton" text="msg://folderActionsButton.text" icon="FOLDER">
+            <!-- the field and the folder buttons share one row, so the tree in the menu starts right under them: one
+                 button creates a folder, the other lists the actions on the chosen folder -->
+            <hbox id="folderToolbar" width="100%" alignItems="CENTER" expand="folderFilterField">
+                <textField id="folderFilterField" clearButtonVisible="true" valueChangeMode="LAZY"
+                           placeholder="msg://com.company.docai.view.folder/folderFilterField.placeholder"
+                           ariaLabel="msg://com.company.docai.view.folder/folderFilterField.placeholder">
+                    <prefix>
+                        <icon icon="SEARCH"/>
+                    </prefix>
+                </textField>
+                <button id="createFolderButton" action="foldersTree.createFolderAction" text=""/>
+                <dropdownButton id="folderActionsButton" icon="ELLIPSIS_H" dropdownIndicatorVisible="false"
+                                title="msg://folderActionsButton.title">
                     <items>
-                        <actionItem id="createFolderItem" ref="foldersTree.createFolderAction"/>
                         <actionItem id="renameFolderItem" ref="foldersTree.renameFolderAction"/>
                         <actionItem id="moveFolderItem" ref="foldersTree.moveFolderAction"/>
                         <actionItem id="accessFolderItem" ref="foldersTree.accessFolderAction"/>
@@ -22,24 +32,7 @@
                         <actionItem id="deleteFolderItem" ref="foldersTree.deleteFolderAction"/>
                     </items>
                 </dropdownButton>
-                <hbox id="treeButtons" classNames="folder-tree-buttons" spacing="false">
-                    <button id="expandAllButton" icon="EXPAND" themeNames="tertiary"
-                            ariaLabel="msg://expandAllButton.tooltip">
-                        <tooltip text="msg://expandAllButton.tooltip"/>
-                    </button>
-                    <button id="collapseAllButton" icon="COMPRESS" themeNames="tertiary"
-                            ariaLabel="msg://collapseAllButton.tooltip">
-                        <tooltip text="msg://collapseAllButton.tooltip"/>
-                    </button>
-                </hbox>
             </hbox>
-            <textField id="folderFilterField" width="100%" clearButtonVisible="true" valueChangeMode="LAZY"
-                       placeholder="msg://com.company.docai.view.folder/folderFilterField.placeholder"
-                       ariaLabel="msg://com.company.docai.view.folder/folderFilterField.placeholder">
-                <prefix>
-                    <icon icon="SEARCH"/>
-                </prefix>
-            </textField>
             <vbox id="treeFrame" classNames="folder-tree-frame" width="100%" padding="false" spacing="false"
                   expand="foldersTree">
                 <!-- the section opens and closes here, so that the settings of the tree keep its state: a fragment
@@ -48,10 +41,14 @@
                          summaryText="msg://com.company.docai.view.favorite/favoritesDetails.summaryText">
                     <fragment id="favorites" class="com.company.docai.view.favorite.FavoritesFragment"/>
                 </details>
+                <!-- all the rows show, so the menu scrolls as a whole rather than the tree inside it -->
                 <treeDataGrid id="foldersTree" dataContainer="foldersDc" hierarchyProperty="parent"
-                              rowsDraggable="true" width="100%" themeNames="no-border">
+                              rowsDraggable="true" allRowsVisible="true" width="100%" themeNames="no-border">
                     <actions showInContextMenuEnabled="false">
-                        <action id="createFolderAction" text="msg://createFolderAction.text" icon="FOLDER_ADD"/>
+                        <!-- the button that creates a folder takes its hint from the description, as it shows only
+                             the icon -->
+                        <action id="createFolderAction" text="msg://createFolderAction.text"
+                                description="msg://createFolderAction.text" icon="FOLDER_ADD"/>
                         <action id="renameFolderAction" type="list_itemTracking"
                                 text="msg://renameFolderAction.text" icon="PENCIL"/>
                         <action id="moveFolderAction" type="list_itemTracking"

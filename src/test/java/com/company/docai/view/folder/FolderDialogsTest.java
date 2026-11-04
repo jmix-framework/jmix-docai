@@ -6,6 +6,7 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.repository.FolderTreeFragment;
 import com.company.docai.view.repository.RepositoryView;
@@ -241,7 +242,7 @@ class FolderDialogsTest {
                 .withQueryParameters(QueryParameters.of("folder", folder.getId().toString()))
                 .navigate();
 
-        return UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "folderTree");
+        return TestMenus.folderTree();
     }
 
     private FolderDetailView openCreateDialog(FolderTreeFragment folderTree) {

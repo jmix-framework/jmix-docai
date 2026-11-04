@@ -3,6 +3,7 @@ package com.company.docai.view.main;
 import com.company.docai.DocAiApplication;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.StubAiConfiguration;
+import com.company.docai.test_support.TestMenus;
 import io.jmix.aitoolsflowui.service.AiChatService;
 import io.jmix.aitoolsflowui.view.chathub.AiChatHubView;
 import io.jmix.flowui.ViewNavigators;
@@ -20,7 +21,8 @@ import org.springframework.test.context.TestPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The assistant in the main menu of an employee when the AI is on: the item shows and opens the chat.
+ * The assistant in the main menu of an employee when the AI is on: the item stands above the folders and opens
+ * the chat.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class,
@@ -35,14 +37,20 @@ class AssistantChatMenuTest {
     private AiChatService chatService;
 
     @Test
-    void anEmployeeOpensTheAssistantFromTheMenu() {
-        JmixListMenu menu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "menu");
-        ListMenu.MenuItem assistantChat = menu.getMenuItem("assistantChat");
+    void anEmployeeOpensTheAssistantFromTheMenuAboveTheFolders() {
+        JmixListMenu menu = TestMenus.listMenu("menu");
+        JmixListMenu assistantMenu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "assistantMenu");
+        ListMenu.MenuItem assistantChat = assistantMenu.getMenuItem("assistantChat");
+
+        // the item wears the accent of the AI and is no longer among the views under the folders
+        assertThat(assistantChat).isNotNull();
+        assertThat(assistantChat.getClassNames()).contains("aura-accent-purple");
+        assertThat(assistantMenu.getMenuItems()).containsExactly(assistantChat);
+        assertThat(menu.getMenuItem("assistantChat")).isNull();
 
         viewNavigators.view(UiTestUtils.getCurrentView(), AiChatHubView.class).navigate();
         View<?> opened = UiTestUtils.getCurrentView();
 
-        assertThat(assistantChat).isNotNull();
         assertThat(chatService.isAvailable()).isTrue();
         assertThat(opened).isInstanceOf(AiChatHubView.class);
     }

@@ -10,6 +10,7 @@ import com.company.docai.test_support.StubAiConfiguration;
 import com.company.docai.test_support.StubChatModel;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.Component;
@@ -327,7 +328,7 @@ class DocumentDiscussionFragmentTest {
         DocumentDiscussionFragment discussion = window().orElseThrow();
         @SuppressWarnings("unchecked")
         TreeDataGrid<Folder> tree = (TreeDataGrid<Folder>) FragmentUtils.getComponent(
-                UiTestUtils.getComponent(view, "folderTree"), "foldersTree");
+                TestMenus.folderTree(), "foldersTree");
 
         TestGrids.dragRows(tree, List.of(sandbox), this.<HorizontalLayout>component(discussion, "selection"));
 

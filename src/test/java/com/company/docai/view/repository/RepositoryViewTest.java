@@ -11,6 +11,7 @@ import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTags;
 import com.company.docai.test_support.TestUploads;
@@ -33,7 +34,6 @@ import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.internal.PendingJavaScriptInvocation;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.upload.UploadDropZone;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.QueryParameters;
@@ -153,7 +153,7 @@ class RepositoryViewTest {
 
         RepositoryView view = open(contracts, false);
 
-        FolderTreeFragment folderTree = UiTestUtils.getComponent(view, "folderTree");
+        FolderTreeFragment folderTree = TestMenus.folderTree();
         assertThat(folderTree.getSelectedFolder()).isEqualTo(contracts);
         assertThat(documentNames(view)).containsExactly("a.txt", "b.txt");
     }
@@ -170,14 +170,14 @@ class RepositoryViewTest {
     void theRootIsOpenWhenItIsTheShownFolder() {
         viewNavigators.view(UiTestUtils.getCurrentView(), RepositoryView.class).navigate();
 
-        TreeDataGrid<Folder> tree = fragmentComponent(UiTestUtils.getCurrentView(), "folderTree", "foldersTree");
+        TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
         assertThat(tree.isExpanded(folderService.getRoot())).isTrue();
     }
 
     @Test
     void theBreadcrumbsShowTheNewNameOfTheRenamedFolder() {
         RepositoryView view = open(folder(sandbox, "Clients"), false);
-        TreeDataGrid<Folder> tree = fragmentComponent(view, "folderTree", "foldersTree");
+        TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
 
         tree.getAction("renameFolderAction").actionPerform(tree);
         FolderDetailView dialog = UiTestUtils.getLastOpenedViewDialog();
@@ -191,7 +191,7 @@ class RepositoryViewTest {
     void theBreadcrumbsShowTheNewPlaceOfTheMovedFolder() {
         Folder archive = folder(sandbox, "Archive");
         RepositoryView view = open(folder(sandbox, "Clients"), false);
-        TreeDataGrid<Folder> tree = fragmentComponent(view, "folderTree", "foldersTree");
+        TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
 
         tree.getAction("moveFolderAction").actionPerform(tree);
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
@@ -226,14 +226,14 @@ class RepositoryViewTest {
         assertThat(zone.isEnabled()).isTrue();
         assertThat(zone.getElement().getAttribute("data-hint")).contains(sandbox.getName());
 
-        UiTestUtils.<FolderTreeFragment>getComponent(view, "folderTree").select(contracts);
+        TestMenus.folderTree().select(contracts);
         assertThat(zone.getElement().getAttribute("data-hint")).contains("Contracts");
     }
 
     @Test
     void anUploadCountsInTheFolderTree() {
         RepositoryView view = open(sandbox, false);
-        TreeDataGrid<Folder> tree = fragmentComponent(view, "folderTree", "foldersTree");
+        TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
         JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(view, "documentList", "documentsUpload");
 
         TestUploads.succeed(upload, temporaryStorage, "a.txt", "first");
@@ -247,7 +247,7 @@ class RepositoryViewTest {
         Folder contracts = folder(sandbox, "Contracts");
         Folder invoices = folder(sandbox, "Invoices");
         RepositoryView view = open(contracts, false);
-        FolderTreeFragment folderTree = UiTestUtils.getComponent(view, "folderTree");
+        FolderTreeFragment folderTree = TestMenus.folderTree();
         JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(view, "documentList", "documentsUpload");
 
         TestUploads.start(upload, "a.txt");
@@ -369,7 +369,7 @@ class RepositoryViewTest {
     @Test
     void theMenuOfAFolderOffersEveryActionAndMarksItsMainAndDeleteItems() {
         RepositoryView view = open(sandbox, false);
-        TreeDataGrid<Folder> tree = fragmentComponent(view, "folderTree", "foldersTree");
+        TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
         List<GridMenuItem<Folder>> items = tree.getContextMenu().getItems();
 
         assertThat(items)
@@ -424,15 +424,11 @@ class RepositoryViewTest {
     }
 
     @Test
-    void theTreeSplitterAndTheEdgeOfThePreviewAreHairlines() {
+    void theEdgeOfThePreviewIsAHairline() {
         RepositoryView view = open(sandbox, true);
-        SplitLayout split = UiTestUtils.getComponent(view, "split");
         SidePanelLayout previewLayout = UiTestUtils.getComponent(view, "previewLayout");
 
-        // a thin line, with the grip shown on hover only: the splitter by its own style, since in Aura the small theme
-        // of the split layout makes everything inside it small too
-        assertThat(split.getClassNames()).contains("repository-split");
-        assertThat(split.getThemeNames()).doesNotContain("small");
+        // a thin line, with the grip shown on hover only
         assertThat(previewLayout.getThemeNames()).contains("resizer-small");
     }
 

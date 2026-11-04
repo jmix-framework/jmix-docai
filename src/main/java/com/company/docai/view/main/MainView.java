@@ -1,16 +1,27 @@
 package com.company.docai.view.main;
 
 import com.company.docai.ai.AiSettings;
+import com.company.docai.model.document.Document;
+import com.company.docai.model.folder.Folder;
 import com.company.docai.model.user.User;
+import com.company.docai.view.document.DocumentDetailView;
+import com.company.docai.view.favorite.FavoritesFragment;
 import com.company.docai.view.profile.ProfileReadView;
+import com.company.docai.view.repository.FolderTreeFragment;
+import com.company.docai.view.repository.RepositoryView;
 import com.company.docai.view.search.DocumentSearchView;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEvent;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.DomEvent;
+import com.vaadin.flow.component.EventData;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.QueryParameters;
@@ -35,6 +46,8 @@ import io.jmix.flowui.view.ViewDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Optional;
+
 @Route("")
 @ViewController(id = "MainView")
 @ViewDescriptor(path = "main-view.xml")
@@ -46,7 +59,16 @@ public class MainView extends StandardMainView {
      */
     public static final String SEARCH_MODE_SETTING = "docai.searchMode";
 
+    /**
+     * The user setting with the width of the main menu in rem, which the user drags with its edge.
+     */
+    public static final String DRAWER_WIDTH_SETTING = "docai.drawerWidth";
+
     private static final String WORDS_MODE = "words";
+    private static final String ASSISTANT_CHAT_ITEM = "assistantChat";
+    private static final String DRAWER_WIDTH = "--main-view-drawer-width";
+    private static final double MIN_DRAWER_WIDTH = 16;
+    private static final double MAX_DRAWER_WIDTH = 32;
 
     @ViewComponent
     private TypedTextField<String> searchField;
@@ -54,6 +76,14 @@ public class MainView extends StandardMainView {
     private JmixButton searchModeButton;
     @ViewComponent
     private JmixListMenu menu;
+    @ViewComponent
+    private JmixListMenu assistantMenu;
+    @ViewComponent
+    private FolderTreeFragment folderTree;
+    @ViewComponent
+    private Nav navigation;
+    @ViewComponent
+    private Div drawerHandle;
 
     @Autowired
     private Messages messages;
@@ -76,13 +106,24 @@ public class MainView extends StandardMainView {
     public void onInit(final InitEvent event) {
         searchField.addKeyPressListener(Key.ENTER, keyPressEvent -> openSearch());
 
-        // the menu file cannot depend on the key, and an item hidden after the menu is drawn stays on the page
-        ListMenu.MenuItem assistantChat = menu.getMenuItem("assistantChat");
+        // the assistant stands above the folders, apart from the views under them; the menu file cannot depend on
+        // the key, and an item hidden after the menu is drawn stays on the page
+        ListMenu.MenuItem assistantChat = menu.getMenuItem(ASSISTANT_CHAT_ITEM);
 
-        if (assistantChat != null && !aiSettings.isAvailable()
-                && menu.getMenuItem("application") instanceof ListMenu.MenuBarItem application) {
-            application.removeChildItem(assistantChat);
+        if (assistantChat != null) {
+            menu.removeMenuItem(assistantChat);
+
+            if (aiSettings.isAvailable()) {
+                assistantMenu.addMenuItem(assistantChat);
+            }
         }
+
+        // the views scroll with the folders, under the brand, the assistant and the folder field that stay in sight
+        folderTree.addUnderFolders(navigation);
+
+        openFoldersInRepository();
+        // over a narrow window the menu covers the view, so a chosen folder closes it, as a chosen view does
+        folderTree.addSelectionListener(folder -> closeOverlayDrawer());
 
         searchModeButton.setVisible(aiSettings.isAvailable());
 
@@ -92,6 +133,20 @@ public class MainView extends StandardMainView {
 
         showSearchMode();
         addAttachListener(attachEvent -> guardFileDrops());
+
+        // the edge of the menu takes a drag for long names, and the menu opens as wide as the user left it
+        userSettingsService.load(DRAWER_WIDTH_SETTING)
+                .flatMap(MainView::parseDrawerWidth)
+                .ifPresent(this::showDrawerWidth);
+
+        drawerHandle.getElement()
+                .setAttribute("role", "separator")
+                .setAttribute("aria-orientation", "vertical")
+                .setAttribute("tabindex", "0")
+                .setAttribute("aria-label", messages.getMessage(getClass(), "drawerHandle.ariaLabel"));
+
+        ComponentUtil.addListener(drawerHandle, DrawerResizeEvent.class, resize -> resizeDrawer(resize.getWidth()));
+        addAttachListener(attachEvent -> handleDrawerDrags());
     }
 
     // A file dragged from the computer and dropped where nothing takes it would open in the tab and leave the
@@ -136,6 +191,19 @@ public class MainView extends StandardMainView {
         if (searchOpen && aiSettings.isAvailable() && DocumentSearchView.isAiMode(parameters) != aiSearch) {
             chooseSearchMode(!aiSearch);
         }
+
+        // the repository plugs its own handlers into the tree while it is shown
+        if (event.getActiveChain().stream().noneMatch(RepositoryView.class::isInstance)) {
+            openFoldersInRepository();
+        }
+    }
+
+    /**
+     * The folder tree of the main menu. The repository plugs its own handlers into it while it is shown; on any
+     * other view the tree opens the repository on the chosen folder.
+     */
+    public FolderTreeFragment getFolderTree() {
+        return folderTree;
     }
 
     @Subscribe("userMenu.profileMenuItem.profileAction")
@@ -209,6 +277,129 @@ public class MainView extends StandardMainView {
         return content;
     }
 
+    // outside the repository no folder is the current one, a chosen folder opens there, and a document of the
+    // favorites opens over the view, as from the search
+    private void openFoldersInRepository() {
+        FavoritesFragment favorites = folderTree.getFavorites();
+        folderTree.setSelectionHandler(this::openRepository);
+        folderTree.setDocumentsDropHandler((documents, target) -> {
+        });
+
+        favorites.setFolderOpenHandler(this::openRepository);
+        favorites.setDocumentOpenHandler(this::openCard);
+        favorites.setChangeHandler(folderTree::refreshFavorites);
+        folderTree.clearSelection();
+    }
+
+    private void openRepository(Folder folder) {
+        viewNavigators.view(this, RepositoryView.class)
+                .withQueryParameters(QueryParameters.of(RepositoryView.FOLDER_PARAMETER, folder.getId().toString()))
+                .navigate();
+    }
+
+    // the card may mark the document with its star or take it away
+    private void openCard(Document document) {
+        dialogWindows.detail(this, Document.class)
+                .withViewClass(DocumentDetailView.class)
+                .editEntity(document)
+                .withAfterCloseListener(closeEvent -> {
+                    folderTree.getFavorites().reload();
+                    folderTree.refreshFavorites();
+                })
+                .open();
+    }
+
+    private void closeOverlayDrawer() {
+        if (getContent().isOverlay()) {
+            getContent().setDrawerOpened(false);
+        }
+    }
+
+    // A drag of the edge widens the menu in the browser at once, in steps of a quarter of a rem, and reports the width
+    // at its end; the arrows of the keyboard move the edge by a rem
+    private void handleDrawerDrags() {
+        getElement().executeJs("""
+                const layout = this;
+                const [handle, min, max] = [$0, $1, $2];
+
+                if (handle.docaiDrawerResize) {
+                    return;
+                }
+
+                handle.docaiDrawerResize = true;
+                const show = width => {
+                    const shown = Math.min(max, Math.max(min, Math.round(width * 4) / 4));
+                    layout.style.setProperty('--main-view-drawer-width', shown + 'rem');
+                    return shown;
+                };
+                const report = width => handle.dispatchEvent(new CustomEvent('drawer-resize', {detail: width}));
+
+                handle.addEventListener('pointerdown', down => {
+                    if (down.button !== 0) {
+                        return;
+                    }
+
+                    down.preventDefault();
+                    handle.setPointerCapture(down.pointerId);
+                    layout.toggleAttribute('drawer-resizing', true);
+                    const left = layout.getBoundingClientRect().left;
+                    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                    let width;
+                    const move = event => width = show((event.clientX - left) / rem);
+                    const up = () => {
+                        handle.removeEventListener('pointermove', move);
+                        handle.removeEventListener('pointerup', up);
+                        handle.removeEventListener('pointercancel', up);
+                        layout.toggleAttribute('drawer-resizing', false);
+
+                        if (width !== undefined) {
+                            report(width);
+                        }
+                    };
+
+                    handle.addEventListener('pointermove', move);
+                    handle.addEventListener('pointerup', up);
+                    handle.addEventListener('pointercancel', up);
+                });
+
+                handle.addEventListener('keydown', event => {
+                    const step = {ArrowLeft: -1, ArrowRight: 1}[event.key];
+
+                    if (step) {
+                        event.preventDefault();
+                        const current = parseFloat(getComputedStyle(layout).getPropertyValue(
+                                '--vaadin-app-layout-drawer-width'));
+                        report(show(current + step));
+                    }
+                });
+                """, drawerHandle.getElement(), MIN_DRAWER_WIDTH, MAX_DRAWER_WIDTH);
+    }
+
+    // the width comes from the browser, so it is kept within the limits and in steps of a quarter of a rem here too
+    private void resizeDrawer(double width) {
+        if (!Double.isFinite(width)) {
+            return;
+        }
+
+        double shown = Math.round(Math.clamp(width, MIN_DRAWER_WIDTH, MAX_DRAWER_WIDTH) * 4) / 4.0;
+        showDrawerWidth(shown);
+        userSettingsService.save(DRAWER_WIDTH_SETTING, String.valueOf(shown));
+    }
+
+    private void showDrawerWidth(double width) {
+        getContent().getStyle().set(DRAWER_WIDTH, width + "rem");
+    }
+
+    private static Optional<Double> parseDrawerWidth(String setting) {
+        try {
+            return Optional.of(Double.parseDouble(setting))
+                    .filter(Double::isFinite)
+                    .map(width -> Math.clamp(width, MIN_DRAWER_WIDTH, MAX_DRAWER_WIDTH));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+    }
+
     private void openSearch() {
         String query = Strings.nullToEmpty(searchField.getValue()).strip();
 
@@ -263,5 +454,29 @@ public class MainView extends StandardMainView {
     private boolean isSubstituted(User user) {
         UserDetails authenticatedUser = currentUserSubstitution.getAuthenticatedUser();
         return user != null && !authenticatedUser.getUsername().equals(user.getUsername());
+    }
+
+    /**
+     * The edge of the main menu dragged to a new width, as the browser reports it at the end of the drag.
+     */
+    @DomEvent("drawer-resize")
+    public static class DrawerResizeEvent extends ComponentEvent<Div> {
+
+        private final double width;
+
+        /**
+         * Creates the event of the edge of the menu with the width it was dragged to, in rem.
+         */
+        public DrawerResizeEvent(Div source, boolean fromClient, @EventData("event.detail") double width) {
+            super(source, fromClient);
+            this.width = width;
+        }
+
+        /**
+         * Returns the width the edge was dragged to, in rem.
+         */
+        public double getWidth() {
+            return width;
+        }
     }
 }

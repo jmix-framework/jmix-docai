@@ -22,7 +22,7 @@
                 </aichat:emptyStateHeader>
                 <aichat:emptyStateFooter>
                     <hbox id="suggestions" width="100%" justifyContent="CENTER" wrap="true">
-                        <button id="summaryButton" text="msg://summaryButton.text" icon="FILE_TEXT_O"/>
+                        <button id="summaryButton" text="msg://summaryButton.text" icon="FILE_TEXT"/>
                     </hbox>
                 </aichat:emptyStateFooter>
             </aichat:aiChat>

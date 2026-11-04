@@ -18,17 +18,32 @@
     text-decoration: underline;
 }
 
-/* Favorites are the first section in the frame of the folder tree: the frame takes the border of the tree, the header
-   of the section the look of the header of the folders, and a row the look of a folder a level below the root */
+/* Favorites are the first section in the frame of the folder tree, which stands in the main menu: the frame and the
+   tree take the look of the menu, the header of the section the look of a folder, and a row the look of a folder
+   a level below the root */
 .folder-tree-frame {
-    border: 1px solid var(--vaadin-border-color-secondary);
-    border-radius: var(--vaadin-radius-m);
-    background: var(--vaadin-background-color);
     overflow: hidden;
 }
 
 .folder-tree-frame > vaadin-grid {
-    border-top: 1px solid var(--vaadin-border-color-secondary);
+    --vaadin-grid-background: transparent;
+    --vaadin-grid-row-background-color: transparent;
+    /* a length: the grid multiplies it in calc() for the focus and drop outline of a row */
+    --vaadin-grid-row-border-width: 0px;
+    /* the tint of the current item of the menu; the grid paints it from its own value, not from the cell */
+    --vaadin-grid-row-selected-background-color: color-mix(in srgb, var(--aura-accent-text-color) 8%, transparent);
+}
+
+/* The root names the tree, so the header of its column is not drawn */
+.folder-tree-frame > vaadin-grid::part(header-row) {
+    display: none;
+}
+
+/* The folder on screen looks as the current item of the menu does */
+.folder-tree-frame > vaadin-grid::part(selected-row-cell) {
+    border-radius: var(--vaadin-radius-m);
+    color: var(--aura-accent-text-color);
+    font-weight: var(--aura-font-weight-semibold);
 }
 
 /* Aura indents the content of a details under its summary; the rows indent themselves as the folders do */

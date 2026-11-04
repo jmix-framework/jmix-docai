@@ -2,6 +2,7 @@ package com.company.docai.view.main;
 
 import com.company.docai.DocAiApplication;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
+import com.company.docai.test_support.TestMenus;
 import io.jmix.aitoolsflowui.service.AiChatService;
 import io.jmix.flowui.component.main.JmixListMenu;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -14,8 +15,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The main menu of an employee: only the administrator opens the views of document types and tags, and while the AI
- * is off the assistant is not there, and its chat, reached by its address, takes no questions.
+ * The main menu of an employee: the folders lead to the repository, the trash stands under them, and only the
+ * administrator has the administration; while the AI is off the assistant is not there, and its chat, reached by its
+ * address, takes no questions.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -25,11 +27,11 @@ class EmployeeMainMenuTest {
     private AiChatService chatService;
 
     @Test
-    void anEmployeeHasTheRepositoryAndTheTrashButNeitherDocumentTypesNorTagsInTheMenu() {
-        JmixListMenu menu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "menu");
+    void anEmployeeHasTheTrashButNoAdministrationInTheMenu() {
+        JmixListMenu menu = TestMenus.listMenu("menu");
 
-        assertThat(menu.getMenuItem("RepositoryView")).isNotNull();
         assertThat(menu.getMenuItem("TrashView")).isNotNull();
+        assertThat(menu.getMenuItem("administration")).isNull();
         assertThat(menu.getMenuItem("documentTypes")).isNull();
         assertThat(menu.getMenuItem("Tag.list")).isNull();
         assertThat(menu.getMenuItem("DocumentStatus.list")).isNull();
@@ -37,9 +39,11 @@ class EmployeeMainMenuTest {
 
     @Test
     void withoutTheKeyTheAssistantIsNotInTheMenuAndItsChatTakesNoQuestions() {
-        JmixListMenu menu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "menu");
+        JmixListMenu menu = TestMenus.listMenu("menu");
+        JmixListMenu assistantMenu = UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "assistantMenu");
 
         assertThat(menu.getMenuItem("assistantChat")).isNull();
+        assertThat(assistantMenu.getMenuItems()).isEmpty();
         assertThat(chatService.isAvailable()).isFalse();
     }
 }

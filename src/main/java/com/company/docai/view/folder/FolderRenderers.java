@@ -102,6 +102,7 @@ public class FolderRenderers {
 
         Span name = uiComponents.create(Span.class);
         name.add(label);
+        name.setTitle(metadataTools.getInstanceName(folder));
         name.addClickListener(click -> tree.select(folder));
 
         return name;

@@ -12,6 +12,7 @@ import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.test_support.TestStatuses;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
@@ -106,7 +107,7 @@ class FavoriteStarsTest {
                 .removing(unconstrainedDataManager.load(Favorite.class).all().list()));
         // the sandbox holds a document the employee only views, so the administrator deletes it
         systemAuthenticator.runWithUser("admin", () -> folderService.delete(sandbox));
-        userSettingsCache.delete("RepositoryView.folderTree");
+        userSettingsCache.delete("MainView.folderTree");
         userSettingsCache.delete("RepositoryView.documentList");
     }
 
@@ -272,9 +273,9 @@ class FavoriteStarsTest {
     void theFolderMenuMarksTheFolderButNotTheRoot() {
         Folder contracts = folder(sandbox, "Contracts");
         RepositoryView view = open(contracts);
-        TreeDataGrid<Folder> tree = component(view, "folderTree", "foldersTree");
+        TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
         Action action = tree.getAction("favoriteAction");
-        DropdownButton folderActions = component(view, "folderTree", "folderActionsButton");
+        DropdownButton folderActions = TestMenus.folderTreeComponent("folderActionsButton");
 
         assertThat(folderActions.getItem("favoriteFolderItem")).isNotNull();
         assertThat(isMarkedStar(action.getIcon())).isFalse();
@@ -324,7 +325,7 @@ class FavoriteStarsTest {
     // the names of the rows of the favorites section of the folder tree
     private List<String> blockNames(RepositoryView view) {
         VerticalLayout box = (VerticalLayout) FragmentUtils.getComponent(
-                component(view, "folderTree", "favorites"), "favoritesBox");
+                TestMenus.folderTreeComponent("favorites"), "favoritesBox");
         return box.getChildren()
                 .map(row -> row.getChildren().findFirst().orElseThrow().getElement().getTextRecursively())
                 .toList();

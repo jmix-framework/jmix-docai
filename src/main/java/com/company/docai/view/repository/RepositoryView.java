@@ -32,20 +32,22 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * The document repository: the folder tree, the documents of the selected folder and
- * the preview panel. The address keeps the open folder and the preview mode. Documents dragged from
- * the list move into the folder of the tree they are dropped on.
+ * The document repository: the documents of the folder chosen in the tree of the main menu and the preview panel.
+ * While the view is shown, the tree reports its choices, drops and changes here. The address keeps the open folder
+ * and the preview mode, and the header shows the name of the folder. Documents dragged from the list move into
+ * the folder of the tree they are dropped on.
  */
 @Route(value = "repository", layout = MainView.class)
 @ViewController(id = "RepositoryView")
 @ViewDescriptor(path = "repository-view.xml")
 public class RepositoryView extends StandardView {
 
-    private static final String FOLDER_PARAMETER = "folder";
+    /**
+     * The query parameter with the id of the folder the view shows.
+     */
+    public static final String FOLDER_PARAMETER = "folder";
     private static final String PREVIEW_PARAMETER = "preview";
 
-    @ViewComponent
-    private FolderTreeFragment folderTree;
     @ViewComponent
     private DocumentListFragment documentList;
     @ViewComponent
@@ -63,6 +65,8 @@ public class RepositoryView extends StandardView {
     private MetadataTools metadataTools;
 
     private final AddressBinder address = new AddressBinder();
+    // the tree of the main menu, which the view takes over while it is shown
+    private FolderTreeFragment folderTree;
     @Nullable
     private UUID requestedFolderId;
     private boolean previewMode;
@@ -70,8 +74,7 @@ public class RepositoryView extends StandardView {
     @Subscribe
     public void onInit(final InitEvent event) {
         urlQueryParameters.registerBinder(address);
-
-        configureFragments();
+        addAttachListener(attachEvent -> connectFolderTree());
 
         // only the panel's own close button turns the mode off; the view closes the panel when nothing is selected
         previewLayout.addSidePanelCloseListener(closeEvent -> {
@@ -82,10 +85,13 @@ public class RepositoryView extends StandardView {
         });
     }
 
-    private void configureFragments() {
+    // The tree lives in the main menu, which exists by the time the view is attached; the main view gives the tree
+    // its own handlers back after a navigation that leaves the repository.
+    private void connectFolderTree() {
+        folderTree = findAncestor(MainView.class).getFolderTree();
+
         FavoritesFragment favorites = folderTree.getFavorites();
         folderTree.setSelectionHandler(this::showFolder);
-        folderTree.setReloadHandler(favorites::reload);
         favorites.setFolderOpenHandler(folder -> folderTree.loadAndSelect(folder.getId()));
         favorites.setDocumentOpenHandler(documentList::openCard);
         documentList.setFocusHandler(this::showPreview);
@@ -93,7 +99,6 @@ public class RepositoryView extends StandardView {
             favorites.reload();
             folderTree.refreshFavorites();
         });
-        folderTree.setFavoritesChangeHandler(favorites::reload);
         favorites.setChangeHandler(() -> {
             documentList.refreshFavorites();
             folderTree.refreshFavorites();
@@ -105,16 +110,15 @@ public class RepositoryView extends StandardView {
         });
         documentList.setDragHandler(folderTree::setDraggedDocuments);
         folderTree.setDocumentsDropHandler(documentList::move);
-    }
 
-    @Subscribe
-    public void onBeforeShow(final BeforeShowEvent event) {
         folderTree.loadAndSelect(requestedFolderId);
     }
 
     private void showFolder(Folder folder) {
         showBreadcrumbs(folderTree.getPath(folder));
         documentList.setFolder(folder);
+        // the header names the folder, as the tab of the browser does
+        setPageTitle(metadataTools.getInstanceName(folder));
         address.update();
     }
 

@@ -3,6 +3,7 @@ package com.company.docai.view.trash;
 import com.company.docai.app.service.trash.TrashService;
 import com.company.docai.model.trash.TrashItem;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.repository.FolderTreeFragment;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -160,6 +161,11 @@ public class TrashView extends StandardView {
                 .withType(Notifications.Type.SUCCESS)
                 .show();
         reload();
+
+        // the tree and the favorites of the main menu stand next to the trash, so what came back shows there at once
+        FolderTreeFragment folderTree = findAncestor(MainView.class).getFolderTree();
+        folderTree.load();
+        folderTree.getFavorites().reload();
     }
 
     @Subscribe("trashItemsGrid.purgeAction")

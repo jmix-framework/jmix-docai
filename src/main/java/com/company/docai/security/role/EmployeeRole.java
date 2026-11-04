@@ -147,11 +147,10 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void accessDialog();
 
     /**
-     * Opens the views of the document repository.
+     * Opens the views of the document repository. The folders of the main menu lead to it, so it has no menu item.
      */
     @ViewPolicy(viewIds = {"RepositoryView", "Document.detail", "DocumentRevision.read", "Folder.detail",
             "Folder.lookup"})
-    @MenuPolicy(menuIds = "RepositoryView")
     void repository();
 
     /**

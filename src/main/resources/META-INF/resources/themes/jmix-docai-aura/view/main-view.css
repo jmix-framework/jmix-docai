@@ -1,7 +1,10 @@
 /* Predefined styles for the MainView */
 
 .jmix-main-view-app-layout {
-    --vaadin-app-layout-drawer-width: 256px;
+    /* the menu holds the folder tree, whose names need the room; the user may drag it wider, and the main view sets
+       --main-view-drawer-width then */
+    --main-view-drawer-width: 18rem;
+    --vaadin-app-layout-drawer-width: var(--main-view-drawer-width);
     /* the header and the brand card share one height: the padding of the header and the button of the user menu */
     --main-view-bar-height: 62px;
 }
@@ -77,6 +80,7 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
 }
 
 .jmix-main-view-section {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -123,11 +127,108 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     line-height: var(--aura-line-height-s);
 }
 
+/* The folders are the main navigation. The brand, the assistant and the folder field with its button stay on top of
+   the drawer; under them the favorites, the folders and the views of the menu scroll together in the frame of the
+   tree, which shows all its rows. A list menu would shrink to nothing in a low window, so the top keeps its height */
+.jmix-main-view-application-title,
+.assistant-menu {
+    flex: none;
+}
+
+/* The assistant stands apart from the folders, as the folder field stands apart from the favorites */
+.assistant-menu {
+    margin-block-end: var(--vaadin-gap-s);
+}
+
+.main-view-folder-tree {
+    flex: 1 1 0;
+    min-height: 0;
+    padding-inline: var(--vaadin-padding-s);
+}
+
+.main-view-folder-tree .folder-tree-frame {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* what the frame holds keeps its height, so the frame scrolls rather than squeezing the tree */
+.main-view-folder-tree .folder-tree-frame > * {
+    flex-shrink: 0;
+}
+
+/* The filter gives way to the folder button, so the row of the two fits the width of the drawer */
+.main-view-folder-tree vaadin-text-field {
+    min-width: 0;
+}
+
+/* The views stand in the frame of the folders, as wide as the folders and in line with them: the list menu would add
+   its own inset to the inset of the folders */
 .jmix-main-view-navigation {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    overflow: auto;
+    flex: none;
+    align-self: stretch;
+}
+
+.jmix-main-view-navigation > .jmix-list-menu {
+    padding-inline: 0;
+}
+
+/* The edge of the menu takes a drag for long names. It looks as the edge of the preview does: a grip in the middle
+   shows under the pointer, the keyboard focus and the drag, and the target is as wide. The edge runs along the
+   content, from the inset of the window down, and reaches past the inline padding Aura gives the drawer. Over a
+   narrow window the menu covers the view, so its width stays then */
+.main-view-drawer-handle {
+    position: absolute;
+    inset-block: var(--aura-app-layout-inset) 0;
+    inset-inline-end: calc(-1 * max(0px, var(--aura-app-layout-inset) - var(--vaadin-padding-s)));
+    width: 8px;
+    cursor: ew-resize;
+    touch-action: none;
+    outline: none;
+}
+
+.main-view-drawer-handle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.2rem;
+    height: 2rem;
+    transform: translate(-50%, -50%);
+    border-radius: var(--vaadin-radius-m);
+    background: var(--vaadin-text-color-secondary);
+    opacity: 0;
+}
+
+.main-view-drawer-handle:hover::after,
+.main-view-drawer-handle:focus-visible::after,
+vaadin-app-layout[drawer-resizing] .main-view-drawer-handle::after {
+    opacity: 1;
+}
+
+vaadin-app-layout[drawer-resizing] {
+    --vaadin-app-layout-transition-duration: 0s;
+    cursor: ew-resize;
+    user-select: none;
+}
+
+vaadin-app-layout[overlay] .main-view-drawer-handle {
+    display: none;
+}
+
+vaadin-app-layout.jmix-main-view-app-layout[overlay] {
+    --vaadin-app-layout-drawer-width: 18rem;
+}
+
+/* The assistant wears the tint of the AI accent, as the AI actions do, in the rounded shape of the current item;
+   aura-accent-purple colors the item. The rule names the item as the list menu does, so the tint stays on the
+   current item as well */
+.jmix-list-menu a.jmix-menu-item.ai-menu-item {
+    border-radius: var(--vaadin-radius-m);
+    background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
+    color: var(--aura-accent-text-color);
 }
 
 .jmix-main-view-footer {

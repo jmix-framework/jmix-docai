@@ -15,7 +15,7 @@ import com.company.docai.view.folder.FolderDetailView;
 import com.company.docai.view.folder.FolderLookupView;
 import com.company.docai.view.folder.FolderRenderers;
 import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.dnd.DropEvent;
 import com.vaadin.flow.component.dnd.DropTarget;
@@ -28,6 +28,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.selection.SelectionEvent;
 import com.vaadin.flow.function.SerializablePredicate;
+import com.vaadin.flow.shared.Registration;
 import io.jmix.core.LoadContext;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
@@ -45,7 +46,6 @@ import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.kit.action.ActionVariant;
-import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.CollectionLoader;
@@ -61,7 +61,8 @@ import java.util.stream.Collectors;
 
 /**
  * The folder tree of the repository with the folder actions, the folder filter, which narrows the favorites too, and
- * the document counts.
+ * the document counts. It stands in the main menu, so it is the same on every view; the repository plugs its own
+ * handlers in while it is shown.
  * The folders on the way to what the user has access to are greyed, and the actions follow the user's level
  * in the selected folder. A folder is moved by dragging it onto another one, and documents are moved by dropping
  * them on a folder: while something is dragged, only the folders that may take it accept the drop. Folders and
@@ -88,6 +89,8 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     private FavoritesFragment favorites;
     @ViewComponent
     private JmixDetails favoritesDetails;
+    @ViewComponent
+    private VerticalLayout treeFrame;
 
     @ViewComponent
     private MessageBundle messageBundle;
@@ -126,10 +129,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     };
     private BiConsumer<List<Document>, Folder> documentsDropHandler = (documents, target) -> {
     };
-    private Runnable reloadHandler = () -> {
-    };
-    private Runnable favoritesChangeHandler = () -> {
-    };
+    private final List<Consumer<Folder>> selectionListeners = new ArrayList<>();
 
     /**
      * Receives the folder selected in the tree.
@@ -160,10 +160,11 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Receives a reload of the tree: the folders may have new names and places since, and some may be gone.
+     * Tells about every folder chosen in the tree, after the selection handler, whoever plugged it in.
      */
-    public void setReloadHandler(Runnable reloadHandler) {
-        this.reloadHandler = reloadHandler;
+    public Registration addSelectionListener(Consumer<Folder> listener) {
+        selectionListeners.add(listener);
+        return () -> selectionListeners.remove(listener);
     }
 
     /**
@@ -179,18 +180,9 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
 
         // the folder is selected below, once allFolders is rebuilt: neither the reload nor clearing the filter
         // may select the previous one, or the breadcrumbs would show its old path
-        foldersTree.deselectAll();
-        selectedFolder = null;
+        clearSelection();
         folderFilterField.clear();
-
-        foldersDl.load();
-        allFolders = foldersDc.getItems().stream()
-                .collect(Collectors.toMap(Folder::getId,
-                        Function.identity(),
-                        (first, second) -> first,
-                        LinkedHashMap::new));
-
-        documentCounts = folderService.countDocuments(allFolders.values());
+        load();
 
         Folder folder = allFolders.get(folderId == null ? Folder.ROOT_ID : folderId);
         if (folder == null) {
@@ -206,7 +198,31 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         }
 
         select(folder);
-        reloadHandler.run();
+        favorites.reload();
+    }
+
+    /**
+     * Loads the folders and their document counts without choosing one, as a view other than the repository
+     * shows the tree. The root is open, so the folders under it are in sight.
+     */
+    public void load() {
+        foldersDl.load();
+        allFolders = foldersDc.getItems().stream()
+                .collect(Collectors.toMap(Folder::getId,
+                        Function.identity(),
+                        (first, second) -> first,
+                        LinkedHashMap::new));
+
+        documentCounts = folderService.countDocuments(allFolders.values());
+        foldersTree.expand(allFolders.get(Folder.ROOT_ID));
+    }
+
+    /**
+     * Forgets the shown folder: outside the repository no folder is the current one.
+     */
+    public void clearSelection() {
+        foldersTree.deselectAll();
+        selectedFolder = null;
     }
 
     /**
@@ -215,13 +231,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     public void refreshDocumentCounts() {
         documentCounts = folderService.countDocuments(allFolders.values());
         foldersTree.getDataProvider().refreshAll();
-    }
-
-    /**
-     * Receives a mark set or removed on a folder of the tree.
-     */
-    public void setFavoritesChangeHandler(Runnable favoritesChangeHandler) {
-        this.favoritesChangeHandler = favoritesChangeHandler;
     }
 
     /**
@@ -255,6 +264,14 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
      */
     public FavoritesFragment getFavorites() {
         return favorites;
+    }
+
+    /**
+     * Puts a component under the folders, where it scrolls with them while the folder field and its button stay in
+     * sight. The main view puts the views of its menu there.
+     */
+    public void addUnderFolders(Component component) {
+        treeFrame.add(component);
     }
 
     /**
@@ -295,6 +312,11 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         DropTarget.create(favoritesDetails)
                 .addDropListener(this::onFavoritesDrop);
 
+        // the main menu shows the tree on every view, so it loads the folders and the favorites as soon as it is
+        // created; the repository loads them again when it shows a folder
+        load();
+        favorites.reload();
+
         // a right click selects the folder under the pointer, so the menu acts on that folder
         foldersTree.getContextMenu().addGridContextMenuOpenedListener(menu -> {
             if (menu.isOpened()) {
@@ -316,6 +338,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         if (folder != null && !folder.equals(selectedFolder)) {
             selectedFolder = folder;
             selectionHandler.accept(folder);
+            selectionListeners.forEach(listener -> listener.accept(folder));
         }
     }
 
@@ -392,19 +415,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
             // a cleared filter brings back the folder whose documents are shown
             select(selectedFolder);
         }
-    }
-
-    @Subscribe("expandAllButton")
-    public void onExpandAllButtonClick(final ClickEvent<JmixButton> event) {
-        foldersTree.expand(foldersDc.getItems());
-    }
-
-    // the root stays open, as everywhere in the tree
-    @Subscribe("collapseAllButton")
-    public void onCollapseAllButtonClick(final ClickEvent<JmixButton> event) {
-        foldersTree.collapse(foldersDc.getItems().stream()
-                .filter(folder -> !folder.isRoot())
-                .toList());
     }
 
     @Subscribe("foldersTree.createFolderAction")
@@ -508,7 +518,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
 
     @Install(to = "foldersTree.favoriteAction", subject = "afterToggleHandler")
     private void foldersTreeFavoriteActionAfterToggleHandler() {
-        favoritesChangeHandler.run();
+        favorites.reload();
     }
 
     // the root is always one click away, and a greyed folder is only the way to others

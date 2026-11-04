@@ -1,22 +1,39 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <menu-config xmlns="http://jmix.io/schema/flowui/menu">
 
-    <menu id="application" title="msg://com.company.docai/menu.application.title" opened="true">
-        <item view="RepositoryView" title="msg://com.company.docai.view.repository/repositoryView.title"
-              icon="FOLDER_OPEN"/>
+    <!-- the folders are the main navigation, so their tree stands in the drawer of the main view between these items:
+         the main view moves the assistant above the tree, and the trash and the administration stay under it -->
+    <item id="assistantChat" view="aitls_AiChatHubView" title="msg://com.company.docai/menu.assistantChat.title"
+          icon="COMMENTS" classNames="aura-accent-purple,ai-menu-item"/>
+    <item view="TrashView" title="msg://com.company.docai.view.trash/trashView.title" icon="TRASH"/>
+
+    <!-- the items of the add-ons stay in their groups under the view ids, so the items taken out of those groups
+         need ids of their own -->
+    <menu id="administration" title="msg://com.company.docai/menu.administration.title" icon="COG" opened="false">
         <item view="User.list" title="msg://com.company.docai.view.user/UserListView.title" icon="USERS"/>
-        <!-- the items of the add-ons stay in their groups under the view ids, so the document types and the assistant
-             need ids of their own -->
         <item id="documentTypes" view="dynat_CategoryView.list"
-              title="msg://com.company.docai/menu.documentTypes.title" icon="FILE_TEXT_O"/>
+              title="msg://com.company.docai/menu.documentTypes.title" icon="FILE_TEXT"/>
         <item view="DocumentStatus.list"
               title="msg://com.company.docai.view.status/documentStatusListView.title" icon="FLAG"/>
         <item view="Tag.list" title="msg://com.company.docai.view.tag/tagListView.title" icon="TAGS"/>
-        <item id="assistantChat" view="aitls_AiChatHubView"
-              title="msg://com.company.docai/menu.assistantChat.title" icon="COMMENTS_O"/>
-        <item view="TrashView" title="msg://com.company.docai.view.trash/trashView.title" icon="TRASH"/>
+        <menu id="administrationSecurity" title="msg://com.company.docai/menu.administrationSecurity.title"
+              icon="SHIELD">
+            <item id="resourceRoles" view="sec_ResourceRoleModel.list"
+                  title="msg://io.jmix.securityflowui.view.resourcerole/resourceRoleModelListView.menu"/>
+            <item id="rowLevelRoles" view="sec_RowLevelRoleModel.list"
+                  title="msg://io.jmix.securityflowui.view.rowlevelrole/rowLevelRoleModelListView.menu"/>
+        </menu>
+        <menu id="administrationDataTools" title="msg://com.company.docai/menu.administrationDataTools.title"
+              icon="DATABASE">
+            <item id="entityInspector" view="datatl_entityInspectorListView"
+                  title="msg://io.jmix.datatoolsflowui.view.entityinspector/listTitle"/>
+            <item id="dataModel" view="datatl_dataModelListView"
+                  title="msg://io.jmix.datatoolsflowui.view.datamodel/entityModelListView.title"/>
+        </menu>
     </menu>
 
+    <menu id="security" visible="false"/>
+    <menu id="datatools" visible="false"/>
     <menu id="dynat" visible="false"/>
     <menu id="aitls" visible="false"/>
 

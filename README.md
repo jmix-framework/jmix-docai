@@ -48,6 +48,8 @@ Of the later features, the trash and tags are in place: deleted folders and docu
 
 Documents and folders move by drag and drop too: drag documents from the table onto a folder in the tree, or a folder onto another folder. While a row is dragged, only the folders it may go to light up, and a move that changes access asks first, as Move does.
 
+The folders are the main menu: the favorites and the folder tree stand in the menu on the left on every view, under the AI assistant and above the trash and the administration. A folder chosen on any view opens the repository on it, and the header names the folder.
+
 ## 🛠️ Technical Stack
 
 - Java 21, Gradle

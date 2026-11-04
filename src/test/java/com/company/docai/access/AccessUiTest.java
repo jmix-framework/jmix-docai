@@ -17,6 +17,7 @@ import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.access.AccessDetailView;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.folder.FolderLookupView;
@@ -548,11 +549,11 @@ class AccessUiTest {
     }
 
     private FolderTreeFragment folderTree(RepositoryView view) {
-        return UiTestUtils.getComponent(view, "folderTree");
+        return TestMenus.folderTree();
     }
 
     private TreeDataGrid<Folder> foldersTree(RepositoryView view) {
-        return fragmentComponent(view, "folderTree", "foldersTree");
+        return TestMenus.folderTreeComponent("foldersTree");
     }
 
     private DataGrid<Document> documentsGrid(RepositoryView view) {

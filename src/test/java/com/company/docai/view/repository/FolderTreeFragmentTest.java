@@ -7,14 +7,19 @@ import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.main.MainView;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.fragment.FragmentUtils;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
+import io.jmix.flowui.kit.component.dropdownbutton.DropdownButtonItem;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
@@ -113,22 +118,6 @@ class FolderTreeFragmentTest {
     }
 
     @Test
-    void expandAllOpensEveryFolderAndCollapseAllLeavesOnlyTheRootOpen() {
-        Folder parent = folder(sandbox, "Parent");
-        Folder child = folder(parent, "Child");
-        folder(child, "Grandchild");
-        FolderTreeFragment folderTree = open(sandbox);
-        TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
-
-        this.<JmixButton>component(folderTree, "expandAllButton").click();
-        assertThat(List.of(sandbox, parent, child)).allSatisfy(folder -> assertThat(tree.isExpanded(folder)).isTrue());
-
-        this.<JmixButton>component(folderTree, "collapseAllButton").click();
-        assertThat(tree.isExpanded(folderService.getRoot())).isTrue();
-        assertThat(List.of(sandbox, parent, child)).allSatisfy(folder -> assertThat(tree.isExpanded(folder)).isFalse());
-    }
-
-    @Test
     void aFolderShowsTheNumberOfItsDocumentsTogetherWithSubfolders() {
         Folder parent = folder(sandbox, "Parent");
         Folder child = folder(parent, "Child");
@@ -158,12 +147,36 @@ class FolderTreeFragmentTest {
         assertThat(folderTree.getSelectedFolder()).isEqualTo(invoices);
     }
 
+    // one button creates a folder, the other lists the actions on the chosen folder; both show only their icons, so
+    // the row leaves its width to the filter, and every folder opens by its own arrow
+    @Test
+    void theFolderRowHoldsTheFilterAButtonThatCreatesAFolderAndTheActionsOnTheChosenOne() {
+        FolderTreeFragment folderTree = open(sandbox);
+        HorizontalLayout toolbar = component(folderTree, "folderToolbar");
+        JmixButton createButton = component(folderTree, "createFolderButton");
+        DropdownButton actionsButton = component(folderTree, "folderActionsButton");
+        TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
+        Action create = tree.getAction("createFolderAction");
+
+        assertThat(toolbar.getChildren().toList())
+                .containsExactly(component(folderTree, "folderFilterField"), createButton, actionsButton);
+        assertThat(createButton.getAction()).isSameAs(create);
+        assertThat(createButton.getText()).isNullOrEmpty();
+        assertThat(createButton.getTitle()).isEqualTo(create.getText());
+        assertThat(actionsButton.getItems())
+                .extracting(DropdownButtonItem::getId)
+                .containsExactly("renameFolderItem", "moveFolderItem", "accessFolderItem", "favoriteFolderItem",
+                        "deleteFolderItem");
+        assertThat(tree.getAction("expandAllAction")).isNull();
+        assertThat(tree.getAction("collapseAllAction")).isNull();
+    }
+
     private FolderTreeFragment open(Folder folder) {
         viewNavigators.view(UiTestUtils.getCurrentView(), RepositoryView.class)
                 .withQueryParameters(QueryParameters.of("folder", folder.getId().toString()))
                 .navigate();
 
-        return UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "folderTree");
+        return TestMenus.folderTree();
     }
 
     @SuppressWarnings("unchecked")

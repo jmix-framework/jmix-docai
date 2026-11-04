@@ -10,6 +10,7 @@ import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.folder.FolderDetailView;
 import com.company.docai.view.main.MainView;
@@ -100,7 +101,7 @@ class FavoritesFragmentTest {
                 .removing(unconstrainedDataManager.load(Favorite.class).all().list()));
         folderService.delete(sandbox);
         // leaving the view saves the settings of its fragments for the user
-        userSettingsCache.delete("RepositoryView.folderTree");
+        userSettingsCache.delete("MainView.folderTree");
         userSettingsCache.delete("RepositoryView.documentList");
     }
 
@@ -119,13 +120,13 @@ class FavoritesFragmentTest {
     @Test
     void theFavoritesAreTheFirstSectionInTheFrameOfTheFolderTree() {
         RepositoryView view = open(sandbox);
-        FolderTreeFragment folderTree = UiTestUtils.getComponent(view, "folderTree");
+        FolderTreeFragment folderTree = TestMenus.folderTree();
         VerticalLayout frame = (VerticalLayout) FragmentUtils.getComponent(folderTree, "treeFrame");
         JmixDetails section = (JmixDetails) FragmentUtils.getComponent(folderTree, "favoritesDetails");
 
-        // under the Folder menu and the filter, which serve both sections
+        // under the Folder menu and the filter, which serve both sections; the views of the menu follow the folders
         assertThat(frame.getChildren().toList())
-                .containsExactly(section, FragmentUtils.getComponent(folderTree, "foldersTree"));
+                .startsWith(section, FragmentUtils.getComponent(folderTree, "foldersTree"));
         assertThat(section.getContent().toList()).containsExactly(favorites(view));
     }
 
@@ -168,7 +169,7 @@ class FavoritesFragmentTest {
 
         button(view, "Contracts", 0).click();
 
-        FolderTreeFragment folderTree = UiTestUtils.getComponent(view, "folderTree");
+        FolderTreeFragment folderTree = TestMenus.folderTree();
         assertThat(folderTree.getSelectedFolder()).isEqualTo(contracts);
     }
 
@@ -379,7 +380,7 @@ class FavoritesFragmentTest {
 
     @SuppressWarnings("unchecked")
     private <T> T treeComponent(RepositoryView view, String componentId) {
-        return (T) FragmentUtils.getComponent(UiTestUtils.getComponent(view, "folderTree"), componentId);
+        return (T) FragmentUtils.getComponent(TestMenus.folderTree(), componentId);
     }
 
     private Folder folder(Folder parent, String name) {

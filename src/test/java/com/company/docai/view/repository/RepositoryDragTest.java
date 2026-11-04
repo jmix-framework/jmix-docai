@@ -14,6 +14,7 @@ import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.folder.FolderLookupView;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.button.Button;
@@ -421,7 +422,7 @@ class RepositoryDragTest {
     }
 
     private FolderTreeFragment folderTree(RepositoryView view) {
-        return UiTestUtils.getComponent(view, "folderTree");
+        return TestMenus.folderTree();
     }
 
     @SuppressWarnings("unchecked")

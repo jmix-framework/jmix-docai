@@ -10,16 +10,13 @@
                          sidePanelPosition="RIGHT" sidePanelOverlay="false" modal="false"
                          closeOnOutsideClick="false" sidePanelResizable="true" themeNames="resizer-small"
                          sidePanelHorizontalSize="40%" sidePanelHorizontalMinSize="20em">
-            <split id="split" classNames="repository-split" width="100%" height="100%" splitterPosition="22"
-                   themeNames="splitter-spacing">
-                <fragment id="folderTree" class="com.company.docai.view.repository.FolderTreeFragment"/>
-                <vbox id="documentPane" classNames="repository-documents" width="100%" height="100%" padding="false">
-                    <hbox id="breadcrumbs" classNames="breadcrumbs" width="100%" alignItems="BASELINE"
-                          spacing="false" wrap="true"/>
-                    <fragment id="documentList" classNames="repository-document-list"
-                              class="com.company.docai.view.repository.DocumentListFragment"/>
-                </vbox>
-            </split>
+            <!-- the folder tree is in the main menu; the view shows the documents of the folder chosen there -->
+            <vbox id="documentPane" classNames="repository-documents" width="100%" height="100%" padding="false">
+                <hbox id="breadcrumbs" classNames="breadcrumbs" width="100%" alignItems="BASELINE"
+                      spacing="false" wrap="true"/>
+                <fragment id="documentList" classNames="repository-document-list"
+                          class="com.company.docai.view.repository.DocumentListFragment"/>
+            </vbox>
             <vbox id="previewPanel" classNames="repository-preview-panel" width="100%" height="100%" expand="preview">
                 <hbox id="previewHeader" width="100%" alignItems="CENTER">
                     <h4 id="previewTitle" text="msg://previewTitle.text" width="100%"/>
