@@ -49,13 +49,15 @@ public class AssistantChatPromptProvider implements AiChatSystemPromptProvider {
     private final String addOnPrompt;
     private final AssistantChatTools tools;
     private final DocumentStatusService statusService;
+    private final AssistantToday today;
 
     public AssistantChatPromptProvider(
             @Value("classpath:io/jmix/aitoolsflowuidata/service/prompt/system-chat-prompt.st") Resource addOnPrompt,
-            AssistantChatTools tools, DocumentStatusService statusService) throws IOException {
+            AssistantChatTools tools, DocumentStatusService statusService, AssistantToday today) throws IOException {
         this.addOnPrompt = addOnPrompt.getContentAsString(StandardCharsets.UTF_8);
         this.tools = tools;
         this.statusService = statusService;
+        this.today = today;
     }
 
     // the add-on asks for the prompt on every message, so a new status, type or field reaches the model at once;
@@ -72,7 +74,8 @@ public class AssistantChatPromptProvider implements AiChatSystemPromptProvider {
                 .replace('{', '(')
                 .replace('}', ')');
 
-        return new ByteArrayResource((addOnPrompt + RULES + "Document statuses: " + statuses + "\n\n"
+        return new ByteArrayResource((addOnPrompt + "\n" + today.sentences() + "\n" + RULES
+                + "Document statuses: " + statuses + "\n\n"
                 + "Document types and their fields:\n" + fields + "\n").getBytes(StandardCharsets.UTF_8));
     }
 }
