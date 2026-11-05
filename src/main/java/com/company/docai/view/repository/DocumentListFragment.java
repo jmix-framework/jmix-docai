@@ -676,7 +676,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
             return;
         }
 
-        documentCards.open(hostView(), document, closeEvent -> {
+        documentCards.openIfAvailable(hostView(), document, closeEvent -> {
             // a saved card may have renamed the document, and any card may have marked it with its star
             if (closeEvent.closedWith(StandardOutcome.SAVE)) {
                 contentsChanged();

@@ -46,6 +46,7 @@ import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.MetadataTools;
+import io.jmix.core.Messages;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.metamodel.datatype.DatatypeFormatter;
 import io.jmix.core.security.CurrentAuthentication;
@@ -109,6 +110,9 @@ class RepositoryViewTest {
 
     @Autowired
     private UnconstrainedDataManager unconstrainedDataManager;
+
+    @Autowired
+    private Messages messages;
 
     @Autowired
     private MetadataTools metadataTools;
@@ -580,6 +584,33 @@ class RepositoryViewTest {
     }
 
     @Test
+    void aDocumentDeletedSinceTheListLoadedIsSaidToBeUnavailableOnDoubleClick() {
+        Document document = upload(sandbox, "a.txt");
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+
+        unconstrainedDataManager.remove(document);
+        TestGrids.doubleClickRow(grid, document);
+
+        assertUnavailableNotice();
+        assertThat(grid.getItems().getItems()).contains(document);
+    }
+
+    @Test
+    void aDocumentDeletedSinceTheListLoadedIsSaidToBeUnavailableOnTheOpenButton() {
+        Document document = upload(sandbox, "a.txt");
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        JmixButton openButton = fragmentComponent(view, "documentList", "openButton");
+
+        TestGrids.clickRow(grid, document, false);
+        unconstrainedDataManager.remove(document);
+        openButton.click();
+
+        assertUnavailableNotice();
+    }
+
+    @Test
     void theUploadIsTheMainButtonAndTheDeleteIsDangerous() {
         RepositoryView view = open(sandbox, false);
         JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(view, "documentList", "documentsUpload");
@@ -882,6 +913,15 @@ class RepositoryViewTest {
         folder.setParent(parent);
         folder.setName(name);
         return folderService.save(folder);
+    }
+
+    private void assertUnavailableNotice() {
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+
+        assertThat(UiTestUtils.getOpenedViewDialogs()).isEmpty();
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
+                .isEqualTo(messages.getMessage(DocumentDetailView.class, "documentUnavailable"));
     }
 
     private Document upload(Folder folder, String fileName) {
