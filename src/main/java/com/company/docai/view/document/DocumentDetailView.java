@@ -297,7 +297,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @Subscribe("newVersionUpload")
     public void onNewVersionUploadFailed(final FailedEvent event) {
-        documentUploads.showFailed(event);
+        documentUploads.showFailed(event.getFileName());
     }
 
     @Subscribe("downloadButton")

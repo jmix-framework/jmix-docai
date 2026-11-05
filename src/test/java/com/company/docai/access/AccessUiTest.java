@@ -15,6 +15,7 @@ import com.company.docai.security.role.EmployeeRole;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
+import com.company.docai.test_support.TestDrops;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
 import com.company.docai.test_support.TestMenus;
@@ -250,7 +251,7 @@ class AccessUiTest {
 
         TestGrids.clickRow(grid, priceList, false);
 
-        assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "documentsUpload").isEnabled()).isFalse();
+        assertThat(this.<JmixButton>fragmentComponent(view, "documentList", "uploadButton").isEnabled()).isFalse();
         // the table of a viewed folder stays in use: only the uploads of the zone around it are off
         assertThat(grid.isEnabled()).isTrue();
         assertThat(grid.getParent()).get()
@@ -269,13 +270,32 @@ class AccessUiTest {
         folderTree(view).select(sandbox);
         TestGrids.clickRow(grid, offer, false);
 
-        assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "documentsUpload").isEnabled()).isTrue();
+        assertThat(this.<JmixButton>fragmentComponent(view, "documentList", "uploadButton").isEnabled()).isTrue();
         assertThat(grid.getParent()).get()
                 .isInstanceOfSatisfying(UploadDropZone.class,
                         zone -> assertThat(zone.getUploadManager().isEnabled()).isTrue());
         assertThat(List.of("moveAction", "deleteAction"))
                 .allSatisfy(id -> assertThat(grid.getAction(id).isEnabled()).as(id).isTrue());
         assertThat(this.<DropdownButton>fragmentComponent(view, "documentList", "statusButton").isEnabled()).isTrue();
+    }
+
+    @Test
+    void aBatchOnItsWayGoesOnWhenAViewedFolderOpens() {
+        RepositoryView view = open(sandbox);
+        UploadDropZone zone = (UploadDropZone) documentsGrid(view).getParent().orElseThrow();
+
+        TestDrops.receive(zone, "batch-a.txt", "first");
+        folderTree(view).select(published);
+
+        // the viewed folder takes no new files, but the rest of the batch still arrives
+        assertThat(this.<JmixButton>fragmentComponent(view, "documentList", "uploadButton").isEnabled()).isFalse();
+        assertThat(zone.getUploadManager().isEnabled()).isTrue();
+
+        TestDrops.receive(zone, "batch-b.txt", "second");
+        TestDrops.finishAll(zone);
+
+        assertThat(zone.getUploadManager().isEnabled()).isFalse();
+        assertThat(documentNamesIn(sandbox)).contains("batch-a.txt", "batch-b.txt");
     }
 
     @Test
@@ -558,6 +578,16 @@ class AccessUiTest {
 
     private DataGrid<Document> documentsGrid(RepositoryView view) {
         return fragmentComponent(view, "documentList", "documentsGrid");
+    }
+
+    private List<String> documentNamesIn(Folder folder) {
+        return dataManager.load(Document.class)
+                .query("select d from Document d where d.folder = :folder")
+                .parameter("folder", folder)
+                .list()
+                .stream()
+                .map(Document::getName)
+                .toList();
     }
 
     @SuppressWarnings("unchecked")

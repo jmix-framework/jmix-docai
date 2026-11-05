@@ -7,6 +7,7 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
+import com.company.docai.test_support.TestDrops;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
 import com.company.docai.test_support.TestUploads;
@@ -14,6 +15,7 @@ import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
+import com.vaadin.flow.component.upload.UploadDropZone;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
@@ -31,7 +33,6 @@ import io.jmix.flowui.testassist.dialog.DialogInfo;
 import io.jmix.flowui.testassist.dialog.OpenedDialogs;
 import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.testassist.notification.OpenedNotifications;
-import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.View;
 import org.junit.jupiter.api.AfterEach;
@@ -76,9 +77,6 @@ class UploadNoticesTest {
     private DocumentService documentService;
 
     @Autowired
-    private TemporaryStorage temporaryStorage;
-
-    @Autowired
     private FilesProperties filesProperties;
 
     @Autowired
@@ -117,12 +115,12 @@ class UploadNoticesTest {
     void theReportListsEachSkippedFileOnALineOfItsOwnUnderItsSummary() {
         upload("a.txt");
         upload("b.txt");
-        JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(open(sandbox), "documentsUpload");
+        UploadDropZone zone = dropZone(open(sandbox));
 
-        TestUploads.succeed(upload, temporaryStorage, "a.txt", "again");
-        TestUploads.succeed(upload, temporaryStorage, "b.txt", "again");
-        TestUploads.succeed(upload, temporaryStorage, "c.txt", "new");
-        TestUploads.finishAll(upload);
+        TestDrops.receive(zone, "a.txt", "again");
+        TestDrops.receive(zone, "b.txt", "again");
+        TestDrops.receive(zone, "c.txt", "new");
+        TestDrops.finishAll(zone);
 
         DialogInfo report = UiTestUtils.getLastOpenedDialog();
 
@@ -137,12 +135,12 @@ class UploadNoticesTest {
 
     @Test
     void anUploadThatSkipsNoFileSaysHowManyDocumentsItCreated() {
-        JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(open(sandbox), "documentsUpload");
+        UploadDropZone zone = dropZone(open(sandbox));
         openedDialogs.closeOpenedDialogs();
 
-        TestUploads.succeed(upload, temporaryStorage, "a.txt", "first");
-        TestUploads.succeed(upload, temporaryStorage, "b.txt", "second");
-        TestUploads.finishAll(upload);
+        TestDrops.receive(zone, "a.txt", "first");
+        TestDrops.receive(zone, "b.txt", "second");
+        TestDrops.finishAll(zone);
 
         assertThat(UiTestUtils.getOpenedDialogs()).isEmpty();
 
@@ -160,14 +158,12 @@ class UploadNoticesTest {
         DocumentDetailView card = openCard(document);
         openedNotifications.closeOpenedNotifications();
 
-        refuse(fragmentComponent(view, "documentsUpload"), "b.txt");
         refuse(fragmentComponent(view, "versionUpload"), "a-v2.txt");
         refuse(UiTestUtils.getComponent(card, "newVersionUpload"), "a-v3.txt");
 
         assertThat(UiTestUtils.getOpenedNotifications())
                 .extracting(NotificationInfo::getText, NotificationInfo::getType)
                 .containsExactly(
-                        tuple("b.txt: " + BROWSER_ERROR, Notifications.Type.WARNING),
                         tuple("a-v2.txt: " + BROWSER_ERROR, Notifications.Type.WARNING),
                         tuple("a-v3.txt: " + BROWSER_ERROR, Notifications.Type.WARNING));
     }
@@ -181,7 +177,7 @@ class UploadNoticesTest {
         DocumentDetailView card = openCard(document);
         openedNotifications.closeOpenedNotifications();
 
-        TestUploads.fail(fragmentComponent(view, "documentsUpload"), "b.txt");
+        TestDrops.breakOff(dropZone(view), "b.txt");
         TestUploads.fail(fragmentComponent(view, "versionUpload"), "a-v2.txt");
         TestUploads.fail(UiTestUtils.getComponent(card, "newVersionUpload"), "a-v3.txt");
 
@@ -198,8 +194,8 @@ class UploadNoticesTest {
         View<?> view = open(sandbox);
         DocumentDetailView card = openCard(upload("a.txt"));
 
-        List<JmixUpload<?>> uploads = List.of(fragmentComponent(view, "documentsUpload"),
-                fragmentComponent(view, "versionUpload"), UiTestUtils.getComponent(card, "newVersionUpload"));
+        List<JmixUpload<?>> uploads = List.of(fragmentComponent(view, "versionUpload"),
+                UiTestUtils.getComponent(card, "newVersionUpload"));
 
         assertThat(uploads).allSatisfy(upload -> assertThat((long) upload.getMaxFileSize())
                 .isEqualTo(filesProperties.maxFileSize().toBytes()));
@@ -230,6 +226,13 @@ class UploadNoticesTest {
         window.open();
 
         return window.getView();
+    }
+
+    // the upload dialog and the table hand their files to the manager of this zone
+    private UploadDropZone dropZone(View<?> view) {
+        DataGrid<Document> grid = fragmentComponent(view, "documentsGrid");
+
+        return (UploadDropZone) grid.getParent().orElseThrow();
     }
 
     @SuppressWarnings("unchecked")

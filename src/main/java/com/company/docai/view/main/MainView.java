@@ -122,31 +122,6 @@ public class MainView extends StandardMainView {
                 .orElse(false);
 
         showSearchMode();
-        addAttachListener(attachEvent -> guardFileDrops());
-    }
-
-    // A file dragged from the computer and dropped where nothing takes it would open in the tab and leave the
-    // application, and a drop target for documents would light up for it and do nothing. Files from the computer go
-    // only to the uploads that take them now: elsewhere, the chat's upload with attachments off included, the page
-    // stops them before anything sees them, and the cursor shows they can't be dropped there.
-    private void guardFileDrops() {
-        getElement().executeJs("""
-                if (window.docaiFileDropGuard) {
-                    return;
-                }
-                window.docaiFileDropGuard = true;
-                const uploads = ['vaadin-upload', 'vaadin-upload-drop-zone'];
-                const takesFiles = node => uploads.includes(node.localName) && !node.disabled && !node.nodrop;
-                for (const type of ['dragenter', 'dragover', 'drop']) {
-                    window.addEventListener(type, event => {
-                        if (event.dataTransfer && Array.from(event.dataTransfer.types).includes('Files')
-                                && !event.composedPath().some(takesFiles)) {
-                            event.stopImmediatePropagation();
-                            event.preventDefault();
-                            event.dataTransfer.dropEffect = 'none';
-                        }
-                    }, true);
-                }""");
     }
 
     // the open results stay until Enter runs the query in the chosen mode

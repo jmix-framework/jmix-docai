@@ -23,9 +23,7 @@
         <vbox id="documentListRoot" width="100%" height="100%" padding="false">
             <hbox id="documentToolbar" width="100%" alignItems="START">
                 <hbox id="documentActions" classNames="buttons-panel" alignItems="CENTER" width="100%">
-                    <upload id="documentsUpload" classNames="upload-button"
-                            uploadHandlerType="FILE_TEMPORARY_STORAGE" maxFiles="20" dropAllowed="true"
-                            uploadText="msg://documentsUpload.uploadText" uploadIcon="UPLOAD"/>
+                    <button id="uploadButton" text="msg://uploadButton.text" icon="UPLOAD" themeNames="primary"/>
                     <button id="createDocumentButton" text="msg://createDocumentButton.text" icon="FILE_ADD"/>
                     <button id="openButton" action="documentsGrid.openAction" text=""
                             title="msg://openAction.text"/>

@@ -30,7 +30,6 @@ import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.upload.AllFinishedEvent;
 import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.component.upload.StartedEvent;
@@ -39,6 +38,7 @@ import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.selection.SelectionEvent;
 import io.jmix.core.AccessManager;
 import io.jmix.core.MetadataTools;
+import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Fragments;
 import io.jmix.flowui.accesscontext.UiShowViewContext;
@@ -80,10 +80,10 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private static final String ASSISTANT_CHAT_VIEW = "aitls_AiChatView";
 
     @ViewComponent
-    private JmixUpload<TemporaryStorage.FileInfo> documentsUpload;
-    @ViewComponent
     private JmixUpload<TemporaryStorage.FileInfo> versionUpload;
 
+    @ViewComponent
+    private JmixButton uploadButton;
     @ViewComponent
     private JmixButton createDocumentButton;
     @ViewComponent
@@ -126,6 +126,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private Dialogs dialogs;
     @Autowired
+    private DialogWindows dialogWindows;
+    @Autowired
     private RevisionDownloader revisionDownloader;
     @Autowired
     private RepositoryMoves repositoryMoves;
@@ -153,18 +155,17 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Nullable
     private Document focusedDocument;
     @Nullable
-    private Folder uploadFolder;
-    @Nullable
     private Folder dropFolder;
     @Nullable
     private Document versionDocument;
     @Nullable
     private DocumentDiscussionFragment discussion;
+    @Nullable
+    private DialogWindow<DocumentUploadView> uploadDialog;
 
     private AccessLevels levels = new AccessLevels(Map.of(), false);
     private Map<String, String> userNames = Map.of();
     private Set<UUID> markedIds = Set.of();
-    private final Map<UUID, UploadedFile> uploadedFiles = new LinkedHashMap<>();
     private DocumentsDropZone documentsDropZone;
 
     private Consumer<@Nullable Document> focusHandler = document -> {
@@ -209,30 +210,23 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     }
 
     private void configureUploads() {
-        documentUploads.limitFileSize(documentsUpload);
         documentUploads.limitFileSize(versionUpload);
 
-        // the upload creates its button itself, so the descriptor cannot give the button a variant or a name
-        ((Button) documentsUpload.getUploadButton()).addThemeVariants(ButtonVariant.PRIMARY);
-
+        // the upload creates its button itself, so the descriptor cannot give the button a name
         String newVersion = messageBundle.getMessage("versionUpload.uploadText");
         Button versionButton = (Button) versionUpload.getUploadButton();
         versionButton.setAriaLabel(newVersion);
         versionButton.getElement().setAttribute("title", newVersion);
-
-        // a page reload or a session timeout removes the list before the rest of the batch arrives
-        addDetachListener(detachEvent -> discardUploadedFiles());
     }
 
-    // files dropped from the computer onto the table go the way of the upload button; Jmix has no element for the
-    // zone, so it wraps the table here
+    // files dropped from the computer onto the table and the files of the upload dialog take one way; Jmix has no
+    // element for the zone, so it wraps the table here
     private void configureDropZone() {
         documentsDropZone = new DocumentsDropZone();
-        documentsDropZone.setArrivalHandler(this::onFileDropped);
-        documentsDropZone.getUploadManager()
-                .setMaxFiles(documentsUpload.getMaxFiles());
-        documentUploads.limitFileSize(documentsDropZone.getUploadManager());
+        documentsDropZone.setStartHandler(this::onUploadStarted);
+        documentUploads.limitBatch(documentsDropZone.getUploadManager());
         documentsDropZone.setRejectionHandler(documentUploads::showDropRejected);
+        documentsDropZone.setFailureHandler(documentUploads::showFailed);
         documentsDropZone.setBatchHandler(this::onDroppedFilesFinished);
         documentsDropZone.addClassName("documents-drop-zone");
         documentsDropZone.setSizeFull();
@@ -343,19 +337,14 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
             documentsDl.load();
         }
 
-        // a folder the user only views, or only passes through, takes no new documents
-        boolean folderEditable = folder != null && levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
-        documentsUpload.setEnabled(folderEditable);
-        // a disabled zone would disable the table inside it, so only the uploads of the zone go off
-        documentsDropZone.getUploadManager()
-                .setEnabled(folderEditable);
+        updateUploads();
 
         if (folder != null) {
             documentsDropZone.getElement().setAttribute("data-hint",
                     messageBundle.formatMessage("dropZoneHint", metadataTools.getInstanceName(folder)));
         }
 
-        createDocumentButton.setEnabled(folderEditable);
+        createDocumentButton.setEnabled(folderEditable());
 
         Set<Document> selected = documentsGrid.getSelectedItems();
         focus(selected.stream()
@@ -562,55 +551,44 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     // ---- upload of new documents and of a new version
 
-    // the files go into the folder shown when the upload began, even if another folder is opened meanwhile
-    @Subscribe("documentsUpload")
-    public void onDocumentsUploadStarted(final StartedEvent event) {
-        if (uploadFolder == null) {
-            uploadFolder = folder;
-        }
-    }
-
-    @Subscribe("documentsUpload")
-    public void onDocumentsUploadSucceeded(final UploadSucceededEvent<TemporaryStorage.FileInfo> event) {
-        uploadedFiles.put(event.getData().getId(),
-                new UploadedFile(event.getFileName(), event.getData().getFile().toPath()));
-    }
-
-    @Subscribe("documentsUpload")
-    public void onDocumentsUploadAllFinished(final AllFinishedEvent event) {
-        Folder target = uploadFolder;
-        uploadFolder = null;
-
-        if (target == null || uploadedFiles.isEmpty()) {
-            discardUploadedFiles();
+    // the dialog leaves the list live, so a second click already on its way opens no second dialog
+    @Subscribe("uploadButton")
+    public void onUploadButtonClick(final ClickEvent<JmixButton> event) {
+        if (uploadDialog != null) {
             return;
         }
 
-        try {
-            uploadInto(target, new ArrayList<>(uploadedFiles.values()));
-        } finally {
-            discardUploadedFiles();
-        }
+        uploadDialog = dialogWindows.view(hostView(), DocumentUploadView.class)
+                .withViewConfigurer(dialog -> {
+                    dialog.setFolder(folder);
+                    dialog.setUploadManager(documentsDropZone.getUploadManager());
+                })
+                .withAfterCloseListener(closeEvent -> uploadDialog = null)
+                .open();
     }
 
-    // the dropped files go into the folder shown when the first of them arrived
-    private void onFileDropped() {
+    // The transfer of the first file starts as the files are dropped or picked, so the batch takes the folder shown
+    // then, the folder the dialog names, and keeps it while another one opens; the dialog has done its part
+    private void onUploadStarted() {
         if (dropFolder == null) {
             dropFolder = folder;
+            updateUploads();
+        }
+
+        if (uploadDialog != null) {
+            uploadDialog.close();
         }
     }
 
     private void onDroppedFilesFinished(List<UploadedFile> files) {
         Folder target = dropFolder;
         dropFolder = null;
+        updateUploads();
 
-        if (target != null && !files.isEmpty()) {
-            uploadInto(target, files);
+        if (target == null || files.isEmpty()) {
+            return;
         }
-    }
 
-    // the upload button and the drop zone both end here
-    private void uploadInto(Folder target, List<UploadedFile> files) {
         try {
             documentUploads.showReport(documentService.upload(target, files));
         } finally {
@@ -641,31 +619,15 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         }
     }
 
-    @Subscribe("documentsUpload")
-    public void onDocumentsUploadFileRejected(final FileRejectedEvent event) {
-        documentUploads.showRejected(event);
-    }
-
     @Subscribe("versionUpload")
     public void onVersionUploadFileRejected(final FileRejectedEvent event) {
-        onDocumentsUploadFileRejected(event);
-    }
-
-    @Subscribe("documentsUpload")
-    public void onDocumentsUploadFailed(final FailedEvent event) {
-        documentUploads.showFailed(event);
+        documentUploads.showRejected(event);
     }
 
     @Subscribe("versionUpload")
     public void onVersionUploadFailed(final FailedEvent event) {
         versionDocument = null;
-        onDocumentsUploadFailed(event);
-    }
-
-    private void discardUploadedFiles() {
-        uploadedFiles.keySet().forEach(temporaryStorage::deleteFile);
-        uploadedFiles.clear();
-        documentsUpload.clearFileList();
+        documentUploads.showFailed(event.getFileName());
     }
 
     /**
@@ -706,6 +668,20 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         Set<Document> selected = documentsGrid.getSelectedItems();
         return !selected.isEmpty() && selected.stream()
                 .allMatch(document -> levels.allows(document.getAccessSet(), AccessLevel.EDIT));
+    }
+
+    // a folder the user only views, or only passes through, takes no new documents
+    private boolean folderEditable() {
+        return folder != null && levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
+    }
+
+    // One batch at a time: the files of another drop or pick would join the batch on its way and go into its folder,
+    // so the list takes none until it ends, and its zones refuse them in the browser. A disabled zone would disable
+    // the table inside it, so only the uploads of the zone go off, and not before the files of the batch are in.
+    private void updateUploads() {
+        boolean batchOnItsWay = dropFolder != null;
+        uploadButton.setEnabled(folderEditable() && !batchOnItsWay);
+        documentsDropZone.getUploadManager().setEnabled(folderEditable() || batchOnItsWay);
     }
 
     private void updateVersionUpload() {

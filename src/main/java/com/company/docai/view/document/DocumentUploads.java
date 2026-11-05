@@ -4,7 +4,6 @@ import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.document.UploadReport;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.component.upload.UploadManager;
 import io.jmix.core.Messages;
@@ -16,11 +15,13 @@ import org.springframework.stereotype.Component;
 
 /**
  * What the uploads of the repository and of the document card share: the largest file their upload components
- * take, the notices of a file an upload refuses or fails to transfer, the notices of a file the drop zone of the
- * repository refuses, and the report of a batch upload.
+ * take, the most files a batch upload takes at a time, the notices of a file an upload refuses or fails to transfer,
+ * the notices of a file the drop zone of the repository refuses, and the report of a batch upload.
  */
 @Component
 public class DocumentUploads {
+
+    private static final int MAX_BATCH_FILES = 20;
 
     private final FilesProperties filesProperties;
     private final Notifications notifications;
@@ -45,9 +46,11 @@ public class DocumentUploads {
     }
 
     /**
-     * Limits the files the upload manager takes to the largest a document file may be.
+     * Limits the files the upload manager of a batch upload takes: as many at a time as a batch takes, each up to the
+     * largest a document file may be.
      */
-    public void limitFileSize(UploadManager manager) {
+    public void limitBatch(UploadManager manager) {
+        manager.setMaxFiles(MAX_BATCH_FILES);
         manager.setMaxFileSize(filesProperties.maxFileSize().toBytes());
     }
 
@@ -63,8 +66,8 @@ public class DocumentUploads {
     /**
      * Shows that the transfer of the file broke off.
      */
-    public void showFailed(FailedEvent event) {
-        notifications.create(messages.formatMessage(getClass(), "uploadFailed", event.getFileName()))
+    public void showFailed(String fileName) {
+        notifications.create(messages.formatMessage(getClass(), "uploadFailed", fileName))
                 .withType(Notifications.Type.ERROR)
                 .show();
     }

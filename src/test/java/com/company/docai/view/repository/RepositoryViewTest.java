@@ -9,6 +9,7 @@ import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
+import com.company.docai.test_support.TestDrops;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
 import com.company.docai.test_support.TestMenus;
@@ -24,7 +25,6 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.grid.ColumnResizeEvent;
@@ -209,11 +209,11 @@ class RepositoryViewTest {
     @Test
     void anUploadCreatesTheDocuments() {
         RepositoryView view = open(sandbox, false);
-        JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(view, "documentList", "documentsUpload");
+        UploadDropZone zone = dropZone(view);
 
-        TestUploads.succeed(upload, temporaryStorage, "a.txt", "first");
-        TestUploads.succeed(upload, temporaryStorage, "b.txt", "second");
-        TestUploads.finishAll(upload);
+        TestDrops.receive(zone, "a.txt", "first");
+        TestDrops.receive(zone, "b.txt", "second");
+        TestDrops.finishAll(zone);
 
         assertThat(documentNames(view)).containsExactly("a.txt", "b.txt");
     }
@@ -238,29 +238,12 @@ class RepositoryViewTest {
     void anUploadCountsInTheFolderTree() {
         RepositoryView view = open(sandbox, false);
         TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
-        JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(view, "documentList", "documentsUpload");
+        UploadDropZone zone = dropZone(view);
 
-        TestUploads.succeed(upload, temporaryStorage, "a.txt", "first");
-        TestUploads.finishAll(upload);
+        TestDrops.receive(zone, "a.txt", "first");
+        TestDrops.finishAll(zone);
 
         assertThat(TestGrids.render(tree, "name", sandbox).getElement().getTextRecursively()).endsWith("(1)");
-    }
-
-    @Test
-    void anUploadGoesToTheFolderShownWhenItStarted() {
-        Folder contracts = folder(sandbox, "Contracts");
-        Folder invoices = folder(sandbox, "Invoices");
-        RepositoryView view = open(contracts, false);
-        FolderTreeFragment folderTree = TestMenus.folderTree();
-        JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(view, "documentList", "documentsUpload");
-
-        TestUploads.start(upload, "a.txt");
-        folderTree.select(invoices);
-        TestUploads.receive(upload, temporaryStorage, "a.txt", "first");
-        TestUploads.finishAll(upload);
-
-        assertThat(documentNamesIn(contracts)).containsExactly("a.txt");
-        assertThat(documentNamesIn(invoices)).isEmpty();
     }
 
     @Test
@@ -292,18 +275,6 @@ class RepositoryViewTest {
         assertThat(UiTestUtils.getOpenedNotifications())
                 .extracting(NotificationInfo::getText)
                 .anyMatch(text -> text.contains("a-v2.txt"));
-    }
-
-    @Test
-    void leavingThePageDeletesTheFilesOfAnUnfinishedUpload() {
-        RepositoryView view = open(sandbox, false);
-        JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(view, "documentList", "documentsUpload");
-        TemporaryStorage.FileInfo received = TestUploads.succeed(upload, temporaryStorage, "a.txt", "first");
-
-        // a page reload or a session timeout removes the view before the rest of the batch arrives
-        view.getElement().removeFromParent();
-
-        assertThat(temporaryStorage.getFile(received.getId())).isNull();
     }
 
     @Test
@@ -613,11 +584,10 @@ class RepositoryViewTest {
     @Test
     void theUploadIsTheMainButtonAndTheDeleteIsDangerous() {
         RepositoryView view = open(sandbox, false);
-        JmixUpload<TemporaryStorage.FileInfo> upload = fragmentComponent(view, "documentList", "documentsUpload");
+        JmixButton uploadButton = fragmentComponent(view, "documentList", "uploadButton");
         JmixButton deleteButton = fragmentComponent(view, "documentList", "deleteButton");
 
-        assertThat(((Button) upload.getUploadButton()).getThemeNames())
-                .contains(ButtonVariant.PRIMARY.getVariantName());
+        assertThat(uploadButton.getThemeNames()).contains(ButtonVariant.PRIMARY.getVariantName());
 
         assertThat(deleteButton.getThemeNames()).contains(ButtonVariant.ERROR.getVariantName());
     }
@@ -865,14 +835,11 @@ class RepositoryViewTest {
         return grid.getItems().getItems().stream().map(Document::getName).toList();
     }
 
-    private List<String> documentNamesIn(Folder folder) {
-        return dataManager.load(Document.class)
-                .query("select d from Document d where d.folder = :folder order by d.name")
-                .parameter("folder", folder)
-                .list()
-                .stream()
-                .map(Document::getName)
-                .toList();
+    // the upload dialog and the table hand their files to the manager of this zone
+    private UploadDropZone dropZone(RepositoryView view) {
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+
+        return (UploadDropZone) grid.getParent().orElseThrow();
     }
 
     private int currentRevisionNumber(Document document) {

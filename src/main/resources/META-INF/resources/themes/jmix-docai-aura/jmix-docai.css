@@ -64,14 +64,14 @@ vaadin-details.favorites.v-drag-over-target {
 /* The table takes the files dropped on it from the computer. The zone draws nothing itself, so while files are dragged
    over the table it lights up as the favorites do, above the rows, and names the folder the files go to. A flex item
    keeps the height of its rows unless allowed to shrink, so the zone shrinks to the pane and only the table scrolls */
-vaadin-upload-drop-zone.documents-drop-zone {
+docai-file-drop-zone.documents-drop-zone {
     display: flex;
     flex-direction: column;
     position: relative;
     min-height: 0;
 }
 
-vaadin-upload-drop-zone.documents-drop-zone[dragover]::before {
+docai-file-drop-zone.documents-drop-zone[dragover]::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -83,7 +83,7 @@ vaadin-upload-drop-zone.documents-drop-zone[dragover]::before {
     pointer-events: none;
 }
 
-vaadin-upload-drop-zone.documents-drop-zone[dragover]::after {
+docai-file-drop-zone.documents-drop-zone[dragover]::after {
     content: attr(data-hint);
     position: absolute;
     inset: auto 0 1.5em;

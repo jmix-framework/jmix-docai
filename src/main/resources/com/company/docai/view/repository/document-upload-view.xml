@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://documentUploadView.title">
+    <layout>
+        <hbox id="folderLine" classNames="document-upload-folder" alignItems="CENTER">
+            <icon icon="FOLDER"/>
+            <span id="folderText"/>
+        </hbox>
+        <!-- the controller wraps this content in the drop zone and adds the button that picks the files -->
+        <vbox id="dropContent" classNames="document-upload-drop" width="100%" padding="false"
+              alignItems="CENTER" justifyContent="CENTER">
+            <div classNames="document-upload-icon">
+                <icon icon="UPLOAD"/>
+            </div>
+            <span classNames="document-upload-title" text="msg://documentUploadView.dropTitle"/>
+            <span classNames="document-upload-hint" text="msg://documentUploadView.dropHint"/>
+        </vbox>
+        <span id="limitsText" classNames="document-upload-limits"/>
+    </layout>
+</view>

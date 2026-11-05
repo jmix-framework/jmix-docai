@@ -29,6 +29,7 @@ class RoleViewAccessTest {
             "peter, TrashView, true",
             "peter, Folder.detail, true",
             "peter, Folder.lookup, true",
+            "peter, DocumentUploadView, true",
             "peter, AccessDraft.detail, true",
             "peter, DocumentSearchView, true",
             "peter, aitls_AiChatHubView, true",

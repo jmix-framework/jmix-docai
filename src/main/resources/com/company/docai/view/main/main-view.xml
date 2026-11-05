@@ -46,6 +46,8 @@
                                     themeNames="non-checkable"/>
                     </items>
                 </userMenu>
+                <!-- the page lets the files dragged from the computer only onto the uploads that take them -->
+                <component id="fileDropGuard" class="com.company.docai.view.main.FileDropGuard"/>
             </header>
         </navigationBar>
         <drawerLayout>

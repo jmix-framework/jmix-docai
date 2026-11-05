@@ -75,6 +75,61 @@ vaadin-upload.upload-button::part(drop-label) {
     display: none;
 }
 
+/* The upload dialog: the folder the files go to, a large zone for them and the limits under it. The zone draws
+   nothing itself, so its content draws the dashed frame, which lights up while files are dragged over the zone, as
+   the table does; the veil the zone lays over its content stays off */
+.document-upload-folder {
+    gap: var(--vaadin-gap-s);
+    color: var(--vaadin-text-color-secondary);
+}
+
+.document-upload-drop {
+    box-sizing: border-box;
+    min-height: 16rem;
+    padding: var(--vaadin-padding-xl);
+    gap: var(--vaadin-gap-s);
+    border: 1px dashed var(--vaadin-border-color);
+    border-radius: var(--vaadin-radius-l);
+    text-align: center;
+}
+
+docai-file-drop-zone.document-upload-zone[dragover] > .document-upload-drop {
+    border-color: var(--aura-accent-color);
+    background: color-mix(in oklab, var(--aura-accent-color) 10%, transparent);
+}
+
+docai-file-drop-zone.document-upload-zone[dragover]::after {
+    content: none;
+}
+
+/* The icon sits on a tile of the accent */
+.document-upload-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    margin-block-end: var(--vaadin-gap-s);
+    border-radius: var(--vaadin-radius-l);
+    background: color-mix(in oklab, var(--aura-accent-color) 12%, transparent);
+    color: var(--aura-accent-text-color);
+    --vaadin-icon-size: 2rem;
+}
+
+.document-upload-title {
+    font-size: var(--aura-font-size-xl);
+    font-weight: var(--aura-font-weight-semibold);
+}
+
+.document-upload-hint {
+    color: var(--vaadin-text-color-secondary);
+}
+
+.document-upload-limits {
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-s);
+}
+
 /* The tab sheet border is drawn outside its width */
 .document-card-tabs {
     box-sizing: border-box;
