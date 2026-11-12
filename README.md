@@ -1,77 +1,137 @@
 # Jmix DocAI
 
-A reference document management system built on [Jmix](https://www.jmix.io).
-
-> **Status:** under construction. The application is assembled module by module, and this README describes only what is already in place.
+Jmix DocAI is a reference document management system with AI, built on [Jmix](https://www.jmix.io) 3.1. It shows developers how to build a document management system on Jmix and how to add AI to it: filling document cards from their files, assistants that answer from the documents, and search by meaning. You can clone it, run it locally with demo data in English or Russian, and read the code as an example.
 
 ## 📑 Table of Contents
 
 - [Overview](#-overview)
+- [AI Features](#-ai-features)
 - [Technical Stack](#️-technical-stack)
 - [Add-ons](#-add-ons)
 - [Build and Run](#-build-and-run)
-- [AI Assistant](#-ai-assistant)
+- [Configuration](#-configuration)
 - [Demo Data](#-demo-data)
 - [Application Accounts](#-application-accounts)
 - [Domain Model](#️-domain-model)
 - [Role Model](#-role-model)
-- [Access](#-access)
-- [Favorites](#-favorites)
-- [Trash](#️-trash)
-- [Tags](#️-tags)
-- [Comments](#-comments)
-- [Document Types](#-document-types)
-- [Document Statuses](#-document-statuses)
-- [Full-Text Search](#-full-text-search)
-- [Search Palette](#-search-palette)
-- [Semantic Search](#-semantic-search)
-- [Branding](#-branding)
+- [More about Jmix](#ℹ️-more-about-jmix)
 
 ## 📖 Overview
 
-Jmix DocAI shows how to build a document management system on Jmix and how to add AI to it. You can clone it, run it locally, and read the code as an example.
+Employees keep documents in a folder tree in the main menu, share them with colleagues and departments, and find them by words or by meaning.
 
-The application grows in this order:
+**Repository and documents**
 
-1. Users, roles and login
-2. Folders, documents, revisions, files and preview
-3. Access rights with inheritance
-4. Document types on dynamic attributes
-5. Full-text search
-6. AI classification and the assistant
-7. Semantic search
-8. Demo data in English and Russian
-9. Discussing documents with AI
+- Access as in SharePoint: inherited from the parent folder or set on the item, with the View, Edit and Manage levels for users and department roles
+- Versions, and a preview of images, PDF and text files
+- Upload of up to 20 files at a time, 20 MB each, in a dialog or by dropping them onto the document table
+- Moves by drag and drop
+- Document types with fields of their own, which the administrator adds in the application
+- Statuses with allowed transitions, by default Draft → Active ⇄ Archived; Archived locks the document
+- Tags from a shared vocabulary, comments, and favorites of each user
+- Trash with preview and restore; the administrator deletes forever
 
-Steps 1 to 9 are in place: employees sign in, keep documents in a folder tree, upload files and new versions, move documents through their statuses, preview images, PDF and text, share folders and documents with users and roles, mark documents with types whose fields the administrator defines, find documents by the words of their files or by the meaning of a query, let the AI fill the type and the fields of a document from its file, ask the AI about a document in its card, ask the AI assistant in the menu about the documents, the folders and the document types, and discuss a selection of documents with the AI beside the document table. An empty database gets a demo set of documents in English or Russian at the first start.
+**Search**
 
-Of the later features, the trash and tags are in place: deleted folders and documents can be previewed and restored, and the administrator deletes them forever; documents carry tags of a shared vocabulary, and a tag finds its documents across the folders. Everyone who sees a document comments on it in its card, and the assistants read the comments.
+- Every search starts in the search palette: the search field in the header opens it, and so do ⌘K and Ctrl+K. Before you type, it lists your recent searches, which you can remove, your favorites and, with the AI on, two questions for the AI assistant. As you type, it finds documents, folders and tags, with chips to filter them. A document opens its card over the palette.
+- Full-text search in the names, tags and type fields of documents and in the text of their PDF, DOC, DOCX, XLS, XLSX, ODT, ODS, RTF and TXT files: whole words and their forms in English and Russian first, then word beginnings of three letters or more; a long query finds whole words only
+- Search by meaning
 
-Documents and folders move by drag and drop too: drag documents from the table onto a folder in the tree, or a folder onto another folder. While a row is dragged, only the folders it may go to light up, and a move that changes access asks first, as Move does.
+**AI**, with an OpenAI key
 
-The folders are the main menu: the favorites and the folder tree stand in the menu on the left on every view, under the AI assistant and above the trash and the administration. A folder chosen on any view opens the repository on it, and the header names the folder.
+- Fill with AI: the type, fields, date and tags of a document from its file
+- The Assistant tab of the document card: a chat about one document
+- The AI assistant in the main menu: questions about all documents, with retrieval by meaning (RAG)
+- Discuss with AI: a chat about the selected documents
+
+**Interface**
+
+- The Aura theme of Vaadin with the DocAI branding, in light, dark and mixed schemes
+- English and Russian
+
+## 🤖 AI Features
+
+The AI features run on [Spring AI](https://docs.spring.io/spring-ai/reference/), with OpenAI by default, and work with the rights of the person who asks: the AI neither reads nor shows a document that person may not open.
+
+The chats come from two Jmix add-ons. **AI Chat** draws the chat of the Assistant tab and of Discuss with AI. **AI Tools** gives the AI assistant in the main menu, the history of its chats and the tools that query the data; the application adds its own tools that read documents and search them by meaning.
+
+- **Fill with AI.** The button in the header of the document card reads the file the card shows, fills the type, the fields of the type and the date of the document, and adds up to three tags; you check the values and save. A new document type reaches the AI without a code change. A scan without a text layer gives the AI nothing to read.
+- **Assistant.** The Assistant tab of a saved document is a chat about it, next to its preview. The AI reads the text of the current version and, for a question about what people said or agreed, the comments. The conversation lasts while the card is open.
+- **AI assistant.** The menu item opens a chat about the whole repository, on the AI Tools add-on. It counts and lists documents by folder, status, type, tag or date, finds them by the fields of their types, reads a document, and finds passages by meaning to answer with quotes and links to the cards. Each person keeps their own chats.
+- **Discuss with AI.** Select documents in the table and choose Discuss with AI: a window on the right holds up to 10 of them (`docai.ai.discussion.max-documents`) and a chat about them. The first question saves the discussion in the history of the AI assistant.
+- **AI search.** The wand in the search field and in the palette switches between **By words** and **AI search**, which finds documents by meaning: *agricultural machinery* finds a tractor lease that never uses those words. The chat model checks every candidate, and the results page shows up to 20 documents with the matching quote marked.
+
+The queries of the AI assistant see only documents, folders, document types, tags and statuses (`jmix.aitools.dataload.include-entities`); users, access, versions, comments, favorites and discussions are closed to them (`@ExcludeFromAi`).
+
+### Key and models
+
+Set `OPENAI_API_KEY` in the environment before the start; `DOCAI_AI_ENABLED=false` turns the AI off while the key is set. The default models are `gpt-5.6-luna` for the chat and `text-embedding-3-large` for the vectors of the search by meaning; see [Configuration](#-configuration) to change them.
+
+### Other providers
+
+The application and both AI add-ons reach the models through Spring AI, so another [Spring AI provider](https://docs.spring.io/spring-ai/reference/api/chat/comparison.html) can take the place of OpenAI: Anthropic, Azure OpenAI, Google Gemini, Mistral AI or a local model in Ollama. DocAI is built and checked with OpenAI; to switch:
+
+1. Replace `spring-ai-starter-model-openai` in `build.gradle` with the starter of the provider.
+2. Set its properties in `application.properties` in place of `spring.ai.openai.*`, and set `docai.semantic.dimensions` to the vector size of its embedding model.
+3. Point the two classes that read OpenAI properties to the new ones: `AiSettings` checks the key, and `DocumentVectorIndex` keeps the name of the embedding model.
+
+The chat model must call tools and answer in a JSON schema. The search by meaning also needs an [embedding model](https://docs.spring.io/spring-ai/reference/api/embeddings.html). Anthropic has none, so with Anthropic the vectors come from a second provider; `spring.ai.model.chat` and `spring.ai.model.embedding` choose which starter serves what.
+
+### What goes to OpenAI
+
+> **The texts of all documents go to OpenAI.** While the key is set, every document is sent to the embedding model when it is uploaded, renamed, gets another current version or comes back from the trash, whoever opens it later: its name and the first 40,000 characters of its text (`docai.semantic.max-text-length`), in fragments of about 1,000 characters.
+
+The chat model gets:
+
+| Feature | What it sends |
+|---|---|
+| Fill with AI | The text of the file, up to 12,000 characters (`docai.ai.max-text-length`), the document name, the document types with their fields, the names of all tags |
+| Assistant | The document name and id, your questions with the answers so far, today's date and your time zone; when needed, the text of the document, its comments and the document types with their fields |
+| AI assistant | Your questions with the answers so far, today's date and your time zone, the data model, the document types with their fields, the rows of its queries (names, dates, statuses, folders, types, tags, uploaders and upload times, field values), the passages it finds by meaning, the text and comments of a document it reads |
+| Discuss with AI | The same, and with every question the names, ids, types and dates of the selected documents you may open |
+| AI search | The query, then the names and nearest fragments of up to 20 candidates for the check |
+
+Comments go with their authors and times: the latest 50 that fit into 12,000 characters.
+
+The pages load pictures, media, styles and fonts from the application only (`Content-Security-Policy`), so an answer in Markdown cannot send data to another site in the address of a picture.
+
+#### What it costs
+
+OpenAI bills by tokens, three to four characters of text each. Per million tokens, `gpt-5.6-luna` costs $0.20 for input and $1.20 for output, and `text-embedding-3-large` costs $0.13 ([OpenAI pricing](https://developers.openai.com/api/docs/pricing), November 2026). Estimates from the limits above:
+
+| Operation | Cost, about |
+|---|---|
+| Indexing a document of two pages | $0.0002 |
+| Indexing a long document, up to the 40,000-character limit | $0.002 |
+| Indexing the demo set, at the first start and after a reset | $0.003 |
+| Fill with AI, one click | $0.002 or less |
+| AI search, one query | $0.002 |
+| One question in a chat | from $0.001 to a few cents |
+
+A question costs more the more the model looks up: each tool call sends the chat again with what the tools returned, and reading the ten documents of a discussion can send up to 120,000 characters of their texts. To spend less:
+
+- `DOCAI_AI_EMBEDDING_MODEL=text-embedding-3-small` with `DOCAI_AI_EMBEDDING_DIMENSIONS=1536` makes indexing about 6.5 times cheaper, at some cost to the search by meaning; the vector index is filled anew once.
+- Lower `docai.ai.max-text-length` and `docai.semantic.max-text-length` send less of a long document.
 
 ## 🛠️ Technical Stack
 
 - Java 21, Gradle
-- [Jmix](https://www.jmix.io) 3.1, Spring Boot 4, Vaadin 25 with the Aura theme
-- HSQLDB, Liquibase
+- [Jmix](https://www.jmix.io) 3.1: Spring Boot 4, Vaadin 25 with the Aura theme
+- HSQLDB by default, Liquibase
 - OpenSearch 2.17 in Docker Compose
-- [Spring AI](https://docs.spring.io/spring-ai/reference/) 2.0 with OpenAI
-- JUnit 5
+- [Spring AI](https://docs.spring.io/spring-ai/reference/) 2.0, OpenAI by default
+- JUnit 6
 
 ## 🧩 Add-ons
 
-- AI Chat: the chat of the assistant in the document card and in the discussion of documents; an experimental add-on of the Jmix Enterprise subscription
-- AI Tools: the assistant in the main menu, its tools over the data and the history of its chats, the discussions of documents among them
-- [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html)
-- [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html)
+- [AI Chat](https://docs.jmix.io/jmix/ai-chat/index.html): the chats of the document card and of a discussion; an experimental add-on of the Jmix Enterprise subscription
+- [AI Tools](https://docs.jmix.io/jmix/ai-tools/index.html): the AI assistant in the main menu and the history of its chats
+- [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html): the restore from the trash and the entity inspector
+- [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html): the document types and their fields
 - [Local File Storage](https://docs.jmix.io/jmix/files/file-storage.html)
 - [Quartz](https://docs.jmix.io/jmix/quartz/index.html): runs the indexing queue of the search
 - [Search](https://docs.jmix.io/jmix/search/index.html) with OpenSearch
-- Russian translation of the framework (`jmix-translations-ru`)
-
-Further add-ons come with the modules that need them.
+- [UI Recovery](https://docs.jmix.io/jmix/ui-recovery/index.html): unsaved changes of a document card come back as a draft after its browser tab was closed
 
 ## 🚀 Build and Run
 
@@ -81,7 +141,7 @@ Further add-ons come with the modules that need them.
 - Docker with Docker Compose, for OpenSearch
 - Credentials of the Jmix premium repository, for the AI Chat add-on: they come with a Jmix Enterprise subscription or its trial
 
-The build takes the AI Chat add-on from the premium repository of Jmix. Put the credentials into `~/.gradle/gradle.properties`: the part of your license key before the dash is the user name, and the part after it is the password. Without these properties the build reads `CUBA_PREMIUM_USER` and `CUBA_PREMIUM_PASSWORD` from the environment, as CI does.
+Put the credentials into `~/.gradle/gradle.properties`: the part of your license key before the dash is the user name, and the part after it is the password. Without these properties the build reads `CUBA_PREMIUM_USER` and `CUBA_PREMIUM_PASSWORD` from the environment, as CI does.
 
 ```properties
 premiumRepoUser=123456123456
@@ -95,75 +155,38 @@ docker compose up -d --wait
 ./gradlew bootRun
 ```
 
-`docker compose up -d --wait` starts OpenSearch for full-text and semantic search on `127.0.0.1:19200` and returns once it answers, so that the application finds it at start. Without OpenSearch the application works, and the search says it is unavailable; if OpenSearch comes up later, restart the application, and the changes waiting in the queue are indexed then.
+Open <http://localhost:8080/docai> and log in as `admin` / `admin`. Compose starts OpenSearch on `127.0.0.1:19200` and returns once it answers. Without OpenSearch the application starts, and the search says it is unavailable; start OpenSearch and restart the application.
 
-Open <http://localhost:8080/docai> and log in as `admin` / `admin`. The first start fills the empty database with the English demo set, see [Demo Data](#-demo-data).
+The first start loads the English demo set. The database and the document files live under `.jmix/`, see [Configuration](#-configuration).
 
-By default the application keeps its data in the HSQLDB file database `.jmix/hsqldb/docai` and runs with the `local` profile, which pre-fills the login form.
+### Run without an OpenAI key
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `DOCAI_ACTIVE_PROFILE` | `local` | Spring profile |
-| `DOCAI_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/docai` | JDBC URL of the database |
-| `DOCAI_DB_USERNAME` | `sa` | Database user |
-| `DOCAI_DB_PASSWORD` | empty | Database password |
-| `DOCAI_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
-| `DOCAI_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
-| `OPENAI_API_KEY` | empty | Key of the OpenAI API; without it the application shows no AI features |
-| `DOCAI_AI_ENABLED` | `true` | `false` turns the AI features off while the key is set |
-| `DOCAI_AI_MODEL` | `gpt-5.6-luna` | OpenAI model of the AI features |
-| `DOCAI_AI_EMBEDDING_MODEL` | `text-embedding-3-large` | OpenAI model of the vectors of the semantic search, of the text-embedding-3 family; another model fills the index anew |
-| `DOCAI_AI_EMBEDDING_DIMENSIONS` | `3072` | Size of the vectors of the semantic search, set with the model: at most 3072 for text-embedding-3-large and 1536 for text-embedding-3-small; another size fills the index anew |
-| `DOCAI_AI_REASONING_EFFORT` | `none` | Reasoning effort of the model; gpt-5.6-luna calls tools only with `none`, and a model that does not reason, such as gpt-4o-mini, refuses the setting: remove `spring.ai.openai.chat.reasoning-effort` from `application.properties` for it |
-| `DOCAI_AI_TEMPERATURE` | `0` | Temperature of the model; a model that reasons takes only `1` |
-| `DOCAI_DEMO_DATA` | `en` in the `local` profile, `none` in others | Demo set an empty database gets at the start: `en`, `ru` or `none` |
-| `SERVER_PORT` | `8080` | HTTP port |
+Without `OPENAI_API_KEY` the application shows no AI button, tab, menu item or search mode and sends nothing to OpenAI. Set the key and start the application again to turn the AI on.
 
-The database and the file directory belong together: a document version in the database points to a file in the directory. Reset, back up and copy them together. The search indexes follow them: `./gradlew resetDemoData` deletes all three for a fresh start, see [Demo Data](#-demo-data). After the database is replaced in another way, run `docker compose down -v` to remove the indexes, and the application fills them again at start.
+### Reset the demo data
+
+Stop the application and run `./gradlew resetDemoData`. It deletes the HSQLDB file database, the document files and the search indexes `docai_document` and `docai_document_vectors`, and the next start loads the set of `DOCAI_DEMO_DATA` again.
+
+The database, the files and the indexes belong together: after you replace the database in another way, run `docker compose down -v`, and the application fills the indexes again at start.
 
 ### Run on a stand
 
-Gradle builds the jar, and Docker Compose puts it into an image and runs it next to OpenSearch:
+Gradle builds the jar, and Compose puts it into an image and runs it next to OpenSearch:
 
 ```bash
 ./gradlew -Pvaadin.productionMode=true bootJar
 docker compose --profile app up -d --build
 ```
 
-The application answers on port 8080 of the host at `/docai`. Its database and files live in the `docai-data` volume, the search indexes in `opensearch-data`: `docker compose --profile app down -v` deletes them, and the next start fills the empty database with the demo set again. Without the `app` profile, `docker compose up -d --wait` starts only OpenSearch, as for development.
-
-By default the stand runs with the `local` profile, as the development does: the login form comes pre-filled with the administrator, and the first start fills the empty database with the English demo set. The pipeline changes that with the variables of the table above, and Compose passes these to the application:
-
-| Variable | Meaning |
-|---|---|
-| `DOCAI_ACTIVE_PROFILE` | Spring profile; another than `local` leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one |
-| `DOCAI_DEMO_DATA` | Demo set an empty database gets at the start: `en` by default, `ru` or `none` |
-| `OPENAI_API_KEY` | Key of the OpenAI API; without it the stand shows no AI features |
-| `DOCAI_AI_ENABLED` | `false` turns the AI features off while the key is set |
+The application answers on port 8080 of the host at `/docai`. Its database and files live in the `docai-data` volume, the search indexes in `opensearch-data`; `docker compose --profile app down -v` deletes both. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment; without them the stand runs with the `local` profile. Another profile, for example `prod`, leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one.
 
 ### Run the tests
 
-```bash
-./gradlew test
-```
-
-Gradle runs the tests with the `test` profile on an in-memory HSQLDB database, so every run starts from an empty schema. The tests write files to `build/test-filestorage`, and `./gradlew clean` removes them. Search is off in these tests, so they need no OpenSearch.
-
-The tests of full-text search run against OpenSearch from `compose.yaml`, in indexes of their own (`docai_test_`):
-
-```bash
-docker compose up -d --wait
-./gradlew searchTest
-```
-
-The AI tests call the OpenAI models with the key from `OPENAI_API_KEY` and check how the model classifies the English samples next to them, how the assistant of the card answers about one of them, how the assistant in the menu lists, finds, counts and reads documents and answers in the language of the question, and how the semantic search finds the samples by meaning, on the page and in the chat, and the twelve documents about farm equipment of the English demo set. They index the samples in OpenSearch from `compose.yaml` (`docai_test_`); a run costs a few cents:
-
-```bash
-docker compose up -d --wait
-./gradlew aiTest
-```
-
-The other tests clear the key, so they never call the model.
+| Command | Needs | Runs |
+|---|---|---|
+| `./gradlew test` | Nothing | Every test but the search and AI ones, on an in-memory database, without calls to OpenAI |
+| `./gradlew searchTest` | OpenSearch from `compose.yaml` | The tests of the full-text search and the vector index, in indexes of their own (`docai_test_`) |
+| `./gradlew aiTest` | OpenSearch and `OPENAI_API_KEY` | The tests that call the OpenAI models, on English samples and the English demo set; each run is billed to the key |
 
 ### Use another database
 
@@ -171,211 +194,117 @@ Add the JDBC driver of your database to `build.gradle` and set `DOCAI_DB_URL`, `
 
 ### Develop with AI agents
 
-The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/jmix-agent-toolkit). Its Jmix skills live in `.skills/` and are linked for:
+The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/jmix-agent-toolkit): its Jmix skills live in `.agents/skills/` for Codex and OpenCode, `.claude/skills/` links to them for Claude Code, and [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) point the agents to the `jmix` skill.
 
-- Claude Code (`.claude/skills`);
-- Codex and OpenCode (`.agents/skills`).
+## 🔧 Configuration
 
-[AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) point the agents to the toolkit's `jmix` skill.
+`src/main/resources/application.properties` reads these environment variables:
 
-## 🤖 AI Assistant
-
-The AI features need an OpenAI key in `OPENAI_API_KEY`; without the key the application works as before and shows none of them. `DOCAI_AI_ENABLED=false`, or `docai.ai.enabled=false` in `application-local.properties`, turns them off while the key is set: a key in the environment outranks the property files. They run on [Spring AI](https://docs.spring.io/spring-ai/reference/): another provider, a local model included, takes a different Spring AI starter, its properties and a new check in `AiSettings`, which turns the AI features on while the OpenAI key is set.
-
-- **Fill with AI.** The button in the header of the document card reads the file the card shows, the saved one or a file just uploaded, and fills the type of the document, the fields of the type and the document date, and adds up to three tags to those the document has (see [Tags](#️-tags)). The values go into the form only: you check them and save the document as usual. A document that already has a type or a date asks before the AI replaces them.
-- The types and their fields come from the document types the administrator defines, so a new type or field reaches the AI without a change of the code. Fields that hold a list of values or a reference to another record are left for you to fill.
-- The AI reads the text of the file: PDF, Office and OpenDocument files, RTF, HTML, plain text. A scan or a PDF made of pictures has no text, and the card says so. A long document is read up to its first 12,000 characters (`docai.ai.max-text-length`), and the AI is told where the text stops.
-- **Assistant.** The Assistant tab of a saved document is a chat with the AI about the document, next to its preview. Ask in your own words or take a suggestion, "Summary" or "Dates and amounts". The AI reads the text of the saved current version with your rights: a version that waits for OK is not what it reads. While it reads, the chat shows what it does in the AI's own words, and the answer appears as the AI writes it. The conversation lasts while the card is open and is not stored.
-- **Assistant in the menu.** The AI assistant item of the main menu opens a chat about the whole repository, on the AI Tools add-on. Ask which documents there are, how many documents a folder holds, which documents have a status or a type, which invoices a supplier sent or fall due before a date, or what a document says: the AI knows the document types and their fields, writes queries over the documents, the folders, the document types and the tags, counts and lists documents by their tags, finds documents by a value or a range of the fields of their types and reads the text of a document. It finds the passages of the documents by meaning, for a question about what the documents say or which of them concern something (see [Semantic Search](#-semantic-search)), and answers with quotes. It answers in the language of the question and names the documents it finds with links to their cards. The chats are kept, and each person sees their own.
-- **Discuss with AI.** Select documents in the table and choose Discuss with AI on the toolbar or in the context menu: a window opens on the right with the selection and a chat about it. The table stays in use: open other folders and drag rows into the window, or select documents and choose the action again, and they join the selection. A document is in it once, and up to 10 documents fit (`docai.ai.discussion.max-documents`). The name of a document in the selection opens its card, and its cross takes it out. Ask anything about the documents, or start with the suggestion "Briefly about each": with every question the AI is told the documents of the selection you may open, reads their text when the question needs it and may search the other documents too. The first question saves the discussion in the history of the assistant in the menu, named after the question, and Open in the full chat continues it there: the AI still knows the selection, though the full chat does not show it. A link to a document in an answer opens its card over the window, as the name in the selection does. A window closed before the first question leaves nothing behind, and leaving the repository closes the window.
-- **Comments.** The assistant in the card, the assistant in the menu and a discussion read the [comments](#-comments) of a document when a question is about what people said or agreed: the latest 50 that fit into 12,000 characters, with your rights. They name the author and the date of the comment they rely on.
-- The assistant in the menu sees only what you may open: the rights to documents and folders apply to every entity a query reads, whatever names the query gives them, and a query that reads documents where the rights cannot apply is refused. Access sets, access entries, users, versions, comments, favorites and the documents of a discussion are closed to it in the code (`@ExcludeFromAi`), so a setting cannot open them.
-- To fill a document, the OpenAI model gets the text of the file, the name of the document, the document types with their fields and the names of all the tags; only a user who may edit the document can fill it. The assistant sends the model the name and the id of the document, your questions with the answers so far, the text of the document once it reads it, and the document types with their fields when it proposes a type; anyone who may open the document can ask about it. The assistant in the menu sends the model your questions with the answers so far, the description of the documents, the folders, the types and the tags, the document types with their fields, the rows of its queries and searches (names, dates, statuses, folders, types, tags, who uploaded the documents and when, and the values of their fields), the passages it finds by meaning, and the text of a document it reads. A discussion sends the model, besides, the names, the ids, the types and the dates of the documents of the selection you may open, with every question. Any of them sends the model the comments of a document it reads them for: their authors, times and texts. The semantic search sends the texts of all documents to OpenAI, see [Semantic Search](#-semantic-search).
-
-The pages of the application load pictures, media, styles and fonts from the application only (`Content-Security-Policy` with `img-src`, `media-src`, `style-src` and `font-src`): an answer in Markdown cannot send data to another site in the address of a picture, a sound, a video, a style or a font.
+| Variable | Default | Meaning |
+|---|---|---|
+| `DOCAI_ACTIVE_PROFILE` | `local` | Spring profile; `local` pre-fills the login form |
+| `DOCAI_DEMO_DATA` | `en` in the `local` profile, `none` in others | Demo set an empty database gets at the start: `en`, `ru` or `none` |
+| `DOCAI_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/docai` | JDBC URL of the database |
+| `DOCAI_DB_USERNAME` | `sa` | Database user |
+| `DOCAI_DB_PASSWORD` | empty | Database password |
+| `DOCAI_FILES_DIR` | `.jmix/work/filestorage` | Directory of the document files |
+| `DOCAI_SEARCH_URL` | `http://localhost:19200` | Address of OpenSearch |
+| `OPENAI_API_KEY` | empty | Key of the OpenAI API; without it the application shows no AI features |
+| `DOCAI_AI_ENABLED` | `true` | `false` turns the AI features off while the key is set |
+| `DOCAI_AI_MODEL` | `gpt-5.6-luna` | Chat model |
+| `DOCAI_AI_REASONING_EFFORT` | `none` | gpt-5.6-luna calls tools only with `none`; for a model that does not reason, such as gpt-4o-mini, remove `spring.ai.openai.chat.reasoning-effort` from `application.properties` |
+| `DOCAI_AI_TEMPERATURE` | `0` | A model that reasons takes only `1` |
+| `DOCAI_AI_EMBEDDING_MODEL` | `text-embedding-3-large` | Embedding model of the text-embedding-3 family; another model fills the vector index anew |
+| `DOCAI_AI_EMBEDDING_DIMENSIONS` | `3072` | Vector size: at most 3072 for text-embedding-3-large and 1536 for text-embedding-3-small; another size fills the vector index anew |
+| `SERVER_PORT` | `8080` | HTTP port |
 
 ## 🎲 Demo Data
 
-At the first start in the `local` profile, an empty database gets a demo set: folders with their access, 46 documents with their versions, types, fields and statuses, the files of the versions, and a few deleted items in the trash. `DOCAI_DEMO_DATA` chooses the set:
-
-| Value | Set |
-|---|---|
-| `en` | English documents, the default |
-| `ru` | Russian documents, the set of the webinar |
-| `none` | No demo data |
-
-Both sets have the same folders, people and scenes:
+At the first start, an empty database gets the demo set that `DOCAI_DEMO_DATA` names: `en`, `ru` or `none`. Both sets hold the same folders, people and scenes: 46 documents with versions, types, fields, statuses, tags, comments and access, favorites of each user, and a few items in the trash.
 
 | Folder | Access | What to try |
 |---|---|---|
 | Inbox | Inherits: every employee edits | Three scans without a type for **Fill with AI** |
-| Contracts | Inherits | A lease agreement with three versions by John, Maria and Alice, its term and price written plainly for the assistant in the card, and comments where they agree on the penalty and the first payment, for the assistant to sum up; an archived lease; a recruitment agreement open to Helen only |
-| Invoices and Certificates | Inherits | An invoice due on November 30, 2026, for the assistant in the menu |
-| Procurement | Inherits | 27 documents of the corpus of the semantic search |
+| Contracts | Inherits | Lease Agreement No. 112 with three versions and comments on its penalty, for the assistant to sum up; a recruitment agreement open to Helen only |
+| Invoices and Certificates | Inherits | An invoice due on November 30, 2026, for the AI assistant |
+| Procurement | Inherits | 27 documents of the corpus of the AI search |
 | Archive 2025 | Legal department and Accounting view, Alice edits | 3 more documents of the corpus |
-| HR | HR department manages | A hiring order and an employment contract |
-| HR / Vacations | HR department manages, every employee views | The vacation schedule, with a comment by Peter, who may only view it, and Helen's answer |
-| Trash | As before the deletion | The Drafts folder with two drafts, deleted by Alice, and the first edition of Lease Agreement No. 112, deleted by John from Contracts: preview and restore them, or delete them forever as `admin` |
-| Favorites | Personal | Two or three marks of each employee and of `admin` in the Favorites section of the folder tree: John has Contracts and Lease Agreement No. 112 |
+| HR, HR / Vacations | HR department manages, every employee views Vacations | A hiring order, an employment contract and the vacation schedule with a comment by Peter |
+| Trash | As before the deletion | The Drafts folder and the first edition of Lease Agreement No. 112, to restore or to delete forever as `admin` |
 
-Both sets add the status *In review*, blue, between Draft and Active and named in the language of the set, and three contracts wait in it: Works Contract No. 15/2026 in Contracts, Framework Supply Agreement No. 3/2026 and Security Services Agreement No. 12/OKH in Procurement.
+The corpus holds 12 documents about farm machinery and 18 about other machinery and goods, and none of them says "agricultural". Search by words for *agricultural machinery* finds nothing; AI search finds the 12, or 9 for `peter`, who may not open Archive 2025. Search by words for *fumigation* finds the one contract with the word only inside its PDF.
 
-Both sets tag 39 documents with seven tags, such as *lease*, *supply* and *IT*, that cross the folders: *lease* marks leases in Contracts, Procurement and Archive 2025, so the page of the tag is shorter for `peter`. The scans of the Inbox have no tags: **Fill with AI** proposes them. No tag names farm machinery.
+`demo-uploads/en` and `demo-uploads/ru` hold two invoices to upload during a demo: Invoice 1610, to fill with AI, and Invoice 2231 for a combine harvester under a neutral name, to find with AI search.
 
-The corpus holds 12 documents about farm machinery, such as a tractor lease, a combine harvester purchase and a memo about a baler, and 18 about other machinery and goods. None of them says "agricultural": search by words for *agricultural machinery* finds nothing, *tractor* and *combine* find a few documents each, and **AI search** finds the 12. Signed in as `peter`, who may not open Archive 2025, the AI search finds 9. Search by words for *fumigation* finds the one contract that has the word inside its PDF only; the Russian set has the Russian word for it.
-
-`demo-uploads/en` and `demo-uploads/ru` hold two files the set does not load: Invoice 1610, to fill a card by hand or with AI, and Invoice 2231 for a combine harvester under a neutral name, to upload during a demo and find with the AI search.
-
-The set loads once, into a database with no document and no folder but the root. It loads all of it or nothing: a problem of the description or a failure while loading leaves the database empty, and the log says why. To start over, stop the application and run:
-
-```bash
-./gradlew resetDemoData
-```
-
-It deletes the database, the document files and the search indexes `docai_document` and `docai_document_vectors`, and the next start loads the set of `DOCAI_DEMO_DATA` again. With an OpenAI key, the semantic search indexes a set in about a minute for about a cent.
-
-A set lies in `src/main/resources/com/company/docai/demo/<set>/`: `demo-data.json` describes the statuses (the names of the default ones in the language of the set and new ones with their rules), the folders with their access and the documents with their versions (file, author, upload time), types, fields and statuses, the comments with their authors and times, and who deleted an item of the trash and when; `files/` holds the versions. The users, the department roles and the document types are not in it: the changelogs and the code define them, and the set only names the users in its language. The PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License.
+The sets lie in `src/main/resources/com/company/docai/demo/`; their PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License. To load a set again, [reset the demo data](#reset-the-demo-data).
 
 ## 👥 Application Accounts
 
 | Login | Password | Name | Roles | In the demo sets |
 |---|---|---|---|---|
 | `admin` | `admin` | | Full Access | Administrator |
-| `peter` | `peter` | Peter Wilson | Employee | An employee with a narrow access |
+| `peter` | `peter` | Peter Wilson | Employee | An employee with narrow access |
 | `alice` | `alice` | Alice Morgan | Employee | Office manager: files the incoming documents |
 | `helen` | `helen` | Helen Carter | Employee, HR department | HR manager |
 | `maria` | `maria` | Maria Lopez | Employee, Accounting | Accountant |
 | `john` | `john` | John Doe | Employee, Legal department | Lawyer |
 
-The employees and their department roles come from the demo changelog `020-demo-users.xml`. Delete it before the first start of a real deployment. A demo set names the employees in its language: the Russian set gives them Russian names and addresses, with the same logins and passwords.
+The employees and their department roles come from the demo changelog `020-demo-users.xml`; delete it before the first start of a real deployment. The Russian set gives the employees Russian names, with the same logins and passwords.
 
-> **Warning:** these are development credentials, and the `local` profile pre-fills them in the login form. Before you deploy the application anywhere, change the `admin` password and set `DOCAI_ACTIVE_PROFILE` to another value, for example `prod`.
+> **Warning:** these are development credentials, and the `local` profile pre-fills the login form. Before you deploy the application anywhere, change the `admin` password and set `DOCAI_ACTIVE_PROFILE` to another value, for example `prod`.
 
 ## ⚙️ Domain Model
 
 ```mermaid
 classDiagram
-    class User {
-        username
-        firstName
-        lastName
-        email
-        active
-        timeZoneId
-    }
-    class Folder {
-        name
-    }
-    class Document {
-        name
-        status
-        documentDate
-        changedBy
-        changedDate
-    }
-    class Category {
-        name
-    }
-    class CategoryAttribute {
-        code
-        dataType
-    }
-    class DocumentRevision {
-        number
-        file
-        fileSize
-        contentType
-    }
-    class DocumentStatus {
-        name
-        color
-        position
-        initial
-        locked
-        anyTarget
-    }
-    class AccessSet
-    class AccessEntry {
-        username
-        roleCode
-        accessLevel
-    }
-    class AccessLevel {
-        <<enumeration>>
-        VIEW
-        EDIT
-        MANAGE
-    }
-    class DiscussedDocument {
-        position
-    }
-    class DocumentComment {
-        text
-        createdBy
-        createdDate
-        editedDate
-    }
-    class Tag {
-        name
-    }
-    class Favorite
-    Folder "0..1" <-- "*" Folder : parent
-    Folder "1" <-- "*" Document : folder
-    Document "1" *-- "1..*" DocumentRevision : revisions
-    Document --> DocumentRevision : currentRevision
-    Document --> DocumentStatus : status
-    DocumentStatus "*" --> "*" DocumentStatus : targets
-    Folder --> AccessSet : accessSet
-    Document --> AccessSet : accessSet
-    Document --> Category : category
-    Document "*" --> "*" Tag : tags
-    Category "1" *-- "*" CategoryAttribute : categoryAttrs
-    AccessSet "1" *-- "*" AccessEntry : entries
-    AccessEntry --> AccessLevel : accessLevel
-    DiscussedDocument --> Document : document
-    DocumentComment --> Document : document
-    Favorite --> User : user
-    Favorite --> Folder : folder
-    Favorite --> Document : document
+  Folder --> Folder : parent
+  Document --> Folder : folder
+  Document *-- DocumentRevision : revisions
+  Document --> DocumentRevision : currentRevision
+  Document --> DocumentStatus : status
+  DocumentStatus "*" --> "*" DocumentStatus : targets
+  Document --> Category : category
+  Category *-- CategoryAttribute : categoryAttrs
+  Document "*" --> "*" Tag : tags
+  Folder --> AccessSet : accessSet
+  Document --> AccessSet : accessSet
+  AccessSet *-- AccessEntry : entries
+  DocumentComment --> Document : document
+  Favorite --> User : user
+  Favorite --> Folder : folder
+  Favorite --> Document : document
+  DiscussedDocument --> Document : document
 ```
 
-- One root folder, "Repository", holds the whole tree. Names are unique among the live items of a folder and are case-sensitive.
-- A revision never changes. A new file or a restored version adds a revision, and the document points to its current one.
-- A document has a status of a dictionary the administrator keeps (`DocumentStatus`): a name, a color and an order; one status is given to new documents, a status moves to the statuses it lists or to any status, and a locked status keeps the name, date, type, fields and versions of its documents. The defaults are Draft → Active ⇄ Archived, with Archived locked.
-- "Modified" shows who changed the document itself and when: a new version, name, date, type, field or status. A move, an access change or a change of tags leaves it as it is, while the Jmix audit stamps of the record change with every save.
-- The type of a document is a category of the Dynamic Attributes add-on (`Category`), and the fields of the type are its attributes (`CategoryAttribute`), properties of the document named `+code`.
-- A document carries tags of a shared vocabulary (`Tag`, many-to-many owned by the document): a tag knows nothing of its documents, and a tag that a document carries, one in the trash included, is not deleted.
-- Folders, documents and revisions are deleted softly, into the [trash](#️-trash). Deleting a folder takes its subtree, and restoring it brings back what was deleted with it.
-- A favorite marks one folder or one document for one user (`Favorite`). Removing a mark deletes it at once; the marks of a folder or a document deleted forever go with it.
-- A discussion with the AI keeps its selection of documents in `DiscussedDocument`, beside the conversation of the AI Tools add-on: the conversation, a document and its place in the selection. Removing the conversation removes its selection. A deleted document, or one the person may no longer open, drops out of the selection.
-- A comment (`DocumentComment`) refers to its document, and the document has no list of its comments: saving a document never touches them. A comment is deleted for good. The comments of a document in the trash stay hidden with it, come back with it and go when it is deleted forever.
-- A folder and a document point to the access set in effect: their parent's or their own. An access set belongs to one folder or document, and each of its entries gives a user or a role a level.
+| Entity | What it is |
+|---|---|
+| `Folder` | A folder of the tree under one root, "Repository" |
+| `Document` | A document: name, folder, status, date, type, tags and current version |
+| `DocumentRevision` | A version with its file; it never changes, and a new file or a restored version adds one |
+| `DocumentStatus` | A status of the dictionary: name, color, order, the statuses it moves to, and whether it locks its documents |
+| `Category`, `CategoryAttribute` | A document type and its fields, from the Dynamic Attributes add-on |
+| `Tag` | A tag of the shared vocabulary |
+| `DocumentComment` | A comment on a document |
+| `Favorite` | A mark of one user on a folder or a document |
+| `AccessSet`, `AccessEntry` | The access in effect for a folder or a document, its parent's or its own; an entry gives a user or a role a level |
+| `DiscussedDocument` | A document in the selection of a discussion with the AI |
+| `User` | A user of the application |
+
+Folders, documents and versions are deleted softly, into the trash.
 
 ## 🔐 Role Model
 
 | Role | Code | Purpose |
 |---|---|---|
-| Full Access | `system-full-access` | All data, views and actions, deleting from the trash forever among them; assigned to `admin` |
-| Employee | `employee` | Works with folders and documents, restores them from the trash, reads the document types, searches documents, asks the AI assistant, discusses documents with it, comments on documents, keeps favorites and views their own profile; includes UI: minimal access and the chat role of AI Tools |
+| Full Access | `system-full-access` | All data, views and actions; assigned to `admin` |
+| Employee | `employee` | Works with folders, documents, tags, comments and favorites, restores from the trash, searches and uses the AI; includes UI: minimal access and the chat role of AI Tools |
 | UI: minimal access | `ui-minimal` | Sign-in to the UI and the main view; the base of every UI role |
-| Folder and document access | `access-rl` | Row-level role: a user sees and changes folders and documents by their access entries, and only the selections of their own discussions with the AI; assigned to everyone without Full Access |
-| HR department, Legal department, Accounting | `hr-department`, `legal-department`, `accounting` | Departments of the demo: roles without policies that folders and documents give access to; the demo changelog assigns them to `helen`, `john` and `maria` |
+| Folder and document access | `access-rl` | Row-level role: a user sees folders and documents by their access entries, and only their own favorites and discussions; assigned to everyone without Full Access |
+| HR department, Legal department, Accounting | `hr-department`, `legal-department`, `accounting` | Departments of the demo: roles without policies that folders and documents give access to |
 
-A user needs one role to sign in: a persona role extends UI: minimal access. Role names and descriptions come from the message bundles, so the role views show them in the user's language.
+Deleting from the trash forever needs the specific policy `docai.trash.purge`, which Full Access has and Employee does not.
 
-Deleting from the trash forever needs the specific policy `docai.trash.purge`: Full Access has it, the Employee role does not.
-
-Everyone who sees a document comments on it. Only the author edits and deletes a comment, and Full Access deletes any comment but edits only its own: `access-rl` reads the comments by the access of their document and lets an employee save or delete only a comment written in their name, and the comment service checks the stored author and the rest.
-
-Employees set the tags of the documents they may edit and add new tags from the document card; Full Access renames and deletes them in the view **Tags**.
-
-The Employee role may change every attribute of a document. The fields of document types are attributes that the administrator adds later, so a role cannot list them. Attribute policies guard only the views: what is written is decided by the document service, and the Edit level is checked there and by `access-rl`.
-
-Favorites are personal: the row-level role lets a user read, add and remove only their own marks, and the favorite service names the owner in every query, so the administrator, whom the row-level role does not narrow, sees only their own marks too.
-
-## 🔑 Access
-
-Access works as in SharePoint. A folder or a document either inherits the access of its parent or has its own, set in the **Access** dialog. For a folder, it opens from the folder menu and the folder's context menu; for a document, from the key on the documents toolbar, the document's context menu and the document card. Only those who manage something see the action.
+Access works as in SharePoint: a folder or a document inherits the access of its parent or has its own, set in the **Access** dialog.
 
 | Level | Allows |
 |---|---|
@@ -383,128 +312,17 @@ Access works as in SharePoint. A folder or a document either inherits the access
 | Edit | Also upload, create, add versions, change the status, rename, move, delete and restore from the trash |
 | Manage | Also change who has access |
 
-- An entry gives a level to a user or to a resource role, and a user gets the highest level among their entries. The root gives the Employee role the Edit level.
-- Roles stand for departments. The demo comes with three of them in the code: HR department, Legal department and Accounting. The administrator adds more as resource roles without policies in the role views, assigns them to the department and gives them access to the department's folders. A change of roles applies from the user's next sign-in.
-- Clearing **Inherit access** copies the inherited entries as a start; checking it again removes the own entries. A folder or a document that inherits takes the access of its new place when it is moved, by Move or by drag and drop, and the move asks first.
-- A user sees, greyed, the folders on the way to what they have access to, with their names. A key after the name marks a folder or a document with its own access for those who manage it.
-- The administrator has every level everywhere, without entries.
-- With LDAP or Active Directory, map each department group to its resource role and keep the access entries on roles rather than on users.
+A user gets the highest level among their entries. The root gives the Employee role the Edit level, and the administrator has every level everywhere. Departments are resource roles without policies; with LDAP or Active Directory, map each department group to its role and keep the access entries on roles.
 
 > **Warning:** the `access-rl` role comes from the Jmix role assignments. If users sign in through LDAP or SSO and get their roles from a group mapper, add `access-rl` in the mapper, or they will see every folder and document.
 
-## ⭐ Favorites
+## ℹ️ More about Jmix
 
-Each user marks the folders and the documents they come back to often. The Favorites section at the top of the folder tree, above the folders, lists the marked folders, then the marked documents, alphabetically, each with the folder it lies in: a folder opens in the tree, a document opens its card, and the star of a row removes the mark. The stars in the header of the document card and in the toolbar of the documents table, **Favorites** in the context menu of the table, and the **Folder** menu and the context menu of the tree set and remove marks: a yellow outline of a star adds the mark, a filled yellow star removes it. A marked document shows a star after its name; a long name ends with an ellipsis, so the star stays in sight. Folders and documents dragged onto the Favorites section are marked too, and the folder filter above the tree narrows the section by name.
-
-Marks are personal: every user, the administrator too, sees only their own. A user marks only what they may read. A mark of a folder or a document the user can no longer read, or that lies in the trash, is hidden and comes back with the access or the restore; deleting the item forever removes the mark, and the marks of a deleted user go with the user. Before the person types, the search palette lists the first five of their marks in the order of the Favorites section; the full-text search and the AI assistants do not see the marks. In the demo sets each employee and the administrator have two or three marks.
-
-## 🗑️ Trash
-
-Deleted folders and documents go to the trash, which opens from the main menu.
-
-- The trash lists what was deleted on its own: a folder together with everything deleted with it is one item, a document deleted on its own is another. An item shows its name, location, who deleted it and when; the last deleted come first. Everyone sees only the items they may read.
-- **Preview** shows the current version of a document, or what comes back with a folder: its subfolders and documents with a count. A document of the folder opens its own preview, and **To the folder** goes back.
-- **Restore** puts the selected items back where they were, with their versions, fields and access, and needs the Edit level on each item. An item whose folder lies in the trash waits until the folder comes back first, and an item whose name is taken in its folder waits until the live one is renamed. When one item cannot come back, none of the selection does.
-- A document whose type was deleted while it lay in the trash comes back without a type. A restored document is found by the search again, but does not return to the AI discussions it left.
-- **Delete forever** and **Empty trash** are for the administrator. They ask first and remove the items with everything below them: versions, field values, own access and the files that no other version refers to. **Empty trash** removes the items the list shows: what was deleted after the list was loaded stays in the trash. A folder with something live inside it, such as a subfolder restored on its own in Data Tools, is not deleted: restore the folder to keep what is live.
-
-What comes back together is what the restore of Jmix takes (`EntityRestore` of Data Tools): the rows deleted within a second of their parent. A document deleted on its own before its folder stays a separate item.
-
-## 🏷️ Tags
-
-Documents carry tags of a shared vocabulary, such as *lease*, *supply* or *IT*, and a tag finds all the documents with it across the folders.
-
-- The card has a **Tags** field next to the date of the document. Typing shows the tags of the vocabulary; a name it does not have becomes a new tag with Enter, and the new tag joins the vocabulary when the card is saved. *Lease* and *lease* are one tag.
-- The tags show next to the status in the card, in a column of the document list and in every search result. A click on a tag opens **Documents tagged ...**: the live documents with the tag that the person may open, from all folders, the latest changed first. The card asks about unsaved changes before it closes for the page.
-- Whoever may edit a document sets its tags, also of an archived one; a change of tags is no change of the document and keeps **Modified**. Only the administrator renames and deletes tags, under **Application > Tags**. A tag that a document carries, one in the trash included, cannot be deleted, and the refusal says when its documents are only in the trash; the page of such a tag says so too. A tag name is one line of up to 50 characters.
-- Search by words finds a document by the names of its tags, and by the new name after a tag is renamed.
-- **Fill with AI** adds up to three tags to those of the person: tags of the vocabulary, and one new tag only when none fits. The assistant in the menu counts and lists documents by tags.
-- The vocabulary is shared: every employee sees the names of the tags, so a tag is no place for what not everyone may know.
-
-## 💬 Comments
-
-Everyone who sees a document leaves comments on it in the **Comments** tab of its card: questions, remarks, what was agreed. The View level is enough, so a person who may only read the document comments on it too, and an archived document takes comments as well.
-
-- A comment is saved at once, apart from OK of the card: plain text of up to 2,000 characters that keeps its line breaks. Enter starts a new line, Ctrl+Enter or Cmd+Enter sends.
-- The tab shows the comments the newest first, with the avatar and the name of the author, the time and an "edited" mark, and counts them in its title. The comments of other people appear after your own action or when the card opens again.
-- The author edits and deletes their own comment, in place; the administrator deletes any comment but edits only their own. A deleted comment is gone for good.
-- The comments of a document are seen by exactly those who see the document. A document in the trash hides its comments, a restore brings them back, and deleting it forever deletes them.
-- The assistants read the comments when a question is about what people said or agreed, see [AI Assistant](#-ai-assistant). The search finds no comments.
-
-## 📋 Document Types
-
-A document may have a type, and each type has fields of its own. Types and fields are categories and attributes of the [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html) add-on, so the administrator adds them in the application, with no code and no restart.
-
-| Type | Fields |
+| Source | Link |
 |---|---|
-| Contract | Contract number, Contract kind (Supply, Lease, Work, Services, Leasing), Counterparty, Amount, Valid until |
-| Invoice | Invoice number, Supplier, Amount, Due date |
-| Completion certificate | Contractor, Amount, Work completed on, Basis contract |
-| HR document | Employee, Department, Hire date |
-
-- The four types come from the changelog `070-document-types.xml` with English and Russian names; the documents bring the values of their fields.
-- The type and its fields are on the **Properties** tab of the document card. A new type replaces the fields on the tab, and OK deletes the values of the fields that the new type does not have.
-- A type is optional. A field marked as required makes the card ask for it, once the **Properties** tab has been shown.
-- The administrator opens **Document types** in the main menu: the add-on's view of categories and their attributes. A saved type or field shows in the cards at once, with no **Apply changes**.
-- A type that documents are marked with cannot be deleted; change the type of those documents first.
-
-## 📌 Document Statuses
-
-A document has a status of the dictionary **Document statuses**, which the administrator keeps in the main menu, next to **Document types** and **Tags**. With the default statuses a document goes Draft → Active ⇄ Archived, as before.
-
-| Rule | What it does |
-|---|---|
-| Name | Unique whatever its case, up to 50 characters |
-| Color | A swatch of the palette (gray, green, yellow, orange, red, blue) or any other color from the custom swatch; the badge of the status takes it |
-| Position | The order of the statuses in the lists and menus |
-| Given to new documents | Exactly one status has it; checking it on another status moves it there |
-| Documents can't be changed | A document in the status keeps its name, date, type, fields and versions; its tags, comments, access, folder and status still change |
-| Can move to any status / Can move to | The statuses a document may go to from this one; the list hides while "any status" is checked, which a new status has by default |
-
-- The card shows the status as a badge in the header and as the field **Status** on the General tab: the current status and the ones it may move to. A chosen status waits for OK, like a new version.
-- The documents table offers the statuses that every selected document may move to, in the **Status** button of the toolbar and in the **Status ▸** submenu of the context menu.
-- A status that new documents get, or that a document has, one in the trash included, cannot be deleted; a deleted status leaves the lists of the others.
-- The assistant in the menu counts and lists documents by the name of the status (`d.status.name`) and gets the names of the statuses in its prompt.
-
-## 🔎 Full-Text Search
-
-The results page, which the [search palette](#-search-palette) opens, finds documents by the words of their files: the text of a PDF, DOC, DOCX, XLS, XLSX, ODT, ODS, RTF or TXT file of the current version, the document name, the file name, the names of the tags of the document and the text fields of the document type. Search runs on the [Search](https://docs.jmix.io/jmix/search/index.html) add-on with OpenSearch.
-
-- Word forms match in Russian and in English: "contracts" finds "contract", and a Russian word finds its other forms as well.
-- The beginnings of words of three letters or more match too, as in the [search palette](#-search-palette): "deliv" finds "delivery". The documents with a whole word or one of its forms come first, then those that match only by a beginning, each the most relevant first; the text around a match marks the whole word whose beginning matched. A query of more than eight such words, such as a pasted sentence, finds whole words only.
-- The results show the documents a user may see, 20 at a time with **Show more**: the folder, the type, the status, the tags and the text around the found words. A click on the name opens the document card. The results never tell how many other documents match.
-- Not searched: the status, the folder, the type name, older versions, and numbers and dates, which the add-on does not index.
-- Changes reach the search within seconds: the add-on puts them into a queue, and a [Quartz](https://docs.jmix.io/jmix/quartz/index.html) job sends it to OpenSearch every five seconds. A deleted document leaves the search at once.
-- On start, the application fills an empty index with all documents, for example after the index schema changes.
-
-## 🔍 Search Palette
-
-Every search starts in the search palette at the top of the window: the search field in the header only opens it. A click on the field, except on its wand and its clear button, Cmd+K or Ctrl+K, and the first character or Enter typed in the field open the palette; reaching the field with Tab does not. The keys work on every page and in any keyboard layout, but not inside a dialog such as the document card. The palette opens with the text and the search mode of the header field, and what is typed before it appears goes into its line, Enter included: Cmd+K, a query and Enter typed at once search for the query. An Esc typed before it appears cancels it, and the field keeps its text.
-
-- Before typing, the palette lists the last five searches, newest first, the first five of the person's [favorites](#-favorites) and, when the person may use the AI assistant, two questions for it. A search opened from the palette joins the recent ones with its mode, by words or AI search. The cross at the end of a recent search, shown on the row under the mouse or selected with the arrows and on every row of a touch screen, removes it, and so does Shift+Delete on the selected one. Each person has their own recent searches, kept in the database, so they remain after signing in again; questions to the assistant are not kept.
-- From two characters, after a pause of 300 ms, the palette lists the folders and the tags whose names contain the text, whatever its case. Documents are found by the beginnings of their words from three characters, and the word of a document's name that matched is highlighted. **All** shows up to five rows of each kind, and **Documents**, **Folders** and **Tags** up to ten of their own. The rows follow the person's access: a folder they only pass through is greyed, as in the tree, and a tag shows the number of the live documents with it that they may open, and is left out when there are none.
-- ↑ and ↓ go through the rows, Tab and Shift+Tab switch the chips **All**, **Documents**, **Folders** and **Tags**, and Enter opens the selected row or, when none is selected, the results page for the text in the mode of the wand, as the row **All results for "…"** does. The keys act on the text the line shows, without waiting for the pause. A document opens its card over the palette, and when the card closes the palette is there as it was; on the repository page a save in the card refreshes the table, and a link of the card to another page closes the palette too. A document deleted or hidden since the palette listed it gives a notice over the palette, which then lists what is left. A folder opens in the repository, a tag opens the page of its documents and leaves the mode of the wand as it was, and a recent search runs again in its mode; these close the palette.
-- With the AI on, the wand of the line switches between **By words** and **AI search**, as the wand of the header does (see [Semantic Search](#-semantic-search)), and the header keeps the choice. **Ask AI: "…"** and the two questions open a new conversation with the AI assistant and send the text as its first message, also while a chat is open. Typing in the palette makes no model calls, in either mode. Without the AI the palette has no wand, no questions and no **Ask AI** row, and a recent AI search runs by words.
-- Esc or a click outside closes the palette and gives the focus back to the header field; Back in the browser closes it too. The line flies out of the header field as the palette opens and back as it closes; with reduced motion turned on in the system, the palette opens and closes at once.
-- The palette finds the beginnings of words in fields of their own in the document index. An index made by a version without the palette lacks them, so at the first start the Search add-on recreates the document index, and the application fills it again with all documents. The results page finds these beginnings too, after the whole words and their forms.
-
-## 🧠 Semantic Search
-
-With the AI on, the search field in the header has a second mode. **By words** is the full-text search above; the wand at the end of the field switches to **AI search**, which finds documents by the meaning of a query: "agricultural machinery" finds the lease of a tractor, the invoice for a combine and a memo about a broken baler, though none of them names agricultural machinery.
-
-- The field shows the mode, and the address of the results keeps it (`mode=ai`), so a link and Back search the same way. Each person's last choice is remembered; the default is by words. A click on the mode only switches it: the results on the page stay, and the next search from the [palette](#-search-palette) runs in the chosen mode.
-- The AI search finds the fragments of the documents nearest to the query by meaning, and the OpenAI chat model checks every candidate: the page shows up to 20 documents that fit, the nearest first, each with its fragment and the quote that fits the query marked. When nothing fits, the page offers the search by words.
-- The assistant in the menu finds passages by meaning too, for a question about what the documents say or which of them concern something, and answers with quotes and links to the cards.
-- The rights apply when a person searches: the index holds the fragments of all documents, and the application asks it only among the documents the person may open, so a closed document is neither shown, nor checked, nor quoted.
-- **The texts of all documents go to OpenAI.** While the key is set, every document is sent to the OpenAI model of vectors when it is uploaded, gets another current version or another name, whoever opens it later: its name and the first 40,000 characters of its text (`docai.semantic.max-text-length`), in fragments of about 1,000 characters. A file without text is searched by its name. A search sends the query, and the results page also the names and fragments of up to 20 documents for the check. Indexing costs about $0.0002 for a document of two pages, a search on the page about $0.002.
-- The fragments live in the OpenSearch index `docai_document_vectors`, next to the index of full-text search, with the vectors of `text-embedding-3-large` (3,072 numbers each). A document is found by meaning a few seconds after an upload. At start the application checks the index against the documents: it indexes what changed while it was stopped, removes what is gone, and fills the index anew when the model of vectors changes. Until then the results page says that part of the documents cannot be found by meaning yet. Without OpenSearch the AI search says that search is unavailable.
-
-## 🎨 Branding
-
-Jmix DocAI has its own look on the Aura theme of Vaadin: an indigo accent, the Manrope font, a diamond mark and a sign-in page over a lattice of diamonds.
-
-- The theme lives in `src/main/resources/META-INF/resources/themes/jmix-docai-aura/`. `brand.css` sets Aura's own properties — accent, background, radius, font and weights; the views style themselves in `view/`.
-- **Theme** in the user menu offers **System**, **Light**, **Dark** and **Mixed**. **Mixed** keeps the drawer dark and the header, the content, the dialogs and the notifications light. `UserMenuThemeSwitchAction` adds the item to the theme switch of Jmix, and the stylesheet draws the scheme from the `theme="mixed"` attribute of the page.
-- The font files of Manrope ship with the theme under the SIL Open Font License (`fonts/manrope/OFL.txt`): the content security policy lets a page load fonts from the application only.
-- `icons/icon.png` is the source of the favicons and of the icons of the installed application; `icon-16x16.png` and `icon-32x32.png` replace the two smallest with a bolder mark.
-- The AI controls wear the fuchsia accent of AI, the tags the indigo accent of the brand.
+| 🌐 Website | https://www.jmix.io |
+| 📚 Documentation | https://docs.jmix.io |
+| 💬 Forum | https://forum.jmix.io |
+| 💻 GitHub | https://github.com/jmix-framework/jmix |
+| 🎥 YouTube | https://www.youtube.com/@jmixframework |
+| 💼 LinkedIn | https://www.linkedin.com/company/jmix-framework |
