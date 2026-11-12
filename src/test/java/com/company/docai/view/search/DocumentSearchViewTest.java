@@ -27,7 +27,9 @@ import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.IdSerialization;
+import io.jmix.core.MessageTools;
 import io.jmix.core.Messages;
+import io.jmix.core.Metadata;
 import io.jmix.core.MetadataTools;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.security.SystemAuthenticator;
@@ -44,12 +46,14 @@ import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.search.searching.EntitySearcher;
 import io.jmix.search.searching.FieldHit;
+import io.jmix.search.searching.SearchContext;
 import io.jmix.search.searching.SearchResult;
 import io.jmix.search.searching.SearchResultEntry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -65,6 +69,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -105,6 +110,12 @@ class DocumentSearchViewTest {
 
     @Autowired
     private Messages messages;
+
+    @Autowired
+    private MessageTools messageTools;
+
+    @Autowired
+    private Metadata metadata;
 
     @Autowired
     private MetadataTools metadataTools;
@@ -184,6 +195,51 @@ class DocumentSearchViewTest {
         assertThat(snippet.getElement().getTextRecursively()).contains("<img src=x onerror=alert(1)> and word");
         assertThat(snippet.getElement().getChildren())
                 .allMatch(child -> child.isTextNode() || child.getTag().equals("span"));
+    }
+
+    @Test
+    void thePageSearchesByTheWordsThenByTheirBeginnings() {
+        answer();
+
+        search("lea");
+
+        ArgumentCaptor<SearchContext> context = ArgumentCaptor.forClass(SearchContext.class);
+        verify(entitySearcher).search(context.capture(), eq("wordsThenBeginnings"));
+        assertThat(context.getValue().getSearchText()).isEqualTo("lea");
+    }
+
+    @Test
+    void aMatchedBeginningIsShownAsAMatchedWordWithTheCaptionOfItsField() {
+        Document byText = upload("text.txt");
+        Document byName = upload("Lease plan.txt");
+        Document byTag = upload("tagged.txt");
+
+        answer(entry(byText, new FieldHit(FILE_TEXT + ".prefix", "the <b>leaseholder</b> pays")),
+                entry(byName, new FieldHit("name.prefix", "<b>Lease</b> plan.txt")),
+                entry(byTag, new FieldHit("tags._instance_name.prefix", "<b>Leases</b>")));
+
+        List<Component> rows = rows(search("lea"));
+
+        assertThat(rows).extracting(row -> byClass(row, "document-search-snippet").getElement().getTextRecursively())
+                .containsExactly(messages.getMessage(DocumentSearch.class, "fileText") + "the leaseholder pays",
+                        caption("name") + "Lease plan.txt",
+                        caption("tags") + "Leases");
+
+        assertThat(rows).extracting(row -> this.<Span>byClass(row, "document-search-match").getText())
+                .containsExactly("leaseholder", "Lease", "Leases");
+    }
+
+    // the word ranks the document above those found by a beginning, so the row shows the word
+    @Test
+    void aMatchedWordIsShownRatherThanABeginningInAFieldBeforeIt() {
+        Document document = upload("Lease plan.txt");
+
+        answer(entry(document, new FieldHit(FILE_TEXT + ".prefix", "the <b>leaseholder</b> pays"),
+                new FieldHit("name", "<b>Lease</b> plan.txt")));
+
+        Component snippet = byClass(rows(search("lease")).getFirst(), "document-search-snippet");
+
+        assertThat(snippet.getElement().getTextRecursively()).isEqualTo(caption("name") + "Lease plan.txt");
     }
 
     @Test
@@ -488,8 +544,16 @@ class DocumentSearchViewTest {
     }
 
     private SearchResultEntry entry(Document document, String highlights) {
+        return entry(document, new FieldHit(FILE_TEXT, highlights));
+    }
+
+    private SearchResultEntry entry(Document document, FieldHit... fieldHits) {
         return new SearchResultEntry(idSerialization.idToString(Id.of(document)), document.getName(), "Document",
-                List.of(new FieldHit(FILE_TEXT, highlights)));
+                List.of(fieldHits));
+    }
+
+    private String caption(String property) {
+        return messageTools.getPropertyCaption(metadata.getClass(Document.class), property);
     }
 
     private static List<Component> rows(DocumentSearchView view) {

@@ -52,6 +52,19 @@ class FolderFilterTest {
         assertThat(shown).containsExactly(sandbox, contracts, signed);
     }
 
+    @Test
+    void findByNameGivesOnlyTheMatchingFoldersInTheirOrderUpToTheLimit() {
+        Folder contracts = folder(sandbox, "Contracts");
+        Folder signed = folder(contracts, "Signed contracts");
+        Folder invoices = folder(sandbox, "Invoices");
+        List<Folder> folders = List.of(sandbox, contracts, signed, invoices);
+
+        // without the folders above them, unlike the filter of the tree
+        assertThat(folderFilter.findByName(folders, " CONTRACT ", 10)).containsExactly(contracts, signed);
+        assertThat(folderFilter.findByName(folders, "contract", 1)).containsExactly(contracts);
+        assertThat(folderFilter.findByName(folders, "  ", 10)).isEmpty();
+    }
+
     private Folder folder(Folder parent, String name) {
         Folder folder = dataManager.create(Folder.class);
         folder.setParent(parent);

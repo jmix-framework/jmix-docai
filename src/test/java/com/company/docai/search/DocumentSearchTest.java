@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -410,15 +411,29 @@ class DocumentSearchTest {
     }
 
     private static DocumentSearchHit hitOf(DocumentSearchPage page, Document document) {
-        return page.hits().stream()
+        return hitOf(page.hits(), document);
+    }
+
+    private static DocumentSearchHit hitOf(List<DocumentSearchHit> hits, Document document) {
+        return hits.stream()
                 .filter(hit -> hit.document().equals(document))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Not found: " + document.getName()));
     }
 
     private static List<UUID> ids(DocumentSearchPage page) {
-        return page.hits().stream()
+        return ids(page.hits());
+    }
+
+    private static List<UUID> ids(List<DocumentSearchHit> hits) {
+        return hits.stream()
                 .map(hit -> hit.document().getId())
+                .toList();
+    }
+
+    private static List<UUID> idsOf(List<Document> documents) {
+        return documents.stream()
+                .map(Document::getId)
                 .toList();
     }
 
@@ -535,5 +550,242 @@ class DocumentSearchTest {
      */
     private static String token() {
         return "w" + UUID.randomUUID().toString().replace("-", "") + "z";
+    }
+
+    @Test
+    void theFirstDocumentsAreFoundByTheBeginningsOfTheirWords() {
+        String word = token();
+        Document document = upload(sandbox, word + " lease.txt", "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.first(word.substring(0, 6), 5), document);
+
+        // the add-on marks the whole word that begins so, in the name or in its beginnings
+        assertThat(hit.snippet()).contains("<b>" + word + "</b>");
+        assertThat(DocumentSearchHit.partsOf(hit.snippet())
+                .stream()
+                .map(DocumentSearchHit.Part::text)
+                .collect(Collectors.joining())).isEqualTo(document.getName());
+        // a beginning of two letters is shorter than the index keeps
+        assertThat(ids(documentSearch.first(word.substring(0, 2), 5))).doesNotContain(document.getId());
+    }
+
+    @Test
+    void aWordOverEightLettersIsFoundByItsBeginningInAnyForm() {
+        Document document = upload(sandbox, "Subcontractors " + token() + ".txt",
+                "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+
+        index();
+
+        assertThat(ids(documentSearch.first("subcontract", 5))).contains(document.getId());
+        assertThat(ids(documentSearch.first("subcontractor", 5))).contains(document.getId());
+        assertThat(ids(documentSearch.first("SUBCONTRACTORS", 5))).contains(document.getId());
+    }
+
+    @Test
+    void thePageFindsTheBeginningsOfTheWordsOfTheNameAsThePaletteDoes() {
+        String word = token();
+        Document document = upload(sandbox, word + ".txt", "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.search(word.substring(0, 6)), document);
+
+        assertThat(ids(documentSearch.first(word.substring(0, 6), 5))).contains(document.getId());
+        assertThat(hit.field()).isEqualTo(messageTools.getPropertyCaption(metadata.getClass(Document.class), "name"));
+        assertThat(hit.snippet()).isEqualTo("<b>" + word + "</b>.txt");
+    }
+
+    @Test
+    void wordsJoinedByADotAreFoundAndMarkedOneByOne() {
+        String word = token();
+        String next = token();
+
+        Document document = upload(sandbox, word + "." + next + ".txt",
+                "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+
+        index();
+
+        // a dot between letters ends a word in the beginnings as well, so the extension stays unmarked
+        assertThat(hitOf(documentSearch.first(word.substring(0, 6), 5), document).snippet())
+                .isEqualTo("<b>" + word + "</b>." + next + ".txt");
+        assertThat(hitOf(documentSearch.first(next.substring(0, 6), 5), document).snippet())
+                .isEqualTo(word + ".<b>" + next + "</b>.txt");
+    }
+
+    @Test
+    void wordsJoinedByAnUnderscoreStayOneWord() {
+        String word = token();
+        String next = token();
+
+        Document document = upload(sandbox, word + "_" + next + ".txt",
+                "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+
+        index();
+
+        // the split of the beginnings keeps an underscore inside the word, as the standard tokenizer does
+        assertThat(hitOf(documentSearch.first(word.substring(0, 6), 5), document).snippet())
+                .isEqualTo("<b>" + word + "_" + next + "</b>.txt");
+        assertThat(ids(documentSearch.first(next.substring(0, 6), 5))).doesNotContain(document.getId());
+    }
+
+    @Test
+    void aBeginningOfThreeLettersFindsAWordOfTheText() {
+        Document document = upload(sandbox, "The supplier confirmed the delivery on Monday.");
+        index();
+
+        assertThat(ids(documentSearch.search("del"))).contains(document.getId());
+        assertThat(ids(documentSearch.search("de"))).doesNotContain(document.getId());
+    }
+
+    @Test
+    void aFormOfAWordLongerThanTheKeptBeginningsStillFindsTheWord() {
+        Document document = upload(sandbox, "The agreement was signed on Monday.");
+        index();
+
+        assertThat(ids(documentSearch.search("agreements"))).contains(document.getId());
+    }
+
+    @Test
+    void aWholeWordComesBeforeABeginningThatRelevanceAlonePutsFirst() {
+        String word = token();
+        String beginning = word.substring(0, 6);
+        uploadMany(folder(sandbox, "others"), "Nothing of interest here.", 10);
+        Document byBeginning = upload(sandbox, (word + " ").repeat(20));
+        Document byWord = upload(sandbox, "Other matters. ".repeat(20) + beginning);
+        index();
+
+        // the palette lists them by relevance alone: the beginning, often in a short text, outweighs the word, once
+        // in a long one
+        assertThat(ids(documentSearch.first(beginning, 5))).containsSubsequence(byBeginning.getId(), byWord.getId());
+        assertThat(ids(documentSearch.search(beginning))).containsSubsequence(byWord.getId(), byBeginning.getId());
+    }
+
+    @Test
+    void aBeginningIsMarkedInTheTextAsAWordIs() {
+        Document document = upload(sandbox, "The supplier confirmed the delivery on Monday.");
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.search("deliv"), document);
+
+        assertThat(hit.field()).isEqualTo(messages.getMessage(DocumentSearch.class, "fileText"));
+        assertThat(hit.snippet()).contains("<b>delivery</b>");
+    }
+
+    @Test
+    void aBeginningOfATagIsShownWithTheTagsCaption() {
+        String word = token();
+        Document document = upload(sandbox, "Nothing about the tag here.");
+        tagged(document, tag(word));
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.search(word.substring(0, 6)), document);
+
+        assertThat(hit.field()).isEqualTo(messageTools.getPropertyCaption(metadata.getClass(Document.class), "tags"));
+        assertThat(hit.snippet()).contains("<b>" + word + "</b>");
+    }
+
+    @Test
+    void thePagesOfABeginningGiveTheWholeWordsFirstWithoutGapsOrRepeats() {
+        String word = token();
+        String beginning = word.substring(0, 6);
+        List<Document> byWord = uploadMany(sandbox, beginning, DocumentSearch.PAGE_SIZE + 1);
+        List<Document> byBeginning = uploadMany(folder(sandbox, "beginnings"), word, DocumentSearch.PAGE_SIZE);
+        index();
+
+        DocumentSearchPage first = documentSearch.search(beginning);
+        DocumentSearchPage second = documentSearch.next(first);
+        DocumentSearchPage third = documentSearch.next(second);
+
+        List<UUID> found = Stream.of(first, second, third)
+                .flatMap(page -> ids(page).stream())
+                .toList();
+
+        assertThat(first.hits()).hasSize(DocumentSearch.PAGE_SIZE);
+        assertThat(second.hits()).hasSize(DocumentSearch.PAGE_SIZE);
+        assertThat(third.hits()).hasSize(1);
+        assertThat(third.hasMore()).isFalse();
+        assertThat(found.subList(0, byWord.size())).containsExactlyInAnyOrderElementsOf(idsOf(byWord));
+        assertThat(found.subList(byWord.size(), found.size())).containsExactlyInAnyOrderElementsOf(idsOf(byBeginning));
+    }
+
+    @Test
+    void aQueryOfThirtyWordsIsSearchedByWholeWordsOnly() {
+        List<String> words = distinctWords(30);
+        Document byWords = upload(sandbox, String.join(" ", words));
+        Document byBeginning = upload(sandbox, words.getFirst() + "x");
+        index();
+
+        assertThat(ids(documentSearch.search(String.join(" ", words))))
+                .contains(byWords.getId())
+                .doesNotContain(byBeginning.getId());
+    }
+
+    // a pasted text keeps to whole words: forty of them take 560 of the 1024 clauses that OpenSearch allows, one for
+    // each of the fourteen fields, and with the beginnings they would take about three times as many
+    @Test
+    void aQueryOfFortyWordsIsStillSearched() {
+        List<String> words = distinctWords(40);
+        Document document = upload(sandbox, String.join(" ", words));
+        index();
+
+        assertThat(ids(documentSearch.search(String.join(" ", words)))).contains(document.getId());
+    }
+
+    @Test
+    void aShortWordBesideAWordOverEightLettersIsNoBeginning() {
+        Document document = upload(sandbox, "The equipment arrives on Monday; only the onset of work is later.");
+        Document byShortWord = upload(sandbox, "Onions and olives.");
+        index();
+
+        DocumentSearchPage page = documentSearch.search("on equipment");
+
+        assertThat(hitOf(page, document).snippet())
+                .contains("<b>equipment</b>", "<b>on</b>")
+                .doesNotContain("<b>only</b>", "<b>onset</b>");
+        assertThat(ids(page)).doesNotContain(byShortWord.getId());
+        assertThat(ids(documentSearch.first("on equipment", 5))).doesNotContain(byShortWord.getId());
+    }
+
+    // the add-on makes only the last piece of a joined word a beginning, so the short piece comes last here
+    @Test
+    void aShortPieceOfAJoinedWordBesideAWordOverEightLettersIsNoBeginning() {
+        Document document = upload(sandbox, "The equipment of organic origin arrives in order.");
+        Document byShortPiece = upload(sandbox, "Organic oranges.");
+        index();
+
+        DocumentSearchPage page = documentSearch.search("and/or equipment");
+
+        assertThat(hitOf(page, document).snippet())
+                .contains("<b>equipment</b>")
+                .doesNotContain("<b>organic</b>", "<b>origin</b>", "<b>order</b>");
+        assertThat(ids(page)).doesNotContain(byShortPiece.getId());
+        assertThat(ids(documentSearch.first("and/or equipment", 5))).doesNotContain(byShortPiece.getId());
+    }
+
+    @Test
+    void aBeginningOfATextFieldOfTheTypeIsShownWithItsCaption() {
+        String counterparty = token();
+        Document contract = upload(sandbox, "Nothing about the parties here.");
+        Document edited = reloadWithFields(contract);
+        edited.setCategory(contractType());
+        EntityValues.setValue(edited, "+counterparty", counterparty);
+        documentService.save(edited, null, null);
+        index();
+
+        DocumentSearchHit hit = hitOf(documentSearch.search(counterparty.substring(0, 6)), contract);
+
+        assertThat(hit.field()).isEqualTo("Counterparty");
+        assertThat(hit.snippet()).contains("<b>" + counterparty + "</b>");
+    }
+
+    /**
+     * Returns distinct words of six letters and digits that no other test uses, so that none begins another.
+     */
+    private static List<String> distinctWords(int count) {
+        String stem = token().substring(0, 4);
+
+        return IntStream.range(0, count)
+                .mapToObj(number -> stem + (char) ('a' + number / 26) + (char) ('a' + number % 26))
+                .toList();
     }
 }

@@ -171,7 +171,10 @@ public class DocumentRenderers {
         return date.atZoneSameInstant(currentAuthentication.getTimeZone().toZoneId()).toLocalDateTime();
     }
 
-    private static JmixFontIcon fileIcon(Document document) {
+    /**
+     * Returns the icon of the type of the file of the current version of the document: a picture, a text or any file.
+     */
+    public static JmixFontIcon fileIcon(Document document) {
         DocumentRevision revision = document.getCurrentRevision();
 
         return switch (PreviewType.of(revision == null ? null : revision.getContentType())) {

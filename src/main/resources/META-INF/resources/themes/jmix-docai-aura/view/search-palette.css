@@ -1,0 +1,234 @@
+/* the search palette: a dialog at the top of the window with the query line and the panel of chips, results and
+   hints under it */
+
+/* the dialog shows and hides itself at once: the palette moves by its own module, not by the dialog */
+vaadin-dialog.search-palette,
+vaadin-dialog.search-palette[closing] {
+    --vaadin-overlay-animation-duration: 0s;
+    --vaadin-overlay-animation-delay: 0s;
+    --vaadin-overlay-scale-closed: 1;
+    --vaadin-overlay-opacity-closed: 1;
+}
+
+/* Jmix puts a header with a close button into every dialog; the palette closes with Esc and a click outside */
+vaadin-dialog.search-palette::part(header) {
+    display: none;
+}
+
+/* the query line is the top of the panel, not a field of its own: no frame, fill or focus ring, and the caret shows
+   the focus. It wears the frame of the header field only while it flies (search-palette-motion.js). The class keeps
+   the rule off the fields of a card that opens over the palette, inside its dialog */
+vaadin-text-field.search-palette-query::part(input-field) {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+}
+
+/* the panel holds its live regions, so that while it is folded they do not make the dialog scroll */
+.search-palette-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* the line under the query line belongs to the folded panel, so the flying line is as tall as the header field */
+.search-palette-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vaadin-gap-xs);
+    padding: var(--vaadin-padding-s) var(--vaadin-padding-m);
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+/* the chips are quiet: Aura gives every button the tint and the text of the accent, and the selected row is the one
+   accent of the list. The chosen chip is filled instead */
+vaadin-button.search-palette-chip {
+    --vaadin-button-text-color: var(--vaadin-text-color-secondary);
+    --vaadin-button-background: transparent;
+    --vaadin-button-border-color: var(--vaadin-border-color-secondary);
+    --vaadin-button-shadow: none;
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-s);
+}
+
+vaadin-button.search-palette-chip[aria-pressed="true"] {
+    --vaadin-button-text-color: var(--vaadin-text-color);
+    --vaadin-button-background: var(--vaadin-background-container-strong);
+    --vaadin-button-border-color: transparent;
+}
+
+/* for a screen reader only */
+.search-palette-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.search-palette-message {
+    padding: var(--vaadin-padding-s) var(--vaadin-padding-m);
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* the list scrolls inside, so the line, the chips and the hints stay in place. It keeps its height while the panel
+   unfolds and folds: the panel then opens downwards, and the list shows no scroll bar meanwhile */
+.search-palette-results {
+    flex: none;
+    max-height: min(60vh, 28rem);
+    overflow-y: auto;
+}
+
+/* the hints run as text that wraps only between the pairs, so a key never parts from its label */
+.search-palette-hints {
+    padding: var(--vaadin-padding-s) var(--vaadin-padding-m);
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-xs);
+    line-height: calc(var(--aura-line-height-xs) + var(--vaadin-gap-xs));
+}
+
+.search-palette-key {
+    margin-inline-end: var(--vaadin-gap-xs);
+    padding: 0 var(--vaadin-padding-xs);
+    border-radius: var(--vaadin-radius-s);
+    background: var(--vaadin-background-container);
+}
+
+.search-palette-key + span {
+    margin-inline-end: var(--vaadin-gap-s);
+}
+
+/* the space after a label is the only place where the line may break */
+.search-palette-key + span::after {
+    content: " ";
+}
+
+.search-palette-group {
+    display: flex;
+    flex-direction: column;
+    padding-block-end: var(--vaadin-padding-xs);
+}
+
+/* a heading is smaller than the rows and stands closer to its own rows than to the group above */
+.search-palette-heading {
+    padding: var(--vaadin-padding-m) var(--vaadin-padding-m) var(--vaadin-padding-xs);
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-xs);
+    line-height: var(--aura-line-height-xs);
+    font-weight: var(--aura-font-weight-medium);
+}
+
+/* a row is one line: the icon, the name, the place in muted text, then the status of a document. The place gives
+   way first, all of its room; only then a long name ends with an ellipsis too */
+.search-palette-row {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    margin-inline: var(--vaadin-padding-xs);
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-s);
+    border-radius: var(--vaadin-radius-m);
+    cursor: pointer;
+}
+
+.search-palette-row:hover {
+    background: color-mix(in oklab, var(--vaadin-text-color) 6%, transparent);
+}
+
+/* the row the arrows chose */
+.search-palette-row-active,
+.search-palette-row-active:hover {
+    background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
+}
+
+.search-palette-row > :first-child {
+    flex: none;
+}
+
+.search-palette-name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* the place grows from nothing into the room the name leaves, so the name shares no loss with it; a place that
+   fits stands at the end of its room. With less than 3ch of room it would show a bare letter (the widest letter
+   and an ellipsis take 2.6ch), so its mask hides it */
+.search-palette-meta {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: end;
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-s);
+    mask-image: linear-gradient(to right, black calc((100% - 3ch) * 1000), transparent 0);
+}
+
+/* the icons of the rows are muted and about as big as the text; Jmix draws its font icons a size larger. The sizes
+   resolve at the row, so a theme of the remove button, such as small, leaves its icon as big as the others */
+.search-palette-row {
+    --search-palette-icon-size: var(--aura-font-size-m);
+    --search-palette-glyph-size: var(--aura-font-size-s);
+    --search-palette-icon-padding: var(--vaadin-padding-xs);
+}
+
+.search-palette-row > vaadin-icon,
+.search-palette-remove > vaadin-icon {
+    --vaadin-icon-size: var(--search-palette-icon-size);
+    --vaadin-icon-visual-size: var(--search-palette-glyph-size);
+}
+
+.search-palette-row > vaadin-icon {
+    color: var(--vaadin-text-color-secondary);
+}
+
+/* only the icons of the assistant and of the search by meaning keep the accent of AI */
+.search-palette-row > vaadin-icon.search-palette-ai-icon {
+    color: var(--aura-accent-text-color);
+}
+
+/* the button that removes a recent search is as quiet as the icons, with a neutral hover, whatever its theme. Its
+   padding lies over the padding of the row, so the row keeps the height of the others */
+vaadin-button.search-palette-remove {
+    --vaadin-button-text-color: var(--vaadin-text-color-secondary);
+    --vaadin-button-background: transparent;
+    --vaadin-button-border-color: transparent;
+    --vaadin-button-shadow: none;
+    padding: var(--search-palette-icon-padding);
+    margin-block: calc(var(--search-palette-icon-padding) * -1);
+}
+
+vaadin-button.search-palette-remove:hover {
+    --vaadin-button-text-color: var(--vaadin-text-color);
+    background: var(--vaadin-background-container-strong);
+}
+
+/* the status of a document closes its row and keeps its size */
+.search-palette-row > vaadin-badge {
+    flex: none;
+}
+
+/* the cross that removes a recent search, its structure alone: it closes the row and shows on the row the mouse is
+   over or the arrows chose, while keeping its room, so that the name does not jump */
+.search-palette-remove {
+    flex: none;
+    margin-inline-start: auto;
+    visibility: hidden;
+}
+
+.search-palette-row:hover > .search-palette-remove,
+.search-palette-row-active > .search-palette-remove {
+    visibility: visible;
+}
+
+/* a touch screen has no pointer resting on a row and no arrows, so every recent search shows its cross */
+@media (hover: none) {
+    .search-palette-remove {
+        visibility: visible;
+    }
+}

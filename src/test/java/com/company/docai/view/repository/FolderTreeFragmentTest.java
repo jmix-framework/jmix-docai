@@ -9,12 +9,15 @@ import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
 import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.main.MainView;
+import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
+import io.jmix.flowui.data.grid.TreeDataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -100,6 +103,24 @@ class FolderTreeFragmentTest {
         assertThat(tree.getItems().getItems())
                 .contains(folderService.getRoot(), sandbox, contracts, signed)
                 .doesNotContain(invoices);
+    }
+
+    @Test
+    void aSpaceTheBrowserSendsAfterAWordStaysInTheFilter() {
+        Folder signed = folder(sandbox, "Signed 2026");
+        FolderTreeFragment folderTree = open(sandbox);
+        TypedTextField<String> filterField = component(folderTree, "folderFilterField");
+        filterField.setValue("Signed ");
+
+        // the filter sends its text after a pause, which may come between a word and the next one
+        ComponentUtil.fireEvent(filterField,
+                new AbstractField.ComponentValueChangeEvent<>(filterField, filterField, "", true));
+
+        TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
+        TreeDataGridItems<Folder> items = tree.getItems();
+        assertThat(filterField.getValue()).isEqualTo("Signed ");
+        assertThat(items).isNotNull();
+        assertThat(items.getItems()).contains(signed);
     }
 
     @Test

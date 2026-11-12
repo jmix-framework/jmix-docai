@@ -18,6 +18,7 @@ import io.jmix.search.searching.FieldHit;
 import io.jmix.search.searching.SearchContext;
 import io.jmix.search.searching.SearchResult;
 import io.jmix.search.searching.SearchResultEntry;
+import org.apache.commons.lang3.Strings;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,15 +30,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * Searches documents by words. The add-on finds them in the index, and every found document is read again through
- * {@link DataManager}, so the user gets only the live documents they may see. Nothing tells how many others match:
- * the index counts them too, so a page is filled with one document more than it shows, and that one proves that
- * the next page is not empty. Lists the documents with a tag the same way, from the database.
+ * Searches documents by words: the documents with a word of the text or one of its forms come first, then those with
+ * a word that only begins with one, see {@link WordsThenBeginningsStrategy}. The add-on finds them in the index, and
+ * every found document is read again through {@link DataManager}, so the user gets only the live documents they may
+ * see. Nothing tells how many others match: the index counts them too, so a page is filled with one document more
+ * than it shows, and that one proves that the next page is not empty. The first documents for the search palette
+ * come by the beginnings of their words, in one request. Lists the documents with a tag the same way, from the
+ * database.
  */
 @Service
 public class DocumentSearch {
@@ -49,15 +54,25 @@ public class DocumentSearch {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentSearch.class);
 
-    private static final String STRATEGY = "anyTermAnyField";
+    // the palette finds the beginnings of the words, which the extended search of the index keeps
+    private static final String PREFIX_STRATEGY = "startsWith";
+
+    // the add-on names a hit in the beginnings of the words after their field, and for a reference keeps the instance
+    // names in that name
+    private static final String BEGINNINGS = ".prefix";
+    private static final String INSTANCE_NAMES = "._instance_name";
+
     private static final String FILE_TEXT = "currentRevision.file._content";
     private static final String NAME = "name";
+    private static final String NAME_PREFIX = NAME + BEGINNINGS;
     private static final String FILE_NAME = "currentRevision.file._file_name";
     // the add-on names a hit in the instance names of a reference after the reference
     private static final String TAGS = "tags";
     private static final List<String> SNIPPET_ORDER = List.of(FILE_TEXT, NAME, FILE_NAME, TAGS);
+    private static final List<String> NAME_FIELDS = List.of(NAME, NAME_PREFIX);
 
     private final EntitySearcher entitySearcher;
+    private final WordsThenBeginningsStrategy wordsThenBeginnings;
     private final DataManager dataManager;
     private final FolderService folderService;
     private final IdSerialization idSerialization;
@@ -67,6 +82,7 @@ public class DocumentSearch {
     private final Messages messages;
 
     public DocumentSearch(EntitySearcher entitySearcher,
+                          WordsThenBeginningsStrategy wordsThenBeginnings,
                           DataManager dataManager,
                           FolderService folderService,
                           IdSerialization idSerialization,
@@ -75,6 +91,7 @@ public class DocumentSearch {
                           MessageTools messageTools,
                           Messages messages) {
         this.entitySearcher = entitySearcher;
+        this.wordsThenBeginnings = wordsThenBeginnings;
         this.dataManager = dataManager;
         this.folderService = folderService;
         this.idSerialization = idSerialization;
@@ -85,7 +102,9 @@ public class DocumentSearch {
     }
 
     /**
-     * Returns the first page of the documents that match the words, the most relevant first.
+     * Returns the first page of the documents that match the words: those with a word of the text or one of its forms
+     * first, then those with a word that begins with a word of the text of three letters or more; each the most
+     * relevant first. A text of more than eight such words is searched by whole words only.
      *
      * @throws SearchUnavailableException if the search engine does not answer
      */
@@ -94,7 +113,7 @@ public class DocumentSearch {
                 .setEntities(documentClass().getName())
                 .setSize(PAGE_SIZE + 1);
 
-        SearchResult result = engine(() -> entitySearcher.search(context, STRATEGY));
+        SearchResult result = engine(() -> entitySearcher.search(context, WordsThenBeginningsStrategy.NAME));
 
         return page(result, hitsOf(result));
     }
@@ -106,6 +125,43 @@ public class DocumentSearch {
      */
     public DocumentSearchPage next(DocumentSearchPage page) {
         return page(page.result(), page.rest());
+    }
+
+    /**
+     * Returns at most {@code max} documents with a word that begins with a word of the text of three letters or more,
+     * or is a form of it, the most relevant first, with the name marked where it matched. Shorter words are left out,
+     * and a text of none but them finds nothing. If a word left is longer than eight letters, each word left is
+     * matched as a beginning of the stemmed words instead. The add-on pages the index itself to fill the request with
+     * documents the user may see.
+     *
+     * @throws SearchUnavailableException if the search engine does not answer
+     * @throws IllegalArgumentException   if {@code max} is negative
+     */
+    public List<DocumentSearchHit> first(String text, int max) {
+        if (max < 0) {
+            throw new IllegalArgumentException("Negative max: " + max);
+        }
+
+        List<String> beginnings = wordsThenBeginnings.beginningsOf(text);
+
+        if (beginnings.isEmpty()) {
+            return List.of();
+        }
+
+        SearchContext context = new SearchContext(String.join(" ", beginnings))
+                .setEntities(documentClass().getName())
+                .setSize(PAGE_SIZE + 1);
+
+        SearchResult result = engine(() -> entitySearcher.search(context, PREFIX_STRATEGY));
+        List<SearchResultEntry> entries = List.copyOf(result.getAllEntries());
+        Map<UUID, Document> documents = load(entries, DocumentSearch::firstFetchPlan);
+        Map<UUID, List<String>> paths = new HashMap<>();
+
+        return entries.stream()
+                .filter(entry -> documents.containsKey(idOf(entry)))
+                .limit(max)
+                .map(entry -> nameHit(documents.get(idOf(entry)), entry, paths))
+                .toList();
     }
 
     /**
@@ -157,20 +213,7 @@ public class DocumentSearch {
 
     private List<DocumentSearchHit> hitsOf(SearchResult result) {
         List<SearchResultEntry> entries = List.copyOf(result.getAllEntries());
-
-        if (entries.isEmpty()) {
-            return List.of();
-        }
-
-        // ids() fails on a document that is deleted or hidden from the user, a query just leaves it out
-        Map<UUID, Document> documents = dataManager.load(Document.class)
-                .query("select d from Document d where d.id in :ids")
-                .parameter("ids", entries.stream().map(this::idOf).toList())
-                .fetchPlan(DocumentSearch::fetchPlan)
-                .list()
-                .stream()
-                .collect(Collectors.toMap(Document::getId, Function.identity()));
-
+        Map<UUID, Document> documents = load(entries, DocumentSearch::fetchPlan);
         Map<UUID, List<String>> paths = new HashMap<>();
 
         return entries.stream()
@@ -179,13 +222,38 @@ public class DocumentSearch {
                 .toList();
     }
 
+    // ids() fails on a document that is deleted or hidden from the user, a query just leaves it out
+    private Map<UUID, Document> load(List<SearchResultEntry> entries, Consumer<FetchPlanBuilder> fetchPlan) {
+        if (entries.isEmpty()) {
+            return Map.of();
+        }
+
+        return dataManager.load(Document.class)
+                .query("select d from Document d where d.id in :ids")
+                .parameter("ids", entries.stream().map(this::idOf).toList())
+                .fetchPlan(fetchPlan)
+                .list()
+                .stream()
+                .collect(Collectors.toMap(Document::getId, Function.identity()));
+    }
+
     private DocumentSearchHit hit(Document document, SearchResultEntry entry, Map<UUID, List<String>> paths) {
         List<String> path = pathOf(document.getFolder(), paths);
         FieldHit snippet = snippetOf(entry.getFieldHits());
 
         return snippet == null
                 ? new DocumentSearchHit(document, path, null, null)
-                : new DocumentSearchHit(document, path, caption(snippet.getFieldName()), snippet.getHighlights());
+                : new DocumentSearchHit(document, path, caption(fieldOf(snippet)), snippet.getHighlights());
+    }
+
+    // the name is marked when the name or the beginnings of its words matched
+    private DocumentSearchHit nameHit(Document document, SearchResultEntry entry, Map<UUID, List<String>> paths) {
+        List<String> path = pathOf(document.getFolder(), paths);
+        FieldHit name = nameOf(entry.getFieldHits());
+
+        return name == null
+                ? new DocumentSearchHit(document, path, null, null)
+                : new DocumentSearchHit(document, path, caption(NAME), name.getHighlights());
     }
 
     // the folders of the page usually repeat, and each path is read once
@@ -196,12 +264,22 @@ public class DocumentSearch {
     }
 
     /**
-     * The hit to show: the file text, then the name, then the file name, then the tags, then a field of the type.
+     * The hit to show: one by a whole word or its form, which puts the document first, else one by a beginning; of
+     * either, the file text, then the name, then the file name, then the tags, then a field of the type.
      */
     private static @Nullable FieldHit snippetOf(List<FieldHit> fieldHits) {
+        Map<Boolean, List<FieldHit>> byBeginnings = fieldHits.stream()
+                .collect(Collectors.partitioningBy(fieldHit -> fieldHit.getFieldName().endsWith(BEGINNINGS)));
+
+        FieldHit word = snippetIn(byBeginnings.get(false));
+
+        return word != null ? word : snippetIn(byBeginnings.get(true));
+    }
+
+    private static @Nullable FieldHit snippetIn(List<FieldHit> fieldHits) {
         for (String field : SNIPPET_ORDER) {
             for (FieldHit fieldHit : fieldHits) {
-                if (field.equals(fieldHit.getFieldName())) {
+                if (field.equals(fieldOf(fieldHit))) {
                     return fieldHit;
                 }
             }
@@ -211,6 +289,24 @@ public class DocumentSearch {
                 .filter(fieldHit -> fieldHit.getFieldName().startsWith("+"))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static String fieldOf(FieldHit fieldHit) {
+        String field = Strings.CS.removeEnd(fieldHit.getFieldName(), BEGINNINGS);
+
+        return Strings.CS.removeEnd(field, INSTANCE_NAMES);
+    }
+
+    private static @Nullable FieldHit nameOf(List<FieldHit> fieldHits) {
+        for (String field : NAME_FIELDS) {
+            for (FieldHit fieldHit : fieldHits) {
+                if (field.equals(fieldHit.getFieldName())) {
+                    return fieldHit;
+                }
+            }
+        }
+
+        return null;
     }
 
     private String caption(String field) {
@@ -244,5 +340,11 @@ public class DocumentSearch {
                 .add("folder", FetchPlan.INSTANCE_NAME)
                 .add("status", FetchPlan.BASE)
                 .add("tags", FetchPlan.BASE);
+    }
+
+    // the palette shows the icon of the type of the file
+    private static void firstFetchPlan(FetchPlanBuilder fetchPlan) {
+        fetchPlan(fetchPlan);
+        fetchPlan.add("currentRevision", revision -> revision.add("contentType"));
     }
 }

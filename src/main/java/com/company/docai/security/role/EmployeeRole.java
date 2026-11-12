@@ -163,9 +163,9 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void trash();
 
     /**
-     * Searches documents from the field in the header.
+     * Searches documents from the field in the header, from the search palette and on the search page.
      */
-    @ViewPolicy(viewIds = "DocumentSearchView")
+    @ViewPolicy(viewIds = {"DocumentSearchView", "SearchPaletteView"})
     void search();
 
     /**

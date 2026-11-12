@@ -14,7 +14,7 @@
             <!-- the field and the folder buttons share one row, so the tree in the menu starts right under them: one
                  button creates a folder, the other lists the actions on the chosen folder -->
             <hbox id="folderToolbar" width="100%" alignItems="CENTER" expand="folderFilterField">
-                <textField id="folderFilterField" clearButtonVisible="true" valueChangeMode="LAZY"
+                <textField id="folderFilterField" clearButtonVisible="true" valueChangeMode="LAZY" trimEnabled="false"
                            placeholder="msg://com.company.docai.view.folder/folderFilterField.placeholder"
                            ariaLabel="msg://com.company.docai.view.folder/folderFilterField.placeholder">
                     <prefix>

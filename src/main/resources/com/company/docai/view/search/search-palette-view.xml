@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://searchPaletteView.title"
+      focusComponent="queryField">
+    <layout padding="false" spacing="false">
+        <textField id="queryField" classNames="search-palette-query" width="100%"
+                   placeholder="msg://com.company.docai.view.main/searchField.placeholder"
+                   ariaLabel="msg://com.company.docai.view.main/searchField.placeholder"
+                   autoselect="true" valueChangeMode="LAZY" valueChangeTimeout="300" trimEnabled="false">
+            <prefix>
+                <icon icon="SEARCH"/>
+            </prefix>
+            <suffix>
+                <button id="searchModeButton" classNames="main-view-search-mode aura-accent-purple" icon="MAGIC"
+                        themeNames="tertiary" tabIndex="-1"
+                        ariaLabel="msg://com.company.docai.view.main/searchModeButton.ariaLabel"/>
+            </suffix>
+        </textField>
+        <div id="panel" classNames="search-palette-panel" width="100%">
+            <div classNames="search-palette-chips">
+                <button id="allChip" classNames="search-palette-chip" text="msg://allChip.text"
+                        themeNames="small" tabIndex="-1"/>
+                <button id="documentsChip" classNames="search-palette-chip" text="msg://documentsGroup.title"
+                        themeNames="small" tabIndex="-1"/>
+                <button id="foldersChip" classNames="search-palette-chip" text="msg://foldersGroup.title"
+                        themeNames="small" tabIndex="-1"/>
+                <button id="tagsChip" classNames="search-palette-chip" text="msg://tagsGroup.title"
+                        themeNames="small" tabIndex="-1"/>
+            </div>
+            <!-- the chips never take the focus, so a screen reader hears the chosen one from here -->
+            <span id="chipStatus" classNames="search-palette-live"/>
+            <span id="messageText" classNames="search-palette-message search-palette-live"/>
+            <!-- the controller fills the list: the groups with their rows, then the rows of the page and of the
+                 assistant -->
+            <div id="resultsBox" classNames="search-palette-results"/>
+            <div id="hintsBox" classNames="search-palette-hints">
+                <span classNames="search-palette-key" text="↵"/>
+                <span text="msg://openHint.text"/>
+                <span classNames="search-palette-key" text="↑↓"/>
+                <span text="msg://selectHint.text"/>
+                <span classNames="search-palette-key" text="Tab"/>
+                <span text="msg://chipHint.text"/>
+                <span classNames="search-palette-key" text="Esc"/>
+                <span text="msg://closeHint.text"/>
+            </div>
+        </div>
+        <!-- the flight of the line out of the header field and back; it shows nothing -->
+        <component id="motion" class="com.company.docai.view.search.SearchPaletteMotion"/>
+        <!-- the line in the browser: a combobox of the list, the keys of the palette and the caret. It finds the field
+             in this layout and shows nothing -->
+        <component id="line" class="com.company.docai.view.search.SearchPaletteLine"/>
+    </layout>
+</view>

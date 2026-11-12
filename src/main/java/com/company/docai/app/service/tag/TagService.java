@@ -6,6 +6,7 @@ import com.company.docai.model.tag.Tag;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
 import io.jmix.core.Messages;
+import io.jmix.core.QueryUtils;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.data.PersistenceHints;
 import org.jspecify.annotations.Nullable;
@@ -185,6 +186,27 @@ public class TagService {
                 .list()
                 .stream()
                 .map(value -> value.<String>getValue("name"))
+                .toList();
+    }
+
+    /**
+     * Returns at most {@code max} tags whose name contains the text, whatever its case and the spaces around it, in
+     * alphabetical order, each with the number of the live documents with it that the user may see. A tag without such
+     * documents is left out, so the number never tells of the documents of the others; a percent sign or an
+     * underscore in the text is matched as it is.
+     */
+    public List<TagCount> findByName(String text, int max) {
+        String part = text.strip().toLowerCase(Locale.ROOT);
+
+        return dataManager.loadValues("select t.id, t.name, count(d) from Document d join d.tags t"
+                        + " where t.nameKey like :part escape '\\'"
+                        + " group by t.id, t.name, t.nameKey order by t.nameKey")
+                .properties("id", "name", "documents")
+                .parameter("part", "%" + QueryUtils.escapeForLike(part) + "%")
+                .maxResults(max)
+                .list()
+                .stream()
+                .map(value -> new TagCount(value.getValue("name"), value.<Long>getValue("documents")))
                 .toList();
     }
 

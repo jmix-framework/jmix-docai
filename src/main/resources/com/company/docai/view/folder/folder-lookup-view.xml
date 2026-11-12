@@ -16,6 +16,7 @@
     </actions>
     <layout>
         <textField id="folderFilterField" width="100%" clearButtonVisible="true" valueChangeMode="LAZY"
+                   trimEnabled="false"
                    placeholder="msg://folderFilterField.placeholder" ariaLabel="msg://folderFilterField.placeholder">
             <prefix>
                 <icon icon="SEARCH"/>

@@ -85,6 +85,14 @@ public class RepositoryView extends StandardView {
         });
     }
 
+    /**
+     * Opens the card of the document as the documents of the list open: a save refreshes the list, and any card may
+     * change the star of the document.
+     */
+    public void openCard(Document document) {
+        documentList.openCard(document);
+    }
+
     // The tree lives in the main menu, which exists by the time the view is attached; the main view gives the tree
     // its own handlers back after a navigation that leaves the repository.
     private void connectFolderTree() {

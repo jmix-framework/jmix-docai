@@ -10,7 +10,9 @@ import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.repository.FolderTreeFragment;
 import com.company.docai.view.repository.RepositoryView;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
@@ -19,7 +21,9 @@ import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.Views;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
+import io.jmix.flowui.data.grid.TreeDataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -206,6 +210,29 @@ class FolderDialogsTest {
                 .doesNotContain(invoices);
 
         assertThat(lookupTree.isExpanded(contracts)).isTrue();
+    }
+
+    @Test
+    void aSpaceTheBrowserSendsAfterAWordStaysInTheMoveDialogFilter() {
+        Folder signed = folder(sandbox, "Signed 2026");
+        Folder moved = folder(sandbox, "Moved");
+        FolderTreeFragment folderTree = openTree(moved);
+        Action move = foldersTree(folderTree).getAction("moveFolderAction");
+        assertThat(move).isNotNull();
+        move.actionPerform(foldersTree(folderTree));
+        FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
+        TypedTextField<String> filterField = UiTestUtils.getComponent(lookup, "folderFilterField");
+        filterField.setValue("Signed ");
+
+        // the filter sends its text after a pause, which may come between a word and the next one
+        ComponentUtil.fireEvent(filterField,
+                new AbstractField.ComponentValueChangeEvent<>(filterField, filterField, "", true));
+
+        TreeDataGrid<Folder> lookupTree = UiTestUtils.getComponent(lookup, "foldersTree");
+        TreeDataGridItems<Folder> items = lookupTree.getItems();
+        assertThat(filterField.getValue()).isEqualTo("Signed ");
+        assertThat(items).isNotNull();
+        assertThat(items.getItems()).contains(signed);
     }
 
     @Test

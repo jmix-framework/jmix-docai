@@ -29,9 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 @FragmentDescriptor("document-search-hit-fragment.xml")
 public class DocumentSearchHitFragment extends Fragment<Div> {
 
-    private static final String MATCH_START = "<b>";
-    private static final String MATCH_END = "</b>";
-
     @ViewComponent
     private Div titleBox;
     @ViewComponent
@@ -114,25 +111,15 @@ public class DocumentSearchHitFragment extends Fragment<Div> {
             div.add(caption);
         }
 
-        int position = 0;
-
-        while (position < snippet.length()) {
-            int start = snippet.indexOf(MATCH_START, position);
-            int end = start < 0 ? -1 : snippet.indexOf(MATCH_END, start);
-
-            if (end < 0) {
-                div.add(new Text(snippet.substring(position)));
-                break;
+        for (DocumentSearchHit.Part part : DocumentSearchHit.partsOf(snippet)) {
+            if (part.matched()) {
+                Span match = uiComponents.create(Span.class);
+                match.addClassName("document-search-match");
+                match.setText(part.text());
+                div.add(match);
+            } else {
+                div.add(new Text(part.text()));
             }
-
-            div.add(new Text(snippet.substring(position, start)));
-
-            Span match = uiComponents.create(Span.class);
-            match.addClassName("document-search-match");
-            match.setText(snippet.substring(start + MATCH_START.length(), end));
-            div.add(match);
-
-            position = end + MATCH_END.length();
         }
 
         return div;

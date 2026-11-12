@@ -2,12 +2,14 @@ package com.company.docai.view.main;
 
 import com.company.docai.DocAiApplication;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
+import com.company.docai.test_support.TestMenus;
+import com.company.docai.test_support.TestPalettes;
 import com.company.docai.view.repository.RepositoryView;
 import com.company.docai.view.search.DocumentSearchView;
+import com.company.docai.view.search.RecentQueries;
+import com.company.docai.view.search.SearchPaletteView;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.KeyPressEvent;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.router.QueryParameters;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.Views;
 import io.jmix.flowui.component.textfield.TypedTextField;
@@ -35,7 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The search field in the header.
+ * The search field in the header: it opens the search palette, which searches.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -53,6 +55,9 @@ class MainViewSearchTest {
     @Autowired
     private UserSettingsService userSettingsService;
 
+    @Autowired
+    private RecentQueries recentQueries;
+
     @BeforeEach
     void answerNothing() {
         SearchResult result = mock(SearchResult.class);
@@ -61,43 +66,87 @@ class MainViewSearchTest {
     }
 
     @AfterEach
-    void forgetTheMode() {
+    void forgetTheModeAndTheSearches() {
         userSettingsService.delete(MainView.SEARCH_MODE_SETTING);
+        userSettingsService.delete(RecentQueries.RECENT_QUERIES_SETTING);
     }
 
     @Test
-    void enterOpensTheSearchForTheTrimmedWords() {
+    void enterInTheFieldSearchesNothingByItself() {
         TypedTextField<String> field = searchField();
-        field.setValue("  tractor  ");
+        field.setValue("tractor");
 
         ComponentUtil.fireEvent(field, new KeyPressEvent(field, "Enter"));
 
-        View<?> current = UiTestUtils.getCurrentView();
-        assertThat(current).isInstanceOf(DocumentSearchView.class);
-        assertThat(DocumentSearchView.queryOf(currentQueryParameters())).isEqualTo("tractor");
+        // in the browser the opener takes the Enter and asks for the palette
+        assertThat(UiTestUtils.<View<?>>getCurrentView()).isNotInstanceOf(DocumentSearchView.class);
+        assertThat(recentQueries.load()).isEmpty();
+        assertThat(TestPalettes.isOpen()).isFalse();
+    }
+
+    @Test
+    void theOpenerOpensThePaletteWithTheTextTheBrowserShows() {
+        // the field sends its text only when the person leaves it, so the server may have an older one
+        searchField().setValue("lease");
+
+        SearchPaletteView palette = TestPalettes.open("tractor");
+
+        assertThat(palette).isNotNull();
+        assertThat(TestPalettes.queryField(palette).getValue()).isEqualTo("tractor");
+        // the field in the browser keeps its own text, which a value from the server would overwrite
+        assertThat(searchField().getValue()).isEqualTo("lease");
+    }
+
+    @Test
+    void anEscBeforeThePaletteAppearsClosesItAndTheFieldKeepsItsText() {
+        searchField().setValue("lease");
+        TestPalettes.open("lease");
+
+        TestPalettes.cancel();
+
+        assertThat(TestPalettes.isOpen()).isFalse();
+        assertThat(searchField().getValue()).isEqualTo("lease");
+        assertThat(UiTestUtils.<View<?>>getCurrentView()).isNotInstanceOf(DocumentSearchView.class);
+
+        // the Esc of a palette that never came finds nothing to close
+        TestPalettes.cancel();
+
+        assertThat(TestPalettes.isOpen()).isFalse();
+        assertThat(recentQueries.load()).isEmpty();
+    }
+
+    @Test
+    void aSearchFromThePaletteShowsItsTrimmedWordsInTheField() {
+        TestPalettes.enter(TestPalettes.open(), "  tractor  ");
+
+        assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(DocumentSearchView.class);
+        assertThat(DocumentSearchView.queryOf(TestPalettes.currentQueryParameters())).isEqualTo("tractor");
         assertThat(searchField().getValue()).isEqualTo("tractor");
     }
 
     @Test
-    void enterWithoutWordsOpensNothing() {
-        TypedTextField<String> field = searchField();
-        field.setValue("   ");
+    void aSearchFromThePaletteIsRememberedWithItsMode() {
+        TestPalettes.enter(TestPalettes.open(), "  tractor  ");
 
-        ComponentUtil.fireEvent(field, new KeyPressEvent(field, "Enter"));
-
-        View<?> current = UiTestUtils.getCurrentView();
-        assertThat(current).isNotInstanceOf(DocumentSearchView.class);
+        // without the key the search goes by words
+        assertThat(recentQueries.load()).containsExactly(new RecentQueries.RecentQuery("tractor", false));
     }
 
     @Test
     void theFieldIsEmptiedOutsideTheSearch() {
-        TypedTextField<String> field = searchField();
-        field.setValue("tractor");
-        ComponentUtil.fireEvent(field, new KeyPressEvent(field, "Enter"));
+        TestPalettes.enter(TestPalettes.open(), "tractor");
 
         viewNavigators.view(UiTestUtils.getCurrentView(), RepositoryView.class).navigate();
 
         assertThat(searchField().getValue()).isEmpty();
+    }
+
+    @Test
+    void theOpenerNamesTheHeaderField() {
+        SearchPaletteOpener opener = UiTestUtils.getComponent(TestMenus.mainView(), "searchPaletteOpener");
+
+        // the browser looks the field up by its id
+        assertThat(opener.getElement().getAttribute("for")).isEqualTo(searchField().getId().orElseThrow());
     }
 
     @Test
@@ -112,16 +161,6 @@ class MainViewSearchTest {
     }
 
     private TypedTextField<String> searchField() {
-        MainView mainView = UI.getCurrent().getInternals().getActiveRouterTargetsChain().stream()
-                .filter(MainView.class::isInstance)
-                .map(MainView.class::cast)
-                .findFirst()
-                .orElseThrow();
-
-        return UiTestUtils.getComponent(mainView, "searchField");
-    }
-
-    private static QueryParameters currentQueryParameters() {
-        return UI.getCurrent().getInternals().getActiveViewLocation().getQueryParameters();
+        return UiTestUtils.getComponent(TestMenus.mainView(), "searchField");
     }
 }

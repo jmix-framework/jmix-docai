@@ -13,10 +13,9 @@ import com.company.docai.search.semantic.SemanticSearch;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.StubAiConfiguration;
 import com.company.docai.test_support.TestFiles;
+import com.company.docai.test_support.TestPalettes;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentUtil;
-import com.vaadin.flow.component.KeyPressEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -28,7 +27,6 @@ import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.Views;
 import io.jmix.flowui.component.UiComponentUtils;
-import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.settings.UserSettingsService;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -196,6 +194,20 @@ class AiSearchTest {
     }
 
     @Test
+    void thePageOfATagKeepsTheModeOfTheFieldAndSavesNone() {
+        modeButton(mainView()).click();
+        // the field keeps the choice of the person, so a save would show here
+        userSettingsService.delete(MainView.SEARCH_MODE_SETTING);
+
+        viewNavigators.view(UiTestUtils.getCurrentView(), DocumentSearchView.class)
+                .withQueryParameters(QueryParameters.of(DocumentSearchView.TAG_PARAMETER, "lease"))
+                .navigate();
+
+        assertThat(pressed(modeButton(mainView()))).isTrue();
+        assertThat(userSettingsService.load(MainView.SEARCH_MODE_SETTING)).isEmpty();
+    }
+
+    @Test
     void theFoundDocumentsAreCountedAndTheirQuoteIsMarked() {
         Document document = upload();
         when(semanticSearch.search(QUERY)).thenReturn(List.of(hit(document, "the <b>MTZ-82 tractor</b> for")));
@@ -302,11 +314,9 @@ class AiSearchTest {
         return UiTestUtils.getCurrentView();
     }
 
+    // the header opens the palette in its mode, and the palette searches
     private void enter(String query) {
-        TypedTextField<String> field = UiTestUtils.getComponent(mainView(), "searchField");
-        field.setValue(query);
-
-        ComponentUtil.fireEvent(field, new KeyPressEvent(field, "Enter"));
+        TestPalettes.enter(TestPalettes.open(), query);
     }
 
     // the answer comes back through UI.access, which a UI test runs only when asked

@@ -23,6 +23,9 @@
                                 icon="MAGIC" themeNames="tertiary" ariaLabel="msg://searchModeButton.ariaLabel"/>
                     </suffix>
                 </textField>
+                <!-- the search field only opens the palette: a click on it, ⌘K or Ctrl+K anywhere on the page, or a
+                     character or Enter typed in it -->
+                <component id="searchPaletteOpener" class="com.company.docai.view.main.SearchPaletteOpener"/>
 
                 <userMenu id="userMenu"
                           themeNames="tertiary" classNames="jmix-main-view-user-menu">

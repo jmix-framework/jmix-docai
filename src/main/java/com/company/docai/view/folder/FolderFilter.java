@@ -16,7 +16,8 @@ import java.util.Set;
 
 /**
  * The name filter of the folder trees, in the main menu and in the folder lookup: a tree shows the folders whose name
- * contains the text of its filter field, together with the folders above them.
+ * contains the text of its filter field, together with the folders above them; the search palette matches a part of
+ * the name the same way, without the folders above.
  */
 @Component
 public class FolderFilter {
@@ -58,8 +59,7 @@ public class FolderFilter {
         Set<Folder> shown = new HashSet<>();
 
         for (Folder folder : folders) {
-            if (metadataTools.getInstanceName(folder).toLowerCase(Locale.ROOT)
-                    .contains(part)) {
+            if (matches(folder, part)) {
                 Folder current = folder;
 
                 while (current != null && shown.add(current)) {
@@ -71,5 +71,27 @@ public class FolderFilter {
         return folders.stream()
                 .filter(shown::contains)
                 .toList();
+    }
+
+    /**
+     * Returns at most {@code max} of the folders whose shown name contains the text, ignoring case, in the given
+     * order and without their parents; a blank text finds none.
+     */
+    public List<Folder> findByName(Collection<Folder> folders, @Nullable String text, int max) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
+
+        String part = text.strip().toLowerCase(Locale.ROOT);
+
+        return folders.stream()
+                .filter(folder -> matches(folder, part))
+                .limit(max)
+                .toList();
+    }
+
+    // the tree and the search palette compare the same way: the shown name, whatever its case
+    private boolean matches(Folder folder, String part) {
+        return metadataTools.getInstanceName(folder).toLowerCase(Locale.ROOT).contains(part);
     }
 }
