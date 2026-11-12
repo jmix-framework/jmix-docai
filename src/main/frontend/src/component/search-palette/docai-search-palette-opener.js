@@ -1,3 +1,5 @@
+import { composes, followCompositions, HAND_OVER, heldKeys } from './typing.js';
+
 // the elements whose keys belong to them: an open overlay, a modal and a dialog with its content
 const OVERLAYS = ':popover-open, :modal, vaadin-dialog';
 
@@ -12,7 +14,7 @@ const WAIT = 3000;
  * so that any layout works, and do nothing inside a dialog or another overlay. The keys typed while the palette is on
  * its way belong to it: the characters go into the field, which the palette takes them from, and the field holds an
  * Enter back until the palette asks for it. An Esc typed meanwhile cancels the opening: the field keeps the text it
- * had, and the server gets a second event, which closes the palette.
+ * had, and the server gets a second event, which closes the palette. The server hands the opener the field itself.
  */
 class SearchPaletteOpener extends HTMLElement {
 
@@ -93,8 +95,7 @@ class SearchPaletteOpener extends HTMLElement {
 
     // the palette takes the characters from the field as it opens and asks for the Enter; a cancelled one takes nothing
     #handOver = event => {
-        event.detail.enter = this.#enter;
-        event.detail.cancel = this.#cancelled;
+        Object.assign(event.detail, heldKeys(this.#enter, this.#cancelled));
         this.#settle();
     };
 
@@ -114,29 +115,59 @@ class SearchPaletteOpener extends HTMLElement {
     connectedCallback() {
         // the opener shows nothing
         this.hidden = true;
-        this.#field = fieldOf(this);
+        followCompositions();
         document.addEventListener('keydown', this.#openByShortcut);
-
-        if (this.#field) {
-            this.#field.addEventListener('click', this.#openByClick);
-            this.#field.addEventListener('keydown', this.#openByKey);
-            this.#field.addEventListener('keydown', this.#cancelByEscape, true);
-            this.#field.addEventListener('focusout', this.#settle);
-            this.#field.addEventListener('docai-search-palette-hand-over', this.#handOver);
-            // the field makes its native input on its first render; a screen reader then hears that it opens a dialog
-            this.#field.updateComplete.then(() => this.#field?.inputElement?.setAttribute('aria-haspopup', 'dialog'));
-        }
+        this.#listen();
     }
 
     disconnectedCallback() {
         this.#settle();
         document.removeEventListener('keydown', this.#openByShortcut);
-        this.#field?.removeEventListener('click', this.#openByClick);
-        this.#field?.removeEventListener('keydown', this.#openByKey);
-        this.#field?.removeEventListener('keydown', this.#cancelByEscape, true);
-        this.#field?.removeEventListener('focusout', this.#settle);
-        this.#field?.removeEventListener('docai-search-palette-hand-over', this.#handOver);
-        this.#field = null;
+        this.#unlisten();
+    }
+
+    // the server sends the field whenever the opener reaches the page; the opener keeps it while it is off the page
+    watch(field) {
+        if (field === this.#field) {
+            return;
+        }
+
+        this.#unlisten();
+        this.#field = field ?? null;
+
+        if (this.isConnected) {
+            this.#listen();
+        }
+    }
+
+    #listen() {
+        const field = this.#field;
+
+        if (!field) {
+            return;
+        }
+
+        field.addEventListener('click', this.#openByClick);
+        field.addEventListener('keydown', this.#openByKey);
+        field.addEventListener('keydown', this.#cancelByEscape, true);
+        field.addEventListener('focusout', this.#settle);
+        field.addEventListener(HAND_OVER, this.#handOver);
+        // the field makes its native input on its first render; a screen reader then hears that it opens a dialog
+        field.updateComplete.then(() => field.inputElement?.setAttribute('aria-haspopup', 'dialog'));
+    }
+
+    #unlisten() {
+        const field = this.#field;
+
+        if (!field) {
+            return;
+        }
+
+        field.removeEventListener('click', this.#openByClick);
+        field.removeEventListener('keydown', this.#openByKey);
+        field.removeEventListener('keydown', this.#cancelByEscape, true);
+        field.removeEventListener('focusout', this.#settle);
+        field.removeEventListener(HAND_OVER, this.#handOver);
     }
 
     // a text the field selects as it takes the focus would give way to the first character, and the palette could not
@@ -178,23 +209,10 @@ function isFieldButton(node) {
     return node instanceof Element && (node.localName === 'vaadin-button' || node.part?.contains('clear-button'));
 }
 
-// an input method keeps its keys until the word is done: Safari sends the Enter that ends the word after the
-// composition, and only the key code 229 tells it
-function composes(event) {
-    return event.isComposing || event.keyCode === 229;
-}
-
 // Cmd and Ctrl make a shortcut of a key, except Ctrl with Alt, which AltGr gives on Windows
 function typesCharacter(event) {
     return Array.from(event.key).length === 1 && !event.metaKey
         && (!event.ctrlKey || event.getModifierState('AltGraph'));
-}
-
-// the field beside the opener in the header
-function fieldOf(opener) {
-    const id = opener.getAttribute('for');
-
-    return id ? opener.parentElement?.querySelector(`#${CSS.escape(id)}`) : null;
 }
 
 if (!customElements.get(SearchPaletteOpener.is)) {

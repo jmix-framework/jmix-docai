@@ -1,6 +1,7 @@
 package com.company.docai.view.main;
 
 import com.company.docai.DocAiApplication;
+import com.company.docai.app.ui.component.searchpalette.SearchPaletteOpener;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestMenus;
 import com.company.docai.test_support.TestPalettes;
@@ -10,6 +11,8 @@ import com.company.docai.view.search.RecentQueries;
 import com.company.docai.view.search.SearchPaletteView;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.KeyPressEvent;
+import com.vaadin.flow.component.internal.UIInternals.JavaScriptInvocation;
+import com.vaadin.flow.dom.Element;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.Views;
 import io.jmix.flowui.component.textfield.TypedTextField;
@@ -143,10 +146,24 @@ class MainViewSearchTest {
 
     @Test
     void theOpenerNamesTheHeaderField() {
-        SearchPaletteOpener opener = UiTestUtils.getComponent(TestMenus.mainView(), "searchPaletteOpener");
+        Element opener = UiTestUtils.<SearchPaletteOpener>getComponent(TestMenus.mainView(), "searchPaletteOpener")
+                .getElement();
 
-        // the browser looks the field up by its id
-        assertThat(opener.getElement().getAttribute("for")).isEqualTo(searchField().getId().orElseThrow());
+        // the browser gets the field itself, which needs no id
+        assertThat(TestPalettes.scriptsTo(opener))
+                .anySatisfy(script -> assertWatches(script, opener, searchField().getElement()));
+
+        assertThat(opener.hasAttribute("for")).isFalse();
+
+        // an opener that comes back to the page is a new element in the browser, which needs the field again
+        Element header = opener.getParent();
+        int place = header.indexOfChild(opener);
+        opener.removeFromParent();
+        TestPalettes.sentScripts();
+        header.insertChild(place, opener);
+
+        assertThat(TestPalettes.scriptsTo(opener))
+                .anySatisfy(script -> assertWatches(script, opener, searchField().getElement()));
     }
 
     @Test
@@ -162,5 +179,10 @@ class MainViewSearchTest {
 
     private TypedTextField<String> searchField() {
         return UiTestUtils.getComponent(TestMenus.mainView(), "searchField");
+    }
+
+    private static void assertWatches(JavaScriptInvocation script, Element element, Element field) {
+        assertThat(script.getExpression()).contains("$0.watch");
+        assertThat(script.getParameters()).containsExactly(element, field);
     }
 }

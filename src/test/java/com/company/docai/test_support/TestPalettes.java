@@ -1,7 +1,7 @@
 package com.company.docai.test_support;
 
-import com.company.docai.view.main.SearchPaletteOpener;
-import com.company.docai.view.search.SearchPaletteLine;
+import com.company.docai.app.ui.component.searchpalette.SearchPaletteLine;
+import com.company.docai.app.ui.component.searchpalette.SearchPaletteOpener;
 import com.company.docai.view.search.SearchPaletteView;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.ClickEvent;
@@ -332,6 +332,22 @@ public final class TestPalettes {
         ui.getInternals().getStateTree().runExecutionsBeforeClientResponse();
 
         return ui.getInternals().dumpPendingJavaScriptInvocations();
+    }
+
+    /**
+     * The scripts that the browser gets with the next response for the elements, in the order it runs them: the calls
+     * of their functions, which name the element first. The call takes all the scripts, as {@link #sentScripts()}
+     * does.
+     */
+    public static List<JavaScriptInvocation> scriptsTo(Element... elements) {
+        List<Element> addressees = List.of(elements);
+
+        return sentScripts().stream()
+                .map(PendingJavaScriptInvocation::getInvocation)
+                .filter(invocation -> !invocation.getParameters().isEmpty()
+                        && invocation.getParameters().getFirst() instanceof Element element
+                        && addressees.contains(element))
+                .toList();
     }
 
     /**

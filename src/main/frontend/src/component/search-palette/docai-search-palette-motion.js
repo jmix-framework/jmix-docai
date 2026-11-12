@@ -13,25 +13,13 @@ const OVERLAP = 0.55;
 // the flight that holds each header field: a palette that opens while the last one still flies back takes it over
 const flights = new WeakMap();
 
-// where an input method composes a word right now: the hand-over leaves an open composition alone
-let composing = null;
-
-document.addEventListener('compositionstart', event => {
-    composing = event.composedPath()[0];
-}, true);
-
-document.addEventListener('compositionend', () => {
-    composing = null;
-}, true);
-
 /**
  * The flight of the search palette, the element of the server component SearchPaletteMotion. The query line flies
  * from the search field of the header to its place at the top of the window and widens while the backdrop fades in;
  * the panel under it starts to unfold as the line lands, and the line drops the frame of the header field that it wore
  * in flight. Closing runs the other way: the panel folds, the line flies back into the field while it folds and puts
  * the frame on again, and a close during the opening sends every stage back from where it is. The header field stays
- * transparent while the palette is open, so that it seems to fly itself, and the keys typed into it before the palette
- * opened go over to the line, an Enter that the field held back included. The dialog shows and hides itself at once
+ * transparent while the palette is open, so that it seems to fly itself. The dialog shows and hides itself at once
  * (search-palette.css), and the module holds its closing state as long as the way back takes. Without the parts it
  * needs the palette opens and closes as a plain dialog, and with reduced motion it does so at once.
  */
@@ -53,19 +41,15 @@ class SearchPaletteMotion extends HTMLElement {
         this.#flight?.closed();
     }
 
-    open(origin, line, panel) {
+    open(origin, field, panel) {
         const dialog = this.closest('vaadin-dialog');
         const overlay = dialog?.$?.overlay;
         const part = overlay?.$?.overlay;
         const backdrop = overlay?.$?.backdrop;
 
-        if (origin && line) {
-            handOver(origin, line);
-        }
-
         // the flight needs every part of the dialog: without one the palette stays a plain dialog
         if (origin && panel && part && backdrop) {
-            this.#flight = new Flight(dialog, overlay, part, backdrop, origin, line, panel);
+            this.#flight = new Flight(dialog, overlay, part, backdrop, origin, field, panel);
             this.#flight.start();
         }
     }
@@ -83,13 +67,13 @@ class Flight {
     #framing = null;
     #course = null;
 
-    constructor(dialog, overlay, part, backdrop, origin, line, panel) {
+    constructor(dialog, overlay, part, backdrop, origin, field, panel) {
         this.dialog = dialog;
         this.overlay = overlay;
         this.part = part;
         this.backdrop = backdrop;
         this.origin = origin;
-        this.line = line;
+        this.field = field;
         this.panel = panel;
     }
 
@@ -256,11 +240,11 @@ class Flight {
             [this.panel, [{height: getComputedStyle(this.panel).height}, {height: '0px'}]]
         ];
 
-        const line = inputFieldOf(this.line);
+        const field = inputFieldOf(this.field);
         const header = inputFieldOf(this.origin);
 
-        if (line && header) {
-            stages.push([line, [frameOf(line), frameOf(header)]]);
+        if (field && header) {
+            stages.push([field, [frameOf(field), frameOf(header)]]);
         }
 
         for (const animation of [this.#flying, this.#fading, this.#unfolding, this.#framing]) {
@@ -292,16 +276,16 @@ class Flight {
 
     // the line wears the frame of the header field only while it flies: its border, fill and shadow, but no focus ring
     reframe(dropping, timing) {
-        const line = inputFieldOf(this.line);
+        const field = inputFieldOf(this.field);
         const header = inputFieldOf(this.origin);
 
-        if (!line || !header) {
+        if (!field || !header) {
             return null;
         }
 
-        const frames = [frameOf(header), frameOf(line)];
+        const frames = [frameOf(header), frameOf(field)];
 
-        return line.animate(dropping ? frames : frames.reverse(), timing);
+        return field.animate(dropping ? frames : frames.reverse(), timing);
     }
 
     // the dialog stays in its closing state while an animation of its own runs, and the backdrop fades out with it
@@ -323,64 +307,6 @@ class Flight {
             this.origin.style.removeProperty('opacity');
         }
     }
-}
-
-// the keys typed into the header field after the click belong to the palette, which the server opened with the text of
-// the click: the letters replace that text, as typing into the open palette would, and the field gets it back; an Enter
-// that the field held back then runs in the line. A palette that an Esc cancelled on its way takes nothing, and the
-// server closes it.
-function handOver(origin, line) {
-    const input = line.inputElement;
-
-    // every palette that opens ends the wait of the field, whatever comes of the keys
-    const held = new CustomEvent('docai-search-palette-hand-over', {detail: {enter: false, cancel: false}});
-    origin.dispatchEvent(held);
-
-    // the person cancelled the palette or went elsewhere before it opened, or still composes a word, which a move of
-    // the text would cut
-    if (!input || held.detail.cancel || !origin.contains(document.activeElement) || origin.contains(composing)) {
-        return;
-    }
-
-    const before = line.value;
-    const now = origin.value;
-
-    if (now === before) {
-        line.focus();
-    } else {
-        // the field gets its text back before it loses the focus, and a change event tells Flow, which may have had
-        // the typed text from the field
-        origin.value = before;
-        origin.inputElement?.dispatchEvent(new Event('change', {bubbles: true}));
-        line.focus();
-        line.value = typed(before, now);
-        input.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
-    }
-
-    if (held.detail.enter) {
-        input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
-    }
-}
-
-// what came between the start and the end that stayed: the letters typed, or nothing when letters were only deleted.
-// The texts are compared by characters, not by their UTF-16 halves, so that no emoji is cut in two.
-function typed(before, now) {
-    const was = Array.from(before);
-    const is = Array.from(now);
-    let start = 0;
-
-    while (start < was.length && start < is.length && was[start] === is[start]) {
-        start++;
-    }
-
-    let end = 0;
-
-    while (end < was.length - start && end < is.length - start
-            && was[was.length - 1 - end] === is[is.length - 1 - end]) {
-        end++;
-    }
-
-    return is.slice(start, is.length - end).join('');
 }
 
 function center(rect) {

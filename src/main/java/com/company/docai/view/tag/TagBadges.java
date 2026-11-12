@@ -1,13 +1,11 @@
 package com.company.docai.view.tag;
 
 import com.company.docai.model.tag.Tag;
-import com.company.docai.view.search.DocumentSearchView;
+import com.company.docai.view.search.SearchNavigation;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.html.NativeButton;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.router.QueryParameters;
 import io.jmix.flowui.UiComponents;
-import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
@@ -29,12 +27,12 @@ public class TagBadges {
 
     private final UiComponents uiComponents;
     private final Icons icons;
-    private final ViewNavigators viewNavigators;
+    private final SearchNavigation searchNavigation;
 
-    public TagBadges(UiComponents uiComponents, Icons icons, ViewNavigators viewNavigators) {
+    public TagBadges(UiComponents uiComponents, Icons icons, SearchNavigation searchNavigation) {
         this.uiComponents = uiComponents;
         this.icons = icons;
-        this.viewNavigators = viewNavigators;
+        this.searchNavigation = searchNavigation;
     }
 
     /**
@@ -78,11 +76,9 @@ public class TagBadges {
     }
 
     /**
-     * Opens the page of the documents with the tag.
+     * Opens the page of the documents with the tag, from the view open now: from a search page a new one opens.
      */
     public void open(Tag tag) {
-        viewNavigators.view(UiComponentUtils.getCurrentView(), DocumentSearchView.class)
-                .withQueryParameters(QueryParameters.of(DocumentSearchView.TAG_PARAMETER, tag.getName()))
-                .navigate();
+        searchNavigation.openTag(UiComponentUtils.getCurrentView(), tag.getName());
     }
 }

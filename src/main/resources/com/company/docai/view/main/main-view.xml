@@ -25,7 +25,8 @@
                 </textField>
                 <!-- the search field only opens the palette: a click on it, ⌘K or Ctrl+K anywhere on the page, or a
                      character or Enter typed in it -->
-                <component id="searchPaletteOpener" class="com.company.docai.view.main.SearchPaletteOpener"/>
+                <component id="searchPaletteOpener"
+                           class="com.company.docai.app.ui.component.searchpalette.SearchPaletteOpener"/>
 
                 <userMenu id="userMenu"
                           themeNames="tertiary" classNames="jmix-main-view-user-menu">
@@ -50,7 +51,7 @@
                     </items>
                 </userMenu>
                 <!-- the page lets the files dragged from the computer only onto the uploads that take them -->
-                <component id="fileDropGuard" class="com.company.docai.view.main.FileDropGuard"/>
+                <component id="fileDropGuard" class="com.company.docai.app.ui.component.filedrop.FileDropGuard"/>
             </header>
         </navigationBar>
         <drawerLayout>
@@ -80,7 +81,7 @@
                     <listMenu id="menu" themeNames="toggle-reverse"/>
                 </nav>
                 <!-- the edge of the menu: a drag widens the menu for long names -->
-                <component id="drawerHandle" class="com.company.docai.view.main.DrawerHandle"/>
+                <component id="drawerHandle" class="com.company.docai.app.ui.component.drawer.DrawerHandle"/>
             </section>
         </drawerLayout>
         <initialLayout id="initialLayout" classNames="jmix-initial-layout">

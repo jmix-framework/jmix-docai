@@ -1,6 +1,7 @@
 package com.company.docai.view.repository;
 
 import com.company.docai.app.service.document.UploadedFile;
+import com.company.docai.app.ui.component.filedrop.FileDropZone;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.upload.UploadManager;

@@ -4,6 +4,7 @@ import com.company.docai.DocAiApplication;
 import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.folder.FolderService;
+import com.company.docai.app.ui.component.filedrop.FileDropZone;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
@@ -12,7 +13,6 @@ import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
-import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.upload.UploadDropZone;
 import com.vaadin.flow.component.upload.UploadManager;
 import com.vaadin.flow.component.upload.UploadManager.FileRejectionReason;
@@ -40,10 +40,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -236,21 +233,12 @@ class DroppedFilesTest {
     }
 
     @Test
-    void theZoneIsTheElementOfTheFileDropZoneModule() throws IOException {
+    void theZoneIsTheFileDropZoneWithItsTag() {
         UploadDropZone zone = dropZone(open(sandbox));
 
-        List<String> modules = Arrays.stream(zone.getClass().getAnnotationsByType(JsModule.class))
-                .map(JsModule::value)
-                .toList();
-
-        Path module = Path.of("src/main/frontend", modules.getFirst());
-
-        // the module extends the drop zone of Vaadin in the browser: only files, and none while a batch is on its way
+        // the table takes files through the zone of the application, not the plain one of Vaadin, under its own tag
+        assertThat(zone).isInstanceOf(FileDropZone.class);
         assertThat(zone.getElement().getTag()).isEqualTo("docai-file-drop-zone");
-        assertThat(modules).containsExactly("./components/file-drop-zone.js");
-        assertThat(module).exists();
-        // the browser knows the element by the tag the server gives it
-        assertThat(Files.readString(module)).contains("'docai-file-drop-zone'");
     }
 
     private View<?> open(Folder folder) {

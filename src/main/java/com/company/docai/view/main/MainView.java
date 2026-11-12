@@ -1,6 +1,7 @@
 package com.company.docai.view.main;
 
 import com.company.docai.ai.AiSettings;
+import com.company.docai.app.ui.component.searchpalette.SearchPaletteOpener;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.user.User;
@@ -10,29 +11,22 @@ import com.company.docai.view.profile.ProfileReadView;
 import com.company.docai.view.repository.FolderTreeFragment;
 import com.company.docai.view.repository.RepositoryView;
 import com.company.docai.view.search.DocumentSearchView;
-import com.company.docai.view.search.RecentQueries;
+import com.company.docai.view.search.SearchNavigation;
 import com.company.docai.view.search.SearchPaletteView;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.AfterNavigationEvent;
-import com.vaadin.flow.router.Location;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
-import io.jmix.aitoolsflowui.model.AiConversation;
-import io.jmix.aitoolsflowui.service.AiConversationService;
-import io.jmix.aitoolsflowui.view.chat.AiChatView;
-import io.jmix.aitoolsflowui.view.chathub.AiChatHubFragment;
 import io.jmix.core.Messages;
 import io.jmix.core.usersubstitution.CurrentUserSubstitution;
 import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.app.main.StandardMainView;
@@ -47,15 +41,10 @@ import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.Install;
 import io.jmix.flowui.view.NavigateCloseAction;
 import io.jmix.flowui.view.Subscribe;
-import io.jmix.flowui.view.View;
 import io.jmix.flowui.view.ViewComponent;
 import io.jmix.flowui.view.ViewController;
 import io.jmix.flowui.view.ViewDescriptor;
-import io.jmix.flowui.view.navigation.RouteSupport;
-import io.jmix.flowui.view.navigation.ViewClassNavigator;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -70,17 +59,10 @@ public class MainView extends StandardMainView {
      */
     public static final String SEARCH_MODE_SETTING = "docai.searchMode";
 
-    private static final String WORDS_MODE = "words";
     private static final String ASSISTANT_CHAT_ITEM = "assistantChat";
 
-    private static final Logger log = LoggerFactory.getLogger(MainView.class);
+    private static final String WORDS_MODE = "words";
 
-    @ViewComponent
-    private TypedTextField<String> searchField;
-    @ViewComponent
-    private JmixButton searchModeButton;
-    @ViewComponent
-    private SearchPaletteOpener searchPaletteOpener;
     @ViewComponent
     private JmixListMenu menu;
     @ViewComponent
@@ -92,30 +74,33 @@ public class MainView extends StandardMainView {
     @ViewComponent
     private Nav navigation;
 
+    @ViewComponent
+    private TypedTextField<String> searchField;
+    @ViewComponent
+    private JmixButton searchModeButton;
+    @ViewComponent
+    private SearchPaletteOpener searchPaletteOpener;
+
+    @Autowired
+    private AiSettings aiSettings;
+    @Autowired
+    private ViewNavigators viewNavigators;
+    @Autowired
+    private DocumentCards documentCards;
+
+    @Autowired
+    private UserSettingsService userSettingsService;
+    @Autowired
+    private DialogWindows dialogWindows;
+    @Autowired
+    private SearchNavigation searchNavigation;
+
     @Autowired
     private Messages messages;
     @Autowired
     private UiComponents uiComponents;
     @Autowired
     private CurrentUserSubstitution currentUserSubstitution;
-    @Autowired
-    private DialogWindows dialogWindows;
-    @Autowired
-    private DocumentCards documentCards;
-    @Autowired
-    private ViewNavigators viewNavigators;
-    @Autowired
-    private AiSettings aiSettings;
-    @Autowired
-    private UserSettingsService userSettingsService;
-    @Autowired
-    private RecentQueries recentQueries;
-    @Autowired
-    private AiConversationService conversationService;
-    @Autowired
-    private RouteSupport routeSupport;
-    @Autowired
-    private Notifications notifications;
 
     private boolean aiSearch;
     @Nullable
@@ -123,37 +108,17 @@ public class MainView extends StandardMainView {
 
     @Subscribe
     public void onInit(final InitEvent event) {
-        // the field searches nothing itself: the browser decides what in it opens the palette
-        searchPaletteOpener.setField(searchField);
+        initAssistantMenu();
+        initFolderTree();
+        initSearch();
+    }
 
-        // the assistant stands above the folders, apart from the views under them; the menu file cannot depend on
-        // the key, and an item hidden after the menu is drawn stays on the page
-        ListMenu.MenuItem assistantChat = menu.getMenuItem(ASSISTANT_CHAT_ITEM);
+    @Override
+    public void afterNavigation(AfterNavigationEvent event) {
+        super.afterNavigation(event);
 
-        if (assistantChat != null) {
-            menu.removeMenuItem(assistantChat);
-
-            if (aiSettings.isAvailable()) {
-                assistantMenu.addMenuItem(assistantChat);
-            }
-        }
-
-        assistantNavigation.setVisible(!assistantMenu.getMenuItems().isEmpty());
-
-        // the views scroll with the folders, under the brand, the assistant and the folder field that stay in sight
-        folderTree.addUnderFolders(navigation);
-
-        openFoldersInRepository();
-        // over a narrow window the menu covers the view, so a chosen folder closes it, as a chosen view does
-        folderTree.addSelectionListener(folder -> closeOverlayDrawer());
-
-        searchModeButton.setVisible(aiSettings.isAvailable());
-
-        aiSearch = aiSettings.isAvailable() && userSettingsService.load(SEARCH_MODE_SETTING)
-                .map(DocumentSearchView.AI_MODE::equals)
-                .orElse(false);
-
-        showSearchMode();
+        showSearchOf(event);
+        restoreFolderTree(event);
     }
 
     // the open results stay until the palette runs the query in the chosen mode
@@ -173,38 +138,6 @@ public class MainView extends StandardMainView {
         if (searchPalette != null) {
             searchPalette.close();
         }
-    }
-
-    @Override
-    public void afterNavigation(AfterNavigationEvent event) {
-        super.afterNavigation(event);
-
-        // the field shows the words and the mode of the open search and is empty elsewhere
-        boolean searchOpen = event.getActiveChain().stream().anyMatch(DocumentSearchView.class::isInstance);
-        QueryParameters parameters = event.getLocation().getQueryParameters();
-        searchField.setValue(searchOpen ? DocumentSearchView.queryOf(parameters) : "");
-
-        // the page of a tag searches neither way, so the wand keeps the mode the person chose
-        boolean tagPage = parameters.getSingleParameter(DocumentSearchView.TAG_PARAMETER)
-                .filter(tag -> !tag.isBlank())
-                .isPresent();
-
-        if (searchOpen && !tagPage && aiSettings.isAvailable() && DocumentSearchView.isAiMode(parameters) != aiSearch) {
-            chooseSearchMode(!aiSearch);
-        }
-
-        // the repository plugs its own handlers into the tree while it is shown
-        if (event.getActiveChain().stream().noneMatch(RepositoryView.class::isInstance)) {
-            openFoldersInRepository();
-        }
-    }
-
-    /**
-     * The folder tree of the main menu. The repository plugs its own handlers into it while it is shown; on any
-     * other view the tree opens the repository on the chosen folder.
-     */
-    public FolderTreeFragment getFolderTree() {
-        return folderTree;
     }
 
     @Subscribe("userMenu.profileMenuItem.profileAction")
@@ -278,6 +211,46 @@ public class MainView extends StandardMainView {
         return content;
     }
 
+    /**
+     * The folder tree of the main menu. The repository plugs its own handlers into it while it is shown; on any
+     * other view the tree opens the repository on the chosen folder.
+     */
+    public FolderTreeFragment getFolderTree() {
+        return folderTree;
+    }
+
+    // the assistant stands above the folders, apart from the views under them; the menu file cannot depend on the key,
+    // and an item hidden after the menu is drawn stays on the page
+    private void initAssistantMenu() {
+        ListMenu.MenuItem assistantChat = menu.getMenuItem(ASSISTANT_CHAT_ITEM);
+
+        if (assistantChat != null) {
+            menu.removeMenuItem(assistantChat);
+
+            if (aiSettings.isAvailable()) {
+                assistantMenu.addMenuItem(assistantChat);
+            }
+        }
+
+        assistantNavigation.setVisible(!assistantMenu.getMenuItems().isEmpty());
+    }
+
+    private void initFolderTree() {
+        // the views scroll with the folders, under the brand, the assistant and the folder field that stay in sight
+        folderTree.addUnderFolders(navigation);
+
+        openFoldersInRepository();
+        // over a narrow window the menu covers the view, so a chosen folder closes it, as a chosen view does
+        folderTree.addSelectionListener(folder -> closeOverlayDrawer());
+    }
+
+    // the repository plugs its own handlers into the tree while it is shown
+    private void restoreFolderTree(AfterNavigationEvent event) {
+        if (event.getActiveChain().stream().noneMatch(RepositoryView.class::isInstance)) {
+            openFoldersInRepository();
+        }
+    }
+
     // outside the repository no folder is the current one, a chosen folder opens there, and a document of the
     // favorites opens over the view, as from the search
     private void openFoldersInRepository() {
@@ -298,12 +271,14 @@ public class MainView extends StandardMainView {
                 .navigate();
     }
 
-    // the card may mark the document with its star or take it away
     private void openCard(Document document) {
-        documentCards.open(this, document, closeEvent -> {
-            folderTree.getFavorites().reload();
-            folderTree.refreshFavorites();
-        });
+        documentCards.open(this, document, closeEvent -> refreshFavorites());
+    }
+
+    // the card may mark the document with its star or take it away
+    private void refreshFavorites() {
+        folderTree.getFavorites().reload();
+        folderTree.refreshFavorites();
     }
 
     private void closeOverlayDrawer() {
@@ -312,30 +287,37 @@ public class MainView extends StandardMainView {
         }
     }
 
-    // the search by meaning only while the AI is on; the search joins the recent ones in the mode it opens in
-    private void openSearch(@Nullable String text, boolean ai) {
-        String query = Strings.nullToEmpty(text).strip();
+    private void initSearch() {
+        // the field searches nothing itself: the browser decides what in it opens the palette
+        searchPaletteOpener.setField(searchField);
+        searchModeButton.setVisible(aiSettings.isAvailable());
 
-        if (query.isEmpty()) {
-            return;
+        aiSearch = aiSettings.isAvailable() && userSettingsService.load(SEARCH_MODE_SETTING)
+                .map(DocumentSearchView.AI_MODE::equals)
+                .orElse(false);
+
+        showSearchMode();
+    }
+
+    // the field shows the words and the mode of the open search and is empty elsewhere
+    private void showSearchOf(AfterNavigationEvent event) {
+        boolean searchOpen = event.getActiveChain().stream().anyMatch(DocumentSearchView.class::isInstance);
+        QueryParameters parameters = event.getLocation().getQueryParameters();
+        searchField.setValue(searchOpen ? DocumentSearchView.queryOf(parameters) : "");
+
+        // the page of a tag searches neither way, so the wand keeps the mode the person chose
+        boolean tagPage = parameters.getSingleParameter(DocumentSearchView.TAG_PARAMETER)
+                .filter(tag -> !tag.isBlank())
+                .isPresent();
+
+        if (searchOpen && !tagPage && aiSettings.isAvailable() && DocumentSearchView.isAiMode(parameters) != aiSearch) {
+            chooseSearchMode(!aiSearch);
         }
-
-        boolean aiQuery = ai && aiSettings.isAvailable();
-        recentQueries.add(query, aiQuery);
-
-        QueryParameters parameters = QueryParameters.of(DocumentSearchView.QUERY_PARAMETER, query);
-
-        if (aiQuery) {
-            parameters = parameters.merging(DocumentSearchView.MODE_PARAMETER, DocumentSearchView.AI_MODE);
-        }
-
-        viewNavigators.view(this, DocumentSearchView.class)
-                .withQueryParameters(parameters)
-                .navigate();
     }
 
     // one palette at a time: a second click or shortcut while it is open does nothing. The text is the one the browser
-    // shows, which the field sends the server only when the person leaves it.
+    // shows, which the field sends the server only when the person leaves it. The main view is the origin of the
+    // search and of the tag, so an open search page shows them.
     private void openSearchPalette(@Nullable String text) {
         if (searchPalette != null) {
             return;
@@ -349,11 +331,11 @@ public class MainView extends StandardMainView {
         palette.setQuery(text);
         palette.setAiMode(aiSearch);
         palette.setModeChangeHandler(this::chooseSearchMode);
-        palette.setSearchHandler(this::openSearch);
-        palette.setAssistantHandler(this::openAssistant);
+        palette.setSearchHandler((query, ai) -> searchNavigation.openSearch(this, query, ai));
+        palette.setAssistantHandler(searchNavigation::openAssistant);
         palette.setDocumentOpenHandler(this::openPaletteDocument);
         palette.setFolderOpenHandler(folder -> folderTree.loadAndSelect(folder.getId()));
-        palette.setTagOpenHandler(this::openTag);
+        palette.setTagOpenHandler(tag -> searchNavigation.openTag(this, tag));
 
         // a Vaadin dialog has no style of its own: the palette looks as its class says
         window.addClassName("search-palette");
@@ -379,81 +361,7 @@ public class MainView extends StandardMainView {
             return;
         }
 
-        documentCards.openIfAvailable(this, document, closeEvent -> {
-            folderTree.getFavorites().reload();
-            folderTree.refreshFavorites();
-        });
-    }
-
-    // the chat answers the question at once, as when a conversation starts in the hub. The view open now is the
-    // origin: from an open chat Jmix then makes a new one, which sends its first message once.
-    private void openAssistant(String question) {
-        AiConversation conversation;
-
-        try {
-            conversation = conversationService.create();
-        } catch (RuntimeException e) {
-            log.error("The conversation with the assistant was not created", e);
-
-            notifications.create(messages.getMessage(AiChatHubFragment.class,
-                            "aiChatHubFragment.errorProcessingMessage"))
-                    .withType(Notifications.Type.ERROR)
-                    .show();
-
-            return;
-        }
-
-        View<?> origin = UiComponentUtils.getCurrentView();
-
-        ViewClassNavigator<AiChatView> navigator = viewNavigators.view(origin, AiChatView.class)
-                .withRouteParameters(routeSupport.createRouteParameters(AiChatView.ROUTE_PARAM_ID,
-                        conversation.getId()));
-
-        // the bare main view never detaches, as it stays the layout of the chat, so it sends the question itself
-        if (origin == this) {
-            navigator.navigate();
-
-            if (UiComponentUtils.getCurrentView() instanceof AiChatView chat) {
-                chat.sendInitialPrompt(question);
-                showChatAddress();
-            }
-
-            return;
-        }
-
-        // the handler runs when the origin detaches; a chat that is still answering lets it go only after Leave. After
-        // Stay the handler stays on that chat and later runs with the chat itself, which it leaves alone. The new
-        // conversation then stays empty, as when the start of a conversation in the hub is cancelled.
-        navigator.withAfterNavigationHandler(navigation -> {
-                    if (navigation.getView() != origin) {
-                        navigation.getView().sendInitialPrompt(question);
-                        showChatAddress();
-                    }
-                })
-                .navigate();
-    }
-
-    // a workaround for AiChatView.syncUrl of AI Tools 3.1.0, which copies the query the browser shows into the address
-    // of a new chat while the browser still shows the page the question came from. The browser answers in turn, so this
-    // request comes back after the one of the chat and puts back the address the router gave the chat, unless the
-    // person has left the chat meanwhile. The method can go once the add-on takes the query from the server's location.
-    private void showChatAddress() {
-        UI ui = UI.getCurrent();
-        String chat = routeSupport.getActiveViewLocation(ui).getPathWithQueryParameters();
-
-        routeSupport.fetchCurrentLocation(ui, ignored -> {
-            Location shown = routeSupport.getActiveViewLocation(ui);
-
-            if (chat.equals(shown.getPathWithQueryParameters())) {
-                routeSupport.setLocation(ui, shown);
-            }
-        });
-    }
-
-    private void openTag(String name) {
-        viewNavigators.view(this, DocumentSearchView.class)
-                .withQueryParameters(QueryParameters.of(DocumentSearchView.TAG_PARAMETER, name))
-                .navigate();
+        documentCards.openIfAvailable(this, document, closeEvent -> refreshFavorites());
     }
 
     private void chooseSearchMode(boolean ai) {

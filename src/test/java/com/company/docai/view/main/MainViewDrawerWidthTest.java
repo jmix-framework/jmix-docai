@@ -1,9 +1,11 @@
 package com.company.docai.view.main;
 
 import com.company.docai.DocAiApplication;
+import com.company.docai.app.ui.component.drawer.DrawerHandle;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestMenus;
 import com.vaadin.flow.component.ComponentUtil;
+import io.jmix.core.Messages;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.settings.UserSettingsService;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
@@ -19,7 +21,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The width of the main menu, which the user drags with its edge and finds again on the next visit.
+ * The edge of the main menu: the name a screen reader hears, and the width the user drags it to and finds again on the
+ * next visit.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -30,6 +33,8 @@ class MainViewDrawerWidthTest {
 
     @Autowired
     private UserSettingsService userSettingsService;
+    @Autowired
+    private Messages messages;
 
     // the main view of a test opens before the test, so the width the user left is saved before all of them
     @BeforeAll
@@ -69,5 +74,14 @@ class MainViewDrawerWidthTest {
 
         assertThat(TestMenus.mainView().getElement().getStyle().get(DRAWER_WIDTH)).isEqualTo("19.0rem");
         assertThat(userSettingsService.load(DrawerHandle.DRAWER_WIDTH_SETTING)).contains("19.0");
+    }
+
+    @Test
+    void theEdgeIsNamedByATextOfTheMessageGroupOfItsPackage() {
+        DrawerHandle handle = UiTestUtils.getComponent(TestMenus.mainView(), "drawerHandle");
+
+        // a key the group lacks would come as the key itself
+        assertThat(handle.getElement().getAttribute("aria-label"))
+                .isEqualTo(messages.findMessage(DrawerHandle.class.getPackageName(), "drawerHandle.ariaLabel", null));
     }
 }

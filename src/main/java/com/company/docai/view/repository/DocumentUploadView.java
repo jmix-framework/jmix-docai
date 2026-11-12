@@ -1,5 +1,6 @@
 package com.company.docai.view.repository;
 
+import com.company.docai.app.ui.component.filedrop.FileDropZone;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.view.document.FileSizeFormatter;
 import com.vaadin.flow.component.button.ButtonVariant;

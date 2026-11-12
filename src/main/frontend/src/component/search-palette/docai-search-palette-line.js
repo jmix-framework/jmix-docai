@@ -1,3 +1,5 @@
+import { askHeldKeys, composes, composesIn } from './typing.js';
+
 // the keys that the palette handles itself: the browser does nothing with them, so the focus never leaves the line
 const KEYS = new Set(['ArrowDown', 'ArrowUp', 'Tab', 'Enter']);
 
@@ -6,14 +8,15 @@ const EDITING_KEYS = new Set(['Backspace', 'Delete']);
 
 /**
  * The query line of the search palette, the element of the server component SearchPaletteLine. The rows never take
- * the focus, so a screen reader meets the line as a combobox: the text field that the `for` attribute names controls
+ * the focus, so a screen reader meets the line as a combobox: the text field that the server hands the line controls
  * the list that the `list` attribute names, and the row the arrows chose is its active descendant. The arrows, Tab and
  * Enter, and Shift+Delete while a row is chosen, go to the server with the text the line shows at the press, and the
  * browser does nothing with them; an Enter held down goes once. A click on a chip, on the wand or on a cross gives the
  * line the focus back with the caret after its text at once, before the server answers the click. A click elsewhere
  * in the palette may take the focus and select text, as on any page; the next key brings the focus back to the line
  * and acts there, unless it comes with Cmd, Ctrl or Alt. The card of a document opens inside the dialog of the
- * palette, and its keys and clicks stay its own.
+ * palette, and its keys and clicks stay its own. As the palette opens, the line takes over the keys typed into the
+ * header field while the palette came.
  */
 class SearchPaletteLine extends HTMLElement {
 
@@ -32,10 +35,7 @@ class SearchPaletteLine extends HTMLElement {
     #sendKey = event => {
         if (this.#handles(event)) {
             event.preventDefault();
-
-            this.dispatchEvent(new CustomEvent('docai-search-palette-key', {
-                detail: {key: event.key, shift: event.shiftKey, text: this.#field.inputElement.value}
-            }));
+            this.#send(event.key, event.shiftKey);
         }
     };
 
@@ -69,24 +69,27 @@ class SearchPaletteLine extends HTMLElement {
     connectedCallback() {
         // the line shows nothing itself
         this.hidden = true;
-        this.#field = fieldOf(this);
         this.#dialog = this.closest('vaadin-dialog');
-
-        if (this.#field) {
-            this.#field.addEventListener('keydown', this.#sendKey);
-            document.addEventListener('keydown', this.#returnKey, true);
-            document.addEventListener('click', this.#focusAfterButton, true);
-            // the field makes its native input on its first render
-            this.#field.updateComplete.then(() => this.#describe());
-        }
+        this.#listen();
     }
 
     disconnectedCallback() {
-        this.#field?.removeEventListener('keydown', this.#sendKey);
-        document.removeEventListener('keydown', this.#returnKey, true);
-        document.removeEventListener('click', this.#focusAfterButton, true);
-        this.#field = null;
+        this.#unlisten();
         this.#dialog = null;
+    }
+
+    // the server sends the field whenever the line reaches the page; the line keeps it while it is off the page
+    watch(field) {
+        if (field === this.#field) {
+            return;
+        }
+
+        this.#unlisten();
+        this.#field = field ?? null;
+
+        if (this.isConnected) {
+            this.#listen();
+        }
     }
 
     // the caret goes after the text also when the line has the focus already: the opening selects the whole text,
@@ -99,6 +102,70 @@ class SearchPaletteLine extends HTMLElement {
             this.#field.focus();
             input.setSelectionRange(input.value.length, input.value.length);
         }
+    }
+
+    // the keys typed into the header field after the click belong to the palette, which the server opened with the
+    // text of the click: the letters replace that text, as typing into the open palette would, and the header field
+    // gets it back; an Enter that the header field held back then goes as a key of the line. A palette that an Esc
+    // cancelled on its way takes nothing, and the server closes it.
+    takeOver(headerField) {
+        // Flow sends null for a header field that is not on the page
+        if (!headerField) {
+            return;
+        }
+
+        // every palette that opens ends the wait of the header field, whatever comes of the keys
+        const held = askHeldKeys(headerField);
+        const input = this.#field?.inputElement;
+
+        // the person cancelled the palette or went elsewhere before it opened, or still composes a word, which a move
+        // of the text would cut
+        if (!input || held.cancel || !headerField.contains(document.activeElement) || composesIn(headerField)) {
+            return;
+        }
+
+        const before = this.#field.value;
+        const now = headerField.value;
+
+        if (now === before) {
+            this.#field.focus();
+        } else {
+            // the header field gets its text back before it loses the focus, and a change event tells Flow, which may
+            // have had the typed text from the field
+            headerField.value = before;
+            headerField.inputElement?.dispatchEvent(new Event('change', {bubbles: true}));
+            this.#field.focus();
+            this.#field.value = typed(before, now);
+            input.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
+        }
+
+        if (held.enter) {
+            this.#send('Enter', false);
+        }
+    }
+
+    #listen() {
+        if (!this.#field) {
+            return;
+        }
+
+        this.#field.addEventListener('keydown', this.#sendKey);
+        document.addEventListener('keydown', this.#returnKey, true);
+        document.addEventListener('click', this.#focusAfterButton, true);
+        // the field makes its native input on its first render
+        this.#field.updateComplete.then(() => this.#describe());
+    }
+
+    #unlisten() {
+        this.#field?.removeEventListener('keydown', this.#sendKey);
+        document.removeEventListener('keydown', this.#returnKey, true);
+        document.removeEventListener('click', this.#focusAfterButton, true);
+    }
+
+    #send(key, shift) {
+        this.dispatchEvent(new CustomEvent('docai-search-palette-key', {
+            detail: {key, shift, text: this.#field.inputElement.value}
+        }));
     }
 
     // the field selects its whole text as it takes the focus; the line goes on as the person left it
@@ -153,17 +220,25 @@ class SearchPaletteLine extends HTMLElement {
     }
 }
 
-// an input method keeps its keys until the word is done: Safari sends the Enter that ends the word after the
-// composition, and only the key code 229 tells it
-function composes(event) {
-    return event.isComposing || event.keyCode === 229;
-}
+// what came between the start and the end that stayed: the letters typed, or nothing when letters were only deleted.
+// The texts are compared by characters, not by their UTF-16 halves, so that no emoji is cut in two.
+function typed(before, now) {
+    const was = Array.from(before);
+    const is = Array.from(now);
+    let start = 0;
 
-// the field beside the line: a palette that still closes keeps the same ids on the page
-function fieldOf(line) {
-    const id = line.getAttribute('for');
+    while (start < was.length && start < is.length && was[start] === is[start]) {
+        start++;
+    }
 
-    return id ? line.parentElement?.querySelector(`#${CSS.escape(id)}`) : null;
+    let end = 0;
+
+    while (end < was.length - start && end < is.length - start
+            && was[was.length - 1 - end] === is[is.length - 1 - end]) {
+        end++;
+    }
+
+    return is.slice(start, is.length - end).join('');
 }
 
 if (!customElements.get(SearchPaletteLine.is)) {

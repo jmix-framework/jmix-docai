@@ -1,6 +1,7 @@
-package com.company.docai.view.search;
+package com.company.docai.app.ui.component.searchpalette;
 
 import com.google.common.base.Strings;
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -13,23 +14,30 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The query line of the search palette in the browser: the element {@code docai-search-palette-line} of
- * {@code components/search-palette-line.js} makes the text field of the line a combobox of the list of rows, names the
- * row the arrows chose to a screen reader, gives the line the focus back with the caret after its text, and hands the
- * keys that the palette handles itself over to the server, so that the browser does nothing with them. After a click
- * elsewhere in the palette, the first key brings the focus back to the line and acts there. It shows nothing. The
- * palette declares it in its descriptor beside the field and names the field and the list.
+ * {@code src/component/search-palette/docai-search-palette-line.js} makes the text field of the line a combobox of the
+ * list of rows, names the row the arrows chose to a screen reader, gives the line the focus back with the caret after
+ * its text, and hands the keys that the palette handles itself over to the server, so that the browser does nothing
+ * with them. After a click elsewhere in the palette, the first key brings the focus back to the line and acts there.
+ * As the palette opens, the line takes over the keys typed into the header field while the palette came. It shows
+ * nothing. The palette declares it in its descriptor and names the field and the list.
  */
 @Tag("docai-search-palette-line")
-@JsModule("./components/search-palette-line.js")
+@JsModule("./src/component/search-palette/docai-search-palette-line.js")
 public class SearchPaletteLine extends Component {
 
+    @Nullable
+    private Component field;
+
     /**
-     * Sets the text field of the line; the browser looks it up by its id in the layout that holds the line, so the
-     * field needs one. The browser reads it once, when the line reaches the page, so it must be set before the palette
-     * opens.
+     * Sets the text field of the line. The browser gets the field itself whenever the line reaches the page, so the
+     * field needs no id.
      */
     public void setField(Component field) {
-        getElement().setAttribute("for", field.getId().orElseThrow());
+        this.field = field;
+
+        if (isAttached()) {
+            watchField();
+        }
     }
 
     /**
@@ -57,11 +65,35 @@ public class SearchPaletteLine extends Component {
     }
 
     /**
+     * Takes over the keys typed into the header field since the palette was asked for: the letters go into the line,
+     * the header field gets its text back, and an Enter that the header field held back comes as a key of the line.
+     * After an Esc that cancelled the opening, or while an input method still composes a word there, it takes nothing.
+     * The browser reads the keys, so no text comes from the server.
+     */
+    public void takeOver(Component headerField) {
+        getElement().callJsFunction("takeOver", headerField.getElement());
+    }
+
+    /**
      * Adds a listener of the keys that the palette handles itself: the arrows up and down, Tab, Enter, once however
      * long it is held, and Shift+Delete without other modifiers while a row is selected.
      */
     public Registration addKeyListener(ComponentEventListener<KeyEvent> listener) {
         return addListener(KeyEvent.class, listener);
+    }
+
+    // a call reaches only the element the browser has now, and a line that comes back to the page is a new one there
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+
+        watchField();
+    }
+
+    private void watchField() {
+        if (field != null) {
+            getElement().callJsFunction("watch", field.getElement());
+        }
     }
 
     /**

@@ -7,6 +7,8 @@ import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.app.service.folder.FolderTree;
 import com.company.docai.app.service.tag.TagCount;
 import com.company.docai.app.service.tag.TagService;
+import com.company.docai.app.ui.component.searchpalette.SearchPaletteLine;
+import com.company.docai.app.ui.component.searchpalette.SearchPaletteMotion;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.favorite.FavoriteItem;
 import com.company.docai.model.folder.Folder;
@@ -29,6 +31,7 @@ import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ScrollIntoViewOption;
 import com.vaadin.flow.component.Shortcuts;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -331,11 +334,17 @@ public class SearchPaletteView extends StandardView {
         }
     }
 
-    // the window sends it once the dialog is open, and the browser gets the call with the dialog itself
+    // the window sends it once the dialog is open, but the dialog reaches the page only before the response: the calls
+    // wait for it in one task and keep their order there, the keys first, then the flight
     @Subscribe
     public void onReady(final ReadyEvent event) {
         if (origin != null) {
-            motion.open(origin, queryField, panel);
+            Component headerField = origin;
+
+            UI.getCurrent().beforeClientResponse(this, context -> {
+                line.takeOver(headerField);
+                motion.open(headerField, queryField, panel);
+            });
         }
     }
 

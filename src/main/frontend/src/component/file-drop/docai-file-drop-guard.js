@@ -1,6 +1,6 @@
 import { Upload } from '@vaadin/upload/src/vaadin-upload.js';
 import { UploadDropZone } from '@vaadin/upload/src/vaadin-upload-drop-zone.js';
-import { carriesFiles } from './file-drop-zone.js';
+import { carriesFiles } from './docai-file-drop-zone.js';
 
 const DRAG_EVENTS = ['dragenter', 'dragover', 'drop'];
 

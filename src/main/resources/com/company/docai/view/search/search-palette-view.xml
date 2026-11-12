@@ -45,9 +45,9 @@
             </div>
         </div>
         <!-- the flight of the line out of the header field and back; it shows nothing -->
-        <component id="motion" class="com.company.docai.view.search.SearchPaletteMotion"/>
-        <!-- the line in the browser: a combobox of the list, the keys of the palette and the caret. It finds the field
-             in this layout and shows nothing -->
-        <component id="line" class="com.company.docai.view.search.SearchPaletteLine"/>
+        <component id="motion" class="com.company.docai.app.ui.component.searchpalette.SearchPaletteMotion"/>
+        <!-- the line in the browser: a combobox of the list, the keys of the palette and the caret. It shows
+             nothing -->
+        <component id="line" class="com.company.docai.app.ui.component.searchpalette.SearchPaletteLine"/>
     </layout>
 </view>

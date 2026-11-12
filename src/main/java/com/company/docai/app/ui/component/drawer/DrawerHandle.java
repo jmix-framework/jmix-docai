@@ -1,4 +1,4 @@
-package com.company.docai.view.main;
+package com.company.docai.app.ui.component.drawer;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -18,12 +18,12 @@ import java.util.Optional;
 /**
  * The resizable edge of the main menu: a drag or the arrow keys move it within limits, in steps of a quarter of a
  * rem, and the menu opens as wide as the user left it. The element {@code docai-drawer-handle} of
- * {@code components/drawer-handle.js} moves the edge in the browser; this class restores the width, keeps it within
- * the limits and saves it. The main view declares it in its descriptor. It is not a Spring bean: the component
- * factory would give every browser tab the same one.
+ * {@code src/component/drawer/docai-drawer-handle.js} moves the edge in the browser; this class restores the width,
+ * keeps it within the limits and saves it. The main view declares it in its descriptor. It is not a Spring bean: the
+ * component factory would give every browser tab the same one.
  */
 @Tag("docai-drawer-handle")
-@JsModule("./components/drawer-handle.js")
+@JsModule("./src/component/drawer/docai-drawer-handle.js")
 public class DrawerHandle extends Component implements HasStyle {
 
     /**
@@ -108,7 +108,7 @@ public class DrawerHandle extends Component implements HasStyle {
     /**
      * The edge of the main menu dragged to a new width, as the browser reports it at the end of the drag.
      */
-    @DomEvent("drawer-resize")
+    @DomEvent("docai-drawer-resize")
     public static class DrawerResizeEvent extends ComponentEvent<DrawerHandle> {
 
         private final double width;

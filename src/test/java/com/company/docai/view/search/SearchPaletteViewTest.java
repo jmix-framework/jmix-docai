@@ -4,6 +4,7 @@ import com.company.docai.DocAiApplication;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.favorite.FavoriteService;
 import com.company.docai.app.service.folder.FolderService;
+import com.company.docai.app.ui.component.searchpalette.SearchPaletteMotion;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.favorite.FavoriteItem;
@@ -27,8 +28,10 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.internal.UIInternals.JavaScriptInvocation;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.shared.Registration;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
 import io.jmix.core.IdSerialization;
@@ -196,28 +199,51 @@ class SearchPaletteViewTest {
     void thePaletteAsksTheBrowserToFlyItOutOfTheHeaderField() {
         TestPalettes.sentScripts();
 
-        SearchPaletteView palette = TestPalettes.open();
+        // while a navigation runs, the test UI keeps the tasks before the response and runs them in one batch, as the
+        // response to a request of the browser does: the dialog reaches the page only then, after the palette is ready
+        List<SearchPaletteView> palettes = new ArrayList<>();
+        Registration opening = UI.getCurrent().addAfterNavigationListener(event -> palettes.add(TestPalettes.open()));
+        openRepository(sandbox);
+        opening.remove();
 
+        SearchPaletteView palette = palettes.getFirst();
+
+        Element line = TestPalettes.line(palette).getElement();
         Element motion = UiTestUtils.<SearchPaletteMotion>getComponent(palette, "motion").getElement();
-        Element line = TestPalettes.queryField(palette).getElement();
+        Element header = TestPalettes.searchField().getElement();
+        Element field = TestPalettes.queryField(palette).getElement();
         Element panel = UiTestUtils.<Div>getComponent(palette, "panel").getElement();
 
-        // the motion gets the header field, the line, which also takes over what the person typed into the header
-        // field before the palette opened, and the panel, in this order
-        assertThat(TestPalettes.sentScripts())
-                .anySatisfy(invocation -> {
-                    assertThat(invocation.getInvocation().getExpression()).contains("$0.open(");
-                    assertThat(invocation.getInvocation().getParameters())
-                            .containsExactly(motion, TestPalettes.searchField().getElement(), line, panel);
-                });
+        List<JavaScriptInvocation> scripts = TestPalettes.scriptsTo(line, motion);
+
+        // the line gets its field first, then it takes over what the person typed into the header field before the
+        // palette opened, and only then the field of the palette flies out of the header field and the panel unfolds
+        assertThat(scripts)
+                .extracting(JavaScriptInvocation::getExpression)
+                .satisfiesExactly(
+                        watch -> assertThat(watch).contains("$0.watch"),
+                        takeOver -> assertThat(takeOver).contains("$0.takeOver"),
+                        open -> assertThat(open).contains("$0.open"));
+
+        assertThat(scripts)
+                .extracting(JavaScriptInvocation::getParameters)
+                .containsExactly(List.of(line, field), List.of(line, header), List.of(motion, header, field, panel));
     }
 
     @Test
     void theLineNamesItsFieldAndItsListForTheBrowser() {
+        TestPalettes.sentScripts();
+
         SearchPaletteView palette = TestPalettes.open();
         Element line = TestPalettes.line(palette).getElement();
+        Element field = TestPalettes.queryField(palette).getElement();
+        List<JavaScriptInvocation> scripts = TestPalettes.scriptsTo(line);
 
-        assertThat(line.getAttribute("for")).isEqualTo(TestPalettes.queryField(palette).getId().orElseThrow());
+        // the field goes to the browser as itself, before the line takes over the keys of the header field
+        assertThat(scripts.getFirst().getExpression()).contains("$0.watch");
+        assertThat(scripts.getFirst().getParameters()).containsExactly(line, field);
+        assertThat(line.hasAttribute("for")).isFalse();
+        // aria-controls takes an id
         assertThat(line.getAttribute("list"))
                 .isEqualTo(UiTestUtils.<Div>getComponent(palette, "resultsBox").getId().orElseThrow());
     }

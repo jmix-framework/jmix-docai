@@ -1,5 +1,6 @@
-package com.company.docai.view.main;
+package com.company.docai.app.ui.component.searchpalette;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -10,26 +11,34 @@ import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.dom.DomListenerRegistration;
 import com.vaadin.flow.shared.Registration;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Opens the search palette from the search field of the header: the element {@code docai-search-palette-opener} of
- * {@code components/search-palette-opener.js} decides in the browser what opens the palette and sends the server one
- * event with the text of the field. A click on the field, except on its wand and its clear button, ⌘K or Ctrl+K
- * anywhere on the page, and the first character or Enter typed in the field open the palette; the focus alone, as
- * after Tab, opens nothing. The keys typed while the palette is on its way stay with the field, and the palette takes
- * them over as it opens; an Esc among them cancels the opening, with a second event. It shows nothing. The main view
- * declares it in its descriptor and names the field.
+ * {@code src/component/search-palette/docai-search-palette-opener.js} decides in the browser what opens the palette and
+ * sends the server one event with the text of the field. A click on the field, except on its wand and its clear button,
+ * ⌘K or Ctrl+K anywhere on the page, and the first character or Enter typed in the field open the palette; the focus
+ * alone, as after Tab, opens nothing. The keys typed while the palette is on its way stay with the field, and the
+ * palette takes them over as it opens; an Esc among them cancels the opening, with a second event. It shows nothing.
+ * The main view declares it in its descriptor and names the field.
  */
 @Tag("docai-search-palette-opener")
-@JsModule("./components/search-palette-opener.js")
+@JsModule("./src/component/search-palette/docai-search-palette-opener.js")
 public class SearchPaletteOpener extends Component {
 
+    @Nullable
+    private Component field;
+
     /**
-     * Sets the field that opens the palette; the browser looks it up by its id in the layout that holds the opener, so
-     * the field needs one. The browser reads it once, when the opener reaches the page.
+     * Sets the field that opens the palette. The browser gets the field itself whenever the opener reaches the page,
+     * so the field needs no id and may stand anywhere on the page.
      */
     public void setField(Component field) {
-        getElement().setAttribute("for", field.getId().orElseThrow());
+        this.field = field;
+
+        if (isAttached()) {
+            watchField();
+        }
     }
 
     /**
@@ -45,6 +54,20 @@ public class SearchPaletteOpener extends Component {
     public Registration addCancelListener(ComponentEventListener<CancelEvent> listener) {
         // the request comes once the palette is open, which makes the rest of the page inert
         return ComponentUtil.addListener(this, CancelEvent.class, listener, DomListenerRegistration::allowInert);
+    }
+
+    // a call reaches only the element the browser has now, and an opener that comes back to the page is a new one there
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+
+        watchField();
+    }
+
+    private void watchField() {
+        if (field != null) {
+            getElement().callJsFunction("watch", field.getElement());
+        }
     }
 
     /**
