@@ -12,6 +12,7 @@ src/main/bundles/
 ### IntelliJ IDEA ###
 .idea/*
 !.idea/encodings.xml
+!.idea/icon.svg
 *.iws
 *.iml
 *.ipr
