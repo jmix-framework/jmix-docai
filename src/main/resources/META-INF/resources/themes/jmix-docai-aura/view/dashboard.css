@@ -1,13 +1,12 @@
-/* The dashboard at the root of the main view: the greeting and the questions for the assistant over two columns of
-   cards, about 3:2, in the middle of a wide screen. Under about 900px the columns wrap into one, the main column
-   first */
+/* The dashboard at the root of the main view: the greeting and the question for the assistant over the cards. The
+   cards stand in one, two or three columns by the width that the window and the menu leave the dashboard, and each
+   card lays out its rows by its own width */
 
 .dashboard {
     flex: none;
     width: 100%;
-    max-width: 80rem;
-    margin-inline: auto;
     gap: var(--vaadin-gap-l);
+    container: dashboard / inline-size;
 }
 
 .dashboard-welcome {
@@ -26,7 +25,6 @@
 
 .dashboard-ask {
     width: 100%;
-    max-width: 48rem;
     gap: var(--vaadin-gap-s);
 }
 
@@ -60,20 +58,51 @@
     white-space: nowrap;
 }
 
+/* A narrow dashboard shows the cards in one column in the order of the page. A wider one has two columns about 3:2,
+   the main one with the dates, the documents without a type and the changes, the side one with the chats and the
+   summary; a wide one has three about equal, the main column's cards taking two of them with the changes beside the
+   other two, so the order of reading stays that of the page. The changes stand over both rows there, and the second
+   row takes what they need beyond the dates, so the documents without a type stay right under the dates */
 .dashboard-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
     gap: var(--vaadin-gap-l);
 }
 
-.dashboard-main-column {
-    flex: 3 1 33rem;
-    min-width: 0;
-    gap: var(--vaadin-gap-l);
-}
-
+.dashboard-main-column,
 .dashboard-side-column {
-    flex: 2 1 22rem;
     min-width: 0;
     gap: var(--vaadin-gap-l);
+}
+
+@container dashboard (56rem <= width < 90rem) {
+    .dashboard-columns {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+}
+
+@container dashboard (width >= 90rem) {
+    .dashboard-columns {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .dashboard-main-column {
+        display: grid;
+        grid-column: span 2;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: auto 1fr;
+        align-items: start;
+    }
+
+    .dashboard-activity-card {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+    }
+}
+
+.dashboard-card {
+    container: dashboard-card / inline-size;
 }
 
 .dashboard-card-title {
@@ -96,21 +125,19 @@
     width: 100%;
 }
 
-/* A row is a line of the list: a button as wide as the card that opens what the row shows, and the buttons after it,
-   which move under it on a narrow screen. The name takes the room left and ends with an ellipsis, so the date and the
-   time stay in sight */
+/* A row is a line of the list: a button that opens what the row shows, as wide as the buttons after it leave it. The
+   name takes the room left and ends with an ellipsis, so the date and the time stay in sight */
 .dashboard-row {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: var(--vaadin-gap-s);
+    column-gap: var(--vaadin-gap-s);
     width: 100%;
     min-width: 0;
 }
 
 .dashboard-row-open {
     display: flex;
-    flex: 1 1 20rem;
+    flex: 1 1 0;
     align-items: center;
     gap: var(--vaadin-gap-s);
     min-width: 0;
@@ -163,28 +190,45 @@
     font-size: var(--aura-font-size-s);
 }
 
-/* An upcoming date shows the field and the folder after the name, and under it when the row is too narrow for both:
-   the name keeps the width of the row, and the field and the folder end with an ellipsis only at the end of their
-   own line. The date stands on the line of the name */
+/* An upcoming date shows the name of the document on the line of the date, and the field and the folder after it,
+   where the name gives way to them. A narrow card has no room for both: the field and the folder go under the name,
+   not under the date, and end with an ellipsis only at the end of their own line */
 .dashboard-row-texts {
     display: flex;
     flex: 1 1 0;
-    flex-wrap: wrap;
     align-items: baseline;
     column-gap: var(--vaadin-gap-s);
     min-width: 0;
 }
 
-.dashboard-row-texts .dashboard-row-name {
-    flex-basis: 10rem;
-}
-
-.dashboard-row-texts .dashboard-row-details {
-    max-width: 100%;
-}
-
 .dashboard-upcoming-card .dashboard-row-open {
     align-items: baseline;
+}
+
+@container dashboard-card (width < 30rem) {
+    .dashboard-row-texts {
+        flex-wrap: wrap;
+    }
+
+    .dashboard-row-texts .dashboard-row-name {
+        flex-basis: 100%;
+    }
+
+    .dashboard-row-texts .dashboard-row-details {
+        max-width: 100%;
+    }
+}
+
+/* Fill with AI ends the row of a document without a type; a narrow card puts it under the name, which keeps the
+   line */
+@container dashboard-card (width < 28rem) {
+    .dashboard-untyped-card .dashboard-row {
+        flex-wrap: wrap;
+    }
+
+    .dashboard-untyped-card .dashboard-row-open {
+        flex-basis: 100%;
+    }
 }
 
 span.dashboard-row-date,
@@ -196,6 +240,20 @@ span.dashboard-row-date,
 
 .dashboard-empty {
     padding: var(--vaadin-padding-xs) var(--vaadin-padding-s);
+}
+
+/* the types and the statuses of the summary stand one under the other, and side by side when the card has the room */
+.dashboard-summary-group {
+    width: 100%;
+}
+
+@container dashboard-card (width >= 38rem) {
+    .dashboard-summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+        column-gap: var(--vaadin-gap-xl);
+    }
 }
 
 .dashboard-summary-heading {

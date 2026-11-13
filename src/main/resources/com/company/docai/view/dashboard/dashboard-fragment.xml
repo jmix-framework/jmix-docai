@@ -31,9 +31,8 @@
                             text="msg://question3Button.text"/>
                 </hbox>
             </vbox>
-            <!-- the two columns wrap into one on a narrow screen, the main column first -->
-            <hbox id="columns" classNames="dashboard-columns" width="100%" alignItems="START" wrap="true"
-                  padding="false">
+            <!-- the cards stand in one, two or three columns by the width of the dashboard (dashboard.css) -->
+            <div id="columns" classNames="dashboard-columns" width="100%">
                 <vbox id="mainColumn" classNames="dashboard-main-column" padding="false">
                     <card id="upcomingCard" classNames="dashboard-card dashboard-upcoming-card" width="100%">
                         <title>
@@ -82,7 +81,7 @@
                         </content>
                     </card>
                 </vbox>
-            </hbox>
+            </div>
         </vbox>
     </content>
 </fragment>

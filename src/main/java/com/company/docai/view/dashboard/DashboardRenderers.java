@@ -10,6 +10,7 @@ import com.company.docai.view.user.UserRenderers;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.NativeButton;
@@ -29,8 +30,8 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The rows of the blocks of the dashboard, built from the records of the dashboard service, and the dates and the
@@ -120,8 +121,10 @@ public class DashboardRenderers {
             fill.setAriaLabel(messages.formatMessage(getClass(), "fillWithAiButton.ariaLabel",
                     untyped.document().getName()));
 
+            // a link in the purple of AI rather than a button: the row keeps the height of the rows of the other blocks
             fill.setIcon(icons.get(JmixFontIcon.MAGIC));
-            fill.addClassNames("aura-accent-purple", "ai-button");
+            fill.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
+            fill.addClassName("aura-accent-purple");
             fill.addClickListener(click -> fillWithAi.run());
             row.add(fill);
         }
@@ -186,15 +189,17 @@ public class DashboardRenderers {
     }
 
     /**
-     * Builds a group of the summary: its heading and a line for each row. A bar shows the number against the largest
-     * one of its group; a status keeps the color of its badge. A group without rows has nothing to show.
+     * Builds a group of the summary in an element of its own, which a wide card sets beside the other group: its
+     * heading and a line for each row. A bar shows the number against the largest one of its group; a status keeps
+     * the color of its badge. A group without rows has nothing to show.
      */
-    public List<Component> summaryGroup(String title, List<Summary.Row> rows) {
+    public Optional<Div> summaryGroup(String title, List<Summary.Row> rows) {
         if (rows.isEmpty()) {
-            return List.of();
+            return Optional.empty();
         }
 
-        List<Component> group = new ArrayList<>();
+        Div group = uiComponents.create(Div.class);
+        group.addClassName("dashboard-summary-group");
 
         H4 heading = uiComponents.create(H4.class);
         heading.addClassName("dashboard-summary-heading");
@@ -230,7 +235,7 @@ public class DashboardRenderers {
             group.add(line);
         }
 
-        return group;
+        return Optional.of(group);
     }
 
     /**

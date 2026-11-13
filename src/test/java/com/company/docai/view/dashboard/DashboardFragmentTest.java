@@ -297,6 +297,8 @@ class DashboardFragmentTest {
     private List<Div> summaryRows() {
         return TestDashboards.<VerticalLayout>component(dashboard, "summaryBox")
                 .getChildren()
+                .filter(child -> child.hasClassName("dashboard-summary-group"))
+                .flatMap(Component::getChildren)
                 .filter(child -> child.hasClassName("dashboard-summary-row"))
                 .map(Div.class::cast)
                 .toList();

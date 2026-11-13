@@ -314,8 +314,11 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         String types = messageBundle.getMessage("typesHeading.text");
         String statuses = messageBundle.getMessage("statusesHeading.text");
 
-        summaryBox.add(dashboardRenderers.summaryGroup(types, summary.types()));
-        summaryBox.add(dashboardRenderers.summaryGroup(statuses, summary.statuses()));
+        dashboardRenderers.summaryGroup(types, summary.types())
+                .ifPresent(summaryBox::add);
+
+        dashboardRenderers.summaryGroup(statuses, summary.statuses())
+                .ifPresent(summaryBox::add);
     }
 
     // a block without rows says so in a line of its own
