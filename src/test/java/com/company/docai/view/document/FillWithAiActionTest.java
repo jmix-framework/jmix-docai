@@ -46,6 +46,9 @@ import io.jmix.flowui.testassist.notification.OpenedNotifications;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.ViewControllerUtils;
+import io.jmix.uirecovery.entity.ViewDraft;
+import io.jmix.uirecoveryflowui.facet.DraftRestoreContext;
+import io.jmix.uirecoveryflowui.facet.DraftsFacet;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,6 +67,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -387,6 +391,27 @@ class FillWithAiActionTest {
                 INVOICE);
 
         assertThat(button.isVisible()).isFalse();
+    }
+
+    @Test
+    void aCardThatAsksWhetherToRestoreADraftLeavesFillWithAiToItsButton() {
+        DocumentDetailView card = openCard(upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8)));
+
+        DraftsFacet drafts = (DraftsFacet) Objects.requireNonNull(ViewControllerUtils.getViewFacets(card)
+                .getFacet("draftsFacet"));
+
+        // the drafts are off in the tests, so the test hands the facet's delegate a draft as the facet does when it
+        // finds one, before it asks whether to restore it
+        Objects.requireNonNull(drafts.getRestoreDelegate())
+                .accept(new DraftRestoreContext(dataManager.create(ViewDraft.class), card));
+
+        openedNotifications.closeOpenedNotifications();
+
+        card.fillWithAi();
+
+        assertThat(UiTestUtils.getOpenedDialogs()).isEmpty();
+        assertThat(openedNotifications.getNotifications()).isEmpty();
+        assertThat(model.prompts()).isEmpty();
     }
 
     @Test

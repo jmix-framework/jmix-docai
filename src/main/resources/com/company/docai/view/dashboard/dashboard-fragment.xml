@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <content>
+        <vbox id="dashboardRoot" classNames="dashboard" padding="false">
+            <vbox id="welcome" classNames="dashboard-welcome" padding="false" spacing="false">
+                <h2 id="greeting" classNames="dashboard-greeting"/>
+                <span id="summaryLine" classNames="dashboard-summary-line"/>
+            </vbox>
+            <!-- the field and the questions open the chat of the assistant, so they show only with the AI on -->
+            <vbox id="askBox" classNames="dashboard-ask" padding="false" visible="false">
+                <hbox id="questionRow" classNames="dashboard-question-row" width="100%" alignItems="CENTER"
+                      padding="false">
+                    <textField id="questionField" classNames="dashboard-question aura-accent-purple"
+                               placeholder="msg://questionField.placeholder"
+                               ariaLabel="msg://questionField.placeholder" valueChangeMode="EAGER">
+                        <prefix>
+                            <icon icon="COMMENTS" classNames="dashboard-ai-icon"/>
+                        </prefix>
+                    </textField>
+                    <button id="askButton" icon="PAPERPLANE" classNames="aura-accent-purple ai-button"
+                            ariaLabel="msg://askButton.ariaLabel">
+                        <tooltip text="msg://askButton.ariaLabel"/>
+                    </button>
+                </hbox>
+                <hbox id="questions" classNames="dashboard-questions" width="100%" padding="false" wrap="true">
+                    <button id="question1Button" icon="COMMENTS" classNames="aura-accent-purple ai-button"
+                            text="msg://com.company.docai.view.search/aiQuestion1.text"/>
+                    <button id="question2Button" icon="COMMENTS" classNames="aura-accent-purple ai-button"
+                            text="msg://com.company.docai.view.search/aiQuestion2.text"/>
+                    <button id="question3Button" icon="COMMENTS" classNames="aura-accent-purple ai-button"
+                            text="msg://question3Button.text"/>
+                </hbox>
+            </vbox>
+            <!-- the two columns wrap into one on a narrow screen, the main column first -->
+            <hbox id="columns" classNames="dashboard-columns" width="100%" alignItems="START" wrap="true"
+                  padding="false">
+                <vbox id="mainColumn" classNames="dashboard-main-column" padding="false">
+                    <card id="upcomingCard" classNames="dashboard-card dashboard-upcoming-card" width="100%">
+                        <title>
+                            <h3 classNames="dashboard-card-title" text="msg://upcomingCard.title"/>
+                        </title>
+                        <content>
+                            <vbox id="upcomingBox" classNames="dashboard-rows" padding="false" spacing="false"/>
+                        </content>
+                    </card>
+                    <card id="untypedCard" classNames="dashboard-card dashboard-untyped-card" width="100%">
+                        <title>
+                            <h3 id="untypedTitle" classNames="dashboard-card-title dashboard-card-counted"
+                                text="msg://untypedCard.title"/>
+                        </title>
+                        <content>
+                            <vbox id="untypedBox" classNames="dashboard-rows" padding="false" spacing="false"/>
+                        </content>
+                    </card>
+                    <card id="activityCard" classNames="dashboard-card dashboard-activity-card" width="100%">
+                        <title>
+                            <h3 classNames="dashboard-card-title" text="msg://activityCard.title"/>
+                        </title>
+                        <content>
+                            <vbox id="activityBox" classNames="dashboard-rows" padding="false" spacing="false"/>
+                        </content>
+                    </card>
+                </vbox>
+                <vbox id="sideColumn" classNames="dashboard-side-column" padding="false">
+                    <card id="chatsCard" classNames="dashboard-card dashboard-chats-card" width="100%" visible="false">
+                        <title>
+                            <h3 classNames="dashboard-card-title" text="msg://chatsCard.title"/>
+                        </title>
+                        <headerSuffix>
+                            <button id="allChatsButton" text="msg://allChatsButton.text" themeNames="tertiary"/>
+                        </headerSuffix>
+                        <content>
+                            <vbox id="chatsBox" classNames="dashboard-rows" padding="false" spacing="false"/>
+                        </content>
+                    </card>
+                    <card id="summaryCard" classNames="dashboard-card dashboard-summary-card" width="100%">
+                        <title>
+                            <h3 classNames="dashboard-card-title" text="msg://summaryCard.title"/>
+                        </title>
+                        <content>
+                            <vbox id="summaryBox" classNames="dashboard-summary" padding="false" spacing="false"/>
+                        </content>
+                    </card>
+                </vbox>
+            </hbox>
+        </vbox>
+    </content>
+</fragment>

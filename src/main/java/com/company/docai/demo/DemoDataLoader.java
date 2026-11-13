@@ -22,6 +22,7 @@ import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Metadata;
 import io.jmix.core.SaveContext;
+import io.jmix.core.TimeSource;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
@@ -44,9 +45,11 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -66,6 +69,9 @@ import java.util.function.Function;
  * The set is chosen by {@code docai.demo-data} ({@code en}, {@code ru} or {@code none}); its description is
  * {@code com/company/docai/demo/<set>/demo-data.json}, the files of its versions lie in {@code files} next to it. A set
  * loads in one transaction, all of it or nothing.
+ * The history of the set, its uploads, comments and deletions, moves by whole days to the days before the load,
+ * so its last event happened yesterday; the dates of the documents and of their fields stay as the set writes
+ * them.
  */
 @Component
 public class DemoDataLoader {
@@ -120,6 +126,7 @@ public class DemoDataLoader {
     private final DemoSetChecker checker;
     private final SystemAuthenticator systemAuthenticator;
     private final Metadata metadata;
+    private final TimeSource timeSource;
     private final TransactionTemplate transaction;
 
     // the dates of the history are written past the entity listeners, which stamp the current time
@@ -140,6 +147,7 @@ public class DemoDataLoader {
                           DemoSetChecker checker,
                           SystemAuthenticator systemAuthenticator,
                           Metadata metadata,
+                          TimeSource timeSource,
                           PlatformTransactionManager transactionManager) {
         this.chosenSet = chosenSet;
         this.dataManager = dataManager;
@@ -155,6 +163,7 @@ public class DemoDataLoader {
         this.checker = checker;
         this.systemAuthenticator = systemAuthenticator;
         this.metadata = metadata;
+        this.timeSource = timeSource;
         this.transaction = new TransactionTemplate(transactionManager);
     }
 
@@ -228,7 +237,7 @@ public class DemoDataLoader {
 
         log.info("The demo set '{}' is loading", set);
         long started = System.nanoTime();
-        Loaded loaded = new Loaded();
+        Loaded loaded = new Loaded(historyShift(description));
 
         transaction.executeWithoutResult(status -> systemAuthenticator.runWithUser(ADMIN, () -> {
             nameUsers(description.users());
@@ -241,12 +250,12 @@ public class DemoDataLoader {
             }
 
             markAsDescribed(loaded.marked);
-            deleteAsDescribed(loaded.deleted);
+            deleteAsDescribed(loaded);
         }));
 
-        log.info("The demo set '{}' is loaded: {} folders, {} documents, {} versions, {} items in the trash in {} ms",
-                set, loaded.folders, loaded.documents, loaded.versions, loaded.deleted.size(),
-                (System.nanoTime() - started) / 1_000_000);
+        log.info("The demo set '{}' is loaded: {} folders, {} documents, {} versions, {} items in the trash in {} ms;"
+                        + " its history moved by {} days", set, loaded.folders, loaded.documents, loaded.versions,
+                loaded.deleted.size(), (System.nanoTime() - started) / 1_000_000, loaded.shift);
     }
 
     // the changelogs create the users with English names, and the set names them in its language
@@ -398,8 +407,8 @@ public class DemoDataLoader {
 
         moveTo(document, statusFor(statusKey, loaded));
 
-        backdate(document, versions);
-        writeComments(document, description.comments());
+        backdate(document, versions, loaded);
+        writeComments(document, description.comments(), loaded);
         loaded.documents++;
         loaded.marked.add(new Marked(document, description.favoriteOf()));
         loaded.versions += versions.size();
@@ -490,7 +499,7 @@ public class DemoDataLoader {
     }
 
     // the history of the set: when each version was uploaded, and who changed the document last
-    private void backdate(Document document, List<DemoSet.Version> versions) {
+    private void backdate(Document document, List<DemoSet.Version> versions, Loaded loaded) {
         List<DocumentRevision> revisions = unconstrainedDataManager.load(DocumentRevision.class)
                 .query("select r from DocumentRevision r where r.document = :document order by r.number")
                 .parameter("document", document)
@@ -498,7 +507,7 @@ public class DemoDataLoader {
 
         for (int number = 0; number < revisions.size(); number++) {
             entityManager.createQuery("update DocumentRevision r set r.createdDate = :uploaded where r.id = :id")
-                    .setParameter("uploaded", at(versions.get(number).uploaded()))
+                    .setParameter("uploaded", loaded.at(versions.get(number).uploaded()))
                     .setParameter("id", revisions.get(number).getId())
                     .executeUpdate();
         }
@@ -508,27 +517,27 @@ public class DemoDataLoader {
         entityManager.createQuery("update Document d set d.createdDate = :created, d.changedDate = :changed,"
                         + " d.changedBy = :author, d.lastModifiedDate = :changed, d.lastModifiedBy = :author"
                         + " where d.id = :id")
-                .setParameter("created", at(versions.getFirst().uploaded()))
-                .setParameter("changed", at(last.uploaded()))
+                .setParameter("created", loaded.at(versions.getFirst().uploaded()))
+                .setParameter("changed", loaded.at(last.uploaded()))
                 .setParameter("author", last.author())
                 .setParameter("id", document.getId())
                 .executeUpdate();
     }
 
     // every comment is written by its author, with the rights the author has, and dated as described
-    private void writeComments(Document document, List<DemoSet.Comment> comments) {
+    private void writeComments(Document document, List<DemoSet.Comment> comments, Loaded loaded) {
         for (DemoSet.Comment description : comments) {
             DocumentComment comment = systemAuthenticator.withUser(description.author(),
                     () -> commentService.post(document, description.text()));
 
             entityManager.createQuery("update DocumentComment c set c.createdDate = :written where c.id = :id")
-                    .setParameter("written", at(description.at()))
+                    .setParameter("written", loaded.at(description.at()))
                     .setParameter("id", comment.getId())
                     .executeUpdate();
 
             if (description.edited() != null) {
                 entityManager.createQuery("update DocumentComment c set c.editedDate = :edited where c.id = :id")
-                        .setParameter("edited", at(description.edited()))
+                        .setParameter("edited", loaded.at(description.edited()))
                         .setParameter("id", comment.getId())
                         .executeUpdate();
             }
@@ -551,10 +560,10 @@ public class DemoDataLoader {
 
     // what lies in the trash is deleted after the whole set has loaded, in the order of its time, and dated as
     // described; what goes together with a folder gets the time of the folder, so that it comes back with the folder
-    private void deleteAsDescribed(List<Deleted> deletions) {
-        deletions.sort(Comparator.comparing(deleted -> deleted.description().at()));
+    private void deleteAsDescribed(Loaded loaded) {
+        loaded.deleted.sort(Comparator.comparing(deleted -> deleted.description().at()));
 
-        for (Deleted deleted : deletions) {
+        for (Deleted deleted : loaded.deleted) {
             List<UUID> folders = new ArrayList<>();
             List<UUID> documents = new ArrayList<>();
 
@@ -588,7 +597,7 @@ public class DemoDataLoader {
             rows.addAll(deletedRows(DocumentRevision.class, "e.document.id in :ids", documents));
 
             rows.forEach(row -> {
-                EntityValues.setDeletedDate(row, at(deleted.description().at()));
+                EntityValues.setDeletedDate(row, loaded.at(deleted.description().at()));
                 EntityValues.setDeletedBy(row, deleted.description().by());
             });
 
@@ -611,8 +620,14 @@ public class DemoDataLoader {
                 .list();
     }
 
-    private static OffsetDateTime at(LocalDateTime time) {
-        return time.atZone(ZoneId.systemDefault()).toOffsetDateTime();
+    // whole days, so that every event keeps its time of day: the day after the last event of the set becomes the day
+    // of the load, so the last event happened yesterday and none happens in the future
+    private long historyShift(DemoSet description) {
+        LocalDate loadDay = timeSource.now().toLocalDate();
+
+        return description.lastEvent()
+                .map(last -> ChronoUnit.DAYS.between(last.toLocalDate().plusDays(1), loadDay))
+                .orElse(0L);
     }
 
     private static final class Loaded {
@@ -620,9 +635,22 @@ public class DemoDataLoader {
         private final List<Deleted> deleted = new ArrayList<>();
         private final List<Marked> marked = new ArrayList<>();
         private final Map<String, DocumentStatus> statuses = new HashMap<>();
+        // the whole days the history of the set moves by
+        private final long shift;
         private int folders;
         private int documents;
         private int versions;
+
+        private Loaded(long shift) {
+            this.shift = shift;
+        }
+
+        // a time of the history, which the set writes in the time zone of the server, on its day after the shift
+        private OffsetDateTime at(LocalDateTime time) {
+            return time.plusDays(shift)
+                    .atZone(ZoneId.systemDefault())
+                    .toOffsetDateTime();
+        }
     }
 
     private record Deleted(Object item, DemoSet.Deletion description) {

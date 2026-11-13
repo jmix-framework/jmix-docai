@@ -5,6 +5,7 @@ import com.company.docai.app.ui.component.searchpalette.SearchPaletteOpener;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.user.User;
+import com.company.docai.view.dashboard.DashboardFragment;
 import com.company.docai.view.document.DocumentCards;
 import com.company.docai.view.favorite.FavoritesFragment;
 import com.company.docai.view.profile.ProfileReadView;
@@ -81,6 +82,9 @@ public class MainView extends StandardMainView {
     @ViewComponent
     private SearchPaletteOpener searchPaletteOpener;
 
+    @ViewComponent
+    private DashboardFragment dashboard;
+
     @Autowired
     private AiSettings aiSettings;
     @Autowired
@@ -111,6 +115,7 @@ public class MainView extends StandardMainView {
         initAssistantMenu();
         initFolderTree();
         initSearch();
+        initDashboard();
     }
 
     @Override
@@ -119,6 +124,15 @@ public class MainView extends StandardMainView {
 
         showSearchOf(event);
         restoreFolderTree(event);
+        refreshDashboard();
+    }
+
+    // the dashboard is no view, so it names itself in the header
+    @Override
+    protected String getTitleFromOpenedView() {
+        return isDashboardShown()
+                ? dashboard.getTitle()
+                : super.getTitleFromOpenedView();
     }
 
     // the open results stay until the palette runs the query in the chosen mode
@@ -377,6 +391,33 @@ public class MainView extends StandardMainView {
         searchModeButton.getElement().setAttribute("aria-pressed", String.valueOf(aiSearch));
         searchField.setPlaceholder(messages.getMessage(getClass(),
                 aiSearch ? "searchField.aiPlaceholder" : "searchField.placeholder"));
+    }
+
+    // a document of the dashboard opens over it, and the dashboard and the favorites follow what the card changed
+    private void initDashboard() {
+        dashboard.setDocumentOpenHandler(document -> documentCards.openIfAvailable(this, document,
+                closeEvent -> afterDashboardCard()));
+
+        dashboard.setFillWithAiHandler(document -> documentCards.fillWithAiIfAvailable(this, document,
+                closeEvent -> afterDashboardCard()));
+
+        dashboard.setAssistantHandler(searchNavigation::openAssistant);
+    }
+
+    // the dashboard stands in place of a view, so it reads its blocks whenever the root shows it
+    private void refreshDashboard() {
+        if (isDashboardShown()) {
+            dashboard.refresh();
+        }
+    }
+
+    private void afterDashboardCard() {
+        refreshFavorites();
+        refreshDashboard();
+    }
+
+    private boolean isDashboardShown() {
+        return getContent().getContent() == getInitialLayout();
     }
 
     private Avatar createAvatar(String fullName) {

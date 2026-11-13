@@ -22,6 +22,7 @@ import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
+import io.jmix.core.TimeSource;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
@@ -42,9 +43,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,10 +57,12 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Loads the sets into a database of their own and compares the database with the descriptions, so the test names
- * no folder or document of a set.
+ * no folder or document of a set. The history of a set lands on the days before the load, so its times compare with
+ * those of the description moved by the same whole days.
  */
 @SpringBootTest(properties = "main.datasource.url=jdbc:hsqldb:mem:demo")
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -91,8 +96,13 @@ class DemoDataLoaderTest {
     @Autowired
     private SystemAuthenticator systemAuthenticator;
 
+    @Autowired
+    private TimeSource timeSource;
+
     // the names of the statuses that the keys of the set being checked stand for
     private Map<String, String> statusNames = Map.of();
+    // the whole days the loader moved the history of the set being checked by
+    private long shift;
 
     @Test
     @Order(1)
@@ -112,9 +122,12 @@ class DemoDataLoaderTest {
     @Test
     @Order(2)
     void anEmptyDatabaseGetsTheSetAndAFilledOneDoesNot() {
+        LocalDate loadDay = today();
+
         assertThat(loader.loadIfEmpty("sample")).isEqualTo(DemoDataLoader.Outcome.LOADED);
         assertThat(loader.loadIfEmpty("sample")).isEqualTo(DemoDataLoader.Outcome.NOT_EMPTY);
 
+        shift = shiftOf("sample", loadDay);
         assertLoadedAsDescribed("sample");
     }
 
@@ -122,9 +135,11 @@ class DemoDataLoaderTest {
     @Order(3)
     void theRussianSetLoadsAsItsDescriptionSays() {
         assertThat(loader.check("ru")).isEmpty();
+        LocalDate loadDay = today();
 
         loader.load("ru");
 
+        shift = shiftOf("ru", loadDay);
         assertLoadedAsDescribed("ru");
         assertFavoritesAsDescribed("ru");
         assertUsersAsDescribed("ru", Character.UnicodeScript.CYRILLIC);
@@ -135,9 +150,11 @@ class DemoDataLoaderTest {
     @Order(4)
     void theEnglishSetLoadsAsItsDescriptionSays() {
         assertThat(loader.check("en")).isEmpty();
+        LocalDate loadDay = today();
 
         loader.load("en");
 
+        shift = shiftOf("en", loadDay);
         assertLoadedAsDescribed("en");
         assertFavoritesAsDescribed("en");
         assertUsersAsDescribed("en", Character.UnicodeScript.LATIN);
@@ -352,8 +369,8 @@ class DemoDataLoaderTest {
         }
     }
 
-    private static void assertDeletion(@Nullable String deletedBy, @Nullable OffsetDateTime deletedDate,
-                                       DemoSet.@Nullable Deletion deletion) {
+    private void assertDeletion(@Nullable String deletedBy, @Nullable OffsetDateTime deletedDate,
+                                DemoSet.@Nullable Deletion deletion) {
         if (deletion == null) {
             assertThat(deletedDate).isNull();
             return;
@@ -499,8 +516,28 @@ class DemoDataLoaderTest {
                 .toList();
     }
 
-    private static Instant instantOf(LocalDateTime time) {
-        return time.atZone(ZoneId.systemDefault()).toInstant();
+    // a time of the history as the loader writes it: on its day after the shift of the set, in the time zone of the
+    // server
+    private Instant instantOf(LocalDateTime time) {
+        return time.plusDays(shift)
+                .atZone(ZoneId.systemDefault())
+                .toInstant();
+    }
+
+    // the loader moves the history of a set by whole days, so that its last event falls on the day before the load;
+    // a load that runs over midnight cannot tell which of the two days that is
+    private long shiftOf(String set, LocalDate loadDay) {
+        assumeTrue(loadDay.equals(today()), "the load ran over midnight");
+
+        LocalDate lastEvent = read(set).lastEvent()
+                .orElseThrow()
+                .toLocalDate();
+
+        return ChronoUnit.DAYS.between(lastEvent, loadDay.minusDays(1));
+    }
+
+    private LocalDate today() {
+        return timeSource.now().toLocalDate();
     }
 
     // a key of the set names its status by the name the set gives it, a default status by the name it has

@@ -2,9 +2,12 @@ package com.company.docai.view.login;
 
 import com.company.docai.DocAiApplication;
 import com.company.docai.test_support.AnonymousUiTestAuthenticator;
-import com.company.docai.view.repository.RepositoryView;
+import com.company.docai.test_support.TestDashboards;
+import com.company.docai.view.dashboard.DashboardFragment;
+import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
 import io.jmix.core.security.CurrentAuthentication;
@@ -27,11 +30,16 @@ class LoginViewTest {
     private CurrentAuthentication currentAuthentication;
 
     @Test
-    void anEmployeeSignsInWithTheDemoPassword() {
+    void anEmployeeSignsInWithTheDemoPasswordAndLandsOnTheDashboard() {
         login("peter", "peter");
 
-        assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(RepositoryView.class);
+        View<?> view = UiTestUtils.getCurrentView();
+        DashboardFragment dashboard = UiTestUtils.getComponent(view, "dashboard");
+
+        assertThat(view).isInstanceOf(MainView.class);
         assertThat(currentAuthentication.getUser().getUsername()).isEqualTo("peter");
+        // the main view reads the blocks of the dashboard as it shows it after the sign-in
+        assertThat(TestDashboards.<H2>component(dashboard, "greeting").getText()).isNotBlank();
     }
 
     @Test

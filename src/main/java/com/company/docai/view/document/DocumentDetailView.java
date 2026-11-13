@@ -57,6 +57,7 @@ import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.InstanceContainer;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.*;
+import io.jmix.uirecoveryflowui.facet.DraftRestoreContext;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -192,6 +193,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private DocumentCardChanges changes;
 
     private Map<String, String> userNames = Map.of();
+    private boolean draftFound;
 
     @Subscribe
     public void onInit(final InitEvent event) {
@@ -274,6 +276,13 @@ public class DocumentDetailView extends StandardDetailView<Document> {
                 : documentService.save(document, changes.getNewVersion(), changes.getTargetStatus());
 
         return Set.of(saved);
+    }
+
+    // the drafts facet hands a draft it finds here before it asks whether to restore it, and Fill with AI started
+    // from outside the card waits for that answer
+    @Install(to = "draftsFacet", subject = "restoreDelegate")
+    private void draftsFacetRestoreDelegate(final DraftRestoreContext context) {
+        draftFound = true;
     }
 
     @Subscribe("newVersionUpload")
@@ -522,6 +531,17 @@ public class DocumentDetailView extends StandardDetailView<Document> {
      */
     public void showProperties() {
         cardTabs.setSelectedTab(propertiesTab);
+    }
+
+    /**
+     * Starts Fill with AI as its button does, when the card offers it: the AI is on, the user may edit the document,
+     * its status does not lock it and the card shows a file. A card that asks whether to restore a draft leaves the
+     * start to its button, after the answer.
+     */
+    public void fillWithAi() {
+        if (!draftFound && fillWithAiAction.isVisible() && fillWithAiAction.isEnabled()) {
+            fillWithAiAction.execute();
+        }
     }
 
     private void showTags() {

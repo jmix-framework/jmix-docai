@@ -43,6 +43,14 @@ class ConfigurationProfilesTest {
         }
     }
 
+    // the main view opens after the sign-in with the dashboard at its root; a default view would open instead of it
+    @Test
+    void noProfileNamesAViewToOpenAfterTheSignIn() {
+        try (ConfigurableApplicationContext context = start()) {
+            assertThat(context.getEnvironment().containsProperty("jmix.ui.default-view-id")).isFalse();
+        }
+    }
+
     private ConfigurableApplicationContext start(String... args) {
         return new SpringApplicationBuilder(EmptyConfiguration.class)
                 .environment(new IsolatedEnvironment())

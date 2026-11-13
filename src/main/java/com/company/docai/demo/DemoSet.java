@@ -12,8 +12,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -95,6 +99,42 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
             return AccessLevel.valueOf(name);
         } catch (IllegalArgumentException e) {
             return null;
+        }
+    }
+
+    /**
+     * Returns the time of the last event of the history of the set: an upload, a comment, the change of a comment or a
+     * deletion; none for a set without them.
+     */
+    public Optional<LocalDateTime> lastEvent() {
+        List<LocalDateTime> events = new ArrayList<>();
+        collectEvents(folders, events);
+
+        return events.stream()
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder());
+    }
+
+    private static void collectEvents(List<Folder> folders, List<LocalDateTime> events) {
+        for (Folder folder : folders) {
+            if (folder.deleted() != null) {
+                events.add(folder.deleted().at());
+            }
+
+            for (Document document : folder.documents()) {
+                document.versions().forEach(version -> events.add(version.uploaded()));
+
+                for (Comment comment : document.comments()) {
+                    events.add(comment.at());
+                    events.add(comment.edited());
+                }
+
+                if (document.deleted() != null) {
+                    events.add(document.deleted().at());
+                }
+            }
+
+            collectEvents(folder.folders(), events);
         }
     }
 

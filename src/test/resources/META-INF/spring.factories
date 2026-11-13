@@ -1,0 +1,1 @@
+org.springframework.test.context.TestExecutionListener=com.company.docai.test_support.UserMenuListenerCleanup

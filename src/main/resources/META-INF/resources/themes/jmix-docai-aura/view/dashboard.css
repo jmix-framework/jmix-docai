@@ -1,0 +1,242 @@
+/* The dashboard at the root of the main view: the greeting and the questions for the assistant over two columns of
+   cards, about 3:2, in the middle of a wide screen. Under about 900px the columns wrap into one, the main column
+   first */
+
+.dashboard {
+    flex: none;
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    gap: var(--vaadin-gap-l);
+}
+
+.dashboard-welcome {
+    gap: var(--vaadin-gap-xs);
+}
+
+.dashboard-greeting {
+    margin: 0;
+    font-size: var(--aura-font-size-xl);
+    font-weight: var(--aura-font-weight-semibold);
+}
+
+.dashboard-summary-line {
+    color: var(--vaadin-text-color-secondary);
+}
+
+.dashboard-ask {
+    width: 100%;
+    max-width: 48rem;
+    gap: var(--vaadin-gap-s);
+}
+
+/* The question is the main control of the page: its field takes the row, and its frame and icon wear the accent of
+   AI, as the other AI controls do */
+.dashboard-question {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.dashboard-question::part(input-field) {
+    border-color: color-mix(in oklab, var(--aura-accent-color) 60%, transparent);
+}
+
+.dashboard-ai-icon {
+    color: var(--aura-accent-text-color);
+}
+
+.dashboard-questions {
+    gap: var(--vaadin-gap-s);
+}
+
+/* a question wider than a phone ends with an ellipsis instead of pushing the page sideways; Aura wraps the label of a
+   button, so it is kept on one line */
+.dashboard-questions vaadin-button {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.dashboard-questions vaadin-button::part(label) {
+    white-space: nowrap;
+}
+
+.dashboard-columns {
+    gap: var(--vaadin-gap-l);
+}
+
+.dashboard-main-column {
+    flex: 3 1 33rem;
+    min-width: 0;
+    gap: var(--vaadin-gap-l);
+}
+
+.dashboard-side-column {
+    flex: 2 1 22rem;
+    min-width: 0;
+    gap: var(--vaadin-gap-l);
+}
+
+.dashboard-card-title {
+    margin: 0;
+    font-size: var(--vaadin-card-title-font-size);
+    font-weight: var(--vaadin-card-title-font-weight);
+    line-height: var(--vaadin-card-title-line-height);
+}
+
+/* the number of the documents follows the title in grey */
+.dashboard-card-counted::after {
+    content: attr(data-count);
+    margin-inline-start: var(--vaadin-gap-s);
+    color: var(--vaadin-text-color-secondary);
+    font-weight: var(--aura-font-weight-regular);
+}
+
+.dashboard-rows,
+.dashboard-summary {
+    width: 100%;
+}
+
+/* A row is a line of the list: a button as wide as the card that opens what the row shows, and the buttons after it,
+   which move under it on a narrow screen. The name takes the room left and ends with an ellipsis, so the date and the
+   time stay in sight */
+.dashboard-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    width: 100%;
+    min-width: 0;
+}
+
+.dashboard-row-open {
+    display: flex;
+    flex: 1 1 20rem;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    min-width: 0;
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-s);
+    border: none;
+    border-radius: var(--vaadin-radius-m);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.dashboard-row-open:hover {
+    background: var(--vaadin-background-container);
+}
+
+.dashboard-row-open:focus-visible {
+    outline: var(--vaadin-focus-ring-width) solid var(--vaadin-focus-ring-color);
+}
+
+.dashboard-row-name {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.dashboard-row-author {
+    font-weight: var(--aura-font-weight-semibold);
+}
+
+.dashboard-row-date,
+.dashboard-row-avatar {
+    flex: none;
+}
+
+.dashboard-row-date {
+    min-width: 4.5em;
+}
+
+.dashboard-row-details,
+.dashboard-row-time {
+    flex: 0 1 auto;
+    max-width: 50%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--aura-font-size-s);
+}
+
+/* An upcoming date shows the field and the folder after the name, and under it when the row is too narrow for both:
+   the name keeps the width of the row, and the field and the folder end with an ellipsis only at the end of their
+   own line. The date stands on the line of the name */
+.dashboard-row-texts {
+    display: flex;
+    flex: 1 1 0;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--vaadin-gap-s);
+    min-width: 0;
+}
+
+.dashboard-row-texts .dashboard-row-name {
+    flex-basis: 10rem;
+}
+
+.dashboard-row-texts .dashboard-row-details {
+    max-width: 100%;
+}
+
+.dashboard-upcoming-card .dashboard-row-open {
+    align-items: baseline;
+}
+
+span.dashboard-row-date,
+.dashboard-row-details,
+.dashboard-row-time,
+.dashboard-empty {
+    color: var(--vaadin-text-color-secondary);
+}
+
+.dashboard-empty {
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-s);
+}
+
+.dashboard-summary-heading {
+    margin: var(--vaadin-gap-s) 0 var(--vaadin-gap-xs);
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-s);
+    font-weight: var(--aura-font-weight-semibold);
+}
+
+/* a row of the summary: the name, the bar against the largest number of its group, and the number */
+.dashboard-summary-row {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) 1fr auto;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    width: 100%;
+    padding-block: var(--vaadin-padding-xs);
+}
+
+.dashboard-summary-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.dashboard-summary-count {
+    color: var(--vaadin-text-color-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.dashboard-bar {
+    height: 0.5rem;
+    border-radius: var(--vaadin-radius-s);
+    background: var(--vaadin-background-container);
+}
+
+/* the bars of the types are neutral, and a status paints its own in its color; the ring keeps a white or a black bar
+   in sight, as on the dot of a status */
+.dashboard-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background-color: color-mix(in oklab, var(--vaadin-text-color) 35%, transparent);
+    box-shadow: inset 0 0 0 1px var(--vaadin-border-color-secondary);
+}

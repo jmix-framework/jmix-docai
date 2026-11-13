@@ -60,6 +60,22 @@ public class DocumentCards {
     }
 
     /**
+     * Opens the card of the document over the view when the document is still there for the user, see
+     * {@link #checkAvailable(Document)}, and starts Fill with AI in it, as the button of the card does.
+     */
+    public void fillWithAiIfAvailable(View<?> origin, Document document,
+                                      Consumer<DialogWindow.AfterCloseEvent<DocumentDetailView>> afterClose) {
+        if (checkAvailable(document)) {
+            dialogWindows.detail(origin, Document.class)
+                    .withViewClass(DocumentDetailView.class)
+                    .editEntity(document)
+                    .withAfterOpenListener(openEvent -> openEvent.getView().fillWithAi())
+                    .withAfterCloseListener(afterClose)
+                    .open();
+        }
+    }
+
+    /**
      * Opens the card of a new document over the view; the document goes into the folder.
      */
     public void create(View<?> origin, @Nullable Folder folder,

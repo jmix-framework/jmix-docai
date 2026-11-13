@@ -222,6 +222,8 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 
 At the first start, an empty database gets the demo set that `DOCAI_DEMO_DATA` names: `en`, `ru` or `none`. Both sets hold the same folders, people and scenes: 46 documents with versions, types, fields, statuses, tags, comments and access, favorites of each user, and a few items in the trash.
 
+The history of a set, its uploads, versions, comments and deletions, moves to the days before the first start, so the last change happened yesterday; the dates of the documents and of their fields, and the texts of their files, stay as written.
+
 | Folder | Access | What to try |
 |---|---|---|
 | Inbox | Inherits: every employee edits | Three scans without a type for **Fill with AI** |
