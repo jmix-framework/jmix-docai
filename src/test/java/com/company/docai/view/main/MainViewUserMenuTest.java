@@ -3,10 +3,14 @@ package com.company.docai.view.main;
 import com.company.docai.DocAiApplication;
 import com.company.docai.app.ui.action.UserMenuLanguageSwitchAction;
 import com.company.docai.app.ui.action.UserMenuThemeSwitchAction;
+import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.view.profile.ProfileReadView;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.icon.FontIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.server.VaadinSession;
 import io.jmix.core.security.ClientDetails;
 import io.jmix.core.security.CurrentAuthentication;
@@ -28,6 +32,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -50,6 +55,15 @@ class MainViewUserMenuTest {
         ProfileReadView view = UiTestUtils.getLastOpenedViewDialog();
         TypedTextField<String> usernameField = UiTestUtils.getComponent(view, "usernameField");
         assertThat(usernameField.getValue()).isEqualTo("peter");
+    }
+
+    @Test
+    void theUserMenuNamesTheUserByTheFirstAndTheLastName() {
+        User user = (User) currentAuthentication.getUser();
+        String name = user.getFirstName() + " " + user.getLastName();
+
+        // on the button, and in the header of the menu over the username
+        assertThat(shownNames()).containsExactly(name, name);
     }
 
     @Test
@@ -152,6 +166,26 @@ class MainViewUserMenuTest {
 
     private UserMenu userMenu() {
         return UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "userMenu");
+    }
+
+    // the names the renderers of the main view put on the button of the user menu and into the menu it opens
+    private List<String> shownNames() {
+        MenuBar bar = (MenuBar) userMenu().getChildren()
+                .findFirst()
+                .orElseThrow();
+
+        MenuItem button = bar.getItems().getFirst();
+
+        return Stream.concat(button.getChildren(), button.getSubMenu().getChildren())
+                .flatMap(MainViewUserMenuTest::withDescendants)
+                .filter(component -> component.hasClassName("user-menu-text"))
+                .map(component -> component.getElement().getText())
+                .toList();
+    }
+
+    private static Stream<Component> withDescendants(Component component) {
+        return Stream.concat(Stream.of(component), component.getChildren()
+                .flatMap(MainViewUserMenuTest::withDescendants));
     }
 
     private UserMenuLanguageSwitchAction languageAction() {

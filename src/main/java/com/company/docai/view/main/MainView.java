@@ -14,7 +14,7 @@ import com.company.docai.view.repository.RepositoryView;
 import com.company.docai.view.search.DocumentSearchView;
 import com.company.docai.view.search.SearchNavigation;
 import com.company.docai.view.search.SearchPaletteView;
-import com.google.common.base.Strings;
+import com.company.docai.view.user.UserRenderers;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.avatar.Avatar;
@@ -105,6 +105,8 @@ public class MainView extends StandardMainView {
     private UiComponents uiComponents;
     @Autowired
     private CurrentUserSubstitution currentUserSubstitution;
+    @Autowired
+    private UserRenderers userRenderers;
 
     private boolean aiSearch;
     @Nullable
@@ -168,7 +170,7 @@ public class MainView extends StandardMainView {
             return null;
         }
 
-        String userName = generateUserName(user);
+        String userName = userRenderers.shortName(user, user.getUsername());
 
         Div content = uiComponents.create(Div.class);
         content.setClassName("user-menu-button-content");
@@ -201,7 +203,7 @@ public class MainView extends StandardMainView {
         Div content = uiComponents.create(Div.class);
         content.setClassName("user-menu-header-content");
 
-        String name = generateUserName(user);
+        String name = userRenderers.shortName(user, user.getUsername());
 
         Avatar avatar = createAvatar(name);
         avatar.addThemeVariants(AvatarVariant.LARGE);
@@ -427,15 +429,6 @@ public class MainView extends StandardMainView {
         avatar.setClassName("user-menu-avatar");
 
         return avatar;
-    }
-
-    private String generateUserName(User user) {
-        String userName = String.format("%s %s",
-                        Strings.nullToEmpty(user.getFirstName()),
-                        Strings.nullToEmpty(user.getLastName()))
-                .trim();
-
-        return userName.isEmpty() ? user.getUsername() : userName;
     }
 
     private boolean isSubstituted(User user) {

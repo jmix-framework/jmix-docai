@@ -5,6 +5,7 @@ import com.company.docai.app.service.OperationRejectedException;
 import com.company.docai.app.service.document.DocumentCommentService;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.folder.FolderService;
+import com.company.docai.app.service.user.UserService;
 import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentComment;
@@ -90,6 +91,9 @@ class DocumentCommentsFragmentTest {
 
     @Autowired
     private FolderService folderService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private DataManager dataManager;
@@ -346,6 +350,21 @@ class DocumentCommentsFragmentTest {
         assertThat(this.<Avatar>inner(row, "authorAvatar").getAbbreviation()).isEqualTo("G");
         assertThat(this.<JmixButton>inner(row, "editCommentButton").isVisible()).isFalse();
         assertThat(this.<JmixButton>inner(row, "deleteCommentButton").isVisible()).isFalse();
+    }
+
+    @Test
+    void theAvatarOfACommentShowsTheInitialsOfTheFirstAndTheLastNameOfTheAuthor() {
+        post("alice", "Check item 4.2");
+
+        // a demo set renames the users, so the test takes the name alice has now
+        User alice = userService.usersOf(List.of("alice"))
+                .get("alice");
+
+        DocumentDetailView card = openCommentsTab();
+        DocumentCommentItemFragment row = row(card, items(card).getFirst());
+
+        assertThat(this.<Avatar>inner(row, "authorAvatar").getAbbreviation())
+                .isEqualTo("%c%c".formatted(alice.getFirstName().charAt(0), alice.getLastName().charAt(0)));
     }
 
     @Test

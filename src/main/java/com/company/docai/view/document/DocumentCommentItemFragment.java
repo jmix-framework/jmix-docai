@@ -3,7 +3,7 @@ package com.company.docai.view.document;
 import com.company.docai.app.service.document.DocumentCommentService;
 import com.company.docai.model.document.DocumentComment;
 import com.company.docai.model.user.User;
-import com.google.common.base.Strings;
+import com.company.docai.view.user.UserRenderers;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.html.Span;
@@ -29,9 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 @FragmentDescriptor("document-comment-item-fragment.xml")
 @RendererItemContainer("commentDc")
 public class DocumentCommentItemFragment extends FragmentRenderer<HorizontalLayout, DocumentComment> {
-
-    // the number of the user colors of an avatar
-    private static final int AVATAR_COLORS = 7;
 
     @ViewComponent
     private InstanceContainer<DocumentComment> commentDc;
@@ -64,6 +61,8 @@ public class DocumentCommentItemFragment extends FragmentRenderer<HorizontalLayo
     private MetadataTools metadataTools;
     @Autowired
     private DocumentRenderers documentRenderers;
+    @Autowired
+    private UserRenderers userRenderers;
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
@@ -76,15 +75,8 @@ public class DocumentCommentItemFragment extends FragmentRenderer<HorizontalLayo
         User author = host().authorOf(comment);
         String username = comment.getCreatedBy();
         String name = author == null ? username : metadataTools.getInstanceName(author);
-        // the avatar would take the initials of every word of the name, the username in brackets too
-        String initials = author != null && !Strings.isNullOrEmpty(author.getFirstName())
-                && !Strings.isNullOrEmpty(author.getLastName())
-                ? "%c%c".formatted(author.getFirstName().charAt(0), author.getLastName().charAt(0))
-                : username.substring(0, 1).toUpperCase();
 
-        authorAvatar.setName(name);
-        authorAvatar.setAbbreviation(initials);
-        authorAvatar.setColorIndex(Math.floorMod(username.hashCode(), AVATAR_COLORS));
+        userRenderers.fillAvatar(authorAvatar, name, author, username);
         authorName.setText(name);
         writtenTime.setText(documentRenderers.userDateTime(comment.getCreatedDate()));
 

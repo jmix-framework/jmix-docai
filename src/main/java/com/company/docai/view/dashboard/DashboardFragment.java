@@ -9,36 +9,26 @@ import com.company.docai.app.service.dashboard.UntypedDocuments;
 import com.company.docai.app.service.dashboard.UpcomingDate;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.user.User;
-import com.company.docai.view.document.DocumentRenderers;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.avatar.Avatar;
-import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.html.NativeButton;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import io.jmix.aitoolsflowui.view.chat.AiChatView;
 import io.jmix.aitoolsflowui.view.chathub.AiChatHubView;
 import io.jmix.core.AccessManager;
-import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.core.usersubstitution.CurrentUserSubstitution;
-import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.accesscontext.UiShowViewContext;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
-import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.component.button.JmixButton;
-import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.view.MessageBundle;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewComponent;
@@ -47,15 +37,10 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Consumer;
 
 /**
@@ -69,9 +54,6 @@ import java.util.function.Consumer;
 public class DashboardFragment extends Fragment<VerticalLayout> {
 
     private static final String ASSISTANT_CHAT_VIEW = "aitls_AiChatView";
-
-    // the number of the user colors of an avatar
-    private static final int AVATAR_COLORS = 7;
 
     @ViewComponent
     private H2 greeting;
@@ -108,16 +90,10 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
     @Autowired
     private AccessManager accessManager;
     @Autowired
-    private CurrentAuthentication currentAuthentication;
-    @Autowired
     private CurrentUserSubstitution currentUserSubstitution;
 
     @Autowired
-    private UiComponents uiComponents;
-    @Autowired
-    private Icons icons;
-    @Autowired
-    private DocumentRenderers documentRenderers;
+    private DashboardRenderers dashboardRenderers;
 
     @Autowired
     private ViewNavigators viewNavigators;
@@ -245,8 +221,7 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         List<String> parts = new ArrayList<>();
 
         if (!dates.isEmpty()) {
-            String deadline = dateText(dates.getFirst().date(), now.toLocalDate(),
-                    messageBundle.getMessage("longDate.format"), messageBundle.getMessage("longDateWithYear.format"));
+            String deadline = dashboardRenderers.longDate(dates.getFirst().date(), now.toLocalDate());
 
             parts.add(messageBundle.formatMessage("summaryLine.deadline", deadline));
         }
@@ -276,39 +251,11 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
 
     private void showUpcomingDates(List<UpcomingDate> dates, LocalDate today) {
         List<Div> rows = dates.stream()
-                .map(upcoming -> row(() -> documentOpenHandler.accept(upcoming.document()),
-                        dateOf(upcoming, today),
-                        textsOf(upcoming)))
+                .map(upcoming -> dashboardRenderers.upcomingRow(upcoming, today,
+                        () -> documentOpenHandler.accept(upcoming.document())))
                 .toList();
 
         show(upcomingBox, rows, messageBundle.getMessage("upcomingEmpty.text"));
-    }
-
-    // the field and the folder follow the name, and on a narrow screen they go under it, so the name keeps the row
-    private Div textsOf(UpcomingDate upcoming) {
-        Div texts = uiComponents.create(Div.class);
-        texts.addClassName("dashboard-row-texts");
-
-        texts.add(text(upcoming.document().getName(), "dashboard-row-name"),
-                text(upcoming.field() + " · " + upcoming.folder(), "dashboard-row-details"));
-
-        return texts;
-    }
-
-    // a date within a week stands out in a yellow badge
-    private Component dateOf(UpcomingDate upcoming, LocalDate today) {
-        String date = dateText(upcoming.date(), today, messageBundle.getMessage("shortDate.format"),
-                messageBundle.getMessage("shortDateWithYear.format"));
-
-        if (!upcoming.soon()) {
-            return text(date, "dashboard-row-date");
-        }
-
-        Badge badge = uiComponents.create(Badge.class);
-        badge.setText(date);
-        badge.addClassNames("dashboard-row-date", "aura-accent-yellow");
-
-        return badge;
     }
 
     // the count follows the title in the grey of a count
@@ -325,110 +272,29 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
 
     // the card offers Fill with AI on the same terms, and the button opens it with the filling started
     private Div untypedRow(UntypedDocuments.Row untyped) {
-        String details = untyped.folder() + " · " + documentRenderers.userDate(untyped.uploaded());
+        Runnable fillWithAi = aiSettings.isAvailable() && untyped.fillable()
+                ? () -> fillWithAiHandler.accept(untyped.document())
+                : null;
 
-        Div row = row(() -> documentOpenHandler.accept(untyped.document()),
-                text(untyped.document().getName(), "dashboard-row-name"),
-                text(details, "dashboard-row-details"));
-
-        if (aiSettings.isAvailable() && untyped.fillable()) {
-            JmixButton fill = uiComponents.create(JmixButton.class);
-            fill.setText(messageBundle.getMessage("fillWithAiButton.text"));
-            // the buttons of the rows read the same, so each names its document to a screen reader
-            fill.setAriaLabel(messageBundle.formatMessage("fillWithAiButton.ariaLabel", untyped.document().getName()));
-            fill.setIcon(icons.get(JmixFontIcon.MAGIC));
-            fill.addClassNames("aura-accent-purple", "ai-button");
-            fill.addClickListener(click -> fillWithAiHandler.accept(untyped.document()));
-            row.add(fill);
-        }
-
-        return row;
+        return dashboardRenderers.untypedRow(untyped, () -> documentOpenHandler.accept(untyped.document()),
+                fillWithAi);
     }
 
     private void showActivities(List<Activity> activities, ZonedDateTime now) {
         List<Div> rows = activities.stream()
-                .map(activity -> activityRow(activity, now))
+                .map(activity -> dashboardRenderers.activityRow(activity, now,
+                        () -> documentOpenHandler.accept(activity.document())))
                 .toList();
 
         show(activityBox, rows, messageBundle.getMessage("activityEmpty.text"));
     }
 
-    // who, what and on which document, without verbs that would need the gender of the person
-    private Div activityRow(Activity activity, ZonedDateTime now) {
-        String name = nameOf(activity);
-        String event = " · " + eventOf(activity) + " · " + activity.document().getName();
-
-        Span line = uiComponents.create(Span.class);
-        line.addClassName("dashboard-row-name");
-        line.add(text(name, "dashboard-row-author"), text(event, "dashboard-row-event"));
-
-        return row(() -> documentOpenHandler.accept(activity.document()), avatarOf(activity, name), line,
-                timeOf(activity.time(), now));
-    }
-
-    private String eventOf(Activity activity) {
-        return switch (activity.kind()) {
-            case UPLOAD -> messageBundle.getMessage("event.upload");
-            case VERSION -> messageBundle.formatMessage("event.version", activity.number());
-            case COMMENT -> messageBundle.getMessage("event.comment");
-        };
-    }
-
-    // the first and the last name, without the username in brackets of the lists: on a glance the avatar beside it is
-    // enough; a person without a name, or deleted since, keeps the username
-    private String nameOf(Activity activity) {
-        User author = activity.author();
-
-        if (author == null) {
-            return activity.username();
-        }
-
-        String name = Strings.nullToEmpty(author.getFirstName()) + " " + Strings.nullToEmpty(author.getLastName());
-
-        return name.isBlank() ? activity.username() : name.strip();
-    }
-
-    // the initials of the first and the last name, as in the comments: the avatar would take every word of the name.
-    // The row names the person already, so the avatar is hidden from a screen reader
-    private Avatar avatarOf(Activity activity, String name) {
-        User author = activity.author();
-
-        String initials = author != null && !Strings.isNullOrEmpty(author.getFirstName())
-                && !Strings.isNullOrEmpty(author.getLastName())
-                ? "%c%c".formatted(author.getFirstName().charAt(0), author.getLastName().charAt(0))
-                : activity.username().substring(0, 1).toUpperCase(Locale.ROOT);
-
-        Avatar avatar = uiComponents.create(Avatar.class);
-        avatar.setName(name);
-        avatar.setAbbreviation(initials);
-        avatar.setColorIndex(Math.floorMod(activity.username().hashCode(), AVATAR_COLORS));
-        avatar.addClassName("dashboard-row-avatar");
-        avatar.getElement().setAttribute("tabindex", "-1");
-        avatar.getElement().setAttribute("aria-hidden", "true");
-
-        return avatar;
-    }
-
     private void showChats(List<RecentChat> chats, ZonedDateTime now) {
         List<Div> rows = chats.stream()
-                .map(chat -> row(() -> openChat(chat), chatIcon(chat), text(chat.title(), "dashboard-row-name"),
-                        timeOf(chat.time(), now)))
+                .map(chat -> dashboardRenderers.chatRow(chat, now, () -> openChat(chat)))
                 .toList();
 
         show(chatsBox, rows, messageBundle.getMessage("chatsEmpty.text"));
-    }
-
-    // a discussion of chosen documents wears the icon of a document instead of the icon of a chat
-    private Component chatIcon(RecentChat chat) {
-        Component icon = icons.get(chat.discussion() ? JmixFontIcon.FILE_TEXT : JmixFontIcon.COMMENTS);
-        icon.addClassNames("aura-accent-purple", "dashboard-ai-icon");
-
-        if (chat.discussion()) {
-            icon.getElement().setAttribute("role", "img");
-            icon.getElement().setAttribute("aria-label", messageBundle.getMessage("discussionIcon.ariaLabel"));
-        }
-
-        return icon;
     }
 
     private void openChat(RecentChat chat) {
@@ -441,53 +307,15 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         summaryBox.removeAll();
 
         if (summary.types().isEmpty() && summary.statuses().isEmpty()) {
-            summaryBox.add(text(messageBundle.getMessage("summaryEmpty.text"), "dashboard-empty"));
+            summaryBox.add(dashboardRenderers.emptyLine(messageBundle.getMessage("summaryEmpty.text")));
             return;
         }
 
-        addSummaryGroup(messageBundle.getMessage("typesHeading.text"), summary.types());
-        addSummaryGroup(messageBundle.getMessage("statusesHeading.text"), summary.statuses());
-    }
+        String types = messageBundle.getMessage("typesHeading.text");
+        String statuses = messageBundle.getMessage("statusesHeading.text");
 
-    // a bar shows the number against the largest one of its group; a status keeps the color of its badge
-    private void addSummaryGroup(String title, List<Summary.Row> rows) {
-        if (rows.isEmpty()) {
-            return;
-        }
-
-        H4 heading = uiComponents.create(H4.class);
-        heading.addClassName("dashboard-summary-heading");
-        heading.setText(title);
-        summaryBox.add(heading);
-
-        long largest = rows.stream()
-                .mapToLong(Summary.Row::documents)
-                .max()
-                .orElse(1);
-
-        for (Summary.Row row : rows) {
-            Div fill = uiComponents.create(Div.class);
-            fill.addClassName("dashboard-bar-fill");
-            fill.getStyle().set("width", 100 * row.documents() / largest + "%");
-
-            if (row.color() != null) {
-                fill.getStyle().set("background-color", row.color());
-            }
-
-            // the number stands next to the bar, so a screen reader skips the bar
-            Div bar = uiComponents.create(Div.class);
-            bar.addClassName("dashboard-bar");
-            bar.getElement().setAttribute("aria-hidden", "true");
-            bar.add(fill);
-
-            String name = row.name() == null ? messageBundle.getMessage("untypedRow.text") : row.name();
-            String count = String.valueOf(row.documents());
-
-            Div line = uiComponents.create(Div.class);
-            line.addClassName("dashboard-summary-row");
-            line.add(text(name, "dashboard-summary-name"), bar, text(count, "dashboard-summary-count"));
-            summaryBox.add(line);
-        }
+        summaryBox.add(dashboardRenderers.summaryGroup(types, summary.types()));
+        summaryBox.add(dashboardRenderers.summaryGroup(statuses, summary.statuses()));
     }
 
     // a block without rows says so in a line of its own
@@ -495,70 +323,10 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         box.removeAll();
 
         if (rows.isEmpty()) {
-            box.add(text(emptyText, "dashboard-empty"));
+            box.add(dashboardRenderers.emptyLine(emptyText));
             return;
         }
 
         rows.forEach(box::add);
-    }
-
-    // a row opens what it shows; a button after it, such as Fill with AI, is no part of it
-    private Div row(Runnable open, Component... content) {
-        NativeButton button = uiComponents.create(NativeButton.class);
-        button.addClassName("dashboard-row-open");
-        button.add(content);
-        button.addClickListener(click -> open.run());
-
-        Div row = uiComponents.create(Div.class);
-        row.addClassName("dashboard-row");
-        row.add(button);
-
-        return row;
-    }
-
-    // within the hour in minutes, today in hours, then yesterday, then the date; the title gives the moment
-    private Span timeOf(OffsetDateTime time, ZonedDateTime now) {
-        Span span = text(ago(time, now), "dashboard-row-time");
-        span.setTitle(documentRenderers.userDateTime(time));
-
-        return span;
-    }
-
-    private String ago(OffsetDateTime time, ZonedDateTime now) {
-        ZonedDateTime at = time.atZoneSameInstant(now.getZone());
-        long minutes = Duration.between(at, now).toMinutes();
-        long days = ChronoUnit.DAYS.between(at.toLocalDate(), now.toLocalDate());
-
-        if (minutes < 1) {
-            return messageBundle.getMessage("justNow");
-        }
-
-        if (minutes < 60) {
-            return messageBundle.formatMessage("minutesAgo", minutes);
-        }
-
-        if (days == 0) {
-            return messageBundle.formatMessage("hoursAgo", minutes / 60);
-        }
-
-        return days == 1
-                ? messageBundle.getMessage("yesterday")
-                : documentRenderers.userDate(time);
-    }
-
-    // "30 Nov" in a row and "30 November" in the summary line, with the year when it is not the current one
-    private String dateText(LocalDate date, LocalDate today, String pattern, String patternWithYear) {
-        String format = date.getYear() == today.getYear() ? pattern : patternWithYear;
-
-        return DateTimeFormatter.ofPattern(format, currentAuthentication.getLocale())
-                .format(date);
-    }
-
-    private Span text(String text, String className) {
-        Span span = uiComponents.create(Span.class);
-        span.addClassName(className);
-        span.setText(text);
-
-        return span;
     }
 }
