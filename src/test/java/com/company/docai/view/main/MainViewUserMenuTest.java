@@ -6,8 +6,10 @@ import com.company.docai.app.ui.action.UserMenuThemeSwitchAction;
 import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.view.profile.ProfileReadView;
+import com.company.docai.view.user.UserRenderers;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.icon.FontIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -46,6 +48,9 @@ class MainViewUserMenuTest {
     @Autowired
     private CurrentAuthentication currentAuthentication;
 
+    @Autowired
+    private UserRenderers userRenderers;
+
     @Test
     void theProfileItemOpensTheProfileOfTheCurrentUser() {
         ActionUserMenuItem item = (ActionUserMenuItem) userMenu().getItem("profileMenuItem");
@@ -64,6 +69,23 @@ class MainViewUserMenuTest {
 
         // on the button, and in the header of the menu over the username
         assertThat(shownNames()).containsExactly(name, name);
+    }
+
+    @Test
+    void theUserMenuShowsTheInitialsOfTheUserInTheColorOfTheUser() {
+        User user = (User) currentAuthentication.getUser();
+        String name = userRenderers.shortName(user, user.getUsername());
+        String initials = "%c%c".formatted(user.getFirstName().charAt(0), user.getLastName().charAt(0));
+
+        // the comments and the dashboard show the person in this color
+        Avatar elsewhere = new Avatar();
+        userRenderers.fillAvatar(elsewhere, name, user, user.getUsername());
+        Integer color = elsewhere.getColorIndex();
+
+        // on the button, and in the header of the menu
+        assertThat(shownAvatars())
+                .extracting(Avatar::getAbbreviation, Avatar::getColorIndex)
+                .containsExactly(tuple(initials, color), tuple(initials, color));
     }
 
     @Test
@@ -180,6 +202,21 @@ class MainViewUserMenuTest {
                 .flatMap(MainViewUserMenuTest::withDescendants)
                 .filter(component -> component.hasClassName("user-menu-text"))
                 .map(component -> component.getElement().getText())
+                .toList();
+    }
+
+    // the avatars the renderers of the main view put on the button of the user menu and into the menu it opens
+    private List<Avatar> shownAvatars() {
+        MenuBar bar = (MenuBar) userMenu().getChildren()
+                .findFirst()
+                .orElseThrow();
+
+        MenuItem button = bar.getItems().getFirst();
+
+        return Stream.concat(button.getChildren(), button.getSubMenu().getChildren())
+                .flatMap(MainViewUserMenuTest::withDescendants)
+                .filter(Avatar.class::isInstance)
+                .map(Avatar.class::cast)
                 .toList();
     }
 

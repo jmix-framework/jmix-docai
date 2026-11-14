@@ -9,6 +9,7 @@ import com.company.docai.app.service.dashboard.UntypedDocuments;
 import com.company.docai.app.service.dashboard.UpcomingDate;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.user.User;
+import com.company.docai.view.assistant.AssistantNavigation;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Key;
@@ -18,12 +19,7 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import io.jmix.aitoolsflowui.view.chat.AiChatView;
-import io.jmix.aitoolsflowui.view.chathub.AiChatHubView;
-import io.jmix.core.AccessManager;
 import io.jmix.core.usersubstitution.CurrentUserSubstitution;
-import io.jmix.flowui.ViewNavigators;
-import io.jmix.flowui.accesscontext.UiShowViewContext;
 import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.fragment.Fragment;
@@ -32,7 +28,6 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.view.MessageBundle;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewComponent;
-import io.jmix.flowui.view.navigation.RouteSupport;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,8 +47,6 @@ import java.util.function.Consumer;
  */
 @FragmentDescriptor("dashboard-fragment.xml")
 public class DashboardFragment extends Fragment<VerticalLayout> {
-
-    private static final String ASSISTANT_CHAT_VIEW = "aitls_AiChatView";
 
     @ViewComponent
     private H2 greeting;
@@ -88,17 +81,13 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
     @Autowired
     private AiSettings aiSettings;
     @Autowired
-    private AccessManager accessManager;
-    @Autowired
     private CurrentUserSubstitution currentUserSubstitution;
 
     @Autowired
     private DashboardRenderers dashboardRenderers;
 
     @Autowired
-    private ViewNavigators viewNavigators;
-    @Autowired
-    private RouteSupport routeSupport;
+    private AssistantNavigation assistantNavigation;
 
     private Consumer<Document> documentOpenHandler = document -> {
     };
@@ -111,9 +100,7 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
     @Subscribe
     public void onReady(final ReadyEvent event) {
         // the questions and the chats belong to the chat of the assistant, so they need the AI and that chat
-        UiShowViewContext assistantChat = new UiShowViewContext(ASSISTANT_CHAT_VIEW);
-        accessManager.applyRegisteredConstraints(assistantChat);
-        assistantAvailable = aiSettings.isAvailable() && assistantChat.isPermitted();
+        assistantAvailable = assistantNavigation.isAvailable();
 
         askBox.setVisible(assistantAvailable);
         chatsCard.setVisible(assistantAvailable);
@@ -145,8 +132,7 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
 
     @Subscribe(id = "allChatsButton", subject = "clickListener")
     public void onAllChatsButtonClick(final ClickEvent<JmixButton> event) {
-        viewNavigators.view(UiComponentUtils.getCurrentView(), AiChatHubView.class)
-                .navigate();
+        assistantNavigation.openChats(UiComponentUtils.getCurrentView());
     }
 
     /**
@@ -291,16 +277,11 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
 
     private void showChats(List<RecentChat> chats, ZonedDateTime now) {
         List<Div> rows = chats.stream()
-                .map(chat -> dashboardRenderers.chatRow(chat, now, () -> openChat(chat)))
+                .map(chat -> dashboardRenderers.chatRow(chat, now,
+                        () -> assistantNavigation.openChat(UiComponentUtils.getCurrentView(), chat.id())))
                 .toList();
 
         show(chatsBox, rows, messageBundle.getMessage("chatsEmpty.text"));
-    }
-
-    private void openChat(RecentChat chat) {
-        viewNavigators.view(UiComponentUtils.getCurrentView(), AiChatView.class)
-                .withRouteParameters(routeSupport.createRouteParameters(AiChatView.ROUTE_PARAM_ID, chat.id()))
-                .navigate();
     }
 
     private void showSummary(Summary summary) {

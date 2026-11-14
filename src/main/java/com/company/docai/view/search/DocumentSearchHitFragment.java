@@ -6,7 +6,6 @@ import com.company.docai.view.document.DocumentCards;
 import com.company.docai.view.status.StatusBadges;
 import com.company.docai.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -46,6 +45,8 @@ public class DocumentSearchHitFragment extends Fragment<Div> {
     private UiComponents uiComponents;
     @Autowired
     private MetadataTools metadataTools;
+    @Autowired
+    private SearchRenderers searchRenderers;
 
     private DocumentSearchHit hit;
     private Runnable afterSaveHandler = () -> {
@@ -111,16 +112,7 @@ public class DocumentSearchHitFragment extends Fragment<Div> {
             div.add(caption);
         }
 
-        for (DocumentSearchHit.Part part : DocumentSearchHit.partsOf(snippet)) {
-            if (part.matched()) {
-                Span match = uiComponents.create(Span.class);
-                match.addClassName("document-search-match");
-                match.setText(part.text());
-                div.add(match);
-            } else {
-                div.add(new Text(part.text()));
-            }
-        }
+        searchRenderers.addMarked(div, DocumentSearchHit.partsOf(snippet));
 
         return div;
     }

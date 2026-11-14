@@ -14,40 +14,27 @@ import com.company.docai.model.favorite.FavoriteItem;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.search.DocumentSearch;
 import com.company.docai.search.DocumentSearchHit;
-import com.company.docai.search.DocumentSearchHit.Part;
 import com.company.docai.search.SearchUnavailableException;
-import com.company.docai.view.document.DocumentRenderers;
+import com.company.docai.view.assistant.AssistantNavigation;
 import com.company.docai.view.folder.FolderFilter;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.search.RecentQueries.RecentQuery;
-import com.company.docai.view.status.StatusBadges;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ScrollIntoViewOption;
 import com.vaadin.flow.component.Shortcuts;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.dom.DomListenerRegistration;
 import com.vaadin.flow.router.AfterNavigationEvent;
-import io.jmix.core.AccessManager;
 import io.jmix.core.Messages;
-import io.jmix.core.MetadataTools;
-import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.flowui.OpenedDialogWindows;
-import io.jmix.flowui.UiComponents;
-import io.jmix.flowui.accesscontext.UiShowViewContext;
 import io.jmix.flowui.component.textfield.TypedTextField;
-import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.component.button.JmixButton;
-import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.view.DialogMode;
 import io.jmix.flowui.view.MessageBundle;
 import io.jmix.flowui.view.StandardOutcome;
@@ -62,19 +49,14 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * The search palette: a dialog at the top of the window that the search field of the header opens. Before the person
@@ -96,10 +78,6 @@ public class SearchPaletteView extends StandardView {
 
     private static final String ROW_ID = "search-palette-row-";
     private static final String HEADING_ID = "search-palette-heading-";
-
-    private static final String REMOVE_SHORTCUT = "Shift+Delete";
-
-    private static final String ASSISTANT_CHAT_VIEW = "aitls_AiChatView";
 
     @ViewComponent
     private TypedTextField<String> queryField;
@@ -135,11 +113,7 @@ public class SearchPaletteView extends StandardView {
     @Autowired
     private AiSettings aiSettings;
     @Autowired
-    private UiComponents uiComponents;
-    @Autowired
-    private Icons icons;
-    @Autowired
-    private AccessManager accessManager;
+    private AssistantNavigation assistantNavigation;
     @Autowired
     private RecentQueries recentQueries;
     @Autowired
@@ -153,11 +127,7 @@ public class SearchPaletteView extends StandardView {
     @Autowired
     private TagService tagService;
     @Autowired
-    private StatusBadges statusBadges;
-    @Autowired
-    private MetadataTools metadataTools;
-    @Autowired
-    private CurrentAuthentication currentAuthentication;
+    private SearchRenderers searchRenderers;
     @Autowired
     private OpenedDialogWindows openedDialogWindows;
 
@@ -265,29 +235,6 @@ public class SearchPaletteView extends StandardView {
         this.tagOpenHandler = tagOpenHandler;
     }
 
-    /**
-     * Returns the plural form of the number for the language: {@code one}, {@code few} or {@code many}. Russian picks
-     * it by the last digits of the number; the other languages take {@code one} for 1 only.
-     */
-    public static String pluralForm(long count, Locale locale) {
-        if (!"ru".equals(locale.getLanguage())) {
-            return count == 1 ? "one" : "many";
-        }
-
-        long lastDigit = count % 10;
-        long lastTwoDigits = count % 100;
-
-        if (lastDigit == 1 && lastTwoDigits != 11) {
-            return "one";
-        }
-
-        if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
-            return "few";
-        }
-
-        return "many";
-    }
-
     @Subscribe
     public void onInit(final InitEvent event) {
         chipButtons.put(Chip.ALL, allChip);
@@ -297,9 +244,7 @@ public class SearchPaletteView extends StandardView {
         searchModeButton.setVisible(aiSettings.isAvailable());
 
         // the questions go to the chat of the assistant, so they need the AI and that chat
-        UiShowViewContext assistantChat = new UiShowViewContext(ASSISTANT_CHAT_VIEW);
-        accessManager.applyRegisteredConstraints(assistantChat);
-        assistantAvailable = aiSettings.isAvailable() && assistantChat.isPermitted();
+        assistantAvailable = assistantNavigation.isAvailable();
 
         // the line keeps the focus, and the palette handles the arrows, Tab and Enter itself
         line.setField(queryField);
@@ -588,10 +533,7 @@ public class SearchPaletteView extends StandardView {
             showStatus(messageBundle.getMessage("nothingFound"), true);
         }
 
-        Component searchIcon = aiMode ? aiIcon(JmixFontIcon.MAGIC) : icons.get(JmixFontIcon.SEARCH);
-
-        resultsBox.add(row(searchIcon, name(messageBundle.formatMessage("allResultsRow.text", text)), null,
-                () -> searchHandler.accept(text, aiMode)));
+        resultsBox.add(allResultsRow(text));
 
         if (assistantAvailable) {
             resultsBox.add(assistantRow(messageBundle.formatMessage("askAiRow.text", text), text));
@@ -608,12 +550,7 @@ public class SearchPaletteView extends StandardView {
         } catch (SearchUnavailableException e) {
             String unavailable = messageBundle.getMessage("searchUnavailable");
 
-            Span notice = uiComponents.create(Span.class);
-            notice.addClassName("search-palette-message");
-            // a screen reader hears it once, from the status line
-            notice.getElement().setAttribute("aria-hidden", "true");
-            notice.setText(unavailable);
-            addGroup(title, List.of(notice));
+            addGroup(title, List.of(searchRenderers.notice(unavailable)));
             showStatus(unavailable, false);
 
             return;
@@ -632,152 +569,65 @@ public class SearchPaletteView extends StandardView {
         if (menuFolders == null) {
             FolderTree tree = folderService.loadTree();
             FolderIndex index = FolderIndex.of(tree.folders());
-            menuFolders = new MenuFolders(inTreeOrder(tree.folders(), index), tree.greyed(), index);
+            // as the tree of the menu shows them, each folder right after its parent: the tree loads them by name alone
+            menuFolders = new MenuFolders(index.inTreeOrder(), tree.greyed(), index);
         }
 
         return menuFolders;
     }
 
-    // as the tree of the menu shows them, each folder right after its parent: the tree loads them by name alone
-    private static List<Folder> inTreeOrder(List<Folder> folders, FolderIndex index) {
-        Map<UUID, Integer> positions = new HashMap<>();
-
-        for (int i = 0; i < folders.size(); i++) {
-            positions.put(folders.get(i).getId(), i);
-        }
-
-        Comparator<Folder> byPath = Comparator.comparing(
-                (Folder folder) -> index.pathOf(folder)
-                        .stream()
-                        .mapToInt(step -> positions.get(step.getId()))
-                        .toArray(),
-                Arrays::compare);
-
-        return folders.stream()
-                .sorted(byPath)
-                .toList();
-    }
-
     private Div documentRow(DocumentSearchHit hit) {
-        Document document = hit.document();
+        Runnable choice = () -> openCard(hit.document());
 
-        Div row = cardRow(icons.get(DocumentRenderers.fileIcon(document)), documentName(hit),
-                String.join(" / ", hit.folderPath()), document);
-
-        row.add(statusBadges.create(document.getStatus()));
-
-        return row;
+        return register(searchRenderers.documentRow(hit, choice), choice);
     }
 
-    // the name is marked only where the snippet is the whole name: a long name may come back cut
-    private Span documentName(DocumentSearchHit hit) {
-        String name = hit.document().getName();
-        List<Part> parts = hit.snippet() == null ? List.of() : DocumentSearchHit.partsOf(hit.snippet());
-
-        String shown = parts.stream()
-                .map(Part::text)
-                .collect(Collectors.joining());
-
-        if (!shown.equals(name)) {
-            return name(name);
-        }
-
-        Span marked = uiComponents.create(Span.class);
-        marked.addClassName("search-palette-name");
-
-        for (Part part : parts) {
-            if (part.matched()) {
-                Span match = uiComponents.create(Span.class);
-                match.addClassName("document-search-match");
-                match.setText(part.text());
-                marked.add(match);
-            } else {
-                marked.add(new Text(part.text()));
-            }
-        }
-
-        return marked;
-    }
-
-    // the place of a folder is the way to its parent; a folder the user only passes through is greyed, as in the tree
     private Div folderRow(Folder folder, MenuFolders folders) {
-        List<Folder> path = folders.index().pathOf(folder);
+        Runnable choice = () -> choose(() -> folderOpenHandler.accept(folder));
 
-        String place = path.subList(0, Math.max(0, path.size() - 1))
-                .stream()
-                .map(metadataTools::getInstanceName)
-                .collect(Collectors.joining(" / "));
-
-        Span name = name(metadataTools.getInstanceName(folder));
-        name.setClassName("folder-greyed", folders.greyed().contains(folder.getId()));
-
-        return row(icons.get(JmixFontIcon.FOLDER), name, place, () -> folderOpenHandler.accept(folder));
+        return register(searchRenderers.folderRow(folder, folders.index().pathOf(folder),
+                folders.greyed().contains(folder.getId()), choice), choice);
     }
 
     private Div tagRow(TagCount tag) {
-        String key = "tagDocuments." + pluralForm(tag.documents(), currentAuthentication.getLocale());
+        Runnable choice = () -> choose(() -> tagOpenHandler.accept(tag.name()));
 
-        return row(icons.get(JmixFontIcon.TAG), name(tag.name()), messageBundle.formatMessage(key, tag.documents()),
-                () -> tagOpenHandler.accept(tag.name()));
+        return register(searchRenderers.tagRow(tag, choice), choice);
     }
 
-    // a search by meaning keeps its wand while the AI is on; without it the search goes by words
     private Div recentRow(RecentQuery query) {
-        Component icon = query.ai() && aiSettings.isAvailable()
-                ? aiIcon(JmixFontIcon.MAGIC)
-                : icons.get(JmixFontIcon.TIME_BACKWARD);
+        Runnable choice = () -> choose(() -> searchHandler.accept(query.text(), query.ai()));
 
-        Div row = row(icon, name(query.text()), null, () -> searchHandler.accept(query.text(), query.ai()));
+        // the click on the cross took the focus from the line
+        Runnable remove = () -> {
+            removeRecent(query);
+            line.focusAtEnd();
+        };
+
+        Div row = register(searchRenderers.recentRow(query, choice, remove), choice);
         recentRows.add(rows.size() - 1);
-        row.add(removeButton(query));
-
-        // the name of the cross would join the name of the row; the keys never reach the cross, so the row names the
-        // key that removes it
-        row.getElement().setAttribute("aria-label", query.text());
-        row.getElement().setAttribute("aria-keyshortcuts", REMOVE_SHORTCUT);
 
         return row;
     }
 
-    // the cross shows on the row the mouse is over or the arrows chose; a click on it is its own, as the row under it
-    // would run the search
-    private JmixButton removeButton(RecentQuery query) {
-        JmixButton button = uiComponents.create(JmixButton.class);
-        button.addClassName("search-palette-remove");
-        button.setIcon(icons.get(JmixFontIcon.CLOSE));
-        button.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
-        button.setTabIndex(-1);
-        button.setAriaLabel(messageBundle.getMessage("removeRecentButton.ariaLabel"));
-        button.setTooltipText(messageBundle.getMessage("removeRecentButton.tooltip"));
-
-        // the class literal of a generic event is raw, so the listener gets its type from a cast
-        @SuppressWarnings("unchecked")
-        Class<ClickEvent<JmixButton>> click = (Class<ClickEvent<JmixButton>>) (Class<?>) ClickEvent.class;
-
-        // the second click of a double click lands on the cross of the search that moved up under the pointer, and the
-        // first click took the focus from the line
-        ComponentUtil.addListener(button, click, event -> {
-            if (event.getClickCount() <= 1) {
-                removeRecent(query);
-                line.focusAtEnd();
-            }
-        }, DomListenerRegistration::stopPropagation);
-
-        return button;
-    }
-
     private Div favoriteRow(FavoriteItem item) {
-        if (item.getFolder() != null) {
-            return row(icons.get(JmixFontIcon.FOLDER), name(item.getName()), item.getLocation(),
-                    () -> folderOpenHandler.accept(item.getFolder()));
-        }
+        Runnable choice = item.getFolder() != null
+                ? () -> choose(() -> folderOpenHandler.accept(item.getFolder()))
+                : () -> openCard(item.getDocument());
 
-        return cardRow(icons.get(JmixFontIcon.FILE_TEXT), name(item.getName()), item.getLocation(),
-                item.getDocument());
+        return register(searchRenderers.favoriteRow(item, choice), choice);
     }
 
     private Div assistantRow(String shown, String question) {
-        return row(aiIcon(JmixFontIcon.COMMENTS), name(shown), null, () -> assistantHandler.accept(question));
+        Runnable choice = () -> choose(() -> assistantHandler.accept(question));
+
+        return register(searchRenderers.assistantRow(shown, choice), choice);
+    }
+
+    private Div allResultsRow(String text) {
+        Runnable choice = () -> choose(() -> searchHandler.accept(text, aiMode));
+
+        return register(searchRenderers.allResultsRow(text, aiMode, choice), choice);
     }
 
     // a group without rows is not shown
@@ -786,73 +636,15 @@ public class SearchPaletteView extends StandardView {
             return;
         }
 
-        String headingId = HEADING_ID + groups++;
-
-        Span heading = uiComponents.create(Span.class);
-        heading.setId(headingId);
-        heading.addClassName("search-palette-heading");
-        heading.setText(title);
-
-        Div group = uiComponents.create(Div.class);
-        group.addClassName("search-palette-group");
-        group.getElement().setAttribute("role", "group");
-        group.getElement().setAttribute("aria-labelledby", headingId);
-        group.add(heading);
-        content.forEach(group::add);
-        resultsBox.add(group);
-    }
-
-    // a row that goes elsewhere: the palette closes before the destination opens
-    private Div row(Component icon, Component name, @Nullable String meta, Runnable action) {
-        return choiceRow(icon, name, meta, () -> choose(action));
-    }
-
-    private Div cardRow(Component icon, Component name, @Nullable String meta, Document document) {
-        return choiceRow(icon, name, meta, () -> openCard(document));
+        resultsBox.add(searchRenderers.group(HEADING_ID + groups++, title, content));
     }
 
     // the arrows go through the rows in the order they are made, which is their order on the screen
-    private Div choiceRow(Component icon, Component name, @Nullable String meta, Runnable choice) {
-        Div row = uiComponents.create(Div.class);
+    private Div register(Div row, Runnable choice) {
         row.setId(ROW_ID + rows.size());
-        row.addClassName("search-palette-row");
-        row.getElement().setAttribute("role", "option");
-        row.getElement().setAttribute("aria-selected", "false");
-        row.add(icon, name);
-
-        if (meta != null && !meta.isEmpty()) {
-            Span place = uiComponents.create(Span.class);
-            place.addClassName("search-palette-meta");
-            place.setText(meta);
-            row.add(place);
-        }
-
-        // the second click of a double click lands on what the first one left under the pointer
-        row.addClickListener(click -> {
-            if (click.getClickCount() <= 1) {
-                choice.run();
-            }
-        });
-
         rows.add(new Row(row, choice));
 
         return row;
-    }
-
-    private Span name(String text) {
-        Span name = uiComponents.create(Span.class);
-        name.addClassName("search-palette-name");
-        name.setText(text);
-
-        return name;
-    }
-
-    // the icons of the assistant and of the search by meaning wear the accent of AI, as in the menu
-    private Component aiIcon(JmixFontIcon icon) {
-        Component component = icons.get(icon);
-        component.addClassNames("aura-accent-purple", "search-palette-ai-icon");
-
-        return component;
     }
 
     private void select(int index) {

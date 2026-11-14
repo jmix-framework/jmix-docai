@@ -5,6 +5,7 @@ import com.company.docai.app.ui.component.searchpalette.SearchPaletteOpener;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.user.User;
+import com.company.docai.view.assistant.AssistantNavigation;
 import com.company.docai.view.dashboard.DashboardFragment;
 import com.company.docai.view.document.DocumentCards;
 import com.company.docai.view.favorite.FavoritesFragment;
@@ -98,6 +99,8 @@ public class MainView extends StandardMainView {
     private DialogWindows dialogWindows;
     @Autowired
     private SearchNavigation searchNavigation;
+    @Autowired
+    private AssistantNavigation assistant;
 
     @Autowired
     private Messages messages;
@@ -175,7 +178,7 @@ public class MainView extends StandardMainView {
         Div content = uiComponents.create(Div.class);
         content.setClassName("user-menu-button-content");
 
-        Avatar avatar = createAvatar(userName);
+        Avatar avatar = createAvatar(user, userName);
 
         Span name = uiComponents.create(Span.class);
         name.setText(userName);
@@ -205,7 +208,7 @@ public class MainView extends StandardMainView {
 
         String name = userRenderers.shortName(user, user.getUsername());
 
-        Avatar avatar = createAvatar(name);
+        Avatar avatar = createAvatar(user, name);
         avatar.addThemeVariants(AvatarVariant.LARGE);
 
         Span text = uiComponents.create(Span.class);
@@ -348,7 +351,7 @@ public class MainView extends StandardMainView {
         palette.setAiMode(aiSearch);
         palette.setModeChangeHandler(this::chooseSearchMode);
         palette.setSearchHandler((query, ai) -> searchNavigation.openSearch(this, query, ai));
-        palette.setAssistantHandler(searchNavigation::openAssistant);
+        palette.setAssistantHandler(assistant::openAssistant);
         palette.setDocumentOpenHandler(this::openPaletteDocument);
         palette.setFolderOpenHandler(folder -> folderTree.loadAndSelect(folder.getId()));
         palette.setTagOpenHandler(tag -> searchNavigation.openTag(this, tag));
@@ -403,7 +406,7 @@ public class MainView extends StandardMainView {
         dashboard.setFillWithAiHandler(document -> documentCards.fillWithAiIfAvailable(this, document,
                 closeEvent -> afterDashboardCard()));
 
-        dashboard.setAssistantHandler(searchNavigation::openAssistant);
+        dashboard.setAssistantHandler(assistant::openAssistant);
     }
 
     // the dashboard stands in place of a view, so it reads its blocks whenever the root shows it
@@ -422,9 +425,10 @@ public class MainView extends StandardMainView {
         return getContent().getContent() == getInitialLayout();
     }
 
-    private Avatar createAvatar(String fullName) {
+    // the menu shows the person as the comments and the dashboard do: the initials in the color of the user
+    private Avatar createAvatar(User user, String name) {
         Avatar avatar = uiComponents.create(Avatar.class);
-        avatar.setName(fullName);
+        userRenderers.fillAvatar(avatar, name, user, user.getUsername());
         avatar.getElement().setAttribute("tabindex", "-1");
         avatar.setClassName("user-menu-avatar");
 

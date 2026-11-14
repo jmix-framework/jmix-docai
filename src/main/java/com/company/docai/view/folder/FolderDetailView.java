@@ -3,7 +3,6 @@ package com.company.docai.view.folder;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.folder.Folder;
 import io.jmix.core.EntityStates;
-import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.view.DialogMode;
@@ -18,7 +17,6 @@ import io.jmix.flowui.view.ViewDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Names a new folder or renames one. A new folder shows the folder it goes into; an existing folder
@@ -39,7 +37,7 @@ public class FolderDetailView extends StandardDetailView<Folder> {
     @Autowired
     private EntityStates entityStates;
     @Autowired
-    private MetadataTools metadataTools;
+    private FolderRenderers folderRenderers;
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
@@ -48,9 +46,7 @@ public class FolderDetailView extends StandardDetailView<Folder> {
             return;
         }
 
-        parentField.setValue(folderService.getPath(getEditedEntity().getParent()).stream()
-                .map(metadataTools::getInstanceName)
-                .collect(Collectors.joining(" / ")));
+        parentField.setValue(folderRenderers.pathText(folderService.getPath(getEditedEntity().getParent())));
     }
 
     @Install(target = Target.DATA_CONTEXT)

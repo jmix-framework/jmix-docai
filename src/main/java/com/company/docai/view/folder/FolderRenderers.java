@@ -16,11 +16,14 @@ import io.jmix.flowui.kit.icon.JmixFontIcon;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
 
 /**
- * Renderers of folders in grids, and the key that marks a folder or a document with its own access.
+ * Renderers of folders in grids, the path of a folder in one line, and the key that marks a folder or a document with
+ * its own access.
  * In the name column of a folder tree the icon and the name are a label inside a span that selects
  * the folder: the tree toggle expands a folder on any click inside it except a click on a label, so
  * a click on the name selects, and only the chevron expands or collapses. A greyed folder is only
@@ -57,6 +60,15 @@ public class FolderRenderers {
                                              Predicate<Folder> ownAccess, ToLongFunction<Folder> documentCount) {
         return new HierarchyColumnComponentRenderer<>(folder -> name(tree, folder, greyed.test(folder),
                 ownAccess.test(folder), documentCount.applyAsLong(folder)), tree);
+    }
+
+    /**
+     * Returns the path in one line: the names of the folders from the top down, separated by slashes.
+     */
+    public String pathText(List<Folder> path) {
+        return path.stream()
+                .map(metadataTools::getInstanceName)
+                .collect(Collectors.joining(" / "));
     }
 
     /**

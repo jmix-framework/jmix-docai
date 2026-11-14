@@ -2,6 +2,7 @@ package com.company.docai.view.repository;
 
 import com.company.docai.ai.assistant.DocumentDiscussion;
 import com.company.docai.model.document.Document;
+import com.company.docai.view.assistant.AssistantNavigation;
 import com.company.docai.view.document.DocumentCards;
 import com.company.docai.view.document.DocumentDetailView;
 import com.vaadin.flow.component.ClickEvent;
@@ -24,11 +25,9 @@ import io.jmix.aichat.component.messagelist.ThinkingStatusItem;
 import io.jmix.aichat.data.SimpleAiChatMessage;
 import io.jmix.aitools.tool.AiToolStatusUpdate;
 import io.jmix.aitoolsflowui.AiToolsFlowuiProperties;
-import io.jmix.aitoolsflowui.view.chat.AiChatView;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
-import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.backgroundtask.BackgroundTask;
 import io.jmix.flowui.backgroundtask.BackgroundTaskHandler;
 import io.jmix.flowui.backgroundtask.BackgroundWorker;
@@ -44,7 +43,6 @@ import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.view.MessageBundle;
 import io.jmix.flowui.view.Subscribe;
 import io.jmix.flowui.view.ViewComponent;
-import io.jmix.flowui.view.navigation.RouteSupport;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,9 +100,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     @Autowired
     private Icons icons;
     @Autowired
-    private ViewNavigators viewNavigators;
-    @Autowired
-    private RouteSupport routeSupport;
+    private AssistantNavigation assistantNavigation;
 
     @Nullable
     private SideDialog window;
@@ -213,11 +209,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     public void onFullChatButtonClick(final ClickEvent<JmixButton> event) {
         discussion.getConversation().ifPresent(conversation -> {
             close();
-
-            viewNavigators.view(FragmentUtils.getHostView(this), AiChatView.class)
-                    .withRouteParameters(routeSupport.createRouteParameters(AiChatView.ROUTE_PARAM_ID,
-                            conversation.getId()))
-                    .navigate();
+            assistantNavigation.openChat(FragmentUtils.getHostView(this), conversation.getId());
         });
     }
 

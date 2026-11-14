@@ -18,6 +18,7 @@ import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.view.access.AccessDetailView;
 import com.company.docai.view.favorite.FavoriteCardAction;
+import com.company.docai.view.folder.FolderRenderers;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.status.StatusBadges;
 import com.company.docai.view.tag.TagBadges;
@@ -39,7 +40,6 @@ import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.router.Route;
 import io.jmix.core.EntityStates;
 import io.jmix.core.Messages;
-import io.jmix.core.MetadataTools;
 import io.jmix.core.SaveContext;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
@@ -68,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -178,7 +177,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @Autowired
     private EntityStates entityStates;
     @Autowired
-    private MetadataTools metadataTools;
+    private FolderRenderers folderRenderers;
     @Autowired
     private Messages messages;
     @Autowired
@@ -215,14 +214,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
-        // binding the action after the init event sets the title of the star, and Jmix copies a title into the aria
-        // label, an empty one too
-        favoriteButton.setAriaLabel(messages.getMessage(FavoriteCardAction.class, "favoriteAction.text"));
-
-        // the star shows the state by its look only, so the button tells a screen reader whether it is pressed
-        favoriteAction.addPropertyChangeListener(change -> favoriteButton.getElement()
-                .setAttribute("aria-pressed", String.valueOf(favoriteAction.isMarked())));
-
+        initFavoriteButton();
         showDocument();
         preview.showRevision(getEditedEntity().getCurrentRevision());
         showComments();
@@ -439,18 +431,37 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         fillWithAiAction.refreshState();
     }
 
+    private void initFavoriteButton() {
+        // binding the action after the init event sets the title of the star, and Jmix copies a title into the aria
+        // label, an empty one too
+        favoriteButton.setAriaLabel(messages.getMessage(FavoriteCardAction.class, "favoriteAction.text"));
+
+        // the star shows the state by its look only, so the button tells a screen reader whether it is pressed
+        favoriteAction.addPropertyChangeListener(change -> favoriteButton.getElement()
+                .setAttribute("aria-pressed", String.valueOf(favoriteAction.isMarked())));
+    }
+
     /**
      * Fills what stays the same while the card is open; what waits for OK is shown by {@link #afterStaging()}.
      */
     private void showDocument() {
-        Document document = getEditedEntity();
-        DocumentStatus status = document.getStatus();
         // the view turns read-only before it is shown when the user only views the document
         boolean locked = isLocked() || isReadOnly();
 
+        showHeader();
+        showForm(locked);
+        showActions();
+        showStamps();
+    }
+
+    private void showHeader() {
         updateTitle();
-        StatusBadges.paint(statusBadge, status);
+        StatusBadges.paint(statusBadge, getEditedEntity().getStatus());
         showTags();
+    }
+
+    private void showForm(boolean locked) {
+        DocumentStatus status = getEditedEntity().getStatus();
 
         statusField.setItems(statusService.loadChoices(status));
         statusField.setValue(status);
@@ -467,17 +478,23 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         if (isNew() && newVersionUpload.getUploadButton() instanceof Button uploadButton) {
             uploadButton.setText(messageBundle.getMessage("uploadFile"));
         }
+    }
+
+    private void showActions() {
+        Document document = getEditedEntity();
 
         downloadButton.setVisible(document.getCurrentRevision() != null);
 
         accessButton.setVisible(!isNew() && accessChecker.getLevel(document.getAccessSet()) == AccessLevel.MANAGE);
 
         favoriteAction.refreshState();
+        fillWithAiAction.refreshState();
+    }
 
-        folderField.setValue(folderService.getPath(document.getFolder()).stream()
-                .map(metadataTools::getInstanceName)
-                .collect(Collectors.joining(" / ")));
+    private void showStamps() {
+        Document document = getEditedEntity();
 
+        folderField.setValue(folderRenderers.pathText(folderService.getPath(document.getFolder())));
         currentVersionField.setValue(documentRenderers.versionText(document.getCurrentRevision()));
 
         userNames = userService.namesOf(Stream.concat(Stream.of(document.getCreatedBy(), document.getChangedBy()),
@@ -487,7 +504,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         createdField.setValue(describeChange(document.getCreatedBy(), document.getCreatedDate()));
         modifiedField.setValue(describeChange(document.getChangedBy(), document.getChangedDate()));
         versionsTab.setLabel(messageBundle.formatMessage("versionsTab.label", revisionsDc.getItems().size()));
-        fillWithAiAction.refreshState();
     }
 
     // a comment refers to a saved document, so a new one gets the tab after the first save

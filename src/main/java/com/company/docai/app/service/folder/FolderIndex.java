@@ -3,8 +3,11 @@ package com.company.docai.app.service.folder;
 import com.company.docai.model.folder.Folder;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -92,6 +95,30 @@ public final class FolderIndex {
         }
 
         return depth;
+    }
+
+    /**
+     * Returns the folders as a tree shows them: each folder right after its parent, and the folders with the same
+     * parent in their order here.
+     */
+    public List<Folder> inTreeOrder() {
+        List<Folder> all = List.copyOf(folders.values());
+        Map<UUID, Integer> positions = new HashMap<>();
+
+        for (int i = 0; i < all.size(); i++) {
+            positions.put(all.get(i).getId(), i);
+        }
+
+        Comparator<Folder> byPath = Comparator.comparing(
+                (Folder folder) -> pathOf(folder)
+                        .stream()
+                        .mapToInt(step -> positions.get(step.getId()))
+                        .toArray(),
+                Arrays::compare);
+
+        return all.stream()
+                .sorted(byPath)
+                .toList();
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.company.docai.view.repository;
 
-import com.company.docai.ai.AiSettings;
 import com.company.docai.app.service.access.AccessLevels;
 import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.document.DocumentService;
@@ -13,6 +12,7 @@ import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
+import com.company.docai.view.assistant.AssistantNavigation;
 import com.company.docai.view.document.DocumentCards;
 import com.company.docai.view.document.DocumentRenderers;
 import com.company.docai.view.document.DocumentUploads;
@@ -36,12 +36,10 @@ import com.vaadin.flow.component.upload.StartedEvent;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.selection.SelectionEvent;
-import io.jmix.core.AccessManager;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Fragments;
-import io.jmix.flowui.accesscontext.UiShowViewContext;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.DataGridColumn;
@@ -76,8 +74,6 @@ import java.util.stream.Collectors;
  */
 @FragmentDescriptor("document-list-fragment.xml")
 public class DocumentListFragment extends Fragment<VerticalLayout> {
-
-    private static final String ASSISTANT_CHAT_VIEW = "aitls_AiChatView";
 
     @ViewComponent
     private JmixUpload<TemporaryStorage.FileInfo> versionUpload;
@@ -146,9 +142,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private Fragments fragments;
     @Autowired
-    private AiSettings aiSettings;
-    @Autowired
-    private AccessManager accessManager;
+    private AssistantNavigation assistantNavigation;
 
     @Nullable
     private Folder folder;
@@ -250,10 +244,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
 
     // the discussion keeps its conversation in the chat of the assistant, so it needs the AI and that chat
     private void configureDiscussion() {
-        UiShowViewContext assistantChat = new UiShowViewContext(ASSISTANT_CHAT_VIEW);
-        accessManager.applyRegisteredConstraints(assistantChat);
-        boolean available = aiSettings.isAvailable() && assistantChat.isPermitted();
-        discussAction.setVisible(available);
+        discussAction.setVisible(assistantNavigation.isAvailable());
 
         // a dialog belongs to the UI and would stay open over the next view
         addDetachListener(detachEvent -> {

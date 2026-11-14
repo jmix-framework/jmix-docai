@@ -17,21 +17,21 @@ class SearchPalettePluralFormTest {
     @Test
     void russianTakesTheFormByTheLastDigitsOfTheNumber() {
         assertThat(LongStream.of(1, 21, 101)
-                .mapToObj(count -> SearchPaletteView.pluralForm(count, RUSSIAN)))
+                .mapToObj(count -> SearchRenderers.pluralForm(count, RUSSIAN)))
                 .containsOnly("one");
         assertThat(LongStream.of(2, 3, 4, 22)
-                .mapToObj(count -> SearchPaletteView.pluralForm(count, RUSSIAN)))
+                .mapToObj(count -> SearchRenderers.pluralForm(count, RUSSIAN)))
                 .containsOnly("few");
         assertThat(LongStream.of(0, 5, 11, 12, 13, 14, 25, 111)
-                .mapToObj(count -> SearchPaletteView.pluralForm(count, RUSSIAN)))
+                .mapToObj(count -> SearchRenderers.pluralForm(count, RUSSIAN)))
                 .containsOnly("many");
     }
 
     @Test
     void englishHasOneForOneOnly() {
-        assertThat(SearchPaletteView.pluralForm(1, Locale.ENGLISH)).isEqualTo("one");
+        assertThat(SearchRenderers.pluralForm(1, Locale.ENGLISH)).isEqualTo("one");
         assertThat(LongStream.of(0, 2, 5, 21)
-                .mapToObj(count -> SearchPaletteView.pluralForm(count, Locale.ENGLISH)))
+                .mapToObj(count -> SearchRenderers.pluralForm(count, Locale.ENGLISH)))
                 .containsOnly("many");
     }
 }

@@ -972,7 +972,7 @@ class SearchPaletteViewTest {
 
         SearchPaletteView palette = TestPalettes.open();
         TestPalettes.type(palette, name);
-        String key = "tagDocuments." + SearchPaletteView.pluralForm(2, currentAuthentication.getLocale());
+        String key = "tagDocuments." + SearchRenderers.pluralForm(2, currentAuthentication.getLocale());
 
         assertThat(TestPalettes.meta(TestPalettes.row(palette, name)))
                 .isEqualTo(messages.formatMessage(SearchPaletteView.class, key, 2));
@@ -1121,7 +1121,7 @@ class SearchPaletteViewTest {
     }
 
     private String tagDocuments(long count) {
-        String key = "tagDocuments." + SearchPaletteView.pluralForm(count, Locale.ENGLISH);
+        String key = "tagDocuments." + SearchRenderers.pluralForm(count, Locale.ENGLISH);
 
         return messages.formatMessage(SearchPaletteView.class, key, Locale.ENGLISH, count);
     }
