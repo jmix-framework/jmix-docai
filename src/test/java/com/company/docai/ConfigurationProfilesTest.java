@@ -47,9 +47,9 @@ class ConfigurationProfilesTest {
     }
 
     @Test
-    void theStandProfileLoadsTheRussianSetAndLeavesTheLoginFormEmpty() {
+    void theStandProfileLoadsTheEnglishSetAndLeavesTheLoginFormEmpty() {
         try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
-            assertThat(context.getEnvironment().getProperty("docai.demo-data")).isEqualTo("ru");
+            assertThat(context.getEnvironment().getProperty("docai.demo-data")).isEqualTo("en");
             assertThat(context.getEnvironment().getProperty("ui.login.defaultUsername")).isNull();
             assertThat(context.getEnvironment().getProperty("ui.login.defaultPassword")).isNull();
         }

@@ -180,7 +180,7 @@ Gradle builds the jar, and Compose puts it into an image and runs it next to Ope
 docker compose --profile app up -d --build
 ```
 
-The application answers on port 8080 of the host at `/docai`. Its database and files live in the `docai-data` volume, the search indexes in `opensearch-data`; `docker compose --profile app down -v` deletes both. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another: the login form stays empty, and the first start fills the empty database with the Russian demo set, the set of the webinar. Another profile, for example `prod`, also leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one.
+The application answers on port 8080 of the host at `/docai`. Its database and files live in the `docai-data` volume, the search indexes in `opensearch-data`; `docker compose --profile app down -v` deletes both. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another: the login form stays empty, and the first start fills the empty database with the English demo set. Another profile, for example `prod`, also leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one.
 
 ### Run the tests
 
@@ -205,7 +205,7 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 | Variable | Default | Meaning |
 |---|---|---|
 | `DOCAI_ACTIVE_PROFILE` | `local`, `stand` in Compose | Spring profile; `local` pre-fills the login form |
-| `DOCAI_DEMO_DATA` | `en` in the `local` profile, `ru` in `stand`, `none` in others | Demo set an empty database gets at the start: `en`, `ru` or `none` |
+| `DOCAI_DEMO_DATA` | `en` in the `local` and `stand` profiles, `none` in others | Demo set an empty database gets at the start: `en`, `ru` or `none` |
 | `DOCAI_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/docai` | JDBC URL of the database |
 | `DOCAI_DB_USERNAME` | `sa` | Database user |
 | `DOCAI_DB_PASSWORD` | empty | Database password |
