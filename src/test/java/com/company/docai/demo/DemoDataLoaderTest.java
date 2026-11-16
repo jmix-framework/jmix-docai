@@ -17,6 +17,7 @@ import com.company.docai.model.favorite.Favorite;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.model.user.User;
+import com.company.docai.search.semantic.DocumentVectorIndex;
 import com.company.docai.security.role.EmployeeRole;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestStatuses;
@@ -29,6 +30,8 @@ import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.data.PersistenceHints;
 import io.jmix.dynattr.DynAttrQueryHints;
+import io.jmix.search.index.IndexConfiguration;
+import io.jmix.search.index.IndexManager;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -38,10 +41,13 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
+import java.net.ConnectException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -56,11 +62,16 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Loads the sets into a database of their own on a day the clock is set to, and compares the database with the sets
- * generated for that day, so the test names no folder or document of a set.
+ * generated for that day, so the test names no folder or document of a set. The search indexes are replaced, so the
+ * test reaches no OpenSearch.
  */
 @SpringBootTest(properties = "main.datasource.url=jdbc:hsqldb:mem:demo")
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -103,6 +114,12 @@ class DemoDataLoaderTest {
     @MockitoSpyBean
     private TimeSource timeSource;
 
+    @MockitoBean
+    private IndexManager indexManager;
+
+    @MockitoBean
+    private DocumentVectorIndex vectorIndex;
+
     // the names of the statuses that the keys of the set being checked stand for
     private Map<String, String> statusNames = Map.of();
 
@@ -118,22 +135,57 @@ class DemoDataLoaderTest {
         assertThatThrownBy(() -> loader.load("forbidden"))
                 .isInstanceOf(OperationRejectedException.class);
 
-        assertThat(unconstrainedDataManager.loadValue("select count(f) from Folder f", Long.class)
-                .hint(PersistenceHints.SOFT_DELETION, false)
-                .one()).isEqualTo(1L);
-        assertThat(unconstrainedDataManager.loadValue("select count(d) from Document d", Long.class)
-                .hint(PersistenceHints.SOFT_DELETION, false)
-                .one()).isZero();
+        assertTheDatabaseIsEmpty();
+    }
+
+    // the search indexes may keep the documents of an earlier database, so a set loads only into cleared ones and
+    // otherwise waits for the next start
+    @Test
+    @Order(2)
+    void aSetIsNotLoadedWhenTheSearchIndexesCannotBeCleared() {
+        doThrow(new UncheckedIOException(new ConnectException("Connection refused"))).when(vectorIndex).clear();
+
+        assertThatThrownBy(() -> loader.loadIfEmpty("sample"))
+                .isInstanceOf(UncheckedIOException.class);
+
+        IndexConfiguration documents = mock(IndexConfiguration.class);
+        doReturn("docai_test_document").when(documents).getIndexName();
+        doReturn(Map.of(documents, false)).when(indexManager).recreateIndexes();
+        doReturn(true).when(vectorIndex).clear();
+
+        assertThatThrownBy(() -> loader.loadIfEmpty("sample"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("docai_test_document");
+
+        assertTheDatabaseIsEmpty();
     }
 
     @Test
-    @Order(2)
+    @Order(3)
     void anEmptyDatabaseGetsTheSetAndAFilledOneDoesNot() {
         // a load that runs past midnight is checked and loaded for the day it started on
         doReturn(LOAD_TIME, LOAD_TIME.plusDays(1)).when(timeSource).now();
 
+        List<Long> foldersWhenCleared = new ArrayList<>();
+
+        doAnswer(invocation -> {
+            foldersWhenCleared.add(count("select count(f) from Folder f"));
+            return Map.of();
+        }).when(indexManager).recreateIndexes();
+
+        doAnswer(invocation -> {
+            foldersWhenCleared.add(count("select count(f) from Folder f"));
+            return true;
+        }).when(vectorIndex).clear();
+
         assertThat(loader.loadIfEmpty("sample")).isEqualTo(DemoDataLoader.Outcome.LOADED);
         assertThat(loader.loadIfEmpty("sample")).isEqualTo(DemoDataLoader.Outcome.NOT_EMPTY);
+        assertThat(loader.loadIfEmpty(DemoDataLoader.NONE)).isEqualTo(DemoDataLoader.Outcome.OFF);
+
+        // each index is cleared once, while the database holds the root alone
+        verify(indexManager).recreateIndexes();
+        verify(vectorIndex).clear();
+        assertThat(foldersWhenCleared).containsExactly(1L, 1L);
 
         assertLoadedAsDescribed("sample");
         assertThat(textOf("Invoice No. 77")).contains("dated May 17, 2027", "Pay by May 31, 2027.");
@@ -142,7 +194,7 @@ class DemoDataLoaderTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void theRussianSetLoadsAsItsDescriptionSays() {
         assertThat(loader.check("ru")).isEmpty();
 
@@ -155,7 +207,7 @@ class DemoDataLoaderTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     void theEnglishSetLoadsAsItsDescriptionSays() {
         assertThat(loader.check("en")).isEmpty();
 
@@ -166,6 +218,18 @@ class DemoDataLoaderTest {
         assertFavoritesAsDescribed("en");
         assertUsersAsDescribed("en", Character.UnicodeScript.LATIN);
         assertStatusesAsDescribed("en", Character.UnicodeScript.LATIN);
+    }
+
+    // the root, which comes with the changelog, and no document, deleted ones included
+    private void assertTheDatabaseIsEmpty() {
+        assertThat(count("select count(f) from Folder f")).isEqualTo(1L);
+        assertThat(count("select count(d) from Document d")).isZero();
+    }
+
+    private long count(String query) {
+        return unconstrainedDataManager.loadValue(query, Long.class)
+                .hint(PersistenceHints.SOFT_DELETION, false)
+                .one();
     }
 
     private void assertLoadedAsDescribed(String set) {

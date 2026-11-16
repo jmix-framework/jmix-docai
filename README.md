@@ -157,7 +157,7 @@ docker compose up -d --wait
 ./gradlew bootRun
 ```
 
-Open <http://localhost:8080/docai> and log in as `admin` / `admin`. Compose starts OpenSearch on `127.0.0.1:19200` and returns once it answers. Without OpenSearch the application starts, and the search says it is unavailable; start OpenSearch and restart the application.
+Open <http://localhost:8080/docai> and log in as `admin` / `admin`. Compose starts OpenSearch on `127.0.0.1:19200` and returns once it answers. Without OpenSearch the application starts, the search says it is unavailable, and an empty database waits for the demo set; start OpenSearch and restart the application.
 
 The first start loads the English demo set. The database and the document files live under `.jmix/`, see [Configuration](#-configuration).
 
@@ -167,7 +167,7 @@ Without `OPENAI_API_KEY` the application shows no AI button, tab, menu item or s
 
 ### Reset the demo data
 
-Stop the application and run `./gradlew resetDemoData`. It deletes the HSQLDB file database, the document files and the search indexes `docai_document` and `docai_document_vectors`, and the next start loads the set of `DOCAI_DEMO_DATA` again.
+Stop the application and run `./gradlew resetDemoData`. It deletes the HSQLDB file database, the document files and the search indexes `docai_document` and `docai_document_vectors`, and the next start loads the set of `DOCAI_DEMO_DATA` again. The application also clears both indexes itself whenever it loads a set into an empty database.
 
 The database, the files and the indexes belong together: after you replace the database in another way, run `docker compose down -v`, and the application fills the indexes again at start.
 
@@ -180,8 +180,7 @@ Gradle builds the jar, and Compose puts it into an image and runs it next to Ope
 docker compose --profile app up -d --build
 ```
 
-The application answers on port 8080 of the host at `/docai`. Its database and files live in the `docai-data` volume, the search indexes in `opensearch-data`; `docker compose --profile app down -v` deletes both. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another: the login form stays empty, and the first start fills the empty database with the English demo set. Another profile, for example `prod`, also leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one.
-
+The application answers on port 8080 of the host at `/docai`. Its database and files live in the container, and the search indexes in the `opensearch-data` volume: a new container starts on a fresh database with the demo set for that day, a restart keeps the data, and the application clears its own search indexes before it loads a set into an empty database. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another: the login form stays empty, and an empty database gets the English demo set at start. Another profile, for example `prod`, also leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one.
 ### Run the tests
 
 | Command | Needs | Runs |
@@ -240,7 +239,7 @@ The corpus holds 12 documents about farm machinery and 18 about other machinery 
 
 A set is generated for the day it loads. Each of its dates counts from that day: the uploads, comments and deletions of its history, the dates of the documents and of their fields, the dates and years in the names and in the texts of the files. So the last change happened yesterday, the nearest deadlines lie ahead, and some contracts end this quarter. A document declares its dates once in `demo-data.json`, such as `"dates": {"issued": "-5d", "due": "month-end"}`, and its date, fields, history and texts refer to them by name; a date of ISO 8601, such as `2006-07-27`, stays where it is. The files of the versions are made at the load from the texts in `texts/`: a PDF renders its text, and a plain text file is its text, both with the dates of the day; so a document of a set changes by its text. The start log names the day: `The demo set 'en' is loaded for 2026-11-16: …`.
 
-A database keeps the dates of its load: a running stand ages from its first start, and `docker compose --profile app down -v` before `up` loads the set for the new day.
+A database keeps the dates of its load: in Docker the application keeps its database in the container, so a new container starts on a fresh database with the set for that day, while a restart keeps the data.
 
 The sets lie in `src/main/resources/com/company/docai/demo/`: `demo-data.json` and the texts of their files in `texts/`. The PDFs use PT Serif and PT Sans by ParaType, which lie in `fonts/` there with their licenses, the SIL Open Font License 1.1. To load a set again, [reset the demo data](#reset-the-demo-data).
 

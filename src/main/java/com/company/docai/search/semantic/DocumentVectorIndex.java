@@ -90,9 +90,7 @@ public class DocumentVectorIndex {
      */
     public synchronized boolean prepare() {
         try {
-            boolean exists = client.indices()
-                    .exists(request -> request.index(indexName))
-                    .value();
+            boolean exists = indexExists();
 
             if (exists && builtWithTheModel()) {
                 return false;
@@ -123,6 +121,28 @@ public class DocumentVectorIndex {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    /**
+     * Empties the index by creating it anew, when there is one; when there is none, nothing is created.
+     *
+     * @return whether there was an index to empty
+     */
+    public synchronized boolean clear() {
+        try {
+            if (!indexExists()) {
+                return false;
+            }
+
+            client.indices()
+                    .delete(request -> request.index(indexName));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        prepare();
+
+        return true;
     }
 
     /**
@@ -233,6 +253,12 @@ public class DocumentVectorIndex {
         }
 
         return keys;
+    }
+
+    private boolean indexExists() throws IOException {
+        return client.indices()
+                .exists(request -> request.index(indexName))
+                .value();
     }
 
     private boolean builtWithTheModel() throws IOException {

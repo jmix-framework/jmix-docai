@@ -103,6 +103,21 @@ class DocumentVectorIndexTest {
         assertThat(index.nearest(query, List.of(), 10)).isEmpty();
     }
 
+    // a demo set that loads into an empty database clears the index first; an index that is not there stays away
+    @Test
+    void anIndexIsClearedOnlyWhenItIsThere() throws IOException {
+        assertThat(index.clear()).isFalse();
+        assertThat(client.indices()
+                .exists(request -> request.index(index.getIndexName()))
+                .value()).isFalse();
+
+        index.replace(UUID.randomUUID(), "key", List.of(fragment(0, "A tractor")));
+
+        assertThat(index.clear()).isTrue();
+        assertThat(index.sourceKeys()).isEmpty();
+        assertThat(index.prepare()).isFalse();
+    }
+
     @Test
     void deletedDocumentsLeaveTheIndex() {
         UUID kept = UUID.randomUUID();

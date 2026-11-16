@@ -38,6 +38,14 @@ public class InMemoryVectorIndex extends DocumentVectorIndex {
     }
 
     @Override
+    public synchronized boolean clear() {
+        failIfDown();
+        entries.clear();
+
+        return true;
+    }
+
+    @Override
     public void replace(UUID documentId, String sourceKey, List<Fragment> fragments) {
         failIfDown();
         entries.put(documentId, new Entry(sourceKey, List.copyOf(fragments)));

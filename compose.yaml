@@ -21,6 +21,9 @@ services:
       timeout: 3s
       retries: 60
 
+  # the application keeps no volume: its database and files live in the container, so a deploy, which recreates the
+  # container for a new image, starts on an empty database with the demo set of that day, and a restart keeps them;
+  # OpenSearch keeps its volume, and the application clears its indexes before it loads a set
   app:
     profiles: [app]
     container_name: jmix-docai
@@ -38,10 +41,6 @@ services:
       - OPENAI_API_KEY
     ports:
       - "8080:8080"
-    # the database and the files of the application, under its working directory
-    volumes:
-      - docai-data:/.jmix
 
 volumes:
   opensearch-data:
-  docai-data:

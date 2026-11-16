@@ -18,6 +18,7 @@ import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.model.user.User;
+import com.company.docai.search.semantic.DocumentVectorIndex;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Metadata;
@@ -27,6 +28,7 @@ import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.data.PersistenceHints;
+import io.jmix.search.index.IndexManager;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
@@ -71,6 +73,8 @@ import java.util.function.Function;
  * the texts in {@code texts}. A set loads in one transaction, all of it or nothing.
  * The set is generated for the day of the load by {@link TimeSource}: its dates, the history included, are computed
  * from that day, and each text becomes its file with those dates: a PDF renders the text, a plain text file holds it.
+ * Before a set loads into an empty database, the search indexes are cleared: they may outlive the database, as on
+ * the stand, whose OpenSearch stays when the application gets a new container.
  */
 @Component
 public class DemoDataLoader {
@@ -124,6 +128,8 @@ public class DemoDataLoader {
     private final FavoriteService favoriteService;
     private final DemoSetChecker checker;
     private final DemoPdf pdf;
+    private final IndexManager indexManager;
+    private final DocumentVectorIndex vectorIndex;
     private final SystemAuthenticator systemAuthenticator;
     private final Metadata metadata;
     private final TimeSource timeSource;
@@ -146,6 +152,8 @@ public class DemoDataLoader {
                           FavoriteService favoriteService,
                           DemoSetChecker checker,
                           DemoPdf pdf,
+                          IndexManager indexManager,
+                          DocumentVectorIndex vectorIndex,
                           SystemAuthenticator systemAuthenticator,
                           Metadata metadata,
                           TimeSource timeSource,
@@ -163,6 +171,8 @@ public class DemoDataLoader {
         this.favoriteService = favoriteService;
         this.checker = checker;
         this.pdf = pdf;
+        this.indexManager = indexManager;
+        this.vectorIndex = vectorIndex;
         this.systemAuthenticator = systemAuthenticator;
         this.metadata = metadata;
         this.timeSource = timeSource;
@@ -180,7 +190,8 @@ public class DemoDataLoader {
     }
 
     /**
-     * Loads the set when the database holds no folder but the root and no document, deleted ones included.
+     * Loads the set when the database holds no folder but the root and no document, deleted ones included, after
+     * clearing the search indexes; when they cannot be cleared, the set does not load.
      */
     public Outcome loadIfEmpty(String set) {
         if (NONE.equals(set)) {
@@ -210,9 +221,31 @@ public class DemoDataLoader {
             return Outcome.INVALID;
         }
 
+        clearIndexes(set);
         load(set, now.toLocalDate());
 
         return Outcome.LOADED;
+    }
+
+    // with search off the index manager of the add-on recreates nothing and names no index
+    private void clearIndexes(String set) {
+        List<String> cleared = new ArrayList<>();
+
+        indexManager.recreateIndexes()
+                .forEach((index, recreated) -> {
+                    if (!recreated) {
+                        throw new IllegalStateException("OpenSearch did not recreate the search index "
+                                + index.getIndexName());
+                    }
+
+                    cleared.add(index.getIndexName());
+                });
+
+        if (vectorIndex.clear()) {
+            cleared.add(vectorIndex.getIndexName());
+        }
+
+        log.info("The search indexes are cleared before the demo set '{}' loads: {}", set, cleared);
     }
 
     /**
