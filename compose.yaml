@@ -29,10 +29,10 @@ services:
     depends_on:
       opensearch:
         condition: service_healthy
-    # the pipeline sets the profile, the demo set and the key of the stand
+    # stand unless the pipeline sets another profile; the pipeline also sets the demo set and the key of the stand
     environment:
       - DOCAI_SEARCH_URL=http://opensearch:9200
-      - DOCAI_ACTIVE_PROFILE
+      - DOCAI_ACTIVE_PROFILE=${DOCAI_ACTIVE_PROFILE:-stand}
       - DOCAI_DEMO_DATA
       - DOCAI_AI_ENABLED
       - OPENAI_API_KEY

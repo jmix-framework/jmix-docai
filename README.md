@@ -180,7 +180,7 @@ Gradle builds the jar, and Compose puts it into an image and runs it next to Ope
 docker compose --profile app up -d --build
 ```
 
-The application answers on port 8080 of the host at `/docai`. Its database and files live in the `docai-data` volume, the search indexes in `opensearch-data`; `docker compose --profile app down -v` deletes both. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment; without them the stand runs with the `local` profile. Another profile, for example `prod`, leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one.
+The application answers on port 8080 of the host at `/docai`. Its database and files live in the `docai-data` volume, the search indexes in `opensearch-data`; `docker compose --profile app down -v` deletes both. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another: the login form stays empty, and the first start fills the empty database with the Russian demo set, the set of the webinar. Another profile, for example `prod`, also leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one.
 
 ### Run the tests
 
@@ -204,8 +204,8 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `DOCAI_ACTIVE_PROFILE` | `local` | Spring profile; `local` pre-fills the login form |
-| `DOCAI_DEMO_DATA` | `en` in the `local` profile, `none` in others | Demo set an empty database gets at the start: `en`, `ru` or `none` |
+| `DOCAI_ACTIVE_PROFILE` | `local`, `stand` in Compose | Spring profile; `local` pre-fills the login form |
+| `DOCAI_DEMO_DATA` | `en` in the `local` profile, `ru` in `stand`, `none` in others | Demo set an empty database gets at the start: `en`, `ru` or `none` |
 | `DOCAI_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/docai` | JDBC URL of the database |
 | `DOCAI_DB_USERNAME` | `sa` | Database user |
 | `DOCAI_DB_PASSWORD` | empty | Database password |
@@ -223,8 +223,6 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 ## 🎲 Demo Data
 
 At the first start, an empty database gets the demo set that `DOCAI_DEMO_DATA` names: `en`, `ru` or `none`. Both sets hold the same folders, people and scenes: 46 documents with versions, types, fields, statuses, tags, comments and access, favorites of each user, and a few items in the trash.
-
-The history of a set, its uploads, versions, comments and deletions, moves to the days before the first start, so the last change happened yesterday; the dates of the documents and of their fields, and the texts of their files, stay as written.
 
 | Folder | Access | What to try |
 |---|---|---|
@@ -255,7 +253,7 @@ The sets lie in `src/main/resources/com/company/docai/demo/`; their PDFs use PT 
 
 The employees and their department roles come from the demo changelog `020-demo-users.xml`; delete it before the first start of a real deployment. The Russian set gives the employees Russian names, with the same logins and passwords.
 
-> **Warning:** these are development credentials, and the `local` profile pre-fills the login form. Before you deploy the application anywhere, change the `admin` password and set `DOCAI_ACTIVE_PROFILE` to another value, for example `prod`.
+> **Warning:** these are development credentials, and the `local` profile pre-fills the login form. Before you deploy the application anywhere, change the `admin` password and run it with another profile: `stand`, which Compose sets, or, for example, `prod`.
 
 ## ⚙️ Domain Model
 
