@@ -1,0 +1,22 @@
+DRAFT
+# SUPPLY AGREEMENT No. 61/{year:signed}
+## Office supplies
+
+This Supply Agreement is made on {signed:long} between Market Street Office Supply LLC, 23 Market Street, Suite 3, Springfield, IL 62704 (the “Supplier”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Buyer”).
+
+1. The Supplier will sell the Buyer office supplies (the “Goods”) as the Buyer orders them.
+2. The Goods include pens, pencils, markers, notepads, file folders, paper clips, staplers, hole punches, sticky notes, letter trays and desk organizers.
+3. The Buyer places orders by email, stating the items, the quantities and the requested delivery date. The Supplier confirms each order and issues an invoice within 1 business day.
+4. Prices are those of the Supplier’s price list on the order date. The Supplier may change its price list no more than once a quarter, with at least 30 days’ notice to the Buyer.
+5. The estimated value of this Agreement is $2,700.00 per year.
+6. The Supplier delivers the Goods to the Buyer’s office at 12 Garden Street, Suite 312, Springfield, IL 62701, within 2 business days after confirming the order, with inside delivery at no charge.
+7. The Buyer pays for each order within 10 business days after delivery, upon receipt of the invoice and the signed packing slip.
+8. The Buyer checks the quantity and the items on receipt and notes any shortage or damage on the packing slip; the Supplier delivers the missing Goods or replaces the defective ones at its own expense within 3 business days.
+9. The Goods are new, in the manufacturer’s original packaging. Staplers, hole punches and desk organizers carry a 12-month warranty from delivery.
+10. Title to the Goods passes to the Buyer when the Buyer signs the packing slip.
+11. If a delivery is late, the Supplier pays liquidated damages of 0.1% of the value of the undelivered Goods per day; if a payment is late, the Buyer pays a late charge of 0.1% of the overdue amount per day.
+12. This Agreement takes effect on the date of signing and remains in effect until {validUntil:long}.
+13. This Agreement is governed by Illinois law. Any dispute will be resolved in the state courts of Sangamon County, Illinois.
+
+MARKET STREET OFFICE SUPPLY LLC	MEADOWBROOK LLC
+By: ______________	By: ______________

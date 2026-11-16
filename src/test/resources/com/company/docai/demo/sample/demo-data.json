@@ -1,8 +1,25 @@
 {
+  "locale": "en",
+  "formats": {"long": "MMMM d, yyyy"},
   "folders": [
     {
       "name": "Sample contracts",
       "documents": [
+        {
+          "name": "Invoice No. 77",
+          "dates": {"issued": "-3d", "due": "month-end"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {"invoiceNumber": "77", "supplier": "Northwind Paper Inc.", "invoiceAmount": "636.00", "dueDate": "due"},
+          "status": "ACTIVE",
+          "versions": [{"text": "invoice-77.pdf", "author": "maria", "uploaded": "issued 10:30"}]
+        },
+        {
+          "name": "Invoice No. 77.txt",
+          "dates": {"issued": "-3d", "due": "month-end"},
+          "status": "ACTIVE",
+          "versions": [{"text": "invoice-77.txt", "author": "maria", "uploaded": "issued 10:45"}]
+        },
         {
           "name": "Lease Agreement No. 7",
           "comments": [
@@ -15,7 +32,7 @@
           "fields": {
             "contractNumber": "7",
             "contractKind": "lease",
-            "counterparty": "Westwind Ltd",
+            "counterparty": "Westwind Properties LLC",
             "contractAmount": "4620000.00",
             "validUntil": "2027-02-28"
           },

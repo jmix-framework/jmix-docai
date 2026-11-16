@@ -1,0 +1,13 @@
+# EQUIPMENT RENTAL AGREEMENT No. 27
+## Crawler excavator with operator
+
+This Equipment Rental Agreement is made on {signed:long} between Heavy Iron Rentals LLC, 100 Dodge Street, Springfield, IL 62707 (the “Lessor”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Lessee”).
+
+1. The Lessor rents to the Lessee a 46,000-lb crawler excavator with a 1.5 cu yd bucket and an operator, to excavate the foundation for a warehouse at 7 Industrial Lane, Riverton, IL 62561.
+2. Rental period: {start:monthDay} to {validUntil:long}. Rate: $35.00 per engine hour, with a minimum of $2,800.00 for the period (80 engine hours).
+3. Transport of the excavator on a lowboy trailer: $270.00 each way. The Lessee pays for fuel as used.
+4. Engine hours are taken from the excavator’s hour meter and confirmed by a daily report signed by both parties.
+
+HEAVY IRON RENTALS LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Keith Riley, President	Paul Smith, CEO

@@ -1,0 +1,15 @@
+Meadowbrook LLC
+# MEMO No. 41
+
+Date: {issued:long}
+To: Paul Smith, CEO
+From: Scott Swanson, Facilities Manager
+Subject: Replacing two company cars
+
+I request approval to replace two company cars.
+
+The cars are 2014 and 2015 models with 148,000 and 133,000 miles. Their repair and maintenance costs were $4,290 in {year:issued-1} and have already reached $1,580 in the first four months of {year:issued}. Our insurer has raised the premium for both cars.
+
+I propose buying two new compact cars for no more than $32,200 each and selling the old ones, which should bring about $7,220 for both. Delivery of the new cars should take no more than 30 days.
+
+Please ask Procurement to get quotes from at least three dealers by {quotesBy:monthDay}.

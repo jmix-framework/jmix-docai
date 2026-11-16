@@ -1,0 +1,22 @@
+# ROOFING CONTRACT No. 15/{year:signed}
+## Warehouse roof repair
+
+This Roofing Contract is made on {signed:long} between Ridgeline Roofing LLC, 37 Enterprise Drive, Unit 2, Springfield, IL 62703 (the “Contractor”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Customer”).
+
+1. The Contractor will repair the roof of the Customer’s warehouse at 4 Warehouse Road, Bloomington, IL 61701.
+2. The work includes removal of the old roofing, repair and priming of the roof deck, replacement of 4,500 sq ft of flat roofing with a two-ply torch-applied modified bitumen membrane, replacement of the gutters and downspouts, and removal of the debris.
+3. The Contractor supplies all materials, new and to the manufacturer’s specifications. At completion, the Contractor gives the Customer the manufacturer’s roof warranty and the product data sheets.
+4. Schedule: the work starts on {workStart:long} and ends on {workEnd:long}. The warehouse stays in operation during the work: the Contractor fences off the work area and protects the building against leaks.
+5. The contract price is $13,800.00. It is a fixed price and includes materials, equipment, delivery and debris removal.
+6. The Customer pays a 30% advance of $4,140.00 within 5 business days after this Contract is signed, upon receipt of the Contractor’s invoice.
+7. The Customer pays the remaining 70% of the price, $9,660.00, within 10 business days of the Contractor’s invoice issued after the certificate of completion is signed.
+8. The Contractor notifies the Customer in writing when the work is complete. Within 3 business days, the Customer inspects the work and signs the certificate of completion or sends a written list of defects.
+9. The Contractor warrants the work for 24 months from the date of the certificate of completion and corrects any defects found in that period at its own expense within 10 business days of the Customer’s notice.
+10. If the work is completed late, the Contractor pays liquidated damages of 0.1% of the contract price per day, up to 10% of the price. If a payment is late, the Customer pays a late charge of 0.1% of the overdue amount per day.
+11. The Contractor complies with OSHA requirements, including fall protection, and with applicable fire codes, and is responsible for its crew on site.
+12. This Contract takes effect on the date of signing and remains in effect until {validUntil:long}.
+13. This Contract is governed by Illinois law. Any dispute will be resolved in the state courts of Sangamon County, Illinois.
+
+RIDGELINE ROOFING LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Thomas Turner, President	Paul Smith, CEO

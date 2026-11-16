@@ -1,0 +1,24 @@
+# CERTIFICATE OF COMPLETION No. 58
+## Warehouse roof repair
+
+Date: {issued:long}
+Contractor: Ridgeline Roofing LLC, 37 Enterprise Drive, Unit 2, Springfield, IL 62703
+Customer: Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701
+Contract: Roofing Contract No. 15/{year:contract} dated {contract:long}
+Project: warehouse roof, 4 Warehouse Road, Bloomington, IL 61701
+
+The Contractor certifies, and the Customer confirms, that the following work was completed on {issued:long}:
+1. Removal of the old roofing, 4,500 sq ft	$1,400.00
+2. Repair and priming of the roof deck, 4,500 sq ft	$1,900.00
+3. Two-ply torch-applied modified bitumen roofing, 4,500 sq ft	$7,900.00
+4. Replacement of the gutters and downspouts	$2,100.00
+5. Removal and disposal of construction debris	$500.00
+Total contract price	$13,800.00
+Less advance payment	$4,140.00
+Balance due	$9,660.00
+
+The work was completed within the contract time. The inspection and a water test of the roof found no leaks. The 24-month warranty on the work starts on the date of this certificate. The Contractor has given the Customer the manufacturer’s roof warranty and the product data sheets.
+
+RIDGELINE ROOFING LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Thomas Turner, President	Paul Smith, CEO

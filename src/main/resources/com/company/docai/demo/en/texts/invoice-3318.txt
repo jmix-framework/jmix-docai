@@ -1,0 +1,19 @@
+Swift Cargo LLC
+26 Walnut Street, Suite 14, Chatham, IL 62629
+EIN 37-2918764
+
+# INVOICE No. 3318
+## dated {issued:long}
+Bill to: Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701
+Your order: {request:long}
+
+Moving services on {issued:long}, office furniture and equipment (warehouse relocation):
+1. 26-ft box truck, 2 trips at $215.00	$430.00
+2. Loading and unloading, 14 labor hours at $15.00	$210.00
+Total	$640.00
+
+The price includes stretch-wrapping the office equipment, securing the load and cargo insurance in transit. A crew of four movers did the loading and unloading.
+Pay by {due:long}.
+Payment by ACH to Larkspur National Bank, routing No. 071925999, account No. 9000031274. Please include the invoice number with your payment.
+
+Paid on {paid:long}, check No. 811.

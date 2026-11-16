@@ -1,0 +1,19 @@
+# SCHEDULE 2
+## to Supply Agreement No. 31/{year:contract} dated {contract:long}
+
+Date: {issued:long}
+Supplier: Midstate Farm Supply LLC
+Buyer: Meadowbrook LLC
+
+The Supplier will deliver, and the Buyer will accept and pay for, the following:
+1. No-till drill, 20-ft working width, 1 at $38,300.00	$38,300.00
+2. Spare seed meters, 2 sets at $470.00	$940.00
+3. Row marker kit, 1 set at $760.00	$760.00
+Total	$40,000.00
+
+The drill seeds small grains. Configuration: frame with seed hopper, 40 openers with seed meters, hydraulic lift. Included: the operator’s manual and a spare parts kit.
+Delivery by {delivery:long}, at the Supplier’s expense. Payment within 5 business days after delivery.
+
+MIDSTATE FARM SUPPLY LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Ryan Crowley, President	Paul Smith, CEO

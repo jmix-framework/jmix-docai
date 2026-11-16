@@ -1,0 +1,43 @@
+# MASTER SUPPLY AGREEMENT No. 3/{year:signed}
+
+This Master Supply Agreement is made on {signed:long} between Kirkwood Farm Supply LLC, 14 Kirkwood Avenue, Springfield, IL 62704 (the “Supplier”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Buyer”).
+
+## 1. Scope
+1.1 The Supplier will sell the Buyer the goods listed in Exhibit A under purchase orders the Buyer places from time to time.
+1.2 The quantity, price and delivery date of each order are agreed in the Buyer’s purchase order and the Supplier’s order confirmation, which become part of this Agreement.
+## 2. Orders and Delivery
+2.1 The Buyer sends purchase orders by email. The Supplier confirms an order within 2 business days or tells the Buyer that it cannot fill it.
+2.2 Unless the order confirmation says otherwise, the Supplier delivers the goods in its own trucks to the Buyer’s warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702. Delivery is included in the price.
+2.3 Title and risk of loss pass to the Buyer when the Buyer signs the delivery receipt. The Buyer checks quantities on the day of delivery and quality within 10 business days.
+## 3. Price and Payment
+3.1 Prices are stated in the order confirmation and include packaging and delivery. The Supplier may not change the price of a confirmed order.
+3.2 Unless the order confirmation provides for an advance payment, the Buyer pays for each order within 10 business days after signing the delivery receipt.
+## 4. Quality and Warranty
+4.1 The goods must be new, meet the manufacturer’s specifications and come with the manufacturer’s warranty and the operator’s manual.
+4.2 The warranty period is 12 months from the date of the delivery receipt. The Supplier corrects defects found in this period at its own expense within 14 days of notice.
+## 5. Liability, Force Majeure and Disputes
+5.1 If a delivery is late, the Supplier pays liquidated damages, and if a payment is late, the Buyer pays a late charge, of 0.1% of the overdue amount per day, up to 10% of that amount.
+5.2 Neither party is liable for a failure to perform caused by force majeure if it notifies the other party within 5 business days.
+5.3 The parties will first try to resolve any dispute through good-faith negotiation, and a party that receives a written notice of dispute responds within 10 business days. A dispute not resolved within 30 days after the notice may be brought in the state courts of Sangamon County, Illinois.
+## 6. Term
+6.1 This Agreement is in effect from {signed:long} to {validUntil:long} and renews for the same period unless either party gives notice of termination at least 30 days before it expires.
+
+KIRKWOOD FARM SUPPLY LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Kyle Andrews, President	Paul Smith, CEO
+
+
+
+
+## Exhibit A
+## to Master Supply Agreement No. 3/{year:signed} dated {signed:long}
+Goods the Buyer may order under this Agreement:
+1. Spare parts and consumables for tractors and combines (filters, belts, bearings, cutting parts), per the Supplier’s catalog.
+2. Kellerman TS8 pull-type fertilizer spreader, 8-ton capacity, per order confirmation.
+3. Group 8D heavy-duty batteries, per order confirmation.
+4. Engine and transmission oils in 5-gallon pails and 55-gallon drums, per order confirmation.
+Prices and delivery dates are set in the order confirmation for each purchase order.
+
+KIRKWOOD FARM SUPPLY LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Kyle Andrews, President	Paul Smith, CEO

@@ -1,0 +1,13 @@
+# EQUIPMENT LEASE AGREEMENT No. 14
+## Utility tractor, bare rental (no operator)
+
+This Equipment Lease Agreement is made on {signed:long} between Northgate Equipment Rental LLC, 125 Northgate Road, Springfield, IL 62702 (the “Lessor”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Lessee”).
+
+1. The Lessor leases to the Lessee a Corwin 82 utility tractor (serial No. 80512347) with a diesel engine, together with mounted implements for spring fieldwork, from {start:monthDay} to {validUntil:long}.
+2. Rent: $16.00 per engine hour, with a minimum of $4,800.00 for the term (300 engine hours).
+3. The Lessee pays monthly, based on hour meter readings, within 5 business days after both parties sign the monthly usage report.
+4. The Lessor services the tractor every 250 engine hours at its own expense. The Lessee pays for fuel and lubricants.
+
+NORTHGATE EQUIPMENT RENTAL LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Mark Wolfe, President	Paul Smith, CEO

@@ -1,0 +1,14 @@
+# DELIVERY RECEIPT No. 5
+## Snow blower
+
+Date: {issued:long}
+Seller: Yardline Power Equipment LLC
+Buyer: Meadowbrook LLC
+Contract: Supply Agreement No. 2/{year:contract} dated {contract:long}
+
+The Buyer acknowledges receipt of a self-propelled two-stage snow blower: 30-inch clearing width, 9 hp gas engine, electric start, serial No. 26-0114. The snow blower will clear the yard and the loading dock of the warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702.
+Included: 4 spare shear pins, a scraper attachment, the owner’s manual and the warranty card.
+The snow blower was test-run on delivery; no defects were found. Price: $1,640.00. Warranty: 12 months from the date of this receipt.
+
+Delivered by: ______________ Evan McCarthy, Yardline Power Equipment LLC
+Received by: ______________ Scott Swanson, Facilities Manager, Meadowbrook LLC

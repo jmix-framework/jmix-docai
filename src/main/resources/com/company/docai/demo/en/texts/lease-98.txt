@@ -1,0 +1,29 @@
+# OFFICE LEASE AGREEMENT No. 98
+
+This Office Lease Agreement (the “Lease”) is made on {signed:long} between Riverside Plaza Partners LLC, 3 Riverside Plaza, Suite 101, Springfield, IL 62701 (the “Landlord”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Tenant”).
+
+1. The Landlord leases to the Tenant office space of 1,700 sq ft on the 2nd floor of the building at 3 Riverside Plaza, Springfield, IL 62701 (the “Office”), for the Tenant’s administrative staff.
+2. The Landlord delivers the Office on the date of this Lease, together with the furniture and equipment listed in the move-in inspection report signed by both parties.
+3. The lease term is from {signed:long} to {validUntil:long}.
+4. The rent is $3,200.00 per month, $38,400.00 for the entire term.
+5. Rent is due monthly, on or before the 10th day of the month. It includes utilities, cleaning of the common areas, building security and two parking spaces. The Tenant pays for its own telephone and internet service.
+6. The Tenant uses the Office only as an office, keeps it in good repair, and complies with applicable fire codes and the building’s rules and regulations.
+7. The Landlord gives the Tenant’s employees 24/7 access to the Office and maintains the elevators, heating and air conditioning in good working order.
+8. If rent is paid late, the Tenant pays a late charge of 0.1% of the overdue amount per day.
+9. The parties may end this Lease early by written agreement. At the end of the Lease, the Tenant returns the Office in the condition received, ordinary wear and tear excepted.
+
+RIVERSIDE PLAZA PARTNERS LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Simon Gould, Manager	Paul Smith, CEO
+
+## Lease Termination Agreement
+
+This Lease Termination Agreement is made on {validUntil:long} between Riverside Plaza Partners LLC and Meadowbrook LLC, who agree to terminate Office Lease Agreement No. 98 dated {signed:long}, effective {validUntil:long}.
+1. The Tenant returned the Office to the Landlord on {validUntil:long} in good condition, ordinary wear and tear excepted, as recorded in the move-out inspection report.
+2. The Tenant has paid the rent for the entire lease term in full and owes nothing further under the Lease.
+3. Each party releases the other from all claims under the Lease.
+4. This termination agreement takes effect on the date of signing.
+
+RIVERSIDE PLAZA PARTNERS LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Simon Gould, Manager	Paul Smith, CEO

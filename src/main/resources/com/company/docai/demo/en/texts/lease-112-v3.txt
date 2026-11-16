@@ -1,0 +1,53 @@
+# COMMERCIAL LEASE AGREEMENT No. 112
+
+This Commercial Lease Agreement (the “Lease”) is made on {signed:long} between Westwind Properties LLC, 2 Warehouse Road, Bloomington, IL 61701 (the “Landlord”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Tenant”).
+
+## 1. Premises
+1.1 The Landlord leases to the Tenant warehouse space of 4,500 sq ft at 4 Warehouse Road, Bloomington, IL 61701 (the “Premises”).
+1.2 The Premises are heated and have a 20-ft ceiling, a dock door and a loading ramp. The Tenant uses the Premises as a warehouse for goods and equipment.
+1.3 The Landlord represents that it owns the Premises and has the right to lease them to the Tenant.
+1.4 The Landlord delivers the Premises to the Tenant on the first day of the term, and the parties sign a move-in inspection report.
+## 2. Term
+2.1 The term of this Lease is from {start:long} to {validUntil:long}.
+2.2 If the Tenant is not in default, it may renew this Lease for a new term by giving the Landlord written notice at least 30 days before the Lease expires.
+## 3. Rent and Payments
+3.1 The rent is $4,300.00 per month.
+3.2 The total rent for the term (12 months) is $51,600.00.
+3.3 Rent is due monthly, in advance, on or before the 5th day of the month, by transfer to the Landlord’s bank account. The first payment is due on {firstPayment:long}.
+3.4 Within 5 business days after signing this Lease, the Tenant pays a security deposit equal to one month’s rent, $4,300.00. The Landlord returns the deposit within 10 business days after the Premises are returned or, if the parties agree, applies it to the rent for the last month.
+3.5 Utilities (electricity, heat, water and sewer) are not included in the rent; the Tenant pays for them separately, based on meter readings, as invoiced by the Landlord.
+3.6 The rent does not change during the term of this Lease.
+## 4. Use and Repairs
+4.1 The Landlord gives the Tenant 24/7 access to the Premises and truck access to the warehouse doors, and maintains the building systems in good working order.
+4.2 The Tenant uses the Premises only as a warehouse and complies with applicable fire codes. At the end of the term, the Tenant returns the Premises in the condition received, ordinary wear and tear excepted.
+4.3 The Tenant makes routine repairs at its own expense and makes alterations or improvements only with the Landlord’s written consent.
+4.4 The Tenant may sublease the Premises only with the Landlord’s written consent.
+## 5. Late Payment and Force Majeure
+5.1 If rent is paid late, the Tenant pays a late charge of 0.2% of the overdue amount per day.
+5.2 Neither party is liable for a failure to perform caused by force majeure.
+## 6. General
+6.1 This Lease may be terminated early by written agreement of the parties or as otherwise permitted by law.
+6.2 This Lease is governed by Illinois law. Any dispute will be resolved in the state courts of McLean County, Illinois.
+
+WESTWIND PROPERTIES LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Gary Weston, Manager	Paul Smith, CEO
+
+## Exhibit A — Rent Payment Schedule
+to Commercial Lease Agreement No. 112
+
+Rent for each month of the term is due on or before these dates:
+Due date	Amount
+{firstPayment:long}	$4,300.00
+{pay2:long}	$4,300.00
+{pay3:long}	$4,300.00
+{pay4:long}	$4,300.00
+{pay5:long}	$4,300.00
+{pay6:long}	$4,300.00
+{pay7:long}	$4,300.00
+{pay8:long}	$4,300.00
+{pay9:long}	$4,300.00
+{pay10:long}	$4,300.00
+{pay11:long}	$4,300.00
+{pay12:long}	$4,300.00
+Total	$51,600.00

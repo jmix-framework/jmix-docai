@@ -5,23 +5,21 @@ import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.DocumentStatus;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.ClassPathResource;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * The description of a demo set, as its {@code demo-data.json} gives it: the names of the users in the language of the
- * set, the statuses of the set (the names of the default statuses in the language of the set and new statuses), and
- * the folders under the root with their own access and their documents, some of them in the trash. Users, roles and
- * document types come from the changelogs and the code, and the description refers to them by login, role code and
- * the English name of the type. The loader and its check read a set and its files through it.
+ * A demo set for one day, which {@link DemoSetTemplate#generate} computes from the {@code demo-data.json} of the set:
+ * the names of the users in the language of the set, the statuses of the set (the names of the default statuses in
+ * the language of the set and new statuses), and the folders under the root with their own access and their
+ * documents, some of them in the trash, with the dates of that day. Users, roles and document types come from the
+ * changelogs and the code, and the set refers to them by login, role code and the English name of the type. The
+ * loader and its check read a set and its files through it.
  *
  * @param users    the names the set gives the users of the changelogs
  * @param statuses the statuses of the set: the default ones renamed in the language of the set, and new ones
@@ -47,25 +45,11 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
             "ACTIVE", DocumentStatus.ACTIVE_ID,
             "ARCHIVED", DocumentStatus.ARCHIVED_ID);
 
-    // a misspelt property of the description is a problem, not a value silently left out
-    private static final JsonMapper JSON = JsonMapper.builder()
-            .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .build();
-
     // a list the description leaves out is empty
     public DemoSet {
         users = users == null ? List.of() : users;
         statuses = statuses == null ? List.of() : statuses;
         folders = folders == null ? List.of() : folders;
-    }
-
-    /**
-     * Reads the description of the set from its folder.
-     */
-    public static DemoSet read(String set) throws IOException {
-        try (InputStream content = new ClassPathResource(LOCATION.formatted(set) + DESCRIPTION).getInputStream()) {
-            return JSON.readValue(content, DemoSet.class);
-        }
     }
 
     /**
@@ -95,6 +79,69 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
             return AccessLevel.valueOf(name);
         } catch (IllegalArgumentException e) {
             return null;
+        }
+    }
+
+    /**
+     * Returns the problems of the history of the set at a moment: an upload, a comment, a change of a comment or a
+     * deletion after it, a comment changed before it is written, and a document whose last version is uploaded before
+     * the date of the document.
+     *
+     * @param now the moment of the load, in the time zone of the server
+     */
+    public List<String> historyProblems(LocalDateTime now) {
+        List<String> problems = new ArrayList<>();
+        collectHistoryProblems(folders, "", now, problems);
+
+        return problems;
+    }
+
+    private static void collectHistoryProblems(List<Folder> folders, String path, LocalDateTime now,
+                                               List<String> problems) {
+        for (Folder folder : folders) {
+            String folderPath = path + "/" + folder.name();
+
+            checkNotLater(folder.deleted() == null ? null : folder.deleted().at(), now, folderPath,
+                    "the folder is deleted", problems);
+
+            for (Document document : folder.documents()) {
+                collectHistoryProblems(document, folderPath + "/" + document.name(), now, problems);
+            }
+
+            collectHistoryProblems(folder.folders(), folderPath, now, problems);
+        }
+    }
+
+    private static void collectHistoryProblems(Document document, String where, LocalDateTime now,
+                                               List<String> problems) {
+        for (Version version : document.versions()) {
+            checkNotLater(version.uploaded(), now, where, "a version is uploaded", problems);
+        }
+
+        for (Comment comment : document.comments()) {
+            checkNotLater(comment.at(), now, where, "a comment is written", problems);
+            checkNotLater(comment.edited(), now, where, "a comment is edited", problems);
+
+            if (comment.at() != null && comment.edited() != null && comment.edited().isBefore(comment.at())) {
+                problems.add(where + ": a comment is edited before it is written");
+            }
+        }
+
+        checkNotLater(document.deleted() == null ? null : document.deleted().at(), now, where,
+                "the document is deleted", problems);
+
+        // the earlier versions of a document may be drafts, the last one carries its date
+        LocalDateTime uploaded = document.versions().isEmpty() ? null : document.versions().getLast().uploaded();
+
+        if (document.date() != null && uploaded != null && uploaded.toLocalDate().isBefore(document.date())) {
+            problems.add(where + ": the last version is uploaded before the date of the document");
+        }
+    }
+
+    private static void checkNotLater(@Nullable LocalDateTime time, LocalDateTime now, String where, String event,
+                                      List<String> problems) {
+        if (time != null && time.isAfter(now)) {
+            problems.add(where + ": " + event + " in the future, " + time);
         }
     }
 
@@ -191,11 +238,13 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
     /**
      * A version of a document.
      *
-     * @param file     the name of the file in the {@code files} folder of the set
+     * @param file     the name of the file in the {@code files} folder of the set, or of the file made from a text
+     * @param text     the text the file is made from, with the dates of the day: a PDF renders it, another file is
+     *                 the text itself; or null for a file of the {@code files} folder
      * @param author   the login of the user who uploads the version
      * @param uploaded when the version was uploaded, in the time zone of the server
      */
-    public record Version(String file, String author, LocalDateTime uploaded) {
+    public record Version(String file, @Nullable String text, String author, LocalDateTime uploaded) {
     }
 
     /**

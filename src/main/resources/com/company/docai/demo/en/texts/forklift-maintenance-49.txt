@@ -1,0 +1,12 @@
+# FORKLIFT MAINTENANCE AGREEMENT No. 49
+
+This Forklift Maintenance Agreement is made on {signed:long} between Liftway Forklift Service LLC, 75 Railway Avenue, Springfield, IL 62702 (the “Service Provider”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Customer”).
+
+1. The Service Provider maintains and repairs the Customer’s 6,000-lb forklift (asset No. 114), used at the warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702.
+2. Planned maintenance is done every 250 hours on the forklift’s hour meter, at $205.00 per service.
+3. The Service Provider makes unscheduled repairs within 2 business days of the Customer’s request, at $27.00 per labor hour. Parts are billed separately, per an estimate the Customer approves in advance.
+4. This Agreement is in effect from {signed:long} to {validUntil:long}.
+
+LIFTWAY FORKLIFT SERVICE LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Derek Callahan, President	Paul Smith, CEO

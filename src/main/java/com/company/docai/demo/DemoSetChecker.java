@@ -7,16 +7,22 @@ import com.company.docai.model.tag.Tag;
 import io.jmix.core.DataManager;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.data.PersistenceHints;
+import io.jmix.dynattr.AttributeType;
 import io.jmix.dynattr.CategoryDefinition;
 import io.jmix.security.role.ResourceRoleRepository;
 import org.jspecify.annotations.Nullable;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -25,7 +31,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * The check of a demo set for {@link DemoDataLoader}: the problems of its description and whether the database is
@@ -35,6 +43,9 @@ import java.util.regex.Pattern;
 public class DemoSetChecker {
 
     private static final Pattern COLOR = Pattern.compile("#[0-9a-fA-F]{6}");
+    private static final Pattern ISO_DATE = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+    private static final Set<AttributeType> DATE_TYPES =
+            EnumSet.of(AttributeType.DATE, AttributeType.DATE_WITHOUT_TIME);
 
     private final UnconstrainedDataManager unconstrainedDataManager;
     private final DataManager dataManager;
@@ -50,17 +61,29 @@ public class DemoSetChecker {
     }
 
     /**
-     * Returns the problems of the description of the set, as {@link DemoDataLoader#check} lists them; none for a set
-     * that loads.
+     * Returns the problems of the description of the set, as {@link DemoDataLoader#check(String)} lists them; none for
+     * a set that loads. The dates come first: a set whose dates cannot be computed lists only their problems, and the
+     * set the dates give for the day of the moment is checked then.
+     *
+     * @param now the moment of the load, in the time zone of the server
      */
-    public List<String> problemsOf(String set) {
-        DemoSet description;
+    public List<String> problemsOf(String set, LocalDateTime now) {
+        DemoSetTemplate template;
 
         try {
-            description = DemoSet.read(set);
+            template = DemoSetTemplate.read(set);
         } catch (IOException | JacksonException e) {
             return List.of("The description of the demo set '%s' cannot be read: %s".formatted(set, e.getMessage()));
         }
+
+        List<String> dateProblems = new ArrayList<>();
+        checkDates(set, template, now, dateProblems);
+
+        if (!dateProblems.isEmpty()) {
+            return dateProblems;
+        }
+
+        DemoSet description = template.generate(set, now.toLocalDate());
 
         Set<String> users = new HashSet<>(unconstrainedDataManager.loadValues("select u.username from User u")
                 .properties("username")
@@ -79,6 +102,7 @@ public class DemoSetChecker {
         checkStatuses(description.statuses(), documentStatusKeys, problems);
         checkTags(description.folders(), "", new HashMap<>(), problems);
         checkFavorites(description.folders(), "", false, users, problems);
+        problems.addAll(description.historyProblems(now));
 
         return problems;
     }
@@ -245,8 +269,13 @@ public class DemoSetChecker {
             }
 
             for (DemoSet.Version version : document.versions()) {
-                if (isBlank(version.file()) || !DemoSet.file(set, version.file()).exists()) {
+                boolean missing = isBlank(version.file()) || !DemoSet.file(set, version.file()).exists();
+
+                if (version.text() == null && missing) {
                     problems.add(where + ": there is no file '" + version.file() + "'");
+                } else if (!version.file().contains(".")) {
+                    // the loader takes the type of the file from its extension
+                    problems.add(where + ": the file name '" + version.file() + "' has no extension");
                 }
 
                 if (!users.contains(version.author())) {
@@ -358,9 +387,134 @@ public class DemoSetChecker {
 
             if (comment.at() == null) {
                 problems.add(where + ": a comment has no time");
-            } else if (comment.edited() != null && comment.edited().isBefore(comment.at())) {
-                problems.add(where + ": a comment is edited before it is written");
             }
+        }
+    }
+
+    private void checkDates(String set, DemoSetTemplate template, LocalDateTime now, List<String> problems) {
+        DemoCalendar calendar;
+
+        try {
+            calendar = template.calendar(now.toLocalDate());
+        } catch (IllegalArgumentException e) {
+            // the problem names the locale or the format
+            problems.add(e.getMessage());
+            return;
+        }
+
+        checkFolderDates(set, template.folders(), "", calendar, problems);
+    }
+
+    // a document whose named dates cannot be computed gets one problem, and nothing that refers to them is checked
+    private void checkFolderDates(String set, List<DemoSetTemplate.Folder> folders, String path, DemoCalendar calendar,
+                                  List<String> problems) {
+        for (DemoSetTemplate.Folder folder : folders) {
+            String folderPath = path + "/" + folder.name();
+            DemoCalendar.Dates folderDates = calendar.datesOf(Map.of());
+            check(folder.name(), folderDates::text, folderPath, problems);
+            check(folder.deleted() == null ? null : folder.deleted().at(), folderDates::time, folderPath, problems);
+
+            for (DemoSetTemplate.Document document : folder.documents()) {
+                String where = folderPath + "/" + document.name();
+
+                try {
+                    checkDocumentDates(set, document, calendar.datesOf(document.dates()), where, problems);
+                } catch (IllegalArgumentException e) {
+                    problems.add(where + ": " + e.getMessage());
+                }
+            }
+
+            checkFolderDates(set, folder.folders(), folderPath, calendar, problems);
+        }
+    }
+
+    private void checkDocumentDates(String set, DemoSetTemplate.Document document, DemoCalendar.Dates dates,
+                                    String where, List<String> problems) {
+        check(document.name(), dates::text, where, problems);
+        check(document.date(), dates::date, where, problems);
+        checkFieldDates(document, dates, where, problems);
+
+        for (DemoSetTemplate.Version version : document.versions()) {
+            check(version.uploaded(), dates::time, where, problems);
+            checkText(set, version, dates, where, problems);
+        }
+
+        for (DemoSetTemplate.Comment comment : document.comments()) {
+            check(comment.at(), dates::time, where, problems);
+            check(comment.text(), dates::text, where, problems);
+            check(comment.edited(), dates::time, where, problems);
+        }
+
+        check(document.deleted() == null ? null : document.deleted().at(), dates::time, where, problems);
+    }
+
+    // a field of a date holds a named date or a date of ISO 8601, and another field may write a year
+    private void checkFieldDates(DemoSetTemplate.Document document, DemoCalendar.Dates dates, String where,
+                                 List<String> problems) {
+        Set<String> dateFields = dateFieldsOf(document.type());
+
+        document.fields().forEach((code, value) -> {
+            if (value != null && dateFields.contains(code.toLowerCase(Locale.ROOT))
+                    && !ISO_DATE.matcher(value).matches() && !document.dates().containsKey(value)) {
+                problems.add(where + ": the field '" + code + "' refers to '" + value
+                        + "', which the document does not declare");
+            } else {
+                check(value, dates::value, where, problems);
+            }
+        });
+    }
+
+    // the codes of the fields of a date of the type, in lower case, as the type rules match them
+    private Set<String> dateFieldsOf(@Nullable String typeName) {
+        if (typeName == null) {
+            return Set.of();
+        }
+
+        return documentTypes.find(typeName)
+                .map(type -> type.getAttributeDefinitions()
+                        .stream()
+                        .filter(attribute -> DATE_TYPES.contains(attribute.getDataType()))
+                        .map(attribute -> attribute.getCode().toLowerCase(Locale.ROOT))
+                        .collect(Collectors.toSet()))
+                .orElse(Set.of());
+    }
+
+    private static void checkText(String set, DemoSetTemplate.Version version, DemoCalendar.Dates dates,
+                                  String where, List<String> problems) {
+        if (version.text() == null) {
+            return;
+        }
+
+        if (version.file() != null) {
+            problems.add(where + ": a version names both a file and a text");
+        }
+
+        ClassPathResource text = DemoSetTemplate.text(set, version.text());
+
+        if (!text.exists()) {
+            problems.add(where + ": there is no text '" + text.getFilename() + "'");
+            return;
+        }
+
+        try {
+            dates.text(text.getContentAsString(StandardCharsets.UTF_8));
+        } catch (IllegalArgumentException e) {
+            problems.add(where + ": the text '" + text.getFilename() + "': " + e.getMessage());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static void check(@Nullable String value, Function<String, ?> computation, String where,
+                              List<String> problems) {
+        if (value == null) {
+            return;
+        }
+
+        try {
+            computation.apply(value);
+        } catch (IllegalArgumentException e) {
+            problems.add(where + ": " + e.getMessage());
         }
     }
 

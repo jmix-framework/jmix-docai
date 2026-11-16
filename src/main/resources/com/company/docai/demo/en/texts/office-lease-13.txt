@@ -1,0 +1,14 @@
+# OFFICE LEASE AGREEMENT No. 13
+## Suite 312, 12 Garden Street
+
+This Office Lease Agreement is made on {signed:long} between Garden Street Properties LLC, 12 Garden Street, Springfield, IL 62701 (the “Landlord”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Tenant”).
+
+1. The Landlord leases to the Tenant Suite 312, office space of 2,580 sq ft on the 3rd floor of the building at 12 Garden Street, Springfield, IL 62701.
+2. Lease term: {start:long} to {validUntil:long}.
+3. Rent: $6,930.00 per month, including operating expenses and building security, due by the 5th day of each month.
+4. The Tenant pays a security deposit equal to one month’s rent, $6,930.00, within 3 business days after signing this Agreement.
+5. The Tenant may not alter the premises without the Landlord’s written consent.
+
+GARDEN STREET PROPERTIES LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+William Goss, Manager	Paul Smith, CEO

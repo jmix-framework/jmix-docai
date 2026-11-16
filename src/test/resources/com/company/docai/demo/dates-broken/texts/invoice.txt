@@ -1,0 +1,2 @@
+# INVOICE
+Dated {issued:long}. Pay by {due:long}.

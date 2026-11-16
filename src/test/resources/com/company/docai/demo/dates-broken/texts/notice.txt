@@ -1,0 +1,4 @@
+# NOTICE
+The office closes on {closed:long}.
+
+Pay by {due:long.

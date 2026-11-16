@@ -1,0 +1,13 @@
+Meadowbrook LLC
+# MEMO No. 18
+
+Date: {issued:long}
+To: Paul Smith, CEO
+From: Ian Newman, Equipment Manager
+Subject: Purchase of a round baler
+
+I request approval to buy a round baler for our hay crop.
+
+The first hay cutting is planned for {hayCut:monthDay}, and we expect about 600 round bales 5 ft in diameter. Our current baler, built in 2009, broke down twice last season, and its repairs cost $2,380. The new baler works with our Corwin 82 tractors.
+
+Procurement has two quotes: $14,200 with delivery in 14 days and $13,200 with delivery in 6 weeks. The second baler would not arrive before the first cutting, so I recommend the first quote. Please ask Procurement to place the order by {orderBy:monthDay}.

@@ -1,0 +1,19 @@
+Contract Approval Procedure — Meadowbrook LLC
+
+Approved by Paul Smith, CEO, on {approved:long}.
+
+1. This procedure applies to every contract Meadowbrook LLC signs with suppliers, contractors, service providers and landlords.
+
+2. The contract owner is the manager of the department that needs the goods or services. The owner gets a draft from the other party or prepares one from a company template, uploads it to the document management system and sends it for review.
+
+3. Legal counsel reviews the draft within 3 business days: the parties and the authority of the signers, the scope, the deadlines, liability and termination. Legal counsel leaves comments in the document management system, and the contract owner resolves them with the other party.
+
+4. Accounting checks the payment terms: the price, the payment schedule, and the amounts of any advance payment and security deposit.
+
+5. Once legal counsel and Accounting have approved a contract, the CEO signs it.
+
+6. Each new draft of a contract and the scan of the signed copy are uploaded to the document management system as new versions of the same document. A new draft does not get a document of its own: the whole history of the contract stays in one card.
+
+7. Contracts are kept in the “Contracts” folder. A signed contract gets the status “Active”; a terminated or expired one gets “Archived.”
+
+8. Accounting keeps the signed paper originals.

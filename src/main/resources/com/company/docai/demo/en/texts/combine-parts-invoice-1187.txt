@@ -1,0 +1,17 @@
+Parts South LLC
+22 Riverbank Road, Memphis, TN 38103
+EIN 62-1518734
+
+# INVOICE No. 1187
+## dated {issued:long}
+Bill to: Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701
+Contract: Supply Agreement No. 29/{year:contract} dated {contract:long}
+
+Parts for the Thornbury 1500 combine:
+1. Header drive belt, 6 at $42.00	$252.00
+2. Header knife section, 120 at $3.20	$384.00
+3. 6310-2RS ball bearing, 12 at $14.00	$168.00
+Total	$804.00
+
+Pay by {due:long}.
+Payment by ACH to Larkspur National Bank, routing No. 071925999, account No. 9000071234. Please include the invoice number with your payment.

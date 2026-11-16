@@ -1,5 +1,6 @@
 package com.company.docai.demo;
 
+import com.company.docai.ai.DocumentTextReader;
 import com.company.docai.ai.classification.ClassificationProposal;
 import com.company.docai.ai.classification.DocumentClassifier;
 import com.company.docai.app.service.OperationRejectedException;
@@ -22,12 +23,14 @@ import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
+import io.jmix.core.TimeSource;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.data.PersistenceHints;
 import io.jmix.dynattr.DynAttrQueryHints;
 import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -35,16 +38,15 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
-import tools.jackson.databind.json.JsonMapper;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,10 +56,11 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
 
 /**
- * Loads the sets into a database of their own and compares the database with the descriptions, so the test names
- * no folder or document of a set.
+ * Loads the sets into a database of their own on a day the clock is set to, and compares the database with the sets
+ * generated for that day, so the test names no folder or document of a set.
  */
 @SpringBootTest(properties = "main.datasource.url=jdbc:hsqldb:mem:demo")
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -66,6 +69,9 @@ class DemoDataLoaderTest {
 
     // the access of the root comes with the changelog
     private static final List<String> ROOT_ACCESS = List.of("role:" + EmployeeRole.CODE + "=EDIT");
+
+    // a Thursday in the second quarter, half a year after the day the sets were written for
+    private static final ZonedDateTime LOAD_TIME = ZonedDateTime.of(2027, 5, 20, 10, 0, 0, 0, ZoneId.systemDefault());
 
     @Autowired
     private DemoDataLoader loader;
@@ -91,8 +97,19 @@ class DemoDataLoaderTest {
     @Autowired
     private SystemAuthenticator systemAuthenticator;
 
+    @Autowired
+    private DocumentTextReader documentTextReader;
+
+    @MockitoSpyBean
+    private TimeSource timeSource;
+
     // the names of the statuses that the keys of the set being checked stand for
     private Map<String, String> statusNames = Map.of();
+
+    @BeforeEach
+    void setTheClock() {
+        doReturn(LOAD_TIME).when(timeSource).now();
+    }
 
     @Test
     @Order(1)
@@ -112,10 +129,16 @@ class DemoDataLoaderTest {
     @Test
     @Order(2)
     void anEmptyDatabaseGetsTheSetAndAFilledOneDoesNot() {
+        // a load that runs past midnight is checked and loaded for the day it started on
+        doReturn(LOAD_TIME, LOAD_TIME.plusDays(1)).when(timeSource).now();
+
         assertThat(loader.loadIfEmpty("sample")).isEqualTo(DemoDataLoader.Outcome.LOADED);
         assertThat(loader.loadIfEmpty("sample")).isEqualTo(DemoDataLoader.Outcome.NOT_EMPTY);
 
         assertLoadedAsDescribed("sample");
+        assertThat(textOf("Invoice No. 77")).contains("dated May 17, 2027", "Pay by May 31, 2027.");
+        // a plain file is the text itself, with the marks of its headings
+        assertThat(textOf("Invoice No. 77.txt")).contains("## dated May 17, 2027", "Pay by May 31, 2027.");
     }
 
     @Test
@@ -139,6 +162,7 @@ class DemoDataLoaderTest {
         loader.load("en");
 
         assertLoadedAsDescribed("en");
+        assertThat(textOf("Invoice No. 2045")).contains("dated May 15, 2027", "Pay by May 31, 2027.");
         assertFavoritesAsDescribed("en");
         assertUsersAsDescribed("en", Character.UnicodeScript.LATIN);
         assertStatusesAsDescribed("en", Character.UnicodeScript.LATIN);
@@ -516,13 +540,26 @@ class DemoDataLoaderTest {
         return names;
     }
 
+    // the set as the loader generates it for the day of the clock
     private static DemoSet read(String set) {
-        try (InputStream content = new ClassPathResource("com/company/docai/demo/" + set + "/demo-data.json")
-                .getInputStream()) {
-            return JsonMapper.shared().readValue(content, DemoSet.class);
+        try {
+            return DemoSetTemplate.read(set)
+                    .generate(set, LOAD_TIME.toLocalDate());
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    // the text of the last version of the document, which the loader makes from a text of the set
+    private String textOf(String document) {
+        DocumentRevision revision = dataManager.load(DocumentRevision.class)
+                .query("e.document.name = :name order by e.number desc")
+                .parameter("name", document)
+                .maxResults(1)
+                .one();
+
+        return documentTextReader.read(revision)
+                .orElseThrow();
     }
 
     private record Visibility(UUID id, boolean byPeter) {

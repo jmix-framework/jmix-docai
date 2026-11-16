@@ -1,0 +1,19 @@
+# SERVICE CONFIRMATION No. 87
+## Site grading
+
+Date: {issued:long}
+Service Provider: Sangamon Excavating LLC
+Customer: Meadowbrook LLC
+Agreement: Services Agreement No. 34 dated {contract:long}
+Site: 36 Commerce Avenue, Building 2, Springfield, IL 62702
+
+The Service Provider confirms, and the Customer accepts, the following services:
+1. Bulldozer grading, 40-space parking lot, 24 hours at $42.50	$1,020.00
+2. Bulldozer transport on a lowboy trailer, 2 trips at $100.00	$200.00
+Total	$1,220.00
+
+The site was graded to the design elevations with a 1.5% cross slope. All services were completed on {completed:long}.
+
+SANGAMON EXCAVATING LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Adam Duke, President	Scott Swanson, Facilities Manager

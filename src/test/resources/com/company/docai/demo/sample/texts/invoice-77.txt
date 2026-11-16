@@ -1,0 +1,11 @@
+Northwind Paper Inc.
+Address: 157 Northfield Drive, Springfield, IL 62702
+
+# INVOICE No. 77
+## dated {issued:long}
+Supplier: Northwind Paper Inc.
+Buyer: Meadowbrook LLC
+
+1. Copy paper, Letter size, 120 reams at $5.30	$636.00
+Total	$636.00
+Pay by {due:long}.

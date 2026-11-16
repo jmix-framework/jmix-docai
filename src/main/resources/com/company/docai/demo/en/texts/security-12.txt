@@ -1,0 +1,13 @@
+# SECURITY SERVICES AGREEMENT No. 12
+## Alarm monitoring and response
+
+This Security Services Agreement is made on {signed:long} between Shield Security LLC, 9 Sterling Avenue, Springfield, IL 62702 (the “Security Company”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Customer”).
+
+1. The Security Company provides remote alarm monitoring for two of the Customer’s sites: the warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702, and the office at 12 Garden Street, Suite 312, Springfield, IL 62701.
+2. When an alarm goes off, the Security Company dispatches a patrol officer to the site within 7 minutes, notifies the police as needed and reports the incident to the Customer’s designated contact.
+3. Monitoring and response cost $265.00 per month for the warehouse and $155.00 per month for the office, $420.00 per month in total.
+4. This Agreement is in effect from {start:long} to {validUntil:long}. Either party may terminate it on 30 days’ notice to the other party.
+
+SHIELD SECURITY LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Alan Fox, President	Paul Smith, CEO

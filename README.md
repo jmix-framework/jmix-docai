@@ -227,18 +227,22 @@ At the first start, an empty database gets the demo set that `DOCAI_DEMO_DATA` n
 | Folder | Access | What to try |
 |---|---|---|
 | Inbox | Inherits: every employee edits | Three scans without a type for **Fill with AI** |
-| Contracts | Inherits | Lease Agreement No. 112 with three versions and comments on its penalty, for the assistant to sum up; a recruitment agreement open to Helen only |
-| Invoices and Certificates | Inherits | An invoice due on November 30, 2026, for the AI assistant |
+| Contracts | Inherits | Lease Agreement No. 112 with three versions and comments on its penalty, for the assistant to sum up; a recruiting agreement open to Helen only |
+| Invoices and Certificates | Inherits | An invoice due at the end of the month, for the AI assistant |
 | Procurement | Inherits | 27 documents of the corpus of the AI search |
-| Archive 2025 | Legal department and Accounting view, Alice edits | 3 more documents of the corpus |
-| HR, HR / Vacations | HR department manages, every employee views Vacations | A hiring order, an employment contract and the vacation schedule with a comment by Peter |
-| Trash | As before the deletion | The Drafts folder and the first edition of Lease Agreement No. 112, to restore or to delete forever as `admin` |
+| Archive of the last year, such as Archive 2025 | Legal department and Accounting view, Alice edits | 3 more documents of the corpus |
+| HR, HR / Vacations | HR department manages, every employee views Vacations | An offer letter, an employment agreement and the vacation schedule with a comment by Peter |
+| Trash | As before the deletion | The Drafts folder and the first draft of Lease Agreement No. 112, to restore or to delete forever as `admin` |
 
-The corpus holds 12 documents about farm machinery and 18 about other machinery and goods, and none of them says "agricultural". Search by words for *agricultural machinery* finds nothing; AI search finds the 12, or 9 for `peter`, who may not open Archive 2025. Search by words for *fumigation* finds the one contract with the word only inside its PDF.
+The corpus holds 12 documents about farm machinery and 18 about other machinery and goods, and none of them says "agricultural". Search by words for *agricultural machinery* finds nothing; AI search finds the 12, or 9 for `peter`, who may not open the archive. Search by words for *fumigation* finds the one contract with the word only inside its PDF.
 
 `demo-uploads/en` and `demo-uploads/ru` hold two invoices to upload during a demo: Invoice 1610, to fill with AI, and Invoice 2231 for a combine harvester under a neutral name, to find with AI search.
 
-The sets lie in `src/main/resources/com/company/docai/demo/`; their PDFs use PT Serif and PT Sans by ParaType, under the SIL Open Font License. To load a set again, [reset the demo data](#reset-the-demo-data).
+A set is generated for the day it loads. Each of its dates counts from that day: the uploads, comments and deletions of its history, the dates of the documents and of their fields, the dates and years in the names and in the texts of the files. So the last change happened yesterday, the nearest deadlines lie ahead, and some contracts end this quarter. A document declares its dates once in `demo-data.json`, such as `"dates": {"issued": "-5d", "due": "month-end"}`, and its date, fields, history and texts refer to them by name; a date of ISO 8601, such as `2006-07-27`, stays where it is. The files of the versions are made at the load from the texts in `texts/`: a PDF renders its text, and a plain text file is its text, both with the dates of the day; so a document of a set changes by its text. The start log names the day: `The demo set 'en' is loaded for 2026-11-16: …`.
+
+A database keeps the dates of its load: a running stand ages from its first start, and `docker compose --profile app down -v` before `up` loads the set for the new day.
+
+The sets lie in `src/main/resources/com/company/docai/demo/`: `demo-data.json` and the texts of their files in `texts/`. The PDFs use PT Serif and PT Sans by ParaType, which lie in `fonts/` there with their licenses, the SIL Open Font License 1.1. To load a set again, [reset the demo data](#reset-the-demo-data).
 
 ## 👥 Application Accounts
 
@@ -248,7 +252,7 @@ The sets lie in `src/main/resources/com/company/docai/demo/`; their PDFs use PT 
 | `peter` | `peter` | Peter Wilson | Employee | An employee with narrow access |
 | `alice` | `alice` | Alice Morgan | Employee | Office manager: files the incoming documents |
 | `helen` | `helen` | Helen Carter | Employee, HR department | HR manager |
-| `maria` | `maria` | Maria Lopez | Employee, Accounting | Accountant |
+| `maria` | `maria` | Maria Lopez | Employee, Accounting | Controller |
 | `john` | `john` | John Doe | Employee, Legal department | Lawyer |
 
 The employees and their department roles come from the demo changelog `020-demo-users.xml`; delete it before the first start of a real deployment. The Russian set gives the employees Russian names, with the same logins and passwords.

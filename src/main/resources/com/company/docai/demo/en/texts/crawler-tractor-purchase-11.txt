@@ -1,0 +1,13 @@
+# EQUIPMENT PURCHASE AGREEMENT No. 11/{year:signed}
+## Crawler tractor
+
+This Equipment Purchase Agreement is made on {signed:long} between Gateway Tractor Sales LLC, 41 Riverside Drive, St. Louis, MO 63102 (the “Seller”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Buyer”).
+
+1. The Seller sells, and the Buyer buys, a new Corwin C75 crawler tractor for primary tillage, with a diesel engine, model year {year:signed-1}, serial No. 7500931, in standard factory configuration.
+2. Price: $48,700.00. The Buyer pays 50% within 3 business days after signing this Agreement and 50% before shipment.
+3. The Seller ships the tractor on a lowboy trailer, at its own expense, to the location the Buyer designates no later than {delivery:long}, with the manufacturer’s certificate of origin, the operator’s manual and two sets of keys.
+4. Warranty: 12 months or 1,500 engine hours, whichever comes first.
+
+GATEWAY TRACTOR SALES LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Seth Miller, President	Paul Smith, CEO

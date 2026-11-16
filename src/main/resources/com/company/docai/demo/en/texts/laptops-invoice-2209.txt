@@ -1,0 +1,15 @@
+Calhoun Computer Supply LLC
+21 Calhoun Street, Springfield, IL 62701
+EIN 37-0845361
+
+# INVOICE No. 2209
+## dated {issued:long}
+Bill to: Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701
+Purchase Order No. 314 dated {request:long}
+
+1. Laptop, 15.6-inch display, 16 GB RAM, 512 GB SSD, 6 at $970.00	$5,820.00
+2. Laptop bag, 6 at $20.00	$120.00
+Total	$5,940.00
+
+Pay by {due:long}.
+Payment by ACH to Larkspur National Bank, routing No. 071925999, account No. 9000093340. Please include the invoice number with your payment.

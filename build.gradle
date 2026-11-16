@@ -60,6 +60,8 @@ dependencies {
     implementation 'io.jmix.uirecovery:jmix-uirecovery-flowui-starter'
     implementation 'io.jmix.translations:jmix-translations-ru'
     implementation 'org.apache.tika:tika-core'
+    // the PDFs of the demo sets, in the version Tika brings, so that one PDFBox is on the classpath
+    implementation 'org.apache.pdfbox:pdfbox:3.0.5'
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'

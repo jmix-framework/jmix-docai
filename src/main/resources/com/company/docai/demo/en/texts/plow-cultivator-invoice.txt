@@ -1,0 +1,17 @@
+Orion Implement LLC
+18 Transport Drive, Rochester, IL 62563
+EIN 37-3009721
+
+# INVOICE No. 405
+## dated {issued:long}
+Bill to: Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701
+Contract: Supply Agreement No. 18/{year:contract} dated {contract:long}
+
+1. Kellerman MP4 four-bottom moldboard plow, 1 at $2,070.00	$2,070.00
+2. Kellerman FC13 field cultivator, 13-ft width, 1 at $3,800.00	$3,800.00
+Total	$5,870.00
+
+The MP4 is a mounted plow for primary tillage of the fields; the FC13 is a field cultivator for full-width seedbed preparation.
+Sales tax: none, farm equipment exemption certificate on file.
+Pay by {due:long}.
+Payment by ACH to Larkspur National Bank, routing No. 071925999, account No. 9000045671. Please include the invoice number with your payment.

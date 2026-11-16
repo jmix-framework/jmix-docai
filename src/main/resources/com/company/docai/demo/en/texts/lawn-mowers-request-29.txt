@@ -1,0 +1,17 @@
+# FACILITIES REQUEST No. 29
+## Purchase of lawn care equipment
+
+Date: {issued:long}
+To: Ellen Carroll, Procurement Director
+From: Scott Swanson, Facilities Manager
+Budget line: Grounds Maintenance
+
+Please purchase the following for the lawn at the warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702 (about 6,500 sq ft):
+1. Self-propelled gas lawn mower, 20-inch deck, 2 at $432.00	$864.00
+2. Reinforced garden hose, 75 ft, 6 at $27.00	$162.00
+3. Lawn sprinkler with connectors, 6 sets at $9.00	$54.00
+Total	$1,080.00
+
+Watering starts in early May, so the items must arrive by {neededBy:long}.
+
+Requested by: ______________ Scott Swanson

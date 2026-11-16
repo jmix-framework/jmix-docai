@@ -112,9 +112,9 @@ class LiveSemanticSearchTest {
             sandbox = folderService.save(folder);
 
             tractor = upload("Lease agreement 17 of 3 March 2026. The lessor hands over to the lessee a wheeled "
-                    + "tractor MTZ-82.1 with a front loader for the spring field work on the farm. The rent is 45,000 "
+                    + "tractor Corwin 82 with a front loader for the spring field work on the farm. The rent is 45,000 "
                     + "per month, paid in advance.");
-            combine = upload("Invoice 2231 of 12 July 2026. Grain combine harvester Acros 595 Plus with a 7 m "
+            combine = upload("Invoice 2231 of 12 July 2026. Grain combine harvester Thornbury 595 with a 7 m "
                     + "header, delivered to the farm of Green Valley Agro. Total: 9,800,000, due by 1 August 2026.");
             seedDrill = upload("Delivery note 88. A pneumatic seed drill with a 6 m working width and a fertilizer "
                     + "hopper is delivered to the field station. Received by the chief agronomist.");

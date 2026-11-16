@@ -1,0 +1,13 @@
+# CRANE SERVICE ORDER No. 212
+
+Date: {issued:long}
+Crane company: Lakeside Crane Service LLC
+Customer: Meadowbrook LLC
+Agreement: Services Agreement No. 28 dated {contract:long}
+
+Please provide a 30-ton truck crane with a 92-ft boom on {service:long}, from 8:00 a.m. to 5:00 p.m., to lift ventilation units onto the roof of the warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702.
+The heaviest unit weighs 7,000 lb; the boom reach needed is up to 60 ft. The rate is $62.00 per hour, with a 4-hour minimum. The Customer provides site access and a level pad for the outriggers.
+Site contact: Daniel Orr, Warehouse Manager, (217) 555-0112.
+
+Ordered by: ______________ Scott Swanson, Facilities Manager, Meadowbrook LLC
+Accepted by: ______________ Nathan Bell, Dispatcher, Lakeside Crane Service LLC

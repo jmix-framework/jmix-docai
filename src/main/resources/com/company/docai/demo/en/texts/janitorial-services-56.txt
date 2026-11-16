@@ -1,0 +1,13 @@
+# JANITORIAL SERVICES AGREEMENT No. 56
+## Daily office cleaning
+
+This Janitorial Services Agreement is made on {signed:long} between Brightway Commercial Cleaning LLC, 52 Lincoln Avenue, Springfield, IL 62703 (the “Service Provider”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Customer”).
+
+1. Every business day from 6:00 p.m. to 9:00 p.m., the Service Provider cleans the Customer’s 2,580 sq ft office at 12 Garden Street, Suite 312, Springfield, IL 62701: mopping floors, dusting, cleaning the restrooms and taking out the trash.
+2. The Service Provider supplies the cleaning equipment and products; the Customer buys paper towels and hand soap for the restrooms.
+3. The fee is $870.00 per month. The Service Provider invoices monthly, and the Customer pays each invoice by the 10th day of the following month.
+4. This Agreement is in effect from {start:long} to {validUntil:long}.
+
+BRIGHTWAY COMMERCIAL CLEANING LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Tara Erickson, President	Paul Smith, CEO

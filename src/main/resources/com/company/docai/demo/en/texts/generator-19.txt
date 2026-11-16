@@ -1,0 +1,13 @@
+# GENERATOR SUPPLY AGREEMENT No. 19
+## Standby diesel generator with installation
+
+This Generator Supply Agreement is made on {signed:long} between Standby Power Systems LLC, 31 Stockton Road, Springfield, IL 62711 (the “Supplier”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Buyer”).
+
+1. The Supplier sells and installs, and the Buyer buys, a 60 kW (75 kVA) standby diesel generator in a sound-attenuated enclosure, with an automatic transfer switch that starts it when utility power fails. The generator will power the warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702.
+2. Price: $20,800.00. The Buyer pays a 50% advance of $10,400.00 within 3 business days after signing this Agreement and the balance after signing the certificate of completion.
+3. The Supplier delivers the generator, installs it on a concrete pad and connects it within 30 business days of the advance payment.
+4. Warranty: 12 months or 1,000 engine hours, whichever comes first.
+
+STANDBY POWER SYSTEMS LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Gregory Platt, President	Paul Smith, CEO

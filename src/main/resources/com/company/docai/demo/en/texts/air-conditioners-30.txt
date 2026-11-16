@@ -1,0 +1,13 @@
+# INSTALLATION CONTRACT No. 30
+## Air conditioning for the office
+
+This Installation Contract is made on {signed:long} between Comfort Air Mechanical LLC, 57 Kirkwood Avenue, Springfield, IL 62704 (the “Contractor”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Customer”).
+
+1. The Contractor installs six wall-mounted ductless mini-split systems supplied by the Customer in the Customer’s office at 12 Garden Street, Suite 312, Springfield, IL 62701: five 12,000 BTU units and one 24,000 BTU unit.
+2. Installation labor costs $1,180.00 (5 × $182.00 + $270.00), and installation materials (copper line sets, wiring, condensate drains) cost $460.00. The total is $1,640.00.
+3. The work is done from {workStart:monthDay} to {workEnd:long}. The Customer pays 50% in advance and the balance after signing the certificate of completion.
+4. Installation warranty: 24 months.
+
+COMFORT AIR MECHANICAL LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Neil Burrows, President	Paul Smith, CEO

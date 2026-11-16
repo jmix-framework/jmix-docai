@@ -1,0 +1,20 @@
+# RECRUITING SERVICES AGREEMENT No. 33/{year:signed}
+
+This Recruiting Services Agreement is made on {signed:long} between Talent Bridge Staffing LLC, 58 Monroe Street, Suite 304, Springfield, IL 62701 (the “Agency”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Client”).
+
+1. At the Client’s request, the Agency finds and screens candidates for the Client’s open positions.
+2. Each request states the position, the requirements for the candidate, the duties, the working conditions and the pay range. The Agency confirms a request within 2 business days.
+3. The Agency sources candidates, conducts first interviews and reference checks, and within 10 business days of confirming a request sends the Client the resumes of at least three candidates. The Client makes every hiring decision.
+4. The Client tells the Agency its decision on each candidate within 5 business days after the interview.
+5. The Agency’s fee is 15% of the hired candidate’s first-year base salary. The fee is due only for a candidate who starts work with the Client.
+6. The estimated budget of this Agreement is $20,000.00.
+7. The Agency invoices its fee when the candidate starts work, and the Client pays the invoice within 10 business days.
+8. If a hired candidate resigns or is let go within 3 months of starting work, the Agency finds a replacement free of charge. There is no free replacement if the position is eliminated or the Client changes the working conditions.
+9. Privacy. The Agency collects, uses and shares candidates’ personal information in compliance with applicable privacy laws, obtains each candidate’s consent before sending the candidate’s information to the Client, and discloses it to no one else. The Client uses the personal information it receives only to make hiring decisions and keeps it secure.
+10. Each party keeps confidential the terms of this Agreement and the information about the other party that it receives under it.
+11. During the term of this Agreement and for 12 months after it ends, the Agency will not recruit the employees it placed with the Client for jobs with its other clients.
+12. This Agreement takes effect on the date of signing and remains in effect until {validUntil:long}.
+
+TALENT BRIDGE STAFFING LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Natalie Collins, President	Paul Smith, CEO

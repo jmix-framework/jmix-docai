@@ -1,0 +1,28 @@
+# EMPLOYMENT AGREEMENT
+
+This Employment Agreement is made on {issued:long} between Meadowbrook LLC, an Illinois limited liability company, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Company”), and Emily Clark, 84 Union Street, Apt. 27, Springfield, IL 62704 (the “Employee”).
+
+## 1. Position and Duties
+1.1 The Company employs the Employee full time as a Procurement Manager in its Procurement Department. The Employee reports to the Procurement Director.
+1.2 The Employee finds and vets suppliers, prepares purchase requests and supply agreements, tracks delivery and payment deadlines, and keeps procurement records in the Company’s document management system.
+1.3 The Employee works at the Company’s office at 12 Garden Street, Suite 312, Springfield, Illinois.
+## 2. Start Date and At-Will Employment
+2.1 Employment starts on {hired:long}. The first three months are an introductory period.
+2.2 Employment is at will: either the Employee or the Company may end it at any time, with or without cause or notice. Nothing in this Agreement promises employment for a fixed term.
+## 3. Compensation
+3.1 The Employee’s base salary is $66,000.00 per year, paid semimonthly by direct deposit, less applicable withholdings.
+3.2 The Employee may earn bonuses under the Company’s bonus plan.
+## 4. Hours and Time Off
+4.1 The regular schedule is Monday through Friday, 9:00 a.m. to 6:00 p.m., with a one-hour lunch break.
+4.2 The Employee has four weeks of paid vacation a year.
+## 5. Company Policies and Confidentiality
+5.1 The Employee follows the Employee Handbook and the Company’s safety rules and keeps the Company’s trade secrets confidential during and after employment.
+5.2 The Company provides the equipment the job requires.
+## 6. General
+6.1 This Agreement may be changed only in writing signed by both parties.
+6.2 This Agreement is governed by the laws of the State of Illinois.
+6.3 The Employee acknowledges receiving the Employee Handbook.
+
+MEADOWBROOK LLC	EMPLOYEE
+By: ______________	______________
+Paul Smith, CEO	Emily Clark

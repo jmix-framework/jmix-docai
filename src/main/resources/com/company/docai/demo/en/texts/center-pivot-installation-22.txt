@@ -1,0 +1,14 @@
+# INSTALLATION CONTRACT No. 22/{year:signed}
+## Center pivot irrigation machine
+
+This Installation Contract is made on {signed:long} between Clearwater Irrigation Services LLC, 15 Factory Street, Chatham, IL 62629 (the “Contractor”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Customer”).
+
+1. The Contractor will install a Raincrest 7 center pivot irrigation machine with its pumping station on Field 7 of the Customer’s farm (158 acres) to water silage corn and perennial grasses, connect the machine to the water intake and the power supply, and commission it. The Customer supplies the machine.
+2. A center pivot is a self-propelled farm machine: its wheeled towers, driven by electric motors, travel around a fixed pivot and water the crops through sprinklers throughout the irrigation season, from May to September.
+3. The work is done from {workStart:monthDay} to {workEnd:long}. A test run on the field and a certificate of completion confirm that the machine is ready to irrigate.
+4. The price of the work is $26,400.00. The Customer pays a 50% advance of $13,200.00 within 5 business days after signing this Contract and the balance after signing the certificate of completion.
+5. Warranty on the work: 12 months.
+
+CLEARWATER IRRIGATION SERVICES LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Andrew Tillman, President	Paul Smith, CEO

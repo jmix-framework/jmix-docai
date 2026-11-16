@@ -1,0 +1,45 @@
+# MASTER SERVICE AGREEMENT No. 9/{year:signed}
+## Maintenance and repair of a forage harvester and warehouse equipment
+
+This Master Service Agreement is made on {signed:long} between Sherman Equipment Service LLC, 36 Main Street, Sherman, IL 62684 (the “Service Provider”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Customer”).
+
+## 1. Scope
+1.1 At the Customer’s request, the Service Provider maintains and repairs the equipment listed in Exhibit A: first of all the Customer’s self-propelled forage harvester, which chops silage corn on the Customer’s farm fields during the harvest.
+1.2 The type, scope and cost of the work on each request are recorded in a work order, which becomes part of this Agreement.
+## 2. Service
+2.1 The Customer submits requests by phone or email. The Service Provider confirms a request within 4 hours.
+2.2 A field service technician arrives on site within 24 hours after the Service Provider confirms the request. If the repair cannot be done on site, the equipment is hauled to the Service Provider’s shop at the Customer’s expense.
+2.3 Scheduled maintenance follows the manufacturer’s schedule; the parties agree on the next year’s schedule by March 1.
+2.4 Completed work is recorded in a work order signed by both parties within 3 business days after the Customer is told that the equipment is ready.
+## 3. Prices and Payment
+3.1 The labor rate is $29.00 per hour; a service call within Sangamon County carries a $72.00 trip charge.
+3.2 Parts and consumables are billed separately, per an estimate the Customer approves in advance. Replaced parts are returned to the Customer on request.
+3.3 The Customer pays within 10 business days after signing the work order.
+## 4. Warranty and Liability
+4.1 The work is warranted for 6 months; installed parts carry the manufacturer’s warranty. The Service Provider corrects any defects free of charge within 5 business days.
+4.2 If a technician arrives late, the Service Provider pays liquidated damages of 0.1% of the work order value per day, up to 10% of that value.
+4.3 If a payment is late, the Customer pays a late charge of 0.1% of the overdue amount per day, up to 10% of that amount.
+## 5. Other Terms
+5.1 The parties keep the terms of this Agreement and the information they receive under it confidential during its term and for 3 years after.
+5.2 The parties will first try to resolve any dispute through good-faith negotiation, and a party that receives a written notice of dispute responds within 10 business days. A dispute not resolved within 30 days after the notice may be brought in the state courts of Sangamon County, Illinois.
+5.3 This Agreement is in effect from {signed:monthDay} to {validUntil:long} and renews for the same period unless either party gives notice of termination at least 30 days before it expires.
+
+SHERMAN EQUIPMENT SERVICE LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Jack Proctor, President	Paul Smith, CEO
+
+
+
+
+## Exhibit A
+## to Master Service Agreement No. 9/{year:signed} dated {signed:long}
+Equipment covered:
+1. Thornbury FH680 self-propelled forage harvester, serial No. 680-0417: scheduled maintenance before the season and every 250 engine hours.
+2. Electric walkie stacker, 3,500-lb capacity, asset No. 62: scheduled maintenance every six months.
+3. 20 hp rotary screw air compressor, asset No. 71: scheduled maintenance every 2,000 hours.
+4. Box truck with a 7,500-lb payload: maintenance on the manufacturer’s schedule.
+The list may be extended by written agreement of the parties.
+
+SHERMAN EQUIPMENT SERVICE LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Jack Proctor, President	Paul Smith, CEO

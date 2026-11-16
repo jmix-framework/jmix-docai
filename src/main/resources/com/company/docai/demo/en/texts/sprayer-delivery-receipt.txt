@@ -1,0 +1,15 @@
+# DELIVERY RECEIPT
+## Self-propelled sprayer
+
+Date: {issued:long}
+Seller: Crossroads Equipment LLC
+Buyer: Meadowbrook LLC
+Contract: Equipment Purchase Agreement No. 24/{year:contract} dated {contract:long}
+
+The Buyer acknowledges receipt of a self-propelled crop sprayer: 90-ft boom, 1,000-gallon tank, diesel engine, serial No. 2606-0417, model year {year:issued}, 11 engine hours.
+Included: an in-cab display with GPS guidance, a set of 56 nozzles, the manufacturer’s certificate of origin, the operator’s manual and two sets of keys.
+The sprayer was test-run on delivery; no damage or defects were found. Warranty: 12 months from the date of this receipt.
+Purchase price: $143,000.00.
+
+Delivered by: ______________ Victor Zachary, Crossroads Equipment LLC
+Received by: ______________ Ian Newman, Equipment Manager, Meadowbrook LLC

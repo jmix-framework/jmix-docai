@@ -111,35 +111,36 @@ class SemanticSearchTest {
 
     @Test
     void theModelKeepsTheDocumentsThatFitAndTheirQuoteIsMarked() {
-        Document lease = indexed("lease.txt", "The lessee takes the MTZ-82 tractor for the field work in spring.");
+        Document lease = indexed("lease.txt", "The lessee takes the Corwin 82 tractor for the field work in spring.");
         indexed("excavator.txt", "The lessee takes a crawler excavator for the field work on the site.");
+
         model.willReply("""
-                {"verdicts": [{"number": 1, "fits": true, "quote": "MTZ-82 tractor"},
+                {"verdicts": [{"number": 1, "fits": true, "quote": "Corwin 82 tractor"},
                               {"number": 2, "fits": false, "quote": ""}]}""");
 
-        List<DocumentSearchHit> hits = semanticSearch.search("MTZ-82 tractor spring");
+        List<DocumentSearchHit> hits = semanticSearch.search("Corwin 82 tractor spring");
 
         assertThat(hits).singleElement().satisfies(hit -> {
             assertThat(hit.document().getId()).isEqualTo(lease.getId());
             assertThat(hit.field()).isEqualTo("File text");
-            assertThat(hit.snippet()).contains("the <b>MTZ-82 tractor</b> for");
+            assertThat(hit.snippet()).contains("the <b>Corwin 82 tractor</b> for");
             assertThat(hit.folderPath()).endsWith(sandbox.getName());
         });
     }
 
     @Test
     void aQuoteTheModelDidNotCopyIsNotMarked() {
-        indexed("lease.txt", "The lessee takes the MTZ-82 tractor for the field work.");
-        model.willReply("{\"verdicts\": [{\"number\": 1, \"fits\": true, \"quote\": \"a tractor MTZ\"}]}");
+        indexed("lease.txt", "The lessee takes the Corwin 82 tractor for the field work.");
+        model.willReply("{\"verdicts\": [{\"number\": 1, \"fits\": true, \"quote\": \"a tractor Corwin\"}]}");
 
         assertThat(semanticSearch.search("tractor")).singleElement()
                 .satisfies(hit -> assertThat(hit.snippet()).doesNotContain("<b>")
-                        .startsWith("The lessee takes the MTZ-82 tractor"));
+                        .startsWith("The lessee takes the Corwin 82 tractor"));
     }
 
     @Test
     void aQuoteLongerThanTheSnippetIsMarkedWhole() {
-        String quote = "The lessee takes the MTZ-82 tractor" + " with the front loader and the trailer".repeat(10);
+        String quote = "The lessee takes the Corwin 82 tractor" + " with the front loader and the trailer".repeat(10);
         indexed("lease.txt", "The lease of the farm machinery. ".repeat(20) + quote + ". The rent is paid monthly.");
         model.willReply("{\"verdicts\": [{\"number\": 1, \"quote\": \"" + quote + "\", \"fits\": true}]}");
 
@@ -149,12 +150,12 @@ class SemanticSearchTest {
 
     @Test
     void aDecisionWithoutAQuoteShowsTheFragment() {
-        indexed("lease.txt", "The lessee takes the MTZ-82 tractor for the field work.");
+        indexed("lease.txt", "The lessee takes the Corwin 82 tractor for the field work.");
         model.willReply("{\"verdicts\": [{\"number\": 1, \"fits\": true}]}");
 
         assertThat(semanticSearch.search("tractor")).singleElement()
                 .satisfies(hit -> assertThat(hit.snippet()).isEqualTo(
-                        "The lessee takes the MTZ-82 tractor for the field work."));
+                        "The lessee takes the Corwin 82 tractor for the field work."));
     }
 
     @Test
@@ -173,7 +174,7 @@ class SemanticSearchTest {
 
     @Test
     void theModelIsHeldToTheSchemaOfTheDecisions() {
-        indexed("lease.txt", "The lessee takes the MTZ-82 tractor for the field work.");
+        indexed("lease.txt", "The lessee takes the Corwin 82 tractor for the field work.");
         model.willReply("{\"verdicts\": [{\"number\": 1, \"fits\": false, \"quote\": \"\"}]}");
 
         assertThat(semanticSearch.search("tractor")).isEmpty();
@@ -200,13 +201,14 @@ class SemanticSearchTest {
 
     @Test
     void theChatGetsTheDocumentsTheModelKeepsAsThePageDoes() {
-        Document lease = indexed("lease.txt", "The lessee takes the MTZ-82 tractor for the field work in spring.");
+        Document lease = indexed("lease.txt", "The lessee takes the Corwin 82 tractor for the field work in spring.");
         indexed("excavator.txt", "The lessee takes a crawler excavator for the field work on the site.");
+
         model.willReply("""
-                {"verdicts": [{"number": 1, "fits": true, "quote": "MTZ-82 tractor"},
+                {"verdicts": [{"number": 1, "fits": true, "quote": "Corwin 82 tractor"},
                               {"number": 2, "fits": false, "quote": ""}]}""");
 
-        SemanticSearch.Found found = semanticSearch.passages("MTZ-82 tractor spring");
+        SemanticSearch.Found found = semanticSearch.passages("Corwin 82 tractor spring");
 
         assertThat(found.documents()).singleElement()
                 .satisfies(passages -> assertThat(passages.document().getId()).isEqualTo(lease.getId()));
@@ -263,7 +265,7 @@ class SemanticSearchTest {
 
     @Test
     void anIndexThatDoesNotAnswerMakesTheSearchUnavailable() {
-        indexed("lease.txt", "The lessee takes the MTZ-82 tractor for the field work.");
+        indexed("lease.txt", "The lessee takes the Corwin 82 tractor for the field work.");
         index.setDown(true);
 
         assertThatThrownBy(() -> semanticSearch.search("tractor")).isInstanceOf(SearchUnavailableException.class);

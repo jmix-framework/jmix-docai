@@ -1,0 +1,21 @@
+# SERVICES AGREEMENT No. 7
+## Pest control
+
+This Services Agreement is made on {signed:long} between Prairie Pest Solutions Inc., 31 Park Avenue, Suite 12, Springfield, IL 62704 (the “Service Provider”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Customer”).
+
+1. The Service Provider will provide monthly pest control for the Customer’s warehouse and office, including general insect control, rodent control and, when needed, fumigation.
+2. The services cover the warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702, and the office at 12 Garden Street, Suite 312, Springfield, IL 62701.
+3. Treatments take place once a month on a date agreed with the Customer at least 3 business days in advance: in the office after business hours, in the warehouse without stopping its operations.
+4. The Service Provider uses its own equipment and only EPA-registered products. Along the perimeter of the warehouse, the Service Provider installs tamper-resistant bait stations, keeps a map of them and services them monthly.
+5. The work is done by the Service Provider’s licensed technicians, trained in the safe handling of the products used.
+6. The Customer gives the technicians access to all areas to be treated and removes food from the break rooms during treatment.
+7. After each treatment, the Service Provider makes an entry in the pest control log kept at the Customer’s site and issues a monthly service report. The log records the date, the areas treated, the products used and the recommendations to the Customer.
+8. If the Customer reports pest activity between scheduled treatments, the Service Provider makes an extra visit within 2 business days at no extra charge.
+9. The fee is $210.00 per month, or $2,520.00 for {year:signed}.
+10. The Customer pays monthly, within 10 business days after receiving the monthly service report and invoice.
+11. The Service Provider applies its products safely around people and the Customer’s goods and will indemnify the Customer for any damage its services cause.
+12. This Agreement takes effect on the date of signing and remains in effect until {validUntil:long}. Either party may terminate it on at least 30 days’ written notice.
+
+PRAIRIE PEST SOLUTIONS INC.	MEADOWBROOK LLC
+By: ______________	By: ______________
+Roger Lane, President	Paul Smith, CEO

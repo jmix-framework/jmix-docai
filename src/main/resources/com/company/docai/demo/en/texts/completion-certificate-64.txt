@@ -1,0 +1,19 @@
+# CERTIFICATE OF COMPLETION No. 64
+## Heating system maintenance, {issued:monthYear}
+
+Date: {issued:long}
+Service Provider: Capitol Mechanical Services LLC
+Customer: Meadowbrook LLC
+Agreement: Maintenance Agreement No. 42/{year:contract} dated {contract:long}
+Location: the boiler room of the warehouse at 36 Commerce Avenue, Building 2, Springfield, IL 62702
+
+The Service Provider certifies that it performed the following services from the first of the month through {issued:long}; the Customer’s signature confirms acceptance:
+1. Maintenance of the heating system and the boiler room	$520.00
+Total	$520.00
+
+Services performed: seasonal start-up of the boilers and heating system; weekly boiler and burner inspections; safety control tests; filter cleaning; checks of system water pressure and temperature; inspection of radiators, risers and shut-off valves; circulation pump adjustment; boiler log entries.
+All services for the period were completed by {issued:long}.
+
+CAPITOL MECHANICAL SERVICES LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Vincent Ellis, President	Scott Swanson, Facilities Manager

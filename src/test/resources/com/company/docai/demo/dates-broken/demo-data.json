@@ -1,0 +1,71 @@
+{
+  "locale": "en",
+  "formats": {"long": "MMMM d, yyyy"},
+  "folders": [
+    {
+      "name": "Dates {year:-1}",
+      "documents": [
+        {
+          "name": "Undeclared date",
+          "date": "issued",
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "-1d 10:00"}]
+        },
+        {
+          "name": "Unreadable date",
+          "dates": {"issued": "next-week"},
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "-1d 10:00"}]
+        },
+        {
+          "name": "Dates in a circle",
+          "dates": {"start": "end-30d", "end": "start+30d"},
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "-1d 10:00"}]
+        },
+        {
+          "name": "Unreadable time",
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "-1d 25:00"}]
+        },
+        {
+          "name": "Field of an undeclared date",
+          "dates": {"issued": "-5d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {"invoiceNumber": "77", "dueDate": "due"},
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "issued 10:00"}]
+        },
+        {
+          "name": "Missing text",
+          "versions": [{"text": "missing.pdf", "author": "alice", "uploaded": "-1d 10:00"}]
+        },
+        {
+          "name": "Text of an undeclared date",
+          "dates": {"issued": "-5d"},
+          "versions": [{"text": "invoice.pdf", "author": "alice", "uploaded": "issued 10:00"}]
+        },
+        {
+          "name": "Text in an unknown format",
+          "dates": {"issued": "-5d"},
+          "versions": [{"text": "memo.pdf", "author": "alice", "uploaded": "issued 10:00"}]
+        },
+        {
+          "name": "Text with a stray brace",
+          "dates": {"closed": "+3d", "due": "+10d"},
+          "versions": [{"text": "notice.pdf", "author": "alice", "uploaded": "-1d 10:00"}]
+        },
+        {
+          "name": "File and text",
+          "dates": {"issued": "-5d", "due": "+10d"},
+          "versions": [{"file": "note.txt", "text": "invoice.pdf", "author": "alice", "uploaded": "issued 10:00"}]
+        },
+        {
+          "name": "Comment of an undeclared date",
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "-1d 10:00"}],
+          "comments": [{"author": "alice", "at": "-1d 11:00", "text": "Pay by {due:long}"}]
+        },
+        {
+          "name": "Misspelt year {yaer:-1}",
+          "versions": [{"file": "note.txt", "author": "alice", "uploaded": "-1d 10:00"}]
+        }
+      ]
+    }
+  ]
+}

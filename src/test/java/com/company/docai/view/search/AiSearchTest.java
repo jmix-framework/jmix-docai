@@ -210,7 +210,7 @@ class AiSearchTest {
     @Test
     void theFoundDocumentsAreCountedAndTheirQuoteIsMarked() {
         Document document = upload();
-        when(semanticSearch.search(QUERY)).thenReturn(List.of(hit(document, "the <b>MTZ-82 tractor</b> for")));
+        when(semanticSearch.search(QUERY)).thenReturn(List.of(hit(document, "the <b>Corwin 82 tractor</b> for")));
 
         DocumentSearchView view = openAiSearch();
         waitUntil(() -> found(view).isVisible());
@@ -219,7 +219,7 @@ class AiSearchTest {
                 .isEqualTo(messages.formatMessage(DocumentSearchView.class, "foundCount", 1));
         assertThat(rows(view)).hasSize(1);
         assertThat(match(rows(view).getFirst()).getText())
-                .isEqualTo("MTZ-82 tractor");
+                .isEqualTo("Corwin 82 tractor");
         assertThat(UiTestUtils.<JmixButton>getComponent(view, "showMoreButton").isVisible()).isFalse();
         assertThat(message(view).isVisible()).isFalse();
     }

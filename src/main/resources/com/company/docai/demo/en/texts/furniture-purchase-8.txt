@@ -1,0 +1,16 @@
+# FURNITURE PURCHASE AGREEMENT No. 8
+## Conference room furniture
+
+This Furniture Purchase Agreement is made on {signed:long} between Allen Office Furniture LLC, 37 Allen Road, Springfield, IL 62704 (the “Supplier”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Buyer”).
+
+1. The Supplier sells, and the Buyer buys, the following furniture:
+(a) conference table, 12 × 4 ft: 1 at $1,640.00;
+(b) office chairs: 12 at $195.00, $2,340.00;
+(c) filing cabinets: 2 at $510.00, $1,020.00.
+2. The total price is $5,000.00. The Buyer pays 50% within 3 business days after signing this Agreement and 50% after signing the delivery receipt.
+3. The Supplier delivers the furniture inside the office and assembles it in the conference room at 12 Garden Street, Suite 312, Springfield, IL 62701, no later than {delivery:long}.
+4. Warranty: 24 months.
+
+ALLEN OFFICE FURNITURE LLC	MEADOWBROOK LLC
+By: ______________	By: ______________
+Henry Sutton, President	Paul Smith, CEO

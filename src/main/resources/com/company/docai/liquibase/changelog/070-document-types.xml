@@ -53,7 +53,7 @@
             <column name="CODE" value="contractKind"/>
             <column name="DATA_TYPE" value="ENUMERATION"/>
             <column name="ENUMERATION" value="supply,lease,work,services,leasing"/>
-            <column name="ENUMERATION_LOCALES" value="en/supply=Supply&#10;ru/supply=Поставка&#10;en/lease=Lease&#10;ru/lease=Аренда&#10;en/work=Work&#10;ru/work=Подряд&#10;en/services=Services&#10;ru/services=Услуги&#10;en/leasing=Leasing&#10;ru/leasing=Лизинг"/>
+            <column name="ENUMERATION_LOCALES" value="en/supply=Supply&#10;ru/supply=Поставка&#10;en/lease=Lease&#10;ru/lease=Аренда&#10;en/work=Construction&#10;ru/work=Подряд&#10;en/services=Services&#10;ru/services=Услуги&#10;en/leasing=Finance lease&#10;ru/leasing=Лизинг"/>
             <column name="ORDER_NO" valueNumeric="20"/>
             <column name="REQUIRED" valueBoolean="false"/>
             <column name="LOOKUP" valueBoolean="false"/>
@@ -188,7 +188,7 @@
             <column name="REQUIRED" valueBoolean="false"/>
             <column name="LOOKUP" valueBoolean="false"/>
             <column name="IS_COLLECTION" valueBoolean="false"/>
-            <column name="LOCALE_NAMES" value="en=Contractor&#10;ru=Исполнитель"/>
+            <column name="LOCALE_NAMES" value="en=Vendor&#10;ru=Исполнитель"/>
         </insert>
         <insert tableName="DYNAT_CATEGORY_ATTR">
             <column name="ID" value="5c2d7e94-1a3b-4f6c-8d0e-2b9f0000000b"/>
@@ -216,7 +216,7 @@
             <column name="REQUIRED" valueBoolean="false"/>
             <column name="LOOKUP" valueBoolean="false"/>
             <column name="IS_COLLECTION" valueBoolean="false"/>
-            <column name="LOCALE_NAMES" value="en=Work completed on&#10;ru=Дата окончания работ"/>
+            <column name="LOCALE_NAMES" value="en=Completed on&#10;ru=Дата окончания работ"/>
         </insert>
         <insert tableName="DYNAT_CATEGORY_ATTR">
             <column name="ID" value="5c2d7e94-1a3b-4f6c-8d0e-2b9f0000000d"/>
@@ -230,7 +230,7 @@
             <column name="REQUIRED" valueBoolean="false"/>
             <column name="LOOKUP" valueBoolean="false"/>
             <column name="IS_COLLECTION" valueBoolean="false"/>
-            <column name="LOCALE_NAMES" value="en=Basis contract&#10;ru=Договор-основание"/>
+            <column name="LOCALE_NAMES" value="en=Contract No.&#10;ru=Договор-основание"/>
         </insert>
         <insert tableName="DYNAT_CATEGORY">
             <column name="ID" value="8e1c6a52-3f0d-4b7a-9c21-5d4e7f8a1b04"/>
@@ -318,7 +318,7 @@
             <column name="CODE" value="contractKind"/>
             <column name="DATA_TYPE" value="ENUMERATION"/>
             <column name="ENUMERATION" value="supply,lease,work,services,leasing"/>
-            <column name="ENUMERATION_LOCALES" value="en/supply=Supply&#10;ru/supply=Поставка&#10;en/lease=Lease&#10;ru/lease=Аренда&#10;en/work=Work&#10;ru/work=Подряд&#10;en/services=Services&#10;ru/services=Услуги&#10;en/leasing=Leasing&#10;ru/leasing=Лизинг"/>
+            <column name="ENUMERATION_LOCALES" value="en/supply=Supply&#10;ru/supply=Поставка&#10;en/lease=Lease&#10;ru/lease=Аренда&#10;en/work=Construction&#10;ru/work=Подряд&#10;en/services=Services&#10;ru/services=Услуги&#10;en/leasing=Finance lease&#10;ru/leasing=Лизинг"/>
             <column name="ORDER_NO" valueNumeric="20"/>
             <column name="REQUIRED" valueBoolean="false"/>
             <column name="LOOKUP" valueBoolean="false"/>
@@ -453,7 +453,7 @@
             <column name="REQUIRED" valueBoolean="false"/>
             <column name="LOOKUP" valueBoolean="false"/>
             <column name="IS_COLLECTION" valueBoolean="false"/>
-            <column name="LOCALE_NAMES" value="en=Contractor&#10;ru=Исполнитель"/>
+            <column name="LOCALE_NAMES" value="en=Vendor&#10;ru=Исполнитель"/>
         </insert>
         <insert tableName="DYNAT_CATEGORY_ATTR">
             <column name="ID" value="5c2d7e941a3b4f6c8d0e2b9f0000000b"/>
@@ -481,7 +481,7 @@
             <column name="REQUIRED" valueBoolean="false"/>
             <column name="LOOKUP" valueBoolean="false"/>
             <column name="IS_COLLECTION" valueBoolean="false"/>
-            <column name="LOCALE_NAMES" value="en=Work completed on&#10;ru=Дата окончания работ"/>
+            <column name="LOCALE_NAMES" value="en=Completed on&#10;ru=Дата окончания работ"/>
         </insert>
         <insert tableName="DYNAT_CATEGORY_ATTR">
             <column name="ID" value="5c2d7e941a3b4f6c8d0e2b9f0000000d"/>
@@ -495,7 +495,7 @@
             <column name="REQUIRED" valueBoolean="false"/>
             <column name="LOOKUP" valueBoolean="false"/>
             <column name="IS_COLLECTION" valueBoolean="false"/>
-            <column name="LOCALE_NAMES" value="en=Basis contract&#10;ru=Договор-основание"/>
+            <column name="LOCALE_NAMES" value="en=Contract No.&#10;ru=Договор-основание"/>
         </insert>
         <insert tableName="DYNAT_CATEGORY">
             <column name="ID" value="8e1c6a523f0d4b7a9c215d4e7f8a1b04"/>

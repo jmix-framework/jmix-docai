@@ -1,0 +1,21 @@
+# SUPPLY AGREEMENT No. 45
+## Office paper and office supplies
+
+This Supply Agreement is made on {signed:long} between Northwind Paper Inc., 157 Northfield Drive, Unit 6, Springfield, IL 62702 (the “Supplier”), and Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701 (the “Buyer”).
+
+1. During {year:signed}, the Supplier will sell the Buyer office paper and office supplies (the “Goods”) as the Buyer orders them.
+2. Each order and the Supplier’s invoice state the items, quantities and prices of the order. Prices are those of the Supplier’s price list on the order date.
+3. The estimated value of this Agreement is $10,700.00. If deliveries reach this amount before the Agreement expires, the parties sign an amendment to increase it.
+4. The Buyer places orders by email, and the Supplier confirms them within 1 business day. The Supplier delivers the Goods in its own trucks to the Buyer’s office at 12 Garden Street, Suite 312, Springfield, IL 62701, within 5 business days of the order. Delivery is included in the price.
+5. The Buyer pays each invoice within 20 days after delivery.
+6. By the 10th of each month, the Supplier sends the Buyer a statement for the previous month.
+7. Title to the Goods passes to the Buyer when the Buyer signs the delivery receipt.
+8. The Buyer checks the quantity and the items on receipt and reports latent defects within 10 days after delivery; the Supplier replaces defective Goods at its own expense within 5 business days.
+9. Copy paper comes in the manufacturer’s packaging: letter size, 20 lb, 92 brightness or higher, 500 sheets per ream.
+10. If a delivery is late, the Supplier pays liquidated damages of 0.1% of the value of the undelivered Goods per day; if a payment is late, the Buyer pays a late charge of 0.1% of the overdue amount per day.
+11. This Agreement takes effect on the date of signing and remains in effect until {validUntil:long}.
+12. This Agreement is governed by Illinois law. Any dispute will be resolved in the state courts of Sangamon County, Illinois.
+
+NORTHWIND PAPER INC.	MEADOWBROOK LLC
+By: ______________	By: ______________
+Arthur Crawford, President	Paul Smith, CEO

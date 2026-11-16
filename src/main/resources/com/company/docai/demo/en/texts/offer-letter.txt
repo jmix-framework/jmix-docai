@@ -1,0 +1,31 @@
+Meadowbrook LLC
+12 Garden Street, Suite 312, Springfield, IL 62701
+
+{issued:long}
+
+Emily Clark
+84 Union Street, Apt. 27
+Springfield, IL 62704
+
+# OFFER OF EMPLOYMENT
+
+Dear Ms. Clark:
+
+We are pleased to offer you the position of Procurement Manager in the Procurement Department of Meadowbrook LLC, reporting to Ellen Carroll, Procurement Director. The terms of our offer are as follows.
+
+1. Start date: {hired:long}.
+2. Base salary: $66,000 per year, paid semimonthly. This is a full-time, exempt position.
+3. Schedule: Monday through Friday.
+4. Introductory period: the first three months of employment.
+5. Your employment with Meadowbrook LLC is at will: you or the company may end it at any time, with or without cause or notice.
+6. On your first day, Diane Porter, HR Manager, will complete your new-hire paperwork with you, including Form I-9.
+7. Ellen Carroll will have your workstation ready and go over your job description with you.
+
+The full terms of your employment are in the enclosed Employment Agreement dated {issued:long}.
+
+Sincerely,
+
+______________
+Paul Smith, CEO
+
+Accepted: ______________ Emily Clark	{issued:long}

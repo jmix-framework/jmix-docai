@@ -4,6 +4,7 @@ import com.company.docai.ai.AiSettings;
 import com.company.docai.search.semantic.DocumentVectorIndex;
 import com.company.docai.search.semantic.DocumentVectorIndexer;
 import com.company.docai.search.semantic.SemanticSearch;
+import io.jmix.core.TimeSource;
 import io.jmix.core.security.SystemAuthenticator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -25,7 +27,8 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * The English demo set with the OpenAI models and OpenSearch: the AI search for agricultural machinery finds the
- * twelve documents about farm equipment and nothing else, and an employee who may not open Archive 2025 finds nine.
+ * twelve documents about farm equipment and nothing else, and an employee who may not open the archive of the last
+ * year finds nine.
  * Runs only with {@code ./gradlew aiTest}, the key in {@code OPENAI_API_KEY} and OpenSearch from {@code compose.yaml};
  * the set goes into a database and an index of its own, and the test deletes the index.
  */
@@ -37,23 +40,24 @@ class LiveDemoSetTest {
 
     private static final String TOPIC = "agricultural machinery";
 
-    // the documents of the set about farm equipment that lie in Procurement
+    // the documents of the set about farm equipment that lie in Procurement, by their names in the description, which
+    // write the years and the dates of the day of the load
     private static final List<String> PROCUREMENT = List.of(
-            "Lease Agreement No. 14/A-26 — MTZ-82 Tractor",
-            "Purchase and Sale Agreement No. 07-K/2026 — Combine Harvester",
-            "Specification No. 2 to Supply Agreement No. 31/2026",
-            "Delivery and Acceptance Certificate dated June 9, 2026",
-            "Work Contract No. 22-M/2026 — Irrigation Machine Installation",
-            "Purchase and Sale Agreement No. 11/2026 — DT-75M Crawler Tractor",
+            "Equipment Lease Agreement No. 14 — Corwin 82 Tractor",
+            "Equipment Purchase Agreement No. 37/{year:signed} — Combine",
+            "Schedule 2 to Supply Agreement No. 31/{year:contract}",
+            "Delivery Receipt — Self-Propelled Sprayer",
+            "Installation Contract No. 22/{year:signed} — Center Pivot Irrigation Machine",
+            "Equipment Purchase Agreement No. 11/{year:signed} — Crawler Tractor",
             "Invoice No. 405",
             "Memo No. 18",
-            "Framework Supply Agreement No. 3/2026");
+            "Master Supply Agreement No. 3/{year:signed}");
 
-    // and in Archive 2025, which peter may not open
+    // and in the archive of the last year, which peter may not open
     private static final List<String> ARCHIVE = List.of(
             "Invoice No. 1187",
-            "Finance Lease Agreement No. L-17/2025",
-            "Framework Maintenance Agreement No. 9/2025");
+            "Finance Lease Agreement No. L-17/{year:signed}",
+            "Master Service Agreement No. 9/{year:signed} — Forage Harvester");
 
     @Autowired
     private DemoDataLoader loader;
@@ -76,9 +80,21 @@ class LiveDemoSetTest {
     @Autowired
     private SystemAuthenticator systemAuthenticator;
 
+    @Autowired
+    private TimeSource timeSource;
+
+    // the names of the documents as the set is loaded today
+    private List<String> procurement = List.of();
+    private List<String> archive = List.of();
+
     @BeforeAll
-    void loadTheSet() {
+    void loadTheSet() throws IOException {
         assertThat(aiSettings.isAvailable()).isTrue();
+
+        DemoSetTemplate template = DemoSetTemplate.read("en");
+        DemoSet generated = template.generate("en", timeSource.now().toLocalDate());
+        procurement = namesOf(PROCUREMENT, template.folders(), generated.folders());
+        archive = namesOf(ARCHIVE, template.folders(), generated.folders());
 
         loader.load("en");
 
@@ -94,12 +110,32 @@ class LiveDemoSetTest {
     @RepeatedTest(3)
     void theAiSearchFindsTheFarmEquipmentAndNothingElse() {
         assertThat(found("admin"))
-                .containsExactlyInAnyOrderElementsOf(Stream.concat(PROCUREMENT.stream(), ARCHIVE.stream()).toList());
+                .containsExactlyInAnyOrderElementsOf(Stream.concat(procurement.stream(), archive.stream()).toList());
     }
 
     @Test
     void anEmployeeWhoMayNotOpenTheArchiveFindsNine() {
-        assertThat(found("peter")).containsExactlyInAnyOrderElementsOf(PROCUREMENT);
+        assertThat(found("peter")).containsExactlyInAnyOrderElementsOf(procurement);
+    }
+
+    // the generated names of the documents the description names so, in the same places of the set
+    private static List<String> namesOf(List<String> written, List<DemoSetTemplate.Folder> template,
+                                        List<DemoSet.Folder> generated) {
+        List<String> names = new ArrayList<>();
+
+        for (int folder = 0; folder < template.size(); folder++) {
+            List<DemoSetTemplate.Document> documents = template.get(folder).documents();
+
+            for (int document = 0; document < documents.size(); document++) {
+                if (written.contains(documents.get(document).name())) {
+                    names.add(generated.get(folder).documents().get(document).name());
+                }
+            }
+
+            names.addAll(namesOf(written, template.get(folder).folders(), generated.get(folder).folders()));
+        }
+
+        return names;
     }
 
     private List<String> found(String username) {

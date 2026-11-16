@@ -1,0 +1,23 @@
+DRAFT
+# VACATION SCHEDULE {year:+1}
+## Meadowbrook LLC
+Prepared on {drafted:long}
+
+Each employee has four weeks of paid vacation a year. Please plan it in no more than two blocks so that we can arrange coverage. Paid holidays that fall within a vacation do not count as vacation days.
+
+Name and title	Vacation periods
+Paul Smith, CEO	July 12–25, December 13–26
+Maria Lopez, Controller	August 16–29, November 15–28
+Rachel Sanders, Accountant	March 15–28, August 2–15
+Jason Cooper, Legal Counsel	June 21 – July 4, September 6–19
+Ellen Carroll, Procurement Director	July 26 – August 15, November 22–28
+Emily Clark, Procurement Manager	July 5–18, October 4–17
+Scott Swanson, Facilities Manager	May 17–30, October 11–24
+Daniel Orr, Warehouse Manager	June 28 – July 11, September 20 – October 3
+Ian Newman, Equipment Manager	April 12–25, August 23 – September 5
+Diane Porter, HR Manager	July 19 – August 1, December 6–19
+
+Please send any changes to HR by {approveBy:long}, when the CEO signs off on the calendar. Confirm your dates with your manager at least two weeks before you leave.
+
+Prepared by: Diane Porter, HR Manager ______________
+Approved by: Paul Smith, CEO ______________

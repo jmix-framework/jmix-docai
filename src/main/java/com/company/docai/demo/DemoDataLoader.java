@@ -22,6 +22,7 @@ import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Metadata;
 import io.jmix.core.SaveContext;
+import io.jmix.core.TimeSource;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.SystemAuthenticator;
@@ -44,9 +45,11 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -64,8 +67,10 @@ import java.util.function.Function;
  * the root with their own access, then the documents with their versions, types, fields, tags, access and statuses,
  * and last what lies in the trash.
  * The set is chosen by {@code docai.demo-data} ({@code en}, {@code ru} or {@code none}); its description is
- * {@code com/company/docai/demo/<set>/demo-data.json}, the files of its versions lie in {@code files} next to it. A set
- * loads in one transaction, all of it or nothing.
+ * {@code com/company/docai/demo/<set>/demo-data.json}, the files of its versions lie in {@code files} next to it and
+ * the texts in {@code texts}. A set loads in one transaction, all of it or nothing.
+ * The set is generated for the day of the load by {@link TimeSource}: its dates, the history included, are computed
+ * from that day, and each text becomes its file with those dates: a PDF renders the text, a plain text file holds it.
  */
 @Component
 public class DemoDataLoader {
@@ -118,8 +123,10 @@ public class DemoDataLoader {
     private final TagService tagService;
     private final FavoriteService favoriteService;
     private final DemoSetChecker checker;
+    private final DemoPdf pdf;
     private final SystemAuthenticator systemAuthenticator;
     private final Metadata metadata;
+    private final TimeSource timeSource;
     private final TransactionTemplate transaction;
 
     // the dates of the history are written past the entity listeners, which stamp the current time
@@ -138,8 +145,10 @@ public class DemoDataLoader {
                           TagService tagService,
                           FavoriteService favoriteService,
                           DemoSetChecker checker,
+                          DemoPdf pdf,
                           SystemAuthenticator systemAuthenticator,
                           Metadata metadata,
+                          TimeSource timeSource,
                           PlatformTransactionManager transactionManager) {
         this.chosenSet = chosenSet;
         this.dataManager = dataManager;
@@ -153,8 +162,10 @@ public class DemoDataLoader {
         this.tagService = tagService;
         this.favoriteService = favoriteService;
         this.checker = checker;
+        this.pdf = pdf;
         this.systemAuthenticator = systemAuthenticator;
         this.metadata = metadata;
+        this.timeSource = timeSource;
         this.transaction = new TransactionTemplate(transactionManager);
     }
 
@@ -188,7 +199,9 @@ public class DemoDataLoader {
             return Outcome.NOT_EMPTY;
         }
 
-        List<String> problems = check(set);
+        // the check and the load take one moment, so that a load past midnight is checked for its own day
+        ZonedDateTime now = timeSource.now();
+        List<String> problems = check(set, now);
 
         if (!problems.isEmpty()) {
             log.error("The demo set '{}' is not loaded, its description has problems:\n{}", set,
@@ -197,36 +210,47 @@ public class DemoDataLoader {
             return Outcome.INVALID;
         }
 
-        load(set);
+        load(set, now.toLocalDate());
 
         return Outcome.LOADED;
     }
 
     /**
-     * Returns the problems of the description of the set without writing anything: a folder or a document without
-     * a name or with the name of a neighbour, a document without versions, a missing file, an unknown user, role,
-     * level, status, type or field, a field value its field does not accept, and a tag without a name, too long or
-     * written in another case elsewhere, and a favorite of an unknown user or of an item in the trash.
+     * Returns the problems of the description of the set for today without writing anything, as
+     * {@link DemoSetChecker#problemsOf} lists them: the dates first, then a folder or a document without a name or
+     * with the name of a neighbour, a document without versions, a missing file or text, an unknown user, role,
+     * level, status, type or field, a field value its field does not accept, a tag without a name, too long or
+     * written in another case elsewhere, a favorite of an unknown user or of an item in the trash, and an event of
+     * the history after now.
      */
     public List<String> check(String set) {
+        return check(set, timeSource.now());
+    }
+
+    private List<String> check(String set, ZonedDateTime now) {
         // the type rules read the names of types and fields in the language of the current user
-        return systemAuthenticator.withSystem(() -> checker.problemsOf(set));
+        return systemAuthenticator.withSystem(() -> checker.problemsOf(set, now.toLocalDateTime()));
     }
 
     /**
-     * Loads the set into the database in one transaction, without looking at what the database holds. The set must
-     * pass {@link #check}.
+     * Loads the set, generated for today, into the database in one transaction, without looking at what the
+     * database holds. The set must pass {@link #check}.
      */
     public void load(String set) {
+        load(set, timeSource.now().toLocalDate());
+    }
+
+    private void load(String set, LocalDate today) {
         DemoSet description;
 
         try {
-            description = DemoSet.read(set);
+            description = DemoSetTemplate.read(set)
+                    .generate(set, today);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
-        log.info("The demo set '{}' is loading", set);
+        log.info("The demo set '{}' is loading for {}", set, today);
         long started = System.nanoTime();
         Loaded loaded = new Loaded();
 
@@ -244,9 +268,9 @@ public class DemoDataLoader {
             deleteAsDescribed(loaded.deleted);
         }));
 
-        log.info("The demo set '{}' is loaded: {} folders, {} documents, {} versions, {} items in the trash in {} ms",
-                set, loaded.folders, loaded.documents, loaded.versions, loaded.deleted.size(),
-                (System.nanoTime() - started) / 1_000_000);
+        log.info("The demo set '{}' is loaded for {}: {} folders, {} documents, {} versions, {} items in the trash"
+                        + " in {} ms", set, today, loaded.folders, loaded.documents, loaded.versions,
+                loaded.deleted.size(), (System.nanoTime() - started) / 1_000_000);
     }
 
     // the changelogs create the users with English names, and the set names them in its language
@@ -459,8 +483,14 @@ public class DemoDataLoader {
             Path content = Files.createTempFile("docai-demo-", extension);
 
             try {
-                try (InputStream source = DemoSet.file(set, version.file()).getInputStream()) {
-                    Files.copy(source, content, StandardCopyOption.REPLACE_EXISTING);
+                if (version.text() == null) {
+                    try (InputStream source = DemoSet.file(set, version.file()).getInputStream()) {
+                        Files.copy(source, content, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } else if (".pdf".equals(extension)) {
+                    Files.write(content, pdf.render(version.text()));
+                } else {
+                    Files.writeString(content, version.text());
                 }
 
                 return save.apply(new UploadedFile(fileName, content));

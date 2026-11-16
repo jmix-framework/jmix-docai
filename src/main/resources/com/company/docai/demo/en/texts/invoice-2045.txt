@@ -1,0 +1,18 @@
+Northwind Paper Inc.
+157 Northfield Drive, Unit 6, Springfield, IL 62702
+EIN 37-2594061
+
+# INVOICE No. 2045
+## dated {issued:long}
+Bill to: Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701
+Ship to: the same address; delivery on {delivery:long}, included in the price
+Contract: Supply Agreement No. 45 dated {contract:long}
+
+1. Copy paper, letter size, 20 lb, 120 reams at $5.30	$636.00
+2. Catalog envelopes, 10 × 13 in, peel-and-seal, 500 at $0.26	$130.00
+3. Ring binders, 3-inch, 60 at $2.90	$174.00
+Total	$940.00
+
+Paper: 92 brightness, 500 sheets per ream, 5 reams per carton. Envelopes: white. Binders: vinyl, 3-ring.
+Pay by {due:long}.
+Payment by ACH to Larkspur National Bank, routing No. 071925999, account No. 9000105882. Please include the invoice number with your payment.
