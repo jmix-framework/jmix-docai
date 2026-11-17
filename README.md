@@ -128,7 +128,7 @@ A question costs more the more the model looks up: each tool call sends the chat
 
 - [AI Chat](https://docs.jmix.io/jmix/ai-chat/index.html): the chats of the document card and of a discussion; an experimental add-on of the Jmix Enterprise subscription
 - [AI Tools](https://docs.jmix.io/jmix/ai-tools/index.html): the AI assistant in the main menu and the history of its chats
-- [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html): the restore from the trash and the entity inspector
+- [Data Tools](https://docs.jmix.io/jmix/data-tools/index.html): the restore from the trash
 - [Dynamic Attributes](https://docs.jmix.io/jmix/dyn-attr/index.html): the document types and their fields
 - [Local File Storage](https://docs.jmix.io/jmix/files/file-storage.html)
 - [Quartz](https://docs.jmix.io/jmix/quartz/index.html): runs the indexing queue of the search
@@ -180,7 +180,10 @@ Gradle builds the jar, and Compose puts it into an image and runs it next to Ope
 docker compose --profile app up -d --build
 ```
 
-The application answers on port 8080 of the host at `/docai`. Its database and files live in the container, and the search indexes in the `opensearch-data` volume: a new container starts on a fresh database with the demo set for that day, a restart keeps the data, and the application clears its own search indexes before it loads a set into an empty database. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another: the login form stays empty, and an empty database gets the English demo set at start. Another profile, for example `prod`, also leaves the login form empty and loads no demo set unless `DOCAI_DEMO_DATA` names one.
+The application answers on port 8080 of the host at `/docai`. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another. Another profile, for example `prod`, also leaves the login form empty, but keeps one database for everybody and fills it at the first start with the set of `DOCAI_DEMO_DATA`, `en` unless the variable names `ru` or `none`.
+
+The `stand` profile gives every visitor a copy of the demo data of their own, made from a template when they log in: what a visitor uploads, edits or deletes, other visitors never see. The language of the login form or of the user menu chooses the demo set. A logout and a new login in the same browser return to the same copy, and switching the language discards the visitor's changes. A copy is deleted after 30 minutes without requests, and a restart deletes them all. A visitor uploads PDF, DOCX, XLSX, TXT, CSV, PNG and JPEG files only, up to 5 MB each and 20 MB per copy. The settings of the profile are described in `application-stand.properties`.
+
 ### Run the tests
 
 | Command | Needs | Runs |
@@ -204,7 +207,7 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 | Variable | Default | Meaning |
 |---|---|---|
 | `DOCAI_ACTIVE_PROFILE` | `local`, `stand` in Compose | Spring profile; `local` pre-fills the login form |
-| `DOCAI_DEMO_DATA` | `en` in the `local` and `stand` profiles, `none` in others | Demo set an empty database gets at the start: `en`, `ru` or `none` |
+| `DOCAI_DEMO_DATA` | `en` | Demo set an empty database gets at the start: `en`, `ru` or `none`; the `stand` profile ignores it and gives every visitor a copy of a set, see [Run on a stand](#run-on-a-stand) |
 | `DOCAI_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/docai` | JDBC URL of the database |
 | `DOCAI_DB_USERNAME` | `sa` | Database user |
 | `DOCAI_DB_PASSWORD` | empty | Database password |
@@ -221,7 +224,7 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 
 ## 🎲 Demo Data
 
-At the first start, an empty database gets the demo set that `DOCAI_DEMO_DATA` names: `en`, `ru` or `none`. Both sets hold the same folders, people and scenes: 46 documents with versions, types, fields, statuses, tags, comments and access, favorites of each user, and a few items in the trash.
+At the first start, an empty database gets the demo set that `DOCAI_DEMO_DATA` names: `en`, `ru` or `none`; on the stand, every visitor works in a copy of the set of the login form instead, see [Run on a stand](#run-on-a-stand). Both sets hold the same folders, people and scenes: 46 documents with versions, types, fields, statuses, tags, comments and access, favorites of each user, and a few items in the trash.
 
 | Folder | Access | What to try |
 |---|---|---|
@@ -239,7 +242,7 @@ The corpus holds 12 documents about farm machinery and 18 about other machinery 
 
 A set is generated for the day it loads. Each of its dates counts from that day: the uploads, comments and deletions of its history, the dates of the documents and of their fields, the dates and years in the names and in the texts of the files. So the last change happened yesterday, the nearest deadlines lie ahead, and some contracts end this quarter. A document declares its dates once in `demo-data.json`, such as `"dates": {"issued": "-5d", "due": "month-end"}`, and its date, fields, history and texts refer to them by name; a date of ISO 8601, such as `2006-07-27`, stays where it is. The files of the versions are made at the load from the texts in `texts/`: a PDF renders its text, and a plain text file is its text, both with the dates of the day; so a document of a set changes by its text. The start log names the day: `The demo set 'en' is loaded for 2026-11-16: …`.
 
-A database keeps the dates of its load: in Docker the application keeps its database in the container, so a new container starts on a fresh database with the set for that day, while a restart keeps the data.
+A database keeps the dates of its load: in Docker the application keeps its data in the container, so a new container starts on a fresh set for that day, while a restart keeps the data. On the stand that data is the templates: a new container builds them for its day, a restart reuses them, and every copy has the dates of its template.
 
 The sets lie in `src/main/resources/com/company/docai/demo/`: `demo-data.json` and the texts of their files in `texts/`. The PDFs use PT Serif and PT Sans by ParaType, which lie in `fonts/` there with their licenses, the SIL Open Font License 1.1. To load a set again, [reset the demo data](#reset-the-demo-data).
 

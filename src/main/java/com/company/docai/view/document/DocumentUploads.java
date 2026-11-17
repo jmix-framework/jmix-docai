@@ -2,6 +2,7 @@ package com.company.docai.view.document;
 
 import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.document.UploadReport;
+import com.company.docai.stand.StandUploadGuard;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
@@ -11,12 +12,14 @@ import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.component.upload.JmixUpload;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 /**
  * What the uploads of the repository and of the document card share: the largest file their upload components
- * take, the most files a batch upload takes at a time, the notices of a file an upload refuses or fails to transfer,
- * the notices of a file the drop zone of the repository refuses, and the report of a batch upload.
+ * take, on the stand the types of files they offer, the most files a batch upload takes at a time, the notices of a
+ * file an upload refuses or fails to transfer, the notices of a file the drop zone of the repository refuses, and the
+ * report of a batch upload.
  */
 @Component
 public class DocumentUploads {
@@ -28,30 +31,37 @@ public class DocumentUploads {
     private final Dialogs dialogs;
     private final UiComponents uiComponents;
     private final Messages messages;
+    private final ObjectProvider<StandUploadGuard> uploadGuard;
 
     public DocumentUploads(FilesProperties filesProperties, Notifications notifications, Dialogs dialogs,
-                           UiComponents uiComponents, Messages messages) {
+                           UiComponents uiComponents, Messages messages,
+                           ObjectProvider<StandUploadGuard> uploadGuard) {
         this.filesProperties = filesProperties;
         this.notifications = notifications;
         this.dialogs = dialogs;
         this.uiComponents = uiComponents;
         this.messages = messages;
+        this.uploadGuard = uploadGuard;
     }
 
     /**
-     * Limits the files the upload takes to the largest a document file may be.
+     * Limits the files the upload takes to the largest a document file may be and, on the stand, to the types a
+     * visitor can upload there, so that its file picker offers only those.
      */
-    public void limitFileSize(JmixUpload<?> upload) {
+    public void limitFiles(JmixUpload<?> upload) {
         upload.setMaxFileSize((int) filesProperties.maxFileSize().toBytes());
+        uploadGuard.ifAvailable(guard -> upload.setAcceptedFileExtensions(extensionsOf(guard)));
     }
 
     /**
      * Limits the files the upload manager of a batch upload takes: as many at a time as a batch takes, each up to the
-     * largest a document file may be.
+     * largest a document file may be and, on the stand, of the types a visitor can upload there, so that the file
+     * picker of the manager offers only those.
      */
     public void limitBatch(UploadManager manager) {
         manager.setMaxFiles(MAX_BATCH_FILES);
         manager.setMaxFileSize(filesProperties.maxFileSize().toBytes());
+        uploadGuard.ifAvailable(guard -> manager.setAcceptedFileExtensions(extensionsOf(guard)));
     }
 
     /**
@@ -73,7 +83,8 @@ public class DocumentUploads {
     }
 
     /**
-     * Shows the file the drop zone refused with its reason: one file too many, a file too large, or another one.
+     * Shows the file the drop zone refused with its reason: one file too many, a file too large, on the stand a type
+     * a visitor cannot upload there, or another one.
      */
     public void showDropRejected(UploadManager.FileRejectedEvent event) {
         String key = switch (event.getReason()) {
@@ -82,7 +93,14 @@ public class DocumentUploads {
             default -> "dropRejected.other";
         };
 
-        notifications.create(messages.formatMessage(getClass(), key, event.getFileName()))
+        StandUploadGuard guard = uploadGuard.getIfAvailable();
+
+        // the stand names the formats it takes, as it does for a file it refuses by its bytes
+        String text = event.getReason() == UploadManager.FileRejectionReason.INCORRECT_FILE_TYPE && guard != null
+                ? guard.typeRefusal(event.getFileName())
+                : messages.formatMessage(getClass(), key, event.getFileName());
+
+        notifications.create(text)
                 .withType(Notifications.Type.WARNING)
                 .show();
     }
@@ -115,6 +133,13 @@ public class DocumentUploads {
                 .withHeader(messages.getMessage(getClass(), "uploadReport.header"))
                 .withContent(content)
                 .open();
+    }
+
+    // the extensions alone: the types the browser names files by differ between systems, and the stand checks a file
+    // by its bytes anyway
+    private static String[] extensionsOf(StandUploadGuard guard) {
+        return guard.fileExtensions()
+                .toArray(String[]::new);
     }
 
     private Span textLine(String text) {

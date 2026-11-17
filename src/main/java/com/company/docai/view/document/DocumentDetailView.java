@@ -198,7 +198,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     public void onInit(final InitEvent event) {
         // a session timeout or a page reload removes the card without closing it
         addDetachListener(detachEvent -> changes.clear());
-        documentUploads.limitFileSize(newVersionUpload);
+        documentUploads.limitFiles(newVersionUpload);
     }
 
     // the repository passes the open folder; a new document opened by its address goes into the root

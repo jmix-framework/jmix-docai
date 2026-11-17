@@ -51,7 +51,8 @@ import static org.assertj.core.api.Assertions.tuple;
 
 /**
  * The notices of uploads in the repository and in the document card: the report of a batch upload, the notices of
- * a file an upload refuses or fails to transfer, and the largest file the upload components take.
+ * a file an upload refuses or fails to transfer, the largest file the upload components take, and that they take
+ * files of any type.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -199,6 +200,21 @@ class UploadNoticesTest {
 
         assertThat(uploads).allSatisfy(upload -> assertThat((long) upload.getMaxFileSize())
                 .isEqualTo(filesProperties.maxFileSize().toBytes()));
+    }
+
+    // only the stand limits the types, see StandUploadPickersTest
+    @Test
+    void everyUploadOffersFilesOfAnyType() {
+        View<?> view = open(sandbox);
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        List<JmixUpload<?>> uploads = List.of(fragmentComponent(view, "versionUpload"),
+                UiTestUtils.getComponent(card, "newVersionUpload"));
+
+        assertThat(uploads).allSatisfy(upload -> {
+            assertThat(upload.getAcceptedFileExtensions()).isEmpty();
+            assertThat(upload.getAcceptedMimeTypes()).isEmpty();
+        });
     }
 
     private static void refuse(JmixUpload<?> upload, String fileName) {

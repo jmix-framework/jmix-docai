@@ -8,6 +8,7 @@ import io.jmix.flowui.kit.component.main.ListMenu;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
+import io.jmix.flowui.view.ViewRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The main menu of the administrator: under the folders, the trash and one closed group with the views of the
- * administrator and the items taken from the groups of the security and data tools add-ons; the groups of the add-ons
- * themselves, merged into hidden groups, do not show.
+ * administrator and the items taken from the group of the security add-on; the groups of the add-ons themselves,
+ * merged into hidden groups, do not show. The views of Data Tools are not part of the application.
  */
 @UiTest
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -27,6 +28,9 @@ class MainMenuTest {
 
     @Autowired
     private ViewNavigators viewNavigators;
+
+    @Autowired
+    private ViewRegistry viewRegistry;
 
     @Test
     void documentTypesHaveTheirOwnItemAndTheAddOnGroupIsHidden() {
@@ -62,9 +66,8 @@ class MainMenuTest {
 
         assertThat(childIds(menu, "administration"))
                 .containsExactly("User.list", "documentTypes", "DocumentStatus.list", "Tag.list",
-                        "administrationSecurity", "administrationDataTools");
+                        "administrationSecurity");
         assertThat(childIds(menu, "administrationSecurity")).containsExactly("resourceRoles", "rowLevelRoles");
-        assertThat(childIds(menu, "administrationDataTools")).containsExactly("entityInspector", "dataModel");
     }
 
     @Test
@@ -72,10 +75,22 @@ class MainMenuTest {
         viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
         JmixListMenu menu = TestMenus.listMenu("menu");
 
-        assertThat(List.of("aitls", "security", "datatools")).allSatisfy(id -> {
+        assertThat(List.of("aitls", "security")).allSatisfy(id -> {
             assertThat(menu.getMenuItem(id)).isNotNull();
             assertThat(menu.getMenuItem(id).isVisible()).isFalse();
         });
+    }
+
+    // the entity inspector edits any row of any entity, too much for a public stand
+    @Test
+    void theViewsOfDataToolsAreNotPartOfTheApplication() {
+        viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
+        JmixListMenu menu = TestMenus.listMenu("menu");
+
+        assertThat(viewRegistry.hasView("datatl_entityInspectorListView")).isFalse();
+        assertThat(viewRegistry.hasView("datatl_dataModelListView")).isFalse();
+        assertThat(menu.getMenuItem("datatools")).isNull();
+        assertThat(menu.getMenuItem("administrationDataTools")).isNull();
     }
 
     private static List<String> childIds(JmixListMenu menu, String groupId) {

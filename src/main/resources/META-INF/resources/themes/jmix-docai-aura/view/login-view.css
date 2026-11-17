@@ -66,6 +66,18 @@ jmix-login-form::part(error-message-title) {
     font-weight: var(--aura-font-weight-semibold);
 }
 
+/* The stand warns the visitor in a box like the error one: a login in another language replaces their demo data */
+.login-language-warning {
+    /* as wide as the fields of the form */
+    box-sizing: border-box;
+    width: var(--vaadin-login-form-width, 360px);
+    max-width: 100%;
+    padding: var(--vaadin-padding-m);
+    border-radius: var(--vaadin-radius-m);
+    background: color-mix(in srgb, var(--aura-orange) 10%, transparent);
+    font-size: var(--aura-font-size-s);
+}
+
 @media (max-width: 900px) {
     .login-view {
         align-items: center;

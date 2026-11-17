@@ -21,18 +21,21 @@ services:
       timeout: 3s
       retries: 60
 
-  # the application keeps no volume: its database and files live in the container, so a deploy, which recreates the
-  # container for a new image, starts on an empty database with the demo set of that day, and a restart keeps them;
-  # OpenSearch keeps its volume, and the application clears its indexes before it loads a set
+  # the application keeps no volume: with the stand profile it builds a template of each demo set for the day of its
+  # start in the container, gives every visitor a copy of one and deletes a copy left idle; a new container builds the
+  # templates anew, a restart reuses them, and OpenSearch keeps their indexes in its volume
   app:
     profiles: [app]
     container_name: jmix-docai
     image: jmix-docai
     build: .
+    # the JVM exits when it runs out of memory, see Dockerfile, and the container starts again
+    restart: unless-stopped
     depends_on:
       opensearch:
         condition: service_healthy
-    # stand unless the pipeline sets another profile; the pipeline also sets the demo set and the key of the stand
+    # the stand profile unless DOCAI_ACTIVE_PROFILE names another; DOCAI_DEMO_DATA serves another profile, since the
+    # stand gives every visitor a copy of the set of the login form
     environment:
       - DOCAI_SEARCH_URL=http://opensearch:9200
       - DOCAI_ACTIVE_PROFILE=${DOCAI_ACTIVE_PROFILE:-stand}

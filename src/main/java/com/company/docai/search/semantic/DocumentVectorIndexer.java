@@ -4,6 +4,8 @@ import com.company.docai.ai.AiSettings;
 import com.company.docai.ai.DocumentTextReader;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
+import com.company.docai.stand.StandScope;
+import com.company.docai.stand.StandScopeHolder;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.KeyValueEntity;
@@ -18,10 +20,13 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +38,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Keeps the index of the fragments in line with the documents. A document goes into a queue when it is uploaded, gets
  * another current version or another name, and when it is deleted; at the start of the application the index is
- * checked against the documents. The queue works in the background as the system, and only while the AI is on.
+ * checked against the documents. The queue works in the background as the system, and only while the AI is on. On the
+ * stand a document is indexed in the scope it was queued in, the template or the copy whose database and index it
+ * belongs to; the control database has no documents, so the start checks nothing there.
  */
 @Component
 public class DocumentVectorIndexer {
@@ -55,13 +63,19 @@ public class DocumentVectorIndexer {
     private final SystemAuthenticator systemAuthenticator;
     private final AiSettings aiSettings;
     private final int maxTextLength;
+    private final Environment environment;
 
     private final TokenTextSplitter splitter = TokenTextSplitter.builder()
             .withChunkSize(FRAGMENT_TOKENS)
             .build();
 
-    private final Set<UUID> queued = ConcurrentHashMap.newKeySet();
-    private final AtomicInteger waiting = new AtomicInteger();
+    private final Set<QueuedDocument> queued = ConcurrentHashMap.newKeySet();
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition done = lock.newCondition();
+    // the tasks that wait or run, by the id of their scope ("" without one), and the scope of the task that runs;
+    // guarded by the lock
+    private final Map<String, Integer> tasks = new HashMap<>();
+    private @Nullable String running;
     private final ExecutorService worker = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "docai-vector-indexer");
         thread.setDaemon(true);
@@ -75,7 +89,8 @@ public class DocumentVectorIndexer {
                                  UnconstrainedDataManager dataManager,
                                  SystemAuthenticator systemAuthenticator,
                                  AiSettings aiSettings,
-                                 @Value("${docai.semantic.max-text-length}") int maxTextLength) {
+                                 @Value("${docai.semantic.max-text-length}") int maxTextLength,
+                                 Environment environment) {
         this.index = index;
         this.embeddingModel = embeddingModel;
         this.textReader = textReader;
@@ -83,6 +98,7 @@ public class DocumentVectorIndexer {
         this.systemAuthenticator = systemAuthenticator;
         this.aiSettings = aiSettings;
         this.maxTextLength = maxTextLength;
+        this.environment = environment;
     }
 
     /**
@@ -92,6 +108,10 @@ public class DocumentVectorIndexer {
      * @param removed how many documents left the index
      */
     public record Reconciliation(int queued, int removed) {
+    }
+
+    // the copies of a template keep the ids of its documents, so a document waits once in each scope
+    private record QueuedDocument(@Nullable StandScope scope, UUID documentId) {
     }
 
     // a move, a status, a type or access do not change what a document says: the rights apply when it is searched;
@@ -110,11 +130,11 @@ public class DocumentVectorIndexer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
-        if (!aiSettings.isAvailable()) {
+        if (!aiSettings.isAvailable() || environment.matchesProfiles("stand")) {
             return;
         }
 
-        submit(() -> {
+        submit(null, () -> {
             Reconciliation result = systemAuthenticator.withSystem(this::reconcile);
 
             log.info("The index of fragments is checked: {} documents queued, {} removed", result.queued(),
@@ -123,26 +143,97 @@ public class DocumentVectorIndexer {
     }
 
     /**
-     * Puts the document into the queue, unless it waits there already or the AI is off.
+     * Puts the document into the queue, unless it waits there already or the AI is off. The document is indexed in the
+     * scope of the stand the calling thread works with, see {@link StandScopeHolder#resolve()}.
      */
     public void enqueue(UUID documentId) {
-        if (!aiSettings.isAvailable() || !queued.add(documentId)) {
+        StandScope scope = StandScopeHolder.resolve();
+        QueuedDocument document = new QueuedDocument(scope, documentId);
+
+        if (!aiSettings.isAvailable() || !queued.add(document)) {
             return;
         }
 
-        submit(() -> {
-            // a change made while the document is indexed puts it into the queue again
-            queued.remove(documentId);
-            systemAuthenticator.runWithSystem(() -> index(documentId));
+        submit(scope, () -> {
+            // a forgotten scope took its documents out of the queue; a change made while the document is indexed
+            // puts it into the queue again
+            if (queued.remove(document)) {
+                systemAuthenticator.runWithSystem(() -> index(documentId));
+            }
         }, "Cannot index the fragments of the document " + documentId);
     }
 
     /**
      * Returns whether the index is being checked against the documents, or documents wait in the queue or are being
-     * indexed.
+     * indexed, in the scope of the stand the calling thread works with.
      */
     public boolean isBusy() {
-        return waiting.get() > 0;
+        String key = keyOf(StandScopeHolder.resolve());
+        lock.lock();
+
+        try {
+            return tasks.containsKey(key);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Takes the scope out of the queue: its waiting documents are not indexed, and the call returns once the document
+     * of the scope that is being indexed, if any, is done. A copy of the stand is forgotten before its index goes, so
+     * that nothing writes the index afterwards.
+     */
+    public void forget(StandScope scope) {
+        queued.removeIf(document -> scope.equals(document.scope()));
+        String key = keyOf(scope);
+        lock.lock();
+
+        try {
+            while (key.equals(running)) {
+                done.awaitUninterruptibly();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Returns how many documents of the scope wait in the queue or are being indexed.
+     */
+    public int waiting(StandScope scope) {
+        String key = keyOf(scope);
+        lock.lock();
+
+        try {
+            return tasks.getOrDefault(key, 0);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Waits until no document of the scope waits in the queue or is being indexed, each indexed or failed.
+     *
+     * @return whether that happened within the timeout
+     */
+    public boolean awaitIdle(StandScope scope, Duration timeout) throws InterruptedException {
+        String key = keyOf(scope);
+        long left = timeout.toNanos();
+        lock.lock();
+
+        try {
+            while (tasks.containsKey(key)) {
+                if (left <= 0) {
+                    return false;
+                }
+
+                left = done.awaitNanos(left);
+            }
+
+            return true;
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -235,18 +326,68 @@ public class DocumentVectorIndexer {
     }
 
     // the check at the start counts too: until it is over, the documents changed meanwhile are not found by meaning
-    private void submit(Runnable task, String failure) {
-        waiting.incrementAndGet();
+    private void submit(@Nullable StandScope scope, Runnable task, String failure) {
+        String key = keyOf(scope);
+        count(key, 1);
 
         worker.submit(() -> {
+            start(key);
+
             try {
-                task.run();
+                if (scope == null) {
+                    task.run();
+                } else {
+                    StandScopeHolder.run(scope, task);
+                }
             } catch (RuntimeException e) {
                 log.warn("{}: {}", failure, e.toString());
             } finally {
-                waiting.decrementAndGet();
+                finish(key);
             }
         });
+    }
+
+    private void count(String key, int change) {
+        lock.lock();
+
+        try {
+            int left = tasks.getOrDefault(key, 0) + change;
+
+            if (left > 0) {
+                tasks.put(key, left);
+            } else {
+                tasks.remove(key);
+                done.signalAll();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void start(String key) {
+        lock.lock();
+
+        try {
+            running = key;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void finish(String key) {
+        lock.lock();
+
+        try {
+            running = null;
+            count(key, -1);
+            done.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static String keyOf(@Nullable StandScope scope) {
+        return scope == null ? "" : scope.id();
     }
 
     private List<String> textsOf(@Nullable DocumentRevision revision) {

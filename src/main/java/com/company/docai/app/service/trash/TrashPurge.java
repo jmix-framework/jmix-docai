@@ -147,7 +147,7 @@ public class TrashPurge {
         return files;
     }
 
-    // something live below a deleted folder, left by a race of a delete or by a folder restored alone in Data Tools,
+    // something live below a deleted folder, left by a race of a delete or by a folder restored alone past the trash,
     // keeps the folder: deleting it forever would take the live item along or fail on it
     private void checkNothingLiveBelow(List<Folder> roots, List<UUID> folders, FolderIndex tree) {
         Set<UUID> purged = new HashSet<>(folders);

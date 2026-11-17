@@ -1,6 +1,9 @@
 package com.company.docai.search.semantic;
 
+import com.company.docai.stand.StandScope;
+import com.company.docai.stand.StandScopeHolder;
 import jakarta.json.JsonObject;
+import org.jspecify.annotations.Nullable;
 import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
@@ -28,11 +31,13 @@ import java.util.UUID;
 /**
  * The index of the fragments of the documents in OpenSearch: one entry per fragment with the id of its document, the
  * version and name it was cut from, its text and its vector. It finds the fragments nearest to a vector among the
- * documents it is given, so the rights of the person who searches decide what can be found.
+ * documents it is given, so the rights of the person who searches decide what can be found. On the stand each template
+ * and each copy has an index of its own: every call works with the index of the scope of its thread.
  */
 @Component
 public class DocumentVectorIndex {
 
+    private static final String NAME = "document_vectors";
     private static final String MODEL = "model";
     private static final String DIMENSIONS = "dimensions";
 
@@ -40,7 +45,7 @@ public class DocumentVectorIndex {
     private static final int MAX_DOCUMENTS = 10_000;
 
     private final OpenSearchClient client;
-    private final String indexName;
+    private final String prefix;
     private final String model;
     private final int dimensions;
 
@@ -49,7 +54,7 @@ public class DocumentVectorIndex {
                                @Value("${spring.ai.openai.embedding.model}") String model,
                                @Value("${docai.semantic.dimensions}") int dimensions) {
         this.client = client;
-        this.indexName = prefix + "document_vectors";
+        this.prefix = prefix;
         this.model = model;
         this.dimensions = dimensions;
     }
@@ -76,10 +81,20 @@ public class DocumentVectorIndex {
     }
 
     /**
-     * Returns the name of the index in OpenSearch.
+     * Returns the name of the index in OpenSearch, the one of the scope of the stand the thread works with, see
+     * {@link StandScopeHolder#resolve()}.
      */
     public String getIndexName() {
-        return indexName;
+        return getIndexName(StandScopeHolder.resolve());
+    }
+
+    /**
+     * Returns the name of the index of the scope of the stand; without a scope, the name of the start.
+     */
+    public String getIndexName(@Nullable StandScope scope) {
+        return scope == null
+                ? prefix + NAME
+                : scope.indexPrefix(prefix) + NAME;
     }
 
     /**
@@ -89,10 +104,12 @@ public class DocumentVectorIndex {
      * @return whether the index is new
      */
     public synchronized boolean prepare() {
-        try {
-            boolean exists = indexExists();
+        String indexName = getIndexName();
 
-            if (exists && builtWithTheModel()) {
+        try {
+            boolean exists = indexExists(indexName);
+
+            if (exists && builtWithTheModel(indexName)) {
                 return false;
             }
 
@@ -129,8 +146,10 @@ public class DocumentVectorIndex {
      * @return whether there was an index to empty
      */
     public synchronized boolean clear() {
+        String indexName = getIndexName();
+
         try {
-            if (!indexExists()) {
+            if (!indexExists(indexName)) {
                 return false;
             }
 
@@ -152,6 +171,8 @@ public class DocumentVectorIndex {
      * @param sourceKey what the fragments were cut from, see {@link DocumentVectorIndexer#sourceKeyOf}
      */
     public void replace(UUID documentId, String sourceKey, List<Fragment> fragments) {
+        String indexName = getIndexName();
+
         // the documents a demo set loads at the start reach the queue before the check of the index creates it
         prepare();
         delete(List.of(documentId));
@@ -185,6 +206,8 @@ public class DocumentVectorIndex {
             return;
         }
 
+        String indexName = getIndexName();
+
         try {
             client.deleteByQuery(request -> request.index(indexName)
                     .query(byDocuments(documentIds))
@@ -202,6 +225,7 @@ public class DocumentVectorIndex {
             return List.of();
         }
 
+        String indexName = getIndexName();
         SearchResponse<JsonData> response;
 
         try {
@@ -231,6 +255,7 @@ public class DocumentVectorIndex {
      * Returns the documents in the index with the source keys of their fragments.
      */
     public Map<UUID, String> sourceKeys() {
+        String indexName = getIndexName();
         SearchResponse<Void> response;
 
         try {
@@ -255,13 +280,13 @@ public class DocumentVectorIndex {
         return keys;
     }
 
-    private boolean indexExists() throws IOException {
+    private boolean indexExists(String indexName) throws IOException {
         return client.indices()
                 .exists(request -> request.index(indexName))
                 .value();
     }
 
-    private boolean builtWithTheModel() throws IOException {
+    private boolean builtWithTheModel(String indexName) throws IOException {
         Map<String, JsonData> meta = client.indices()
                 .getMapping(request -> request.index(indexName))
                 .result()

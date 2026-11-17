@@ -204,7 +204,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     }
 
     private void configureUploads() {
-        documentUploads.limitFileSize(versionUpload);
+        documentUploads.limitFiles(versionUpload);
 
         // the upload creates its button itself, so the descriptor cannot give the button a name
         String newVersion = messageBundle.getMessage("versionUpload.uploadText");

@@ -3,6 +3,7 @@ package com.company.docai.app.service.document;
 import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.OperationRejectedException;
 import com.company.docai.model.document.Document;
+import com.company.docai.stand.StandUploadGuard;
 import io.jmix.core.FileRef;
 import io.jmix.core.FileStorage;
 import io.jmix.core.FileStorageLocator;
@@ -12,6 +13,7 @@ import io.jmix.data.PersistenceHints;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -40,16 +42,19 @@ public class RevisionFiles {
     private final FilesProperties filesProperties;
     private final Messages messages;
     private final TransactionTemplate transaction;
+    // only the stand has one
+    private final ObjectProvider<StandUploadGuard> uploadGuard;
 
     public RevisionFiles(UnconstrainedDataManager unconstrainedDataManager, FileStorageLocator fileStorageLocator,
                          ContentTypeDetector contentTypeDetector, FilesProperties filesProperties, Messages messages,
-                         PlatformTransactionManager transactionManager) {
+                         PlatformTransactionManager transactionManager, ObjectProvider<StandUploadGuard> uploadGuard) {
         this.unconstrainedDataManager = unconstrainedDataManager;
         this.fileStorageLocator = fileStorageLocator;
         this.contentTypeDetector = contentTypeDetector;
         this.filesProperties = filesProperties;
         this.messages = messages;
         this.transaction = new TransactionTemplate(transactionManager);
+        this.uploadGuard = uploadGuard;
     }
 
     /**
@@ -62,7 +67,9 @@ public class RevisionFiles {
      * Stores the uploaded file in the default storage for a new version and returns it with its size and content
      * type.
      *
-     * @throws OperationRejectedException if the file is larger than the maximum file size
+     * @throws OperationRejectedException if the file is larger than the maximum file size, or on the stand when its
+     *                                    bytes show a type a visitor cannot upload, the disk is low or the file does
+     *                                    not fit into the quota of the visitor's copy
      */
     public StoredFile store(UploadedFile file) {
         try {
@@ -73,6 +80,7 @@ public class RevisionFiles {
                         filesProperties.maxFileSize().toMegabytes()));
             }
 
+            uploadGuard.ifAvailable(guard -> guard.check(file, size));
             String contentType = contentTypeDetector.detect(file.content(), file.fileName());
 
             try (InputStream content = Files.newInputStream(file.content())) {

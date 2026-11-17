@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -75,6 +76,8 @@ import java.util.function.Function;
  * from that day, and each text becomes its file with those dates: a PDF renders the text, a plain text file holds it.
  * Before a set loads into an empty database, the search indexes are cleared: they may outlive the database, as on
  * the stand, whose OpenSearch stays when the application gets a new container.
+ * On the stand the start loads no set: each template of the stand loads its own set into a database of its own, and
+ * the control database stays without documents.
  */
 @Component
 public class DemoDataLoader {
@@ -133,6 +136,7 @@ public class DemoDataLoader {
     private final SystemAuthenticator systemAuthenticator;
     private final Metadata metadata;
     private final TimeSource timeSource;
+    private final Environment environment;
     private final TransactionTemplate transaction;
 
     // the dates of the history are written past the entity listeners, which stamp the current time
@@ -157,6 +161,7 @@ public class DemoDataLoader {
                           SystemAuthenticator systemAuthenticator,
                           Metadata metadata,
                           TimeSource timeSource,
+                          Environment environment,
                           PlatformTransactionManager transactionManager) {
         this.chosenSet = chosenSet;
         this.dataManager = dataManager;
@@ -176,11 +181,17 @@ public class DemoDataLoader {
         this.systemAuthenticator = systemAuthenticator;
         this.metadata = metadata;
         this.timeSource = timeSource;
+        this.environment = environment;
         this.transaction = new TransactionTemplate(transactionManager);
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
+        if (environment.matchesProfiles("stand")) {
+            log.info("The start loads no demo set on the stand: the templates load the sets");
+            return;
+        }
+
         try {
             systemAuthenticator.withSystem(() -> loadIfEmpty(chosenSet));
         } catch (RuntimeException e) {

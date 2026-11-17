@@ -1,6 +1,7 @@
 package com.company.docai;
 
 import com.company.docai.app.config.FilesProperties;
+import com.company.docai.stand.StandProperties;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.StyleSheet;
@@ -20,6 +21,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
@@ -33,7 +35,7 @@ import javax.sql.DataSource;
 @JsModule("./src/theme/color-scheme-switching-support.js")
 @PWA(name = "Jmix DocAI", shortName = "Jmix DocAI", offline = false)
 @SpringBootApplication
-@EnableConfigurationProperties(FilesProperties.class)
+@EnableConfigurationProperties({FilesProperties.class, StandProperties.class})
 public class DocAiApplication implements AppShellConfigurator {
 
     @Autowired
@@ -43,8 +45,10 @@ public class DocAiApplication implements AppShellConfigurator {
         SpringApplication.run(DocAiApplication.class, args);
     }
 
+    // the stand routes each thread to a database of its own, see StandDataSourceConfiguration
     @Bean
     @Primary
+    @Profile("!stand")
     @ConfigurationProperties("main.datasource")
     DataSourceProperties dataSourceProperties() {
         return new DataSourceProperties();
@@ -52,6 +56,7 @@ public class DocAiApplication implements AppShellConfigurator {
 
     @Bean
     @Primary
+    @Profile("!stand")
     @ConfigurationProperties("main.datasource.hikari")
     DataSource dataSource(final DataSourceProperties dataSourceProperties) {
         return dataSourceProperties.initializeDataSourceBuilder().build();

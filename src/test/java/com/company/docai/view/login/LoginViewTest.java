@@ -16,18 +16,30 @@ import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.view.View;
+import io.jmix.securityflowui.authentication.LoginViewSupport;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.ApplicationContext;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 @UiTest(authenticator = AnonymousUiTestAuthenticator.class, initialView = LoginView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
+@ExtendWith(OutputCaptureExtension.class)
 class LoginViewTest {
 
     @Autowired
     private CurrentAuthentication currentAuthentication;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @Test
     void anEmployeeSignsInWithTheDemoPasswordAndLandsOnTheDashboard() {
@@ -48,6 +60,23 @@ class LoginViewTest {
 
         assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(LoginView.class);
         assertThat(form.isError()).isTrue();
+    }
+
+    // a username typed into the form may carry line breaks, which would forge lines of the log
+    @Test
+    void aFailedLoginLogsTheUsernameOnItsLine(CapturedOutput output) {
+        login("peter\r\nINFO forged", "peter");
+
+        assertThat(output).contains("Login failed for user \"peter<EOL><EOL>INFO forged\"");
+        assertThat(output).doesNotContain("\nINFO forged");
+    }
+
+    // the stand's language switch has a login support of its own, which lives in the profile of the stand
+    @Test
+    void outsideTheStandTheLoginSupportOfJmixIsTheOnlyOne() {
+        assertThat(applicationContext.getBeansOfType(LoginViewSupport.class))
+                .extractingFromEntries(Map.Entry::getKey, entry -> entry.getValue().getClass())
+                .containsExactly(tuple("flowui_LoginViewSupport", LoginViewSupport.class));
     }
 
     @Test

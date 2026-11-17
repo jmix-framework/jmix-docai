@@ -23,17 +23,9 @@
             <item id="rowLevelRoles" view="sec_RowLevelRoleModel.list"
                   title="msg://io.jmix.securityflowui.view.rowlevelrole/rowLevelRoleModelListView.menu"/>
         </menu>
-        <menu id="administrationDataTools" title="msg://com.company.docai/menu.administrationDataTools.title"
-              icon="DATABASE">
-            <item id="entityInspector" view="datatl_entityInspectorListView"
-                  title="msg://io.jmix.datatoolsflowui.view.entityinspector/listTitle"/>
-            <item id="dataModel" view="datatl_dataModelListView"
-                  title="msg://io.jmix.datatoolsflowui.view.datamodel/entityModelListView.title"/>
-        </menu>
     </menu>
 
     <menu id="security" visible="false"/>
-    <menu id="datatools" visible="false"/>
     <menu id="dynat" visible="false"/>
     <menu id="aitls" visible="false"/>
 

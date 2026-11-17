@@ -279,7 +279,7 @@ class TrashPurgeTest {
         return saved;
     }
 
-    // a row out of the trash past the services, as a race of a delete or the entity inspector of Data Tools leaves it
+    // a row out of the trash past the services, as a race of a delete or a restore past the trash leaves it
     private void bringBack(Class<?> type, UUID id) {
         Object row = dataManager.load(type)
                 .id(id)

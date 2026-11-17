@@ -46,8 +46,8 @@ dependencies {
     implementation 'io.jmix.flowui:jmix-flowui-starter'
     implementation 'io.jmix.flowui:jmix-flowui-data-starter'
     implementation 'io.jmix.flowui:jmix-flowui-themes'
+    // the restore from the trash; the views of Data Tools stay out, since the entity inspector edits any row
     implementation 'io.jmix.datatools:jmix-datatools-starter'
-    implementation 'io.jmix.datatools:jmix-datatools-flowui-starter'
     implementation 'io.jmix.dynattr:jmix-dynattr-starter'
     implementation 'io.jmix.dynattr:jmix-dynattr-flowui-starter'
     implementation 'io.jmix.search:jmix-search-starter'
@@ -58,6 +58,8 @@ dependencies {
     implementation 'io.jmix.aitools:jmix-aitools-flowui-starter'
     implementation 'io.jmix.aitools:jmix-aitools-flowui-data-starter'
     implementation 'io.jmix.uirecovery:jmix-uirecovery-flowui-starter'
+    // the drafts of UI Recovery are JSON of Gson, see DynAttrDraftPayloadSupport; the add-ons bring it at runtime only
+    implementation 'com.google.code.gson:gson'
     implementation 'io.jmix.translations:jmix-translations-ru'
     implementation 'org.apache.tika:tika-core'
     // the PDFs of the demo sets, in the version Tika brings, so that one PDFBox is on the classpath
@@ -67,7 +69,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.vaadin:vaadin-dev'
 
-    runtimeOnly 'org.hsqldb:hsqldb'
+    // the stand reads the scripts HSQLDB writes, see TemplateScript
+    implementation 'org.hsqldb:hsqldb'
     runtimeOnly 'org.apache.tika:tika-parsers-standard-package'
 
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
@@ -87,7 +90,7 @@ test {
         excludeTags 'search', 'ai'
     }
     // the tests keep a Spring context for each setup of theirs, and each context holds the whole application
-    maxHeapSize = '1536m'
+    maxHeapSize = '2g'
     systemProperty 'spring.profiles.active', 'test'
     // a key in the environment (SPRING_AI_OPENAI_APIKEY) outranks the property files, so the tests clear it here
     systemProperty 'spring.ai.openai.api-key', ''

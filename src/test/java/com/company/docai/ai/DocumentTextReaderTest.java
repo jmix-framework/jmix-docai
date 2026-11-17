@@ -10,6 +10,7 @@ import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestFiles;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
+import io.jmix.search.utils.FileProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,9 @@ class DocumentTextReaderTest {
 
     @Autowired
     private DataManager dataManager;
+
+    @Autowired
+    private FileProcessor fileProcessor;
 
     @TempDir
     private Path tempDir;
@@ -142,6 +146,12 @@ class DocumentTextReaderTest {
                         .startsWith("word word")
                         .endsWith(note)
                         .hasSizeLessThanOrEqualTo(aiSettings.getMaxTextLength() + note.length()));
+    }
+
+    // only the stand reads the texts of files for the search within limits, see StandUploadTypesTest
+    @Test
+    void outsideTheStandTheSearchAddOnReadsTheTextsOfFilesItself() {
+        assertThat(fileProcessor.getClass()).isEqualTo(FileProcessor.class);
     }
 
     private static byte[] leasePdf() {

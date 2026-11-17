@@ -232,6 +232,15 @@ class DroppedFilesTest {
         assertThat(manager.getMaxFileSize()).isEqualTo(filesProperties.maxFileSize().toBytes());
     }
 
+    // only the stand limits the types, see StandUploadPickersTest
+    @Test
+    void theZoneTakesFilesOfAnyType() {
+        UploadManager manager = dropZone(open(sandbox)).getUploadManager();
+
+        assertThat(manager.getAcceptedFileExtensions()).isEmpty();
+        assertThat(manager.getAcceptedMimeTypes()).isEmpty();
+    }
+
     @Test
     void theZoneIsTheFileDropZoneWithItsTag() {
         UploadDropZone zone = dropZone(open(sandbox));

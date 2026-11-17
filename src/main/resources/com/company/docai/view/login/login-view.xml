@@ -23,6 +23,9 @@
                               username="msg://loginForm.errorUsername"
                               password="msg://loginForm.errorPassword"/>
             </loginForm>
+            <!-- the stand shows it when the language of the form differs from the one of the visitor's demo data -->
+            <span id="languageWarning" text="msg://languageWarning.text" visible="false"
+                  classNames="login-language-warning"/>
         </div>
     </layout>
 </view>

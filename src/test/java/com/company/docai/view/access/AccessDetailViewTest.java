@@ -255,7 +255,7 @@ class AccessDetailViewTest {
     }
 
     @Test
-    void aLevelHasTheSameNameInTheDialogAndInDataTools() {
+    void aLevelHasTheSameNameInTheDialogAndOnTheEntityItSaves() {
         assertThat(messageTools.getPropertyCaption(metadata.getClass(AccessEntry.class), "accessLevel"))
                 .isEqualTo(messageTools.getPropertyCaption(metadata.getClass(AccessEntryDraft.class), "accessLevel"));
     }
