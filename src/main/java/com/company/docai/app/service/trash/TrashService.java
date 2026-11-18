@@ -42,12 +42,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * The trash: the folders and documents deleted softly. It lists what was deleted on its own, shows what comes back
- * together with a deleted folder, puts items back where they were and deletes them forever. What comes back with
- * an item is what the restore of Jmix takes: the rows deleted from 100 ms before to 1 s after their parent, at any
- * depth; the rest of a deleted folder lies in the trash on its own. Reading and restoring follow the access to
- * the items, deleting forever needs {@link #PURGE_POLICY}. Paths are read past the access rules, as the folder tree
- * reads them.
+ * The trash: the folders and documents deleted softly. What comes back with an item is what the restore of Jmix takes:
+ * the rows deleted from 100 ms before to 1 s after their parent, at any depth.
  */
 @Service
 public class TrashService {
@@ -98,8 +94,7 @@ public class TrashService {
     }
 
     /**
-     * Returns the items of the trash the current user may read, the last deleted first: the folders and documents
-     * deleted on their own. What was deleted together with a folder lies in its contents.
+     * Returns the items of the trash the current user may read, the last deleted first.
      */
     public List<TrashItem> loadItems() {
         FolderIndex tree = trashRows.loadTree();
@@ -137,9 +132,7 @@ public class TrashService {
     }
 
     /**
-     * Returns what comes back together with the deleted folder and the current user may read: the folders and
-     * documents deleted with it, folders first, each with the folders it lies in below the deleted one. Empty for
-     * a folder that is not in the trash or that the user may not read.
+     * Returns what comes back together with the deleted folder and the current user may read, folders first.
      */
     public List<TrashItem> loadContents(Folder folder) {
         FolderIndex tree = trashRows.loadTree();
@@ -193,14 +186,11 @@ public class TrashService {
     }
 
     /**
-     * Puts the items back where they were deleted from, each with what was deleted together with it: the folders
-     * top down first, then the documents, each checked right before it comes back. A document whose type was
-     * deleted meanwhile comes back without a type and without the values of its fields. The items come back all
-     * or none: the first one that cannot rejects the whole restore. An item no longer in the trash is skipped.
+     * Puts the items back where they were deleted from, each with what was deleted together with it, all or none.
      *
      * @return how many of the items came back
-     * @throws OperationRejectedException if the user may not change an item, the folder of an item lies in the
-     *                                    trash and does not come back first, or holds a live item with its name
+     * @throws OperationRejectedException if the user may not change an item, the folder of an item lies in the trash
+     *                                    and does not come back first, or holds a live item with its name
      */
     @Transactional
     public int restore(Collection<TrashItem> items) {
@@ -217,7 +207,6 @@ public class TrashService {
                         folder.getName()));
             }
 
-            // the root is never deleted, so a deleted folder has a parent
             Folder parent = liveFolder(Objects.requireNonNull(tree.parentOf(folder)));
 
             List<UUID> namesakes = TrashRows.ids(unconstrainedDataManager.loadValues(
@@ -266,10 +255,7 @@ public class TrashService {
     }
 
     /**
-     * Deletes the items forever with everything under them, the items deleted on their own below a folder too:
-     * their versions, the values of their fields and their own access sets. The files of the deleted versions leave
-     * the storage after the commit unless a remaining version, live or in the trash, refers to them; a file that
-     * cannot be removed is logged. An item no longer in the trash is left alone.
+     * Deletes the items forever with everything under them, the items deleted on their own below a folder too.
      *
      * @throws OperationRejectedException if the user has no {@link #PURGE_POLICY}
      */
@@ -314,7 +300,6 @@ public class TrashService {
                 : reject(takenKey, folderName, name);
     }
 
-    // a type deleted while the document lay in the trash is gone, and the document comes back without it
     private void dropDeletedTypes(Collection<UUID> documentIds) {
         if (documentIds.isEmpty()) {
             return;
@@ -387,7 +372,6 @@ public class TrashService {
                 .one();
     }
 
-    // the ids the access rules leave to the current user
     private Set<UUID> readable(String query) {
         return new HashSet<>(TrashRows.ids(dataManager.loadValues(query)));
     }
@@ -420,7 +404,6 @@ public class TrashService {
         return item;
     }
 
-    // the folders from the top, exclusive, or from the root down to the folder, inclusive
     private String pathOf(@Nullable Folder folder, @Nullable Folder top, FolderIndex tree) {
         LinkedList<String> names = new LinkedList<>();
 
@@ -435,7 +418,6 @@ public class TrashService {
         return tree.get(document.getFolder().getId());
     }
 
-    // EntityRestore takes a row back with its parent when the row was deleted within these bounds of the parent
     private static boolean deletedTogether(OffsetDateTime deleted, @Nullable Folder parent) {
         if (parent == null || parent.getDeletedDate() == null) {
             return false;

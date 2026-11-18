@@ -35,14 +35,9 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Creates, versions, moves and deletes documents. A document gets its files as revisions:
- * a revision never changes, and the document points to its current one. The file of a new
- * revision is stored before the data and removed again if the data cannot be saved.
- * A change needs edit access to the document, a new document to its folder. A change of the
- * document itself, its file, name, date, type, fields or status, stamps who made it and when; a move
- * does not. A document keeps only the fields of its type: the values of other types go on save. Its tags change
- * with it, also in a locked status, and are no change of the document itself; a new tag joins the vocabulary
- * with the document.
+ * Creates, versions, moves and deletes documents. A change of the document itself, its file, name, date, type, fields
+ * or status, stamps who made it and when, and a move does not; its tags change with it, also in a locked status, and
+ * are no change of the document itself.
  */
 @Service
 public class DocumentService {
@@ -87,13 +82,12 @@ public class DocumentService {
     }
 
     /**
-     * Creates a document from every file, each in its own transaction. A file that breaks
-     * a rule or fails to save is skipped and reported; the others are created.
+     * Creates a document from every file, each in its own transaction; a file that breaks a rule or fails to save is
+     * skipped and reported.
      *
      * @throws OperationRejectedException if the folder is unavailable or only viewed by the user
      */
     public UploadReport upload(Folder folder, List<UploadedFile> files) {
-        // one refusal for the whole upload instead of one for every file
         folderService.checkEditable(folder);
 
         List<Document> created = new ArrayList<>();
@@ -119,12 +113,10 @@ public class DocumentService {
     }
 
     /**
-     * Creates a document with its first revision. The document starts in the initial status and then
-     * moves to the target status, if one is given.
+     * Creates a document with its first revision, in the initial status and then in the target one, if given.
      *
-     * @throws OperationRejectedException if the folder is unavailable or only viewed by the user, the name
-     *                                    is taken or too long, the file is too large, or the status cannot
-     *                                    be reached
+     * @throws OperationRejectedException if the folder is unavailable or only viewed by the user, the name is taken or
+     *                                    too long, the file is too large, or the status cannot be reached
      */
     public Document create(Document draft, UploadedFile file, @Nullable DocumentStatus targetStatus) {
         String name = checkName(draft.getName());
@@ -163,12 +155,12 @@ public class DocumentService {
     }
 
     /**
-     * Saves the changes of the document card: the edited fields, the type and its fields, a new version,
-     * and the status transition last, because a document in a locked status accepts no other change.
+     * Saves the changes of the document card, the status transition last, because a document in a locked status accepts
+     * no other change.
      *
-     * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is in
-     *                                    a locked status and its content changes, the name is taken or too long,
-     *                                    the file is too large, or the status cannot be reached
+     * @throws OperationRejectedException if the document is unavailable or only viewed by the user, it is in a locked
+     *                                    status and its content changes, the name is taken or too long, the file is too
+     *                                    large, or the status cannot be reached
      */
     public Document save(Document document, @Nullable NewVersion newVersion, @Nullable DocumentStatus targetStatus) {
         String name = checkName(document.getName());
@@ -259,13 +251,11 @@ public class DocumentService {
     }
 
     /**
-     * Moves the documents into the target folder, all of them or none. The folder row stays locked
-     * until the transaction ends, so the taken names cannot change before the save. A document that
-     * inherits its access takes the access of the target.
+     * Moves the documents into the target folder, all of them or none. The folder row stays locked until the
+     * transaction ends, so the taken names cannot change before the save.
      *
-     * @throws OperationRejectedException if the target or one of the documents is unavailable or only viewed
-     *                                    by the user, or the target already has documents with these names;
-     *                                    the message lists all of them
+     * @throws OperationRejectedException if the target or one of the documents is unavailable or only viewed by the
+     *                                    user, or the target already has documents with these names
      */
     @Transactional
     public void move(Collection<Document> documents, Folder target) {
@@ -324,12 +314,6 @@ public class DocumentService {
         dataManager.save(saveContext);
     }
 
-    /**
-     * Loads the document for a change by the current user.
-     *
-     * @throws OperationRejectedException if the document is deleted or hidden from the user, or the user only
-     *                                    views it
-     */
     private Document loadEditable(Document document) {
         Document persisted = dataManager.load(Document.class)
                 .id(document.getId())
@@ -410,7 +394,6 @@ public class DocumentService {
 
     private DocumentStatus checkTransition(Document document, DocumentStatus from, DocumentStatus to) {
         DocumentStatus source = statusService.reload(from);
-        // a card or the table may still offer a status that the administrator has deleted meanwhile
         DocumentStatus target = statusService.findById(to.getId())
                 .orElseThrow(() -> reject("statusGone", to.getName()));
 

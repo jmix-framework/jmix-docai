@@ -35,10 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The limits of reading the text of a file, set low here: the AI reads the beginning of a text over the length limit
- * and is told it is cut, the full-text search takes no text of such a file, so its document is found by its name
- * only, and a parse over the time limit leaves the file without text while the reader answers at the limit and goes
- * on with the next file. The files are built in the test.
+ * The limits of reading the text of a file, set low here; the files are built in the test.
  */
 @ExtendWith(OutputCaptureExtension.class)
 class DocumentTextLimitsTest {
@@ -134,8 +131,7 @@ class DocumentTextLimitsTest {
         assertThat(processor.extractFileContent(stored("Next.txt", "The next note"))).contains("The next note");
     }
 
-    // the add-on reads only the files whose extensions it knows, by a parser of the extension; the reader parses
-    // them by their content, so a Word document named as one of old Office is read too
+    // the add-on picks the files by their extension, the reader parses them by their content
     @Test
     void theAddOnStillDecidesWhichFilesHaveTextForTheSearch() throws Exception {
         FileRef picture = stored("Plan.png", TestSamples.png());

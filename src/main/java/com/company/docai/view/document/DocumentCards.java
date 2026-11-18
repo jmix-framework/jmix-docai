@@ -17,8 +17,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * Opens the document card in a dialog over a view, and checks that a document is still there for the user before
- * a card or a link shows it. Each caller passes what happens after the card closes.
+ * Opens the document card in a dialog over a view.
  */
 @Component
 public class DocumentCards {
@@ -49,8 +48,7 @@ public class DocumentCards {
     }
 
     /**
-     * Opens the card of the document over the view when the document is still there for the user, see
-     * {@link #checkAvailable(Document)}.
+     * Opens the card of the document over the view when the document is still there for the user.
      */
     public void openIfAvailable(View<?> origin, Document document,
                                 Consumer<DialogWindow.AfterCloseEvent<DocumentDetailView>> afterClose) {
@@ -60,8 +58,7 @@ public class DocumentCards {
     }
 
     /**
-     * Opens the card of the document over the view when the document is still there for the user, see
-     * {@link #checkAvailable(Document)}, and starts Fill with AI in it, as the button of the card does.
+     * Opens the card of the document when it is still there for the user, and starts Fill with AI in it.
      */
     public void fillWithAiIfAvailable(View<?> origin, Document document,
                                       Consumer<DialogWindow.AfterCloseEvent<DocumentDetailView>> afterClose) {
@@ -89,8 +86,7 @@ public class DocumentCards {
     }
 
     /**
-     * Checks that the user may still read the document. A document deleted or hidden from the user since it was
-     * shown gives a notice and false.
+     * Checks that the user may still read the document, giving a notice when not.
      */
     public boolean checkAvailable(Document document) {
         if (dataManager.load(Id.of(document)).optional().isEmpty()) {

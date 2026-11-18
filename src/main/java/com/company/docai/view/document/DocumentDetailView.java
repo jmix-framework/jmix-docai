@@ -71,15 +71,13 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * The document card. A new version, a restored version and a status transition wait for OK
- * together with the edited fields and the tags, and are saved by one service call. A user who only views
- * the document gets the card read-only. A tag next to the status opens the page of its documents.
+ * The document card, whose staged version and status are saved with the fields by one service call on OK.
  */
 @Route(value = "documents/:id", layout = MainView.class)
 @ViewController(id = "Document.detail")
 @ViewDescriptor(path = "document-detail-view.xml")
 @EditedEntityContainer("documentDc")
-@DialogMode(width = "88em", height = "58em", resizable = true, maximizable = true)
+@DialogMode(width = "88em", height = "58em", resizable = true, maximizable = true, closeOnEsc = true)
 public class DocumentDetailView extends StandardDetailView<Document> {
 
     @ViewComponent
@@ -201,7 +199,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         documentUploads.limitFiles(newVersionUpload);
     }
 
-    // the repository passes the open folder; a new document opened by its address goes into the root
     @Subscribe
     public void onInitEntity(final InitEntityEvent<Document> event) {
         // the badge shows the status before the first save, which gives the document the initial status too
@@ -237,7 +234,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         }
     }
 
-    // a typed name takes the tag of the vocabulary whatever its case, or makes a new tag that OK saves
     @Subscribe("tagsField")
     public void onTagsFieldCustomValueSet(final ComboBoxBase.CustomValueSetEvent<MultiSelectComboBox<Tag>> event) {
         if (event.getDetail().isBlank()) {
@@ -306,7 +302,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         revisionDownloader.download(getEditedEntity().getCurrentRevision());
     }
 
-    // the field stages the status like a new version: the change applies on OK, last, as the service wants it
     @Subscribe("statusField")
     public void onStatusFieldComponentValueChange(
             final AbstractField.ComponentValueChangeEvent<JmixSelect<DocumentStatus>, DocumentStatus> event) {
@@ -395,7 +390,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         return documentRenderers.revisionAuthorRenderer(username -> userNames.getOrDefault(username, username));
     }
 
-    // a version opens over the card, so showing it does not replace the card's own preview
     private void openRevision(DocumentRevision revision) {
         dialogWindows.read(this, DocumentRevision.class)
                 .withViewClass(RevisionReadView.class)
@@ -404,8 +398,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     }
 
     /**
-     * The access dialog saved the document, so the card takes it again: OK then does not collide with that save,
-     * and the card follows the new level of the user. A user who gave the document up sees the card close.
+     * The access dialog saved the document, so the card takes it again: OK then does not collide with that save.
      */
     private void takeDocumentAgain() {
         if (!documentCards.checkAvailable(getEditedEntity())) {
@@ -421,8 +414,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     }
 
     /**
-     * The staged changes are not attributes of the entity, so the data context is told explicitly:
-     * otherwise it would skip the save and the unsaved-changes dialog would stay silent.
+     * Staged changes are not entity attributes, so without this the save and the unsaved-changes dialog miss them.
      */
     private void afterStaging() {
         getViewData().getDataContext().setModified(getEditedEntity(), true);
@@ -436,16 +428,11 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         // label, an empty one too
         favoriteButton.setAriaLabel(messages.getMessage(FavoriteCardAction.class, "favoriteAction.text"));
 
-        // the star shows the state by its look only, so the button tells a screen reader whether it is pressed
         favoriteAction.addPropertyChangeListener(change -> favoriteButton.getElement()
                 .setAttribute("aria-pressed", String.valueOf(favoriteAction.isMarked())));
     }
 
-    /**
-     * Fills what stays the same while the card is open; what waits for OK is shown by {@link #afterStaging()}.
-     */
     private void showDocument() {
-        // the view turns read-only before it is shown when the user only views the document
         boolean locked = isLocked() || isReadOnly();
 
         showHeader();
@@ -506,7 +493,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         versionsTab.setLabel(messageBundle.formatMessage("versionsTab.label", revisionsDc.getItems().size()));
     }
 
-    // a comment refers to a saved document, so a new one gets the tab after the first save
     private void showComments() {
         commentsTab.setVisible(!isNew());
 
@@ -516,7 +502,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         }
     }
 
-    // the assistant reads the saved document, so a new one gets it after the first save
     private void showAssistant() {
         boolean shown = aiSettings.isAvailable() && !isNew();
         assistantTab.setVisible(shown);
@@ -528,8 +513,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     }
 
     /**
-     * Returns the version the card shows in its preview: a version waiting for OK or the current one; null
-     * for a new document without a file.
+     * Returns the version the preview shows: the staged one or the current one, null for a new document without a file.
      */
     public @Nullable NewVersion getShownVersion() {
         NewVersion pending = changes.getNewVersion();
@@ -550,9 +534,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     }
 
     /**
-     * Starts Fill with AI as its button does, when the card offers it: the AI is on, the user may edit the document,
-     * its status does not lock it and the card shows a file. A card that asks whether to restore a draft leaves the
-     * start to its button, after the answer.
+     * Starts Fill with AI as its button does; a card asking whether to restore a draft leaves the start to its button.
      */
     public void fillWithAi() {
         if (!draftFound && fillWithAiAction.isVisible() && fillWithAiAction.isEnabled()) {
@@ -565,7 +547,6 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         documentTags.add(tagBadges.create(getEditedEntity().getTags(), this::openTag));
     }
 
-    // the card closes as from its close button, asking about unsaved changes, and then the page of the tag opens
     private void openTag(Tag tag) {
         closeWithDefaultAction().then(() -> tagBadges.open(tag));
     }

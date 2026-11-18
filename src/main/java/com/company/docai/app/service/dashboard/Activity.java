@@ -7,15 +7,10 @@ import org.jspecify.annotations.Nullable;
 import java.time.OffsetDateTime;
 
 /**
- * What another person did with a document the user may open: uploaded it, uploaded a new version of it or commented
- * on it.
+ * What another person did with a document the user may open.
  *
- * @param kind     what the person did
- * @param number   the number of the version; 0 for a comment
- * @param document the document
- * @param username the username of the person
- * @param author   the person; null for a user deleted since, who keeps the username
- * @param time     when it happened
+ * @param number the number of the version; 0 for a comment
+ * @param author the person; null for a user deleted since, who keeps the username
  */
 public record Activity(Kind kind, int number, Document document, String username, @Nullable User author,
                        OffsetDateTime time) {

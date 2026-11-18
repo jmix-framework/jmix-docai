@@ -81,7 +81,9 @@ class FolderTreeFragmentTest {
         this.<TypedTextField<String>>component(folderTree, "folderFilterField").setValue("SIGNED");
 
         TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
-        assertThat(tree.getItems().getItems())
+        TreeDataGridItems<Folder> items = tree.getItems();
+        assertThat(items).isNotNull();
+        assertThat(items.getItems())
                 .contains(folderService.getRoot(), sandbox, contracts, signed)
                 .doesNotContain(invoices);
 
@@ -99,8 +101,10 @@ class FolderTreeFragmentTest {
         folderTree.load();
 
         TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
+        TreeDataGridItems<Folder> items = tree.getItems();
 
-        assertThat(tree.getItems().getItems())
+        assertThat(items).isNotNull();
+        assertThat(items.getItems())
                 .contains(folderService.getRoot(), sandbox, contracts, signed)
                 .doesNotContain(invoices);
     }
@@ -137,7 +141,9 @@ class FolderTreeFragmentTest {
         filterField.clear();
 
         TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
-        assertThat(tree.getItems().getItems()).contains(contracts, invoices);
+        TreeDataGridItems<Folder> items = tree.getItems();
+        assertThat(items).isNotNull();
+        assertThat(items.getItems()).contains(contracts, invoices);
         assertThat(tree.getSelectedItems()).containsExactly(contracts);
     }
 
@@ -196,6 +202,7 @@ class FolderTreeFragmentTest {
         TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
         Action create = tree.getAction("createFolderAction");
 
+        assertThat(create).isNotNull();
         assertThat(toolbar.getChildren().toList())
                 .containsExactly(component(folderTree, "folderFilterField"), createButton, actionsButton);
         assertThat(createButton.getAction()).isSameAs(create);

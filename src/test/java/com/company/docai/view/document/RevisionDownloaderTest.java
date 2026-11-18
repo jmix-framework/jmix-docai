@@ -19,6 +19,7 @@ import io.jmix.flowui.Notifications;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
+import io.jmix.flowui.testassist.notification.NotificationInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,11 +89,13 @@ class RevisionDownloaderTest {
         fileStorageLocator.getByName(revision.getFile().getStorageName()).removeFile(revision.getFile());
 
         revisionDownloader.download(revision);
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
 
         assertThat(downloadLinks()).isEmpty();
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.formatMessage(RevisionDownloader.class, "fileMissing", 1));
-        assertThat(UiTestUtils.getLastOpenedNotification().getType()).isEqualTo(Notifications.Type.WARNING);
+        assertThat(notification.getType()).isEqualTo(Notifications.Type.WARNING);
     }
 
     /**

@@ -40,13 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * The copies, their files and their indexes: a copy has links to the files of its template before the indexes of the
- * template are cloned, joins the loop of the search queues only with the clones, and a copy whose clones fail is not
- * made and leaves no folder; a deleted copy leaves the loop while its database answers, the indexer forgets it once
- * its database is out of reach, its indexes go after that, the caches forget it once its database is shut down, and
- * its database and its folder go even when OpenSearch does not answer, whose message the log takes with the tag of the
- * copy for its key. A template is ready for copies while the start of the run allows it and its ready marker is in its
- * folder. The databases and the files are real, the indexes and the indexer are stand-ins, and the caches are watched.
+ * The copies, their files and their indexes, and the order in which a deleted copy loses them.
  */
 @ExtendWith(OutputCaptureExtension.class)
 class CopyFactoryTest {
@@ -154,8 +148,7 @@ class CopyFactoryTest {
         verify(indexes, never()).join(any());
     }
 
-    // the loop and the indexer write the indexes of a copy until they let it go, and a task that starts later fails at
-    // the data source before it reaches OpenSearch
+    // the loop and the indexer write the indexes of a copy until they let it go; a later task fails at the data source
     @Test
     void aDeletedCopyLeavesTheLoopsBeforeItsIndexesGo() {
         Copy copy = copyFactory.create("en");
@@ -261,7 +254,6 @@ class CopyFactoryTest {
                 .resolve(NOTE);
     }
 
-    // the data source of the application sends the connections of the scope to the database of the copy
     private boolean reaches(StandScope scope) {
         try {
             return StandScopeHolder.call(scope, () -> {

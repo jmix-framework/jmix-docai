@@ -9,9 +9,8 @@ import org.springframework.test.context.support.AbstractTestExecutionListener;
 import java.util.List;
 
 /**
- * Takes the user menus of a UI test off its application context once the test is over. The substitution action of
- * a user menu listens to the context while the menu is attached and stops as the menu detaches, but a UI test ends
- * without detaching its UI: the cached context would keep the UI of every test of the run, and the heap runs out.
+ * Takes the user menus of a UI test off its application context once the test is over: a UI test ends without detaching
+ * its UI, so the cached context would keep the UI of every test of the run, and the heap runs out.
  */
 public class UserMenuListenerCleanup extends AbstractTestExecutionListener {
 

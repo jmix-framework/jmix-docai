@@ -23,15 +23,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Reads the dictionary of document statuses and keeps it whole: one status is given to new documents, a name is
- * unique whatever its case, and a status that a document has, one in the trash included, is not deleted.
+ * Reads the dictionary of document statuses and keeps it whole.
  */
 @Service
 public class DocumentStatusService {
 
     private final DataManager dataManager;
-    // which status new documents get and whether a document has a status are questions of integrity: the documents
-    // of the others count too
+    // the initial status and whether a status is in use are questions of integrity: every document counts
     private final UnconstrainedDataManager unconstrainedDataManager;
     private final EntityStates entityStates;
     private final Messages messages;
@@ -55,9 +53,7 @@ public class DocumentStatusService {
     }
 
     /**
-     * Returns the status with its flags and the statuses it moves to, as the database holds it. Within a long
-     * transaction, such as the load of a demo set, a document may refer to its status by id only, so a rule reads
-     * the status through here.
+     * Returns the status as stored: within a long transaction a document may refer to its status by id only.
      */
     public DocumentStatus reload(DocumentStatus status) {
         return unconstrainedDataManager.load(DocumentStatus.class)
@@ -133,12 +129,8 @@ public class DocumentStatusService {
     }
 
     /**
-     * Puts the status right above or right below the target and numbers all the statuses from one again, in one
-     * save. A status or a target deleted meanwhile leaves the order as it is.
-     *
-     * @param status the status to move
-     * @param target the status it is dropped on
-     * @param below  whether the status goes below the target rather than above it
+     * Puts the status right above or right below the target and numbers all the statuses from one again, in one save. A
+     * status or a target deleted meanwhile leaves the order as it is.
      */
     public void move(DocumentStatus status, DocumentStatus target, boolean below) {
         List<DocumentStatus> order = new ArrayList<>(loadAll());
@@ -202,8 +194,7 @@ public class DocumentStatusService {
     }
 
     /**
-     * Saves the status. A status given to new documents takes that over from the status that had it, in the same
-     * save, so the dictionary never has two of them or none.
+     * Saves the status; a status given to new documents takes that over from the one that had it, in the same save.
      */
     public DocumentStatus save(DocumentStatus status) {
         // the dialog may still offer a status that another administrator has deleted meanwhile
@@ -246,11 +237,10 @@ public class DocumentStatusService {
     }
 
     /**
-     * Deletes the status for good unless new documents get it or a document has it, a document in the trash
-     * included: such a document can come back with its status. The statuses that list it as a target lose it in the
-     * same save. The foreign key stops the other ways to delete a status in use.
+     * Deletes the status for good; the statuses that list it as a target lose it in the same save.
      *
-     * @throws OperationRejectedException if new documents get the status or a document has it
+     * @throws OperationRejectedException if new documents get the status or a document has it, one in the trash
+     *                                    included
      */
     public void delete(DocumentStatus status) {
         // the copy of a list may be older than the flag, which another status may have taken over since
@@ -273,7 +263,6 @@ public class DocumentStatusService {
                 .hint(PersistenceHints.SOFT_DELETION, false)
                 .one();
 
-        // the documents in the trash are out of sight, so the refusal says where they are
         if (documents > 0) {
             long live = unconstrainedDataManager.loadValue(
                             "select count(d) from Document d where d.status.id = :status", Long.class)
@@ -284,7 +273,6 @@ public class DocumentStatusService {
                     live > 0 ? "statusInUse" : "statusInTrash", current.getName()));
         }
 
-        // the keys of the join table do not cascade, as Studio maps them, so the lists change in the same save
         SaveContext saveContext = new SaveContext().setDiscardSaved(true);
         unconstrainedDataManager.load(DocumentStatus.class)
                 .query("select s from DocumentStatus s join s.targets t where t.id = :status")

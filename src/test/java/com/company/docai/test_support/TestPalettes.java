@@ -20,9 +20,11 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.testassist.UiTestUtils;
 import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 /**
@@ -32,12 +34,12 @@ public final class TestPalettes {
 
     private static final List<String> CHIPS = List.of("allChip", "documentsChip", "foldersChip", "tagsChip");
 
+    // the browser numbers the openings of a page one after another
+    private static final AtomicInteger OPENINGS = new AtomicInteger();
+
     private TestPalettes() {
     }
 
-    /**
-     * The search field in the header of the main view.
-     */
     public static TypedTextField<String> searchField() {
         return UiTestUtils.getComponent(TestMenus.mainView(), "searchField");
     }
@@ -55,8 +57,16 @@ public final class TestPalettes {
      * not have, and returns the palette that is open then.
      */
     public static SearchPaletteView open(String text) {
+        return open(text, OPENINGS.incrementAndGet());
+    }
+
+    /**
+     * Asks the header to open the palette with the text the browser shows in the search field, as the opening that
+     * the browser numbered so, and returns the palette that is open then.
+     */
+    public static SearchPaletteView open(String text, int opening) {
         SearchPaletteOpener opener = opener();
-        ComponentUtil.fireEvent(opener, new SearchPaletteOpener.OpenEvent(opener, true, text));
+        ComponentUtil.fireEvent(opener, new SearchPaletteOpener.OpenEvent(opener, true, text, opening));
 
         return UiTestUtils.getLastOpenedViewDialog();
     }
@@ -84,24 +94,31 @@ public final class TestPalettes {
     }
 
     /**
-     * Tells whether a search palette is open.
+     * Asks the header to open the palette as the browser does after a click right after the Esc of {@link #cancel()}:
+     * the click comes in the same request, while the page is still inert, so it goes through the same check of Flow.
      */
+    public static void openAfterCancel(String text) {
+        Element opener = opener().getElement();
+
+        ObjectNode detail = JsonNodeFactory.instance.objectNode()
+                .put("event.detail.text", text)
+                .put("event.detail.opening", OPENINGS.incrementAndGet());
+
+        opener.getNode()
+                .getFeature(ElementListenerMap.class)
+                .fireEvent(new DomEvent(opener, "docai-search-palette-open", detail));
+    }
+
     public static boolean isOpen() {
         return UiTestUtils.getOpenedViewDialogs()
                 .stream()
                 .anyMatch(SearchPaletteView.class::isInstance);
     }
 
-    /**
-     * The text field of the line of the palette.
-     */
     public static TypedTextField<String> queryField(SearchPaletteView palette) {
         return UiTestUtils.getComponent(palette, "queryField");
     }
 
-    /**
-     * The element that does in the browser what the palette asks of its line: the combobox, the keys and the caret.
-     */
     public static SearchPaletteLine line(SearchPaletteView palette) {
         return UiTestUtils.getComponent(palette, "line");
     }
@@ -143,9 +160,6 @@ public final class TestPalettes {
         return line(palette).getElement().getProperty("activeRow", "");
     }
 
-    /**
-     * The ids of the chips that are pressed.
-     */
     public static List<String> pressedChips(SearchPaletteView palette) {
         return CHIPS.stream()
                 .filter(id -> "true".equals(UiTestUtils.<JmixButton>getComponent(palette, id)
@@ -164,18 +178,12 @@ public final class TestPalettes {
                 .toList();
     }
 
-    /**
-     * The names of the rows, in their order.
-     */
     public static List<String> names(SearchPaletteView palette) {
         return rows(palette).stream()
                 .map(TestPalettes::name)
                 .toList();
     }
 
-    /**
-     * The name of the row as the person reads it.
-     */
     public static String name(Div row) {
         return part(row, "search-palette-name");
     }
@@ -187,9 +195,6 @@ public final class TestPalettes {
         return part(row, "search-palette-meta");
     }
 
-    /**
-     * The headings of the groups and the sections, in their order.
-     */
     public static List<String> headings(SearchPaletteView palette) {
         return descendants(UiTestUtils.getComponent(palette, "resultsBox"))
                 .filter(component -> component.hasClassName("search-palette-heading"))
@@ -209,9 +214,6 @@ public final class TestPalettes {
                 .orElse(List.of());
     }
 
-    /**
-     * The messages that the group with the heading shows instead of rows.
-     */
     public static List<String> groupMessages(SearchPaletteView palette, String heading) {
         return group(palette, heading)
                 .map(group -> group.getChildren()
@@ -221,9 +223,6 @@ public final class TestPalettes {
                 .orElse(List.of());
     }
 
-    /**
-     * The row whose name is the text.
-     */
     public static Div row(SearchPaletteView palette, String name) {
         return rows(palette).stream()
                 .filter(row -> name.equals(name(row)))
@@ -231,17 +230,11 @@ public final class TestPalettes {
                 .orElseThrow(() -> new AssertionError("No row " + name));
     }
 
-    /**
-     * Clicks the row whose name is the text.
-     */
     public static void click(SearchPaletteView palette, String name) {
         Div row = row(palette, name);
         ComponentUtil.fireEvent(row, new ClickEvent<>(row));
     }
 
-    /**
-     * Clicks the cross of the recent search whose name is the text.
-     */
     public static void remove(SearchPaletteView palette, String name) {
         removeButton(row(palette, name))
                 .orElseThrow(() -> new AssertionError("No cross in the row " + name))
@@ -268,9 +261,6 @@ public final class TestPalettes {
                 .contains("event.stopPropagation()");
     }
 
-    /**
-     * The cross that removes the recent search of the row; the other rows have none.
-     */
     public static Optional<JmixButton> removeButton(Div row) {
         return row.getChildren()
                 .filter(child -> child.hasClassName("search-palette-remove"))
@@ -278,18 +268,12 @@ public final class TestPalettes {
                 .findFirst();
     }
 
-    /**
-     * The rows that the palette says are selected.
-     */
     public static List<Div> selectedRows(SearchPaletteView palette) {
         return rows(palette).stream()
                 .filter(row -> "true".equals(row.getElement().getAttribute("aria-selected")))
                 .toList();
     }
 
-    /**
-     * The icon class of the icon a row begins with.
-     */
     public static String iconClass(Div row) {
         return row.getChildren()
                 .findFirst()
@@ -298,24 +282,15 @@ public final class TestPalettes {
                 .getProperty("iconClass");
     }
 
-    /**
-     * The icon class of the icon.
-     */
     public static String iconClass(JmixFontIcon icon) {
         return icon.create().getElement().getProperty("iconClass");
     }
 
-    /**
-     * Tells whether the name of the row is greyed, as the tree greys a folder the person only passes through.
-     */
     public static boolean isGreyed(Div row) {
         return row.getChildren()
                 .anyMatch(child -> child.hasClassName("search-palette-name") && child.hasClassName("folder-greyed"));
     }
 
-    /**
-     * Tells whether the icon of the row wears the accent of AI.
-     */
     public static boolean wearsAiAccent(Div row) {
         return row.getChildren()
                 .findFirst()

@@ -19,23 +19,18 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Reads and clicks the blocks of the dashboard as a browser would: the rows of a block, their texts, the button of
- * a row that opens what the row shows and the buttons after it. It also checks the dates of a test against those the
- * block of the nearest dates shows.
+ * Reads and clicks the blocks of the dashboard as a browser would.
  */
 public final class TestDashboards {
 
-    // the block of the nearest dates shows five of them
     private static final int UPCOMING_DATES = 5;
 
     private TestDashboards() {
     }
 
     /**
-     * Asserts that the dates of a test among the upcoming ones follow the rule of the block, the nearest first. The
-     * database is shared, so the dates of other tests may take some of the five places: each date of the test is
-     * checked against the last date shown — a nearer one shows, a later one does not, and one of that very day may go
-     * either way.
+     * Asserts that the dates of a test among the upcoming ones follow the rule of the block. The database is shared, so
+     * each date of the test is checked against the last date shown: a nearer one shows, a later one does not.
      */
     public static void assertNearestShown(List<UpcomingDate> shown, Map<Document, LocalDate> own) {
         List<Document> documents = shown.stream()
@@ -53,17 +48,13 @@ public final class TestDashboards {
         });
     }
 
-    /**
-     * A component of the dashboard by its id in the fragment.
-     */
     @SuppressWarnings("unchecked")
     public static <T> T component(DashboardFragment dashboard, String id) {
         return (T) FragmentUtils.getComponent(dashboard, id);
     }
 
     /**
-     * The rows of a block: {@code upcomingBox}, {@code untypedBox}, {@code activityBox} or {@code chatsBox}. A block
-     * without rows holds only the line that says so.
+     * The rows of a block: {@code upcomingBox}, {@code untypedBox}, {@code activityBox} or {@code chatsBox}.
      */
     public static List<Div> rows(DashboardFragment dashboard, String box) {
         return TestDashboards.<VerticalLayout>component(dashboard, box)
@@ -84,18 +75,12 @@ public final class TestDashboards {
                 .orElseThrow(() -> new AssertionError("No row with \"%s\" in %s".formatted(text, box)));
     }
 
-    /**
-     * Tells whether a row of a block holds the text.
-     */
     public static boolean hasRow(DashboardFragment dashboard, String box, String text) {
         return rows(dashboard, box)
                 .stream()
                 .anyMatch(row -> text(row).contains(text));
     }
 
-    /**
-     * The text of a component with the texts of its parts.
-     */
     public static String text(Component component) {
         return component.getElement().getTextRecursively();
     }
@@ -119,9 +104,6 @@ public final class TestDashboards {
                 .toList();
     }
 
-    /**
-     * Clicks the button of a row, which opens what the row shows.
-     */
     public static void click(Div row) {
         NativeButton opener = opener(row);
         ComponentUtil.fireEvent(opener, new ClickEvent<>(opener));

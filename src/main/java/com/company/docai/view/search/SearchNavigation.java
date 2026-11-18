@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Opens what a search leads to: the search page by words or by meaning and the page of the documents with a tag.
- * The header of the main view, its search palette and the tag badges go through it, each from the view it names as
- * the origin of the navigation.
  */
 @Component
 public class SearchNavigation {
@@ -27,9 +25,9 @@ public class SearchNavigation {
     }
 
     /**
-     * Opens the search page with the text without the spaces around it; an empty text opens nothing. The search goes
-     * by meaning only while the AI is on, and it joins the recent searches in the mode it opens in. From the main view
-     * a search page that is open shows the new search; from a search page a new one opens.
+     * Opens the search page with the text, which joins the recent searches; an empty text opens nothing, and the search
+     * goes by meaning only while the AI is on. From the main view a search page that is open shows the new search; from
+     * a search page a new one opens.
      */
     public void openSearch(View<?> origin, @Nullable String text, boolean ai) {
         String query = Strings.nullToEmpty(text).strip();

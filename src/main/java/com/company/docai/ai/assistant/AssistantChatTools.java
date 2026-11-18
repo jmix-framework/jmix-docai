@@ -44,9 +44,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * The tool the assistant in the menu calls to find documents by the fields of their types. Those fields are
- * dynamic attributes, which the query tools of the add-on do not see. The search starts from the documents, so the
- * access rules of the person who asks decide what is found, and the value of a field only narrows it.
+ * The tool the assistant in the menu calls to find documents by the fields of their types, which the add-on's query
+ * tools do not see; the person's access rules apply.
  */
 @Component
 public class AssistantChatTools implements JmixAiTool {
@@ -66,27 +65,21 @@ public class AssistantChatTools implements JmixAiTool {
     private static final String TO = "For a number or a date field: the highest number or the latest date of "
             + "the range, such as 2026-12-31. Leave it out for a range open at the top";
 
-    // a model asks this tool for the documents of a folder, finds none and takes that for the answer
     private static final String ATTRIBUTES = "The folder, the name, the status, the type and the date are "
             + "attributes of a document, not fields: count or list documents by them with the query tools.";
 
     private static final String TOPIC = "The topic or the question in the words of the person, short, such as "
             + "\"agricultural machinery\" or \"penalties for late delivery\"";
 
-    // a model would take the documents found within the limits for all the documents about the topic; the search
-    // page has the same limits, so a narrower topic is the way to the rest
     private static final String MORE_BY_MEANING = "The search took only the nearest documents, and more may be about "
             + "the topic: say so, and offer to narrow the topic.";
 
-    // a model would take the documents found while the index fills for all the documents there are
     private static final String INDEX_FILLING = "The search by meaning is still indexing documents: some may be "
             + "missing, so do not conclude that there are none.";
 
-    // a model would take a search that could not run for an answer that there are no such documents
     private static final String NO_MEANING_SEARCH = "The search by meaning is not available now: say so, and do not "
             + "conclude that there are no such documents.";
 
-    // a model asks this tool for all the documents, with no value at all
     private static final String NO_VALUE = "Give a value to look for, or a range of a number or a date field. To "
             + "list or count documents, all of them or by the folder, the name, the status, the type or the date, "
             + "use the query tools.";
@@ -120,8 +113,7 @@ public class AssistantChatTools implements JmixAiTool {
     }
 
     /**
-     * Finds the documents the person who asks may open whose field holds the value or, for a number or a date,
-     * falls in the range.
+     * Finds the documents the person may open whose field holds the value or falls in the range.
      */
     @Tool(name = "docai_findDocumentsByTypeField", description = """
             Only for the fields of the document types, such as the supplier of an invoice, the counterparty or \
@@ -138,7 +130,6 @@ public class AssistantChatTools implements JmixAiTool {
                                            @ToolParam(required = false, description = FROM) @Nullable String from,
                                            @ToolParam(required = false, description = TO) @Nullable String to,
                                            ToolContext context) {
-        // a model may leave the status out, and the chat takes no empty one
         if (status != null && !status.isBlank()) {
             statusPublisher.update(status, context);
         }
@@ -206,8 +197,7 @@ public class AssistantChatTools implements JmixAiTool {
     }
 
     /**
-     * Finds the documents about the topic that the person who asks may open, as the AI search of the search field
-     * finds them, with their passages nearest to the topic.
+     * Finds the documents about the topic that the person who asks may open, with their passages nearest to the topic.
      */
     @Tool(name = "docai_findDocumentsByMeaning", description = """
             Finds the documents about a topic or a question by meaning, with their passages nearest to it, even when \
@@ -230,7 +220,6 @@ public class AssistantChatTools implements JmixAiTool {
         try {
             found = semanticSearch.passages(topic.strip());
         } catch (RuntimeException e) {
-            // OpenSearch or the model of vectors did not answer
             log.warn("The search by meaning failed: {}", e.toString());
             return NO_MEANING_SEARCH;
         }
@@ -361,9 +350,8 @@ public class AssistantChatTools implements JmixAiTool {
         }
     }
 
-    // a JPQL row rule filters only the entity a query selects, so a folder the person may not open would show its
-    // name through the reference of the document: the names come from a query of the folders themselves
     private Map<UUID, String> folderNames(List<Document> documents) {
+        // a JPQL row rule filters only the selected entity, so the folder names come from a query of the folders
         Set<UUID> ids = documents.stream()
                 .map(document -> document.getFolder().getId())
                 .collect(Collectors.toSet());

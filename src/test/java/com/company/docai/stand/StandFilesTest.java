@@ -51,12 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The files of the stand: a template keeps the files of its set in its own folder, a copy gets hard links to them and
- * keeps the files of its visitor in its own folder, which no other copy sees; deleting a file forever in a copy takes
- * only the link of the copy, a deleted copy leaves no folder, the delete refuses any folder but the one of a copy, and
- * the clearing of a template any folder but the one of a template.
- * A copy takes at most 20 MB of files of its own besides those of its template, only of the types of the demo, and no
- * copy takes a file while the disk runs low, whether the file comes with a document or straight into the file storage;
- * a template takes any file. Search is off and the index of fragments lives in memory, as in the other tests.
+ * keeps the files of its visitor in its own folder, within its quota and while the disk has room.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class},
         properties = "docai.stand.data-dir=build/test-stand-files")

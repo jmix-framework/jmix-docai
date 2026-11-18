@@ -7,8 +7,7 @@ import io.jmix.flowui.asynctask.UiAsyncTasks;
 import java.util.concurrent.ExecutorService;
 
 /**
- * The asynchronous tasks of the views on the stand, such as the AI search, which work in the scope of the view that
- * starts them.
+ * The asynchronous tasks of the views on the stand, such as the AI search, in the scope of the view that starts them.
  */
 public class StandUiAsyncTasks extends UiAsyncTasks {
 

@@ -42,18 +42,13 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Keeps the index of the fragments in line with the documents. A document goes into a queue when it is uploaded, gets
- * another current version or another name, and when it is deleted; at the start of the application the index is
- * checked against the documents. The queue works in the background as the system, and only while the AI is on. On the
- * stand a document is indexed in the scope it was queued in, the template or the copy whose database and index it
- * belongs to; the control database has no documents, so the start checks nothing there.
+ * Keeps the fragment index in line with the documents through a queue that runs as the system while the AI is on.
  */
 @Component
 public class DocumentVectorIndexer {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentVectorIndexer.class);
 
-    // about 1000 characters of a Russian text, the size of the fragments the prototype found well
     private static final int FRAGMENT_TOKENS = 300;
 
     private final DocumentVectorIndex index;
@@ -72,8 +67,7 @@ public class DocumentVectorIndexer {
     private final Set<QueuedDocument> queued = ConcurrentHashMap.newKeySet();
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition done = lock.newCondition();
-    // the tasks that wait or run, by the id of their scope ("" without one), and the scope of the task that runs;
-    // guarded by the lock
+    // the waiting and running tasks by scope id ("" without one), and the scope of the running one; guarded by the lock
     private final Map<String, Integer> tasks = new HashMap<>();
     private @Nullable String running;
     private final ExecutorService worker = Executors.newSingleThreadExecutor(task -> {
@@ -143,8 +137,7 @@ public class DocumentVectorIndexer {
     }
 
     /**
-     * Puts the document into the queue, unless it waits there already or the AI is off. The document is indexed in the
-     * scope of the stand the calling thread works with, see {@link StandScopeHolder#resolve()}.
+     * Queues the document unless it waits already or the AI is off; it is indexed in the scope of the calling thread.
      */
     public void enqueue(UUID documentId) {
         StandScope scope = StandScopeHolder.resolve();
@@ -164,8 +157,7 @@ public class DocumentVectorIndexer {
     }
 
     /**
-     * Returns whether the index is being checked against the documents, or documents wait in the queue or are being
-     * indexed, in the scope of the stand the calling thread works with.
+     * Returns whether the index is being checked, or documents of the calling thread's scope wait or are being indexed.
      */
     public boolean isBusy() {
         String key = keyOf(StandScopeHolder.resolve());
@@ -179,9 +171,7 @@ public class DocumentVectorIndexer {
     }
 
     /**
-     * Takes the scope out of the queue: its waiting documents are not indexed, and the call returns once the document
-     * of the scope that is being indexed, if any, is done. A copy of the stand is forgotten before its index goes, so
-     * that nothing writes the index afterwards.
+     * Takes the scope out of the queue and returns once its document in flight, if any, is done.
      */
     public void forget(StandScope scope) {
         queued.removeIf(document -> scope.equals(document.scope()));
@@ -237,9 +227,7 @@ public class DocumentVectorIndexer {
     }
 
     /**
-     * Brings the index in line with the documents: queues the documents that are not in it or were cut from another
-     * version or name, and removes the documents that are gone. Creates the index anew when it was built with another
-     * model.
+     * Brings the index in line with the documents, creating it anew when it was built with another model.
      */
     public Reconciliation reconcile() {
         index.prepare();
@@ -272,8 +260,7 @@ public class DocumentVectorIndexer {
     }
 
     /**
-     * Indexes the document now: cuts its text into fragments, gets their vectors and replaces its fragments in the
-     * index. A document without text gets one fragment of its name; a document that is gone leaves the index.
+     * Indexes the document now: one without text gets a fragment of its name, one that is gone leaves the index.
      */
     public void index(UUID documentId) {
         Optional<Document> found = dataManager.load(Document.class)
@@ -292,7 +279,6 @@ public class DocumentVectorIndexer {
         List<String> texts = textsOf(document.getCurrentRevision());
         boolean ofName = texts.isEmpty();
 
-        // the name tells what a document is about as much as its text does
         List<float[]> vectors = embeddingModel.embed(ofName
                 ? List.of(name)
                 : texts.stream().map(text -> name + "\n\n" + text).toList());

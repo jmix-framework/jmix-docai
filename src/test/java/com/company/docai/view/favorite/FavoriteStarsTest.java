@@ -42,6 +42,7 @@ import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.view.ViewControllerUtils;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,13 +122,15 @@ class FavoriteStarsTest {
         assertThat(star.getElement().getAttribute("aria-pressed")).isEqualTo("false");
 
         star.click();
+        Action starAction = star.getAction();
 
         assertThat(favoriteService.markedIds(List.of(lease))).containsExactly(lease.getId());
         assertThat(isMarkedStar(star.getIcon())).isTrue();
         // the look of the star alone does not reach a screen reader
         assertThat(star.getElement().getAttribute("aria-pressed")).isEqualTo("true");
         // only the star changes: the text of the action stays, the button stays bare with its static tooltip
-        assertThat(star.getAction().getText()).isEqualTo(text("favoriteAction.text"));
+        assertThat(starAction).isNotNull();
+        assertThat(starAction.getText()).isEqualTo(text("favoriteAction.text"));
         assertThat(star.getText()).isEmpty();
         assertThat(star.getTitle()).isNullOrEmpty();
         assertThat(star.getTooltip().getText()).isEqualTo(text("favoriteAction.text"));
@@ -204,6 +207,7 @@ class FavoriteStarsTest {
         DataGrid<Document> grid = component(view, "documentList", "documentsGrid");
         Action action = grid.getAction("favoriteAction");
         JmixButton button = component(view, "documentList", "favoriteButton");
+        assertThat(action).isNotNull();
 
         grid.select(lease);
         assertThat(isMarkedStar(button.getIcon())).isFalse();
@@ -226,7 +230,6 @@ class FavoriteStarsTest {
         assertThat(favoriteService.markedIds(List.of(lease, act))).containsExactlyInAnyOrder(lease.getId(),
                 act.getId());
         assertThat(isMarkedStar(button.getIcon())).isTrue();
-        // the menu item keeps the text and shows the yellow star of the action
         assertThat(grid.getContextMenu().getItems())
                 .anyMatch(item -> item.getElement().getTextRecursively().equals(text("favoriteAction.text"))
                         && hasMarkedStar(item.getElement()));
@@ -252,7 +255,6 @@ class FavoriteStarsTest {
         assertThat(blockNames(view)).isEmpty();
     }
 
-    // the star after the name tells a screen reader what it means, as the key of an own access does
     @Test
     void theStarAfterTheNameIsAnImageWithALabel() {
         Document lease = upload(sandbox, "lease.txt");
@@ -278,6 +280,7 @@ class FavoriteStarsTest {
         DropdownButton folderActions = TestMenus.folderTreeComponent("folderActionsButton");
 
         assertThat(folderActions.getItem("favoriteFolderItem")).isNotNull();
+        assertThat(action).isNotNull();
         assertThat(isMarkedStar(action.getIcon())).isFalse();
         action.actionPerform(tree);
 
@@ -322,7 +325,6 @@ class FavoriteStarsTest {
                 .doesNotContain(FavoriteListAction.UNMARKED_CLASS);
     }
 
-    // the names of the rows of the favorites section of the folder tree
     private List<String> blockNames(RepositoryView view) {
         VerticalLayout box = (VerticalLayout) FragmentUtils.getComponent(
                 TestMenus.folderTreeComponent("favorites"), "favoritesBox");
@@ -352,7 +354,9 @@ class FavoriteStarsTest {
         return star > name;
     }
 
-    private static boolean isMarkedStar(Component icon) {
+    // the icon of an action may be missing, and a missing star is no unmarked one
+    private static boolean isMarkedStar(@Nullable Component icon) {
+        assertThat(icon).isNotNull();
         return icon.getElement().getClassList().contains(FavoriteListAction.MARKED_CLASS);
     }
 

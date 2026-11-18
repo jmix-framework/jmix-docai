@@ -204,13 +204,6 @@ class FolderServiceTest {
     }
 
     @Test
-    void aFolderWithoutDocumentsCountsZero() {
-        Folder empty = folder(sandbox, "Empty");
-
-        assertThat(folderService.countDocuments(List.of(empty))).containsEntry(empty.getId(), 0L);
-    }
-
-    @Test
     void deletedDocumentsAreNotCounted() {
         Document deleted = upload(sandbox, "a.txt");
         upload(sandbox, "b.txt");

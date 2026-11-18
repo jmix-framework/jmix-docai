@@ -36,10 +36,9 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 
 /**
- * Signs the user a visitor is signed in as in to another copy of the demo data without asking for the password again:
- * the user comes from the copy, with its authorities there, and Jmix's own login takes the steps it takes once the
- * password is checked, see {@link StandLoginViewSupport}. Which user is signed in comes only from the authentication
- * of the session, never from the request, and the copy has to have that very user, not only the username.
+ * Signs the user a visitor is signed in as in to another copy of the demo data without asking for the password again.
+ * Which user is signed in comes only from the authentication of the session, never from the request, and the copy has
+ * to have that very user, not only the username.
  */
 @Component
 @Profile("stand")
@@ -77,8 +76,8 @@ public class StandSignIn {
     }
 
     /**
-     * Runs the validators of the details of a login that Jmix's login runs before it checks the credentials, on the
-     * visitor and the language of a switch, see {@link StandLoginViewSupport#validate}.
+     * Runs the validators of the details of a login on the visitor and the language of a switch, see
+     * {@link StandLoginViewSupport#validate}.
      *
      * @throws org.springframework.security.authentication.DisabledException when a validator refuses the switch
      */
@@ -109,10 +108,8 @@ public class StandSignIn {
     }
 
     /**
-     * Authenticates the user of the session again, as the copy of the scope of the thread has it: the user loaded
-     * from the copy with its authorities there and the factors the login proved, and the details of the login with
-     * the language. The account and the right to use the UI are checked as Jmix's login checks them, see
-     * {@link #check}. Nothing changes: {@link #signIn} does.
+     * Authenticates the user of the session again, as the copy of the scope of the thread has it, without changing
+     * anything: {@link #signIn} does.
      *
      * @throws org.springframework.security.core.AuthenticationException when the session has no login of the
      *         application, see {@link #visitor}, or the copy does not take the user, see {@link #check}
@@ -134,11 +131,9 @@ public class StandSignIn {
     /**
      * Signs the authentication in to the session of the current request through the steps of Jmix's login, see
      * {@link StandLoginViewSupport#signIn}, and gives the Vaadin session the language, as the login form does. A step
-     * that fails once the session works as the authentication, as a listener of the event of the login, is logged, and
-     * the sign-in completes.
+     * that fails once the session works as the authentication is logged, and the sign-in completes.
      *
      * @param authentication what {@link #authenticate} gave
-     * @param locale         the language the authentication has
      * @throws RuntimeException what failed before the session works as the authentication
      */
     public void signIn(Authentication authentication, Locale locale) {
@@ -198,8 +193,7 @@ public class StandSignIn {
                 && Id.of(user).equals(Id.of(visitor));
     }
 
-    // the factors the login proved stay, as Jmix's substitution of a user keeps them; no factor is added, since no
-    // credentials are checked again
+    // the login's factors stay, as Jmix's substitution of a user keeps them; none is added, as no credential is checked
     private static Collection<GrantedAuthority> authoritiesOf(UserDetails user, Authentication login) {
         Collection<GrantedAuthority> authorities = new LinkedHashSet<>(user.getAuthorities());
 

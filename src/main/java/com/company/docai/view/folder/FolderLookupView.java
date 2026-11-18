@@ -19,9 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 
 /**
- * Picks the destination of a move. The moved folders and their subfolders are hidden: a folder cannot move
- * into itself. Only a folder the user may change can be picked; the others are greyed. The filter finds
- * the other folders by name.
+ * Picks the destination of a move; only a folder the user may change can be picked, the others are greyed.
  */
 @ViewController(id = "Folder.lookup")
 @ViewDescriptor(path = "folder-lookup-view.xml")
@@ -43,7 +41,6 @@ public class FolderLookupView extends StandardListView<Folder> {
 
     private Set<Folder> hiddenFolders = Set.of();
     private List<Folder> availableFolders = List.of();
-    // nothing can be picked until the folders load
     private AccessLevels levels = new AccessLevels(Map.of(), false);
 
     /**

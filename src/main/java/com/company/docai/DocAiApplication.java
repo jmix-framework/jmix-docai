@@ -45,7 +45,6 @@ public class DocAiApplication implements AppShellConfigurator {
         SpringApplication.run(DocAiApplication.class, args);
     }
 
-    // the stand routes each thread to a database of its own, see StandDataSourceConfiguration
     @Bean
     @Primary
     @Profile("!stand")

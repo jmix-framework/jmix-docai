@@ -29,10 +29,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * The index of the fragments of the documents in OpenSearch: one entry per fragment with the id of its document, the
- * version and name it was cut from, its text and its vector. It finds the fragments nearest to a vector among the
- * documents it is given, so the rights of the person who searches decide what can be found. On the stand each template
- * and each copy has an index of its own: every call works with the index of the scope of its thread.
+ * The OpenSearch index of the document fragments, searched only among the given documents: the person's rights decide.
  */
 @Component
 public class DocumentVectorIndex {
@@ -41,7 +38,6 @@ public class DocumentVectorIndex {
     private static final String MODEL = "model";
     private static final String DIMENSIONS = "dimensions";
 
-    // the reconciliation reads the source keys of all the documents in one aggregation
     private static final int MAX_DOCUMENTS = 10_000;
 
     private final OpenSearchClient client;
@@ -73,16 +69,13 @@ public class DocumentVectorIndex {
     /**
      * A fragment found near a vector.
      *
-     * @param documentId the id of the document of the fragment
-     * @param text       the text of the fragment
-     * @param ofName     whether the fragment is the name of a document that has no text
+     * @param ofName whether the fragment is the name of a document that has no text
      */
     public record Match(UUID documentId, String text, boolean ofName) {
     }
 
     /**
-     * Returns the name of the index in OpenSearch, the one of the scope of the stand the thread works with, see
-     * {@link StandScopeHolder#resolve()}.
+     * Returns the name of the index of the scope the thread works with.
      */
     public String getIndexName() {
         return getIndexName(StandScopeHolder.resolve());
@@ -98,8 +91,7 @@ public class DocumentVectorIndex {
     }
 
     /**
-     * Creates the index when there is none, or creates it anew, empty, when it was built with another model or another
-     * size of the vectors.
+     * Creates the index when there is none, or anew, empty, when it was built with another model or vector size.
      *
      * @return whether the index is new
      */

@@ -19,9 +19,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Writes the comments people leave on documents. Everyone who sees a document comments on it, the author changes and
- * deletes their own comment, and the administrator deletes any. A comment is saved at once and changes nothing in its
- * document. The access rules of the comments check the same again on every save.
+ * Writes the comments people leave on documents.
  */
 @Service
 public class DocumentCommentService {
@@ -47,15 +45,14 @@ public class DocumentCommentService {
     }
 
     /**
-     * Leaves a comment on the document as the current user. The text is saved without the spaces at its edges.
+     * Leaves a comment on the document as the current user.
      *
-     * @throws OperationRejectedException if the text is empty or too long, or the document is deleted or hidden
-     *                                    from the user
+     * @throws OperationRejectedException if the text is empty or too long, or the document is deleted or hidden from
+     *                                    the user
      */
     public DocumentComment post(Document document, @Nullable String text) {
         String content = checkText(text);
-        // read again, so that a document deleted or hidden since the card opened is refused and the comment refers
-        // to a live row
+        // read again, so that a document deleted or hidden since the card opened is refused
         Document live = dataManager.load(Document.class)
                 .query("select d from Document d where d.id = :id")
                 .parameter("id", document.getId())
@@ -80,12 +77,10 @@ public class DocumentCommentService {
         String content = checkText(text);
         DocumentComment stored = load(comment);
 
-        // the administrator deletes any comment but changes only their own
         if (!isMine(stored)) {
             throw reject("commentEditNotYours");
         }
 
-        // the same text is no change: the comment keeps its version and gets no "edited" mark
         if (content.equals(stored.getText())) {
             return stored;
         }
@@ -127,8 +122,7 @@ public class DocumentCommentService {
     }
 
     /**
-     * Returns the users who wrote the comments, by username. A user deleted since is left out, and their comments
-     * keep the username.
+     * Returns the users who wrote the comments, by username; a user deleted since is left out.
      */
     public Map<String, User> authorsOf(Collection<DocumentComment> comments) {
         return userService.usersOf(comments.stream()
@@ -136,7 +130,6 @@ public class DocumentCommentService {
                 .toList());
     }
 
-    // a comment deleted since, or one of a document hidden from the user or lying in the trash, is not found
     private DocumentComment load(DocumentComment comment) {
         return dataManager.load(DocumentComment.class)
                 .query("select c from DocumentComment c where c.id = :id and c.document.deletedDate is null")

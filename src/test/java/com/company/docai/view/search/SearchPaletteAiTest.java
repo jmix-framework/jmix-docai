@@ -45,15 +45,14 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import tools.jackson.databind.node.StringNode;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.company.docai.test_support.TestUi.awaitAnswer;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -63,8 +62,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * The search palette as an employee meets it with the AI on: the wand of the line, the questions for the assistant
- * and the rows that open the search by meaning and the chat. The search by meaning, the indexer and the index are
+ * The search palette as an employee meets it with the AI on. The search by meaning, the indexer and the index are
  * replaced; the context is the one of AiSearchTest.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
@@ -206,7 +204,6 @@ class SearchPaletteAiTest {
         Set<UUID> before = conversationIds();
         TestPalettes.click(TestPalettes.open(), question(1));
         View<?> firstChat = UiTestUtils.getCurrentView();
-        // a chat that is still answering asks the person to stay before it lets them go
         awaitAnswer(firstChat);
 
         TestPalettes.click(TestPalettes.open(), question(2));
@@ -345,7 +342,6 @@ class SearchPaletteAiTest {
                 .startsWith("aitls/chat/")
                 .doesNotContain("?");
 
-        // a chat that is still answering asks the person to stay before it lets them go
         awaitAnswer(UiTestUtils.getCurrentView());
 
         UI.getCurrent().navigate(DocumentSearchView.class,
@@ -418,7 +414,6 @@ class SearchPaletteAiTest {
                 .collect(Collectors.toSet());
     }
 
-    // the first message the person sent in each conversation that began after the given ones; null where none was
     private List<String> firstQuestions(Set<UUID> before) {
         return conversationService.loadConversations()
                 .stream()
@@ -428,7 +423,6 @@ class SearchPaletteAiTest {
                 .toList();
     }
 
-    // every message the person sent in the conversations that began after the given ones
     private List<String> allQuestions(Set<UUID> before) {
         return conversationService.loadConversations()
                 .stream()
@@ -461,20 +455,5 @@ class SearchPaletteAiTest {
                 .findFirst()
                 .orElseThrow()
                 .click();
-    }
-
-    // the answer of the stub comes back through UI.access, which a UI test runs only when asked
-    private static void awaitAnswer(View<?> chat) {
-        AiChatFragment fragment = UiTestUtils.getComponent(chat, "chatFragment");
-        VaadinSession session = VaadinSession.getCurrent();
-
-        await().pollInSameThread()
-                .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(50))
-                .until(() -> {
-                    session.getService().runPendingAccessTasks(session);
-
-                    return !fragment.isAwaitingResponse();
-                });
     }
 }

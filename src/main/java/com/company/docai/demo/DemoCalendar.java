@@ -21,20 +21,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Computes the dates of a demo set for the day the set loads, today. A set writes a date as an expression:
- * <ul>
- *     <li>{@code today}, or days from it: {@code +23d}, {@code -5d};</li>
- *     <li>the first or the last day of a month, a quarter or a year, whole periods away: {@code month-end},
- *     {@code quarter-end+1}, {@code year-start-1}; after {@code @}, of the period of a named date of the document
- *     instead of today: {@code month-end@issued}, {@code month-start+1@signed};</li>
- *     <li>a named date of the document: {@code issued};</li>
- *     <li>any of them, days away: {@code issued-20d}, {@code year-end-14d}, {@code month-start+1@signed+9d};</li>
- *     <li>a date of ISO 8601, which stays where it is: {@code 2026-10-21}.</li>
- * </ul>
- * A time of the history is a date and the time of day, {@code issued 09:42}, or a date and time of ISO 8601,
- * {@code 2026-10-21T09:15}. A name, a field or a text puts a named date in with a format of the set,
- * {@code {due:long}}, and a year with {@code {year:-1}}, {@code {year:+1}}, {@code {year:issued}} or
- * {@code {year:issued-1}}.
+ * Computes the dates of a demo set for the day the set loads, today. A date is {@code today} or days from it
+ * ({@code -5d}); the first or last day of a month, a quarter or a year, whole periods away ({@code quarter-end+1}), and
+ * after {@code @}, of the period of a named date instead of today ({@code month-end@issued}); a named date of the
+ * document ({@code issued}); any of these, days away ({@code month-start+1@signed+9d}); or a date of ISO 8601, which
+ * stays where it is. A time of the history is a date and the time of day ({@code issued 09:42}) or a date and time of
+ * ISO 8601, and a name, a field or a text puts in a named date with a format of the set ({@code {due:long}}) and a year
+ * ({@code {year:-1}}, {@code {year:issued-1}}).
  */
 public class DemoCalendar {
 
@@ -61,8 +54,6 @@ public class DemoCalendar {
     /**
      * Creates the calendar of a set for a day.
      *
-     * @param today   the day the set loads
-     * @param locale  the language of the set, which names the months
      * @param formats the formats of the dates of the set by their names, as patterns of {@link DateTimeFormatter}
      * @throws IllegalArgumentException when a format is not a pattern of a date
      */
@@ -96,10 +87,7 @@ public class DemoCalendar {
     /**
      * Computes the named dates of a document, each after the dates it refers to.
      *
-     * @param declared the expressions of the dates by their names
-     * @throws IllegalArgumentException when a name is not a word in camelCase or is taken, an expression cannot be
-     *                                  read, a date refers to a name the document does not declare, or dates refer
-     *                                  to each other
+     * @throws IllegalArgumentException when a name or an expression is not valid, or dates refer to each other
      */
     public Dates datesOf(Map<String, String> declared) {
         for (Map.Entry<String, String> date : declared.entrySet()) {

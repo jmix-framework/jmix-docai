@@ -9,10 +9,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 /**
- * A cache whose entries belong to scopes: each key carries the scope of the thread, its own or the one of the browser
- * whose command it runs, so a scope reads and fills only its own entries, and clearing the cache in a scope drops the
- * entries of that scope only. Without a scope a key stays as it is, an entry of the control part, and clearing the
- * cache drops every entry.
+ * A cache whose entries belong to scopes: each key carries the scope of the thread, so a scope reads, fills and clears
+ * only its own entries. Without a scope a key stays as it is, and clearing the cache drops every entry.
  */
 public class StandScopedCache implements Cache {
 
@@ -24,9 +22,6 @@ public class StandScopedCache implements Cache {
 
     /**
      * The key of an entry of a scope.
-     *
-     * @param scope the scope whose thread put the entry
-     * @param key   the key the cache was given
      */
     public record ScopedKey(StandScope scope, Object key) {
     }
@@ -87,8 +82,7 @@ public class StandScopedCache implements Cache {
     }
 
     /**
-     * Drops the entries of the scope of the thread, as a change of a type or a role in its database needs; without a
-     * scope drops every entry.
+     * Drops the entries of the thread's scope, which a changed type or role needs; without a scope drops all.
      */
     @Override
     public void clear() {

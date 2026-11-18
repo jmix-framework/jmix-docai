@@ -15,8 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The rows that the restore and the purge of the trash share, read past the soft deletion and the access rules:
- * the items of the trash, locked for a change, the whole folder tree and the deleted documents of folders.
+ * The rows that the restore and the purge of the trash share, read past the soft deletion and the access rules.
  */
 @Component
 public class TrashRows {
@@ -28,9 +27,8 @@ public class TrashRows {
     }
 
     /**
-     * Locks the rows with the ids that lie in the trash until the transaction ends and returns them; a row no longer
-     * in the trash is left out. A restore and a purge of the same items take the same locks, so one waits for the
-     * other.
+     * Locks the rows with the ids that lie in the trash until the transaction ends and returns them; a restore and a
+     * purge of the same items take the same locks, so one waits for the other.
      */
     public <E> List<E> lockDeleted(Class<E> type, Collection<UUID> ids) {
         if (ids.isEmpty()) {
@@ -46,8 +44,7 @@ public class TrashRows {
     }
 
     /**
-     * Returns the whole folder tree, the deleted folders too: a path names the folders on the way also to those who
-     * may not open them.
+     * Returns the whole folder tree, the deleted folders too, so a path names every folder on the way.
      */
     public FolderIndex loadTree() {
         return FolderIndex.of(unconstrainedDataManager.load(Folder.class)

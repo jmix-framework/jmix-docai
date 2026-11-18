@@ -53,8 +53,6 @@
         <createIndex indexName="IDX_DOCUMENT_STATUS_TARGET_TARGET" tableName="DOCUMENT_STATUS_TARGET">
             <column name="TARGET_ID"/>
         </createIndex>
-        <!-- plain keys, as Studio maps a many-to-many join table: the status service takes a deleted status out of
-             the lists of the others in the same save -->
         <addForeignKeyConstraint baseTableName="DOCUMENT_STATUS_TARGET" baseColumnNames="STATUS_ID"
                                  referencedTableName="DOCUMENT_STATUS" referencedColumnNames="ID"
                                  constraintName="FK_DOCUMENT_STATUS_TARGET_ON_STATUS"/>
@@ -63,7 +61,6 @@
                                  constraintName="FK_DOCUMENT_STATUS_TARGET_ON_TARGET"/>
     </changeSet>
 
-    <!-- the defaults keep the lifecycle of the former enum: Draft -> Active <-> Archived -->
     <changeSet id="3" author="jmix-docai" context="!cuba">
         <insert tableName="DOCUMENT_STATUS" dbms="postgresql, mssql, hsqldb, h2">
             <column name="ID" value="0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e01"/>

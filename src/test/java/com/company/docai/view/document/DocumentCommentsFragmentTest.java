@@ -19,12 +19,12 @@ import com.company.docai.test_support.TestFiles;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.avatar.Avatar;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.internal.nodefeature.ElementListenerMap;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
 import io.jmix.core.metamodel.datatype.DatatypeFormatter;
@@ -43,7 +43,6 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.dialog.DialogInfo;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.ViewControllerUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -59,17 +58,15 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The comments tab of the document card, used by peter, an employee who may change the documents of the sandbox
- * unless a test gives a document an access of its own. The list of the tab draws its rows only when a browser asks
- * for them, so a test reads the comments the list holds and makes the row of one comment the way the fragment
- * renderer of the list does; the rows in the browser are checked by the walk.
+ * The comments tab of the document card, used by peter, an employee. The list of the tab draws its rows only when a
+ * browser asks for them, so a test reads the comments the list holds.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -261,7 +258,19 @@ class DocumentCommentsFragmentTest {
         assertThat(length.getText()).startsWith("4");
     }
 
-    // on a narrow screen the buttons of a comment go to the next line instead of past its edge
+    // Esc closes the card, which would drop the text: the new comment and the change of one keep the key while their
+    // field holds text, and an empty field lets it close the card
+    @Test
+    void bothCommentFieldsKeepEscWhileTheyHoldText() {
+        post(AUTHOR, "Check item 4.2");
+        DocumentDetailView card = openCommentsTab();
+        DocumentCommentItemFragment row = row(card, items(card).getFirst());
+        this.<JmixButton>inner(row, "editCommentButton").click();
+
+        assertThat(keepsEscWhileItHoldsText(inner(comments(card), "commentField"))).isTrue();
+        assertThat(keepsEscWhileItHoldsText(inner(row, "editCommentField"))).isTrue();
+    }
+
     @Test
     void theHeaderOfACommentWraps() {
         post(AUTHOR, "Check item 4.2");
@@ -370,8 +379,7 @@ class DocumentCommentsFragmentTest {
     @Test
     void theTimeOfACommentIsInThePersonsTimeZone() {
         backdate(post("alice", "Check item 4.2"), OffsetDateTime.of(2020, 1, 15, 12, 0, 0, 0, ZoneOffset.UTC));
-        // the person works in Kiritimati, where noon in UTC is already the next day; the user of the test's login
-        // is loaded for this test alone
+        // in Kiritimati noon in UTC is already the next day; the user of the test's login is loaded for this test alone
         ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
 
         DocumentDetailView card = openCommentsTab();
@@ -412,7 +420,6 @@ class DocumentCommentsFragmentTest {
         return component(card, "comments");
     }
 
-    // the comments the list holds, in its order
     private List<DocumentComment> items(DocumentDetailView card) {
         JmixVirtualList<DocumentComment> list = inner(comments(card), "commentsList");
 
@@ -427,8 +434,7 @@ class DocumentCommentsFragmentTest {
                 .toList();
     }
 
-    // the row of the comment as the fragment renderer of the list makes it: a fragment with the comments tab as
-    // its parent, given the comment
+    // the row as the fragment renderer of the list makes it, with the comments tab as its parent
     private DocumentCommentItemFragment row(DocumentDetailView card, DocumentComment comment) {
         DocumentCommentItemFragment row = fragments.create(comments(card), DocumentCommentItemFragment.class);
         row.setItem(comment);
@@ -436,17 +442,17 @@ class DocumentCommentsFragmentTest {
         return row;
     }
 
-    private static Button dialogButton(DialogAction.Type type) {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-
-        return dialog.getButtons().stream()
-                .filter(button -> button.getId().equals(Optional.of(type.getId())))
-                .findFirst()
-                .orElseThrow();
-    }
-
     private <T> T component(DocumentDetailView card, String id) {
         return UiTestUtils.getComponent(card, id);
+    }
+
+    // the browser stops the key on the field, so the server never hears it: only the listener tells
+    private static boolean keepsEscWhileItHoldsText(Component field) {
+        return field.getElement()
+                .getNode()
+                .getFeature(ElementListenerMap.class)
+                .getExpressions("keydown")
+                .contains("(event.key === 'Escape' && !!element.value) && event.stopPropagation()");
     }
 
     @SuppressWarnings("unchecked")

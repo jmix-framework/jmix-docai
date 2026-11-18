@@ -4,8 +4,7 @@ import jakarta.servlet.http.Cookie;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The cookie that keeps the key of the visitor's copy in the browser until the browser closes. It is not tied to the
- * HTTP session, so a logout and the next login keep the copy.
+ * The cookie with the key of the visitor's copy, which outlives a logout until the browser closes.
  */
 public final class CopyCookie {
 
@@ -36,9 +35,6 @@ public final class CopyCookie {
 
     /**
      * Makes the cookie with the key of a copy: HttpOnly, SameSite=Lax, Secure over HTTPS, without an expiry.
-     *
-     * @param secure      whether the request came over HTTPS
-     * @param contextPath the path of the application, whose requests carry the cookie
      */
     public static Cookie of(String key, boolean secure, String contextPath) {
         Cookie cookie = new Cookie(NAME, key);

@@ -32,12 +32,14 @@ import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.icon.Icons;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.settings.UserSettingsCache;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
+import io.jmix.flowui.testassist.notification.NotificationInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -182,6 +184,7 @@ class FavoritesFragmentTest {
         button(view, "lease.txt", 0).click();
 
         DocumentDetailView card = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(card).isNotNull();
         assertThat(card.getEditedEntity()).isEqualTo(lease);
     }
 
@@ -193,8 +196,10 @@ class FavoritesFragmentTest {
         documentService.delete(List.of(lease));
 
         button(view, "lease.txt", 0).click();
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
 
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.getMessage(DocumentDetailView.class, "documentUnavailable"));
         assertThat(rows(view)).isEmpty();
     }
@@ -291,7 +296,9 @@ class FavoritesFragmentTest {
         RepositoryView view = open(contracts);
         TreeDataGrid<Folder> tree = treeComponent(view, "foldersTree");
 
-        tree.getAction("renameFolderAction").actionPerform(tree);
+        Action rename = tree.getAction("renameFolderAction");
+        assertThat(rename).isNotNull();
+        rename.actionPerform(tree);
         FolderDetailView dialog = UiTestUtils.getLastOpenedViewDialog();
         UiTestUtils.<TypedTextField<String>>getComponent(dialog, "nameField").setValue("Agreements");
         UiTestUtils.<JmixButton>getComponent(dialog, "saveButton").click();
@@ -329,7 +336,6 @@ class FavoritesFragmentTest {
         return UiTestUtils.getCurrentView();
     }
 
-    // a row shows the name, then the folder it lies in
     private List<String> rows(RepositoryView view) {
         return this.<VerticalLayout>favoritesComponent(view, "favoritesBox").getChildren()
                 .map(row -> row.getChildren()
@@ -353,7 +359,6 @@ class FavoritesFragmentTest {
                 .get(index);
     }
 
-    // the favorites are a section of the folder tree
     private FavoritesFragment favorites(RepositoryView view) {
         return treeComponent(view, "favorites");
     }
@@ -362,7 +367,6 @@ class FavoritesFragmentTest {
         return treeComponent(view, "favoritesDetails");
     }
 
-    // the filter above the frame serves both sections
     private TypedTextField<String> filterField(RepositoryView view) {
         return treeComponent(view, "folderFilterField");
     }

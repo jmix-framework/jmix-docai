@@ -25,11 +25,9 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Chooses the visitor's copy of the demo data on the stand by its language. At the login it is the language of the
- * login form: the copy of the browser when it is in that language, else a new copy of the template of the language,
- * which takes the place of the browser's copy in another language. After the login the visitor moves to a new copy
- * in another language as the same user. A copy that is replaced goes after the response, in a job of the scheduler,
- * see {@link CopyDeletionJob}.
+ * Chooses the visitor's copy of the demo data on the stand by its language, at the login and at a change of the
+ * language after it. A copy that is replaced goes after the response, in a job of the scheduler, see
+ * {@link CopyDeletionJob}.
  */
 @Component
 @Profile("stand")
@@ -45,7 +43,6 @@ public class StandLogin {
     private final AuthenticationManager authenticationManager;
     private final SystemAuthenticator systemAuthenticator;
     private final StandSignIn signIn;
-    // the Quartz scheduler of the application, which runs the other jobs of the stand too
     private final Scheduler scheduler;
 
     public StandLogin(CopyRegistry registry,
@@ -63,10 +60,7 @@ public class StandLogin {
     }
 
     /**
-     * The language the login form opens with: the one of the browser's copy, so that the next login keeps the copy,
-     * else English.
-     *
-     * @param locales the languages the form offers; the result is one of them
+     * The language the login form opens with: the one of the browser's copy, so the next login keeps it, else English.
      */
     public Locale formLocale(List<Locale> locales) {
         String language = browserCopy()
@@ -80,8 +74,7 @@ public class StandLogin {
     }
 
     /**
-     * Whether a login in the language starts the demo anew: the browser has a copy in another language, which a new
-     * copy replaces.
+     * Whether a login in the language starts the demo anew, replacing the browser's copy in another language.
      */
     public boolean startsAnew(Locale locale) {
         return browserCopy()
@@ -97,16 +90,14 @@ public class StandLogin {
     }
 
     /**
-     * Chooses the copy for a login in the language and binds its scope to the rest of the request, so that the
-     * credentials are checked against the users of the copy and the views open in it. A login that needs a new copy
-     * checks the credentials against the demo users of the control database first, so that no copy is made for them
-     * in vain; the new copy puts its key into the cookie of the browser and into its HTTP session, and the browser's
-     * copy in another language goes after the response.
+     * Chooses the copy for a login in the language and binds its scope to the rest of the request. A login that needs a
+     * new copy checks the credentials against the demo users of the control database first, so that no copy is made for
+     * them in vain.
      *
      * @throws TemplateNotReadyException when the template of the language is not ready yet, before any change
      * @throws CopyNotMadeException      when the new copy cannot be made, which leaves the browser's copy as it is
-     * @throws org.springframework.security.core.AuthenticationException when a new copy is due and the control
-     *         database does not take the credentials, before any change
+     * @throws org.springframework.security.core.AuthenticationException when a new copy is due and the control database
+     *         does not take the credentials, before any change
      */
     public Copy prepare(Locale locale, String username, String password) {
         String language = locale.getLanguage();
@@ -125,20 +116,16 @@ public class StandLogin {
 
     /**
      * Moves the signed-in visitor of the current request to a new copy of the template of the language without asking
-     * for the password: the user of the session is signed in to the new copy as the same user, see
-     * {@link StandSignIn}, the copy puts its key into the cookie of the browser and into its HTTP session, and the copy
-     * the request works in goes after the response. The scope of the new copy is bound to the rest of the request. A
-     * failure before the session works as the new authentication puts the old copy back into the cookie, the session
-     * and the scope, and deletes the new one. The copy the request works in stays when it is in the language.
+     * for the password, see {@link StandSignIn}; the copy the request works in goes after the response. A failure
+     * before the session works as the new authentication puts the old copy back and deletes the new one.
      *
      * @throws SessionAuthenticationException when the HTTP session of the request is over or the request works in no
      *                                        copy, before any change
      * @throws TemplateNotReadyException      when the template of the language is not ready yet, before any change
      * @throws CopyNotMadeException           when the new copy cannot be made, before any change
      * @throws org.springframework.security.core.AuthenticationException when the session has no login of the
-     *         application, a validator of Jmix's login refuses, or the user is not in the templates or may not sign in,
-     *         before any change; when the new copy refuses the user, the copy is deleted and the visitor stays as they
-     *         were
+     *         application or the user may not sign in, before any change; when the new copy refuses the user, the copy
+     *         is deleted
      * @throws io.jmix.core.security.AccessDeniedException when the user may not use the UI in the new copy, likewise
      */
     public Copy switchLanguage(Locale locale) {
@@ -197,9 +184,8 @@ public class StandLogin {
         checkReady(language);
         checkBrowserRequest();
 
-        // the demo users of the control database are those of every template, while the browser's copy may have
-        // changed its own; the control part reads them as the system, since a session signed in to a copy may send
-        // the form again, and the visitor of that session reaches no control database
+        // the demo users of the control database are those of every template, while the browser's copy may have changed
+        // its own; they are read as the system, as the visitor of a signed-in session reaches no control database
         Authentication credentials = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
 
         StandScopeHolder.runInControl(() -> systemAuthenticator.runWithSystem(() ->
@@ -277,7 +263,6 @@ public class StandLogin {
         }
     }
 
-    // the failure that made the copy useless is the one to report
     private void deleteAfterFailure(Copy copy, RuntimeException failure) {
         try {
             copyFactory.delete(copy.key());
@@ -286,8 +271,7 @@ public class StandLogin {
         }
     }
 
-    // the browser works in the new copy from now on: the old one goes in a job of the scheduler, so that no tab of the
-    // visitor waits for its deletion, which waits for a document of the copy being indexed
+    // the old copy goes in a scheduler job, so no tab waits for its deletion, which waits for a document being indexed
     private void deleteLater(Copy copy) {
         JobDetail deletion = JobBuilder.newJob(CopyDeletionJob.class)
                 .usingJobData(CopyDeletionJob.COPY, copy.key())

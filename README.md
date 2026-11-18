@@ -17,6 +17,7 @@ Jmix DocAI is a reference document management system with AI, built on [Jmix](ht
 - [Domain Model](#️-domain-model)
 - [Role Model](#-role-model)
 - [More about Jmix](#ℹ️-more-about-jmix)
+- [License](#-license)
 
 ## 📖 Overview
 
@@ -257,7 +258,7 @@ The sets lie in `src/main/resources/com/company/docai/demo/`: `demo-data.json` a
 | `maria` | `maria` | Maria Lopez | Employee, Accounting | Controller |
 | `john` | `john` | John Doe | Employee, Legal department | Lawyer |
 
-The employees and their department roles come from the demo changelog `020-demo-users.xml`; delete it before the first start of a real deployment. The Russian set gives the employees Russian names, with the same logins and passwords.
+The employees and their department roles come from the demo changelog `020-demo-users.xml`; delete it, and set `DOCAI_DEMO_DATA` to `none`, before the first start of a real deployment. The Russian set gives the employees Russian names, with the same logins and passwords.
 
 > **Warning:** these are development credentials, and the `local` profile pre-fills the login form. Before you deploy the application anywhere, change the `admin` password and run it with another profile: `stand`, which Compose sets, or, for example, `prod`.
 
@@ -334,3 +335,7 @@ A user gets the highest level among their entries. The root gives the Employee r
 | 💻 GitHub | https://github.com/jmix-framework/jmix |
 | 🎥 YouTube | https://www.youtube.com/@jmixframework |
 | 💼 LinkedIn | https://www.linkedin.com/company/jmix-framework |
+
+## 📄 License
+
+Apache License 2.0, see [LICENSE](LICENSE).

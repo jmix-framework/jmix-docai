@@ -28,10 +28,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * A move carries access along: a folder or a document that inherits takes the access of its new place, together
- * with what inherits from it, deleted items included; one with its own access keeps it. The tree: "Projects/Alpha"
- * inherits from the root; "Projects/Beta" and "Closed" have their own access; "Alpha/budget.txt" has its own
- * access for helen alone.
+ * A move carries access along: an item that inherits takes the access of its new place, one with its own access keeps
+ * it.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)

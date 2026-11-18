@@ -56,13 +56,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * The folder tree of the repository with the folder actions, the folder filter, which narrows the favorites too, and
- * the document counts. It stands in the main menu, so it is the same on every view; the repository plugs its own
- * handlers in while it is shown.
- * The folders on the way to what the user has access to are greyed, and the actions follow the user's level
- * in the selected folder. A folder is moved by dragging it onto another one, and documents are moved by dropping
- * them on a folder: while something is dragged, only the folders that may take it accept the drop. Folders and
- * documents dropped on the favorites, the first section of the frame, are marked as favorites.
+ * The folder tree of the repository with the folder actions, the folder filter and the document counts. It stands in
+ * the main menu, so it is the same on every view; the repository plugs its own handlers in while it is shown.
  */
 @FragmentDescriptor("folder-tree-fragment.xml")
 public class FolderTreeFragment extends Fragment<VerticalLayout> {
@@ -144,8 +139,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Offers the folders that may take the documents being dragged: those the user may change, except the shown
-     * folder, which holds them. An empty list ends the offer.
+     * Offers the folders that may take the dragged documents; an empty list ends the offer.
      */
     public void setDraggedDocuments(List<Document> documents) {
         draggedDocuments = List.copyOf(documents);
@@ -166,12 +160,9 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Reloads the tree and selects the folder. A folder that is gone or no longer available to the user gives way
-     * to the nearest folder above it that the tree still shows, or to the root, with a notification. The filter
-     * is cleared, so the folder is in sight.
+     * Reloads the tree and selects the folder, or, when it is gone, the nearest one above it the tree still shows.
      */
     public void loadAndSelect(@Nullable UUID folderId) {
-        // the way up as the tree showed it before the reload, the folder itself first
         List<Folder> way = folderId == null || !allFolders.contains(folderId)
                 ? List.of()
                 : getPath(allFolders.get(folderId)).reversed();
@@ -200,8 +191,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Loads the folders and their document counts without choosing one, as a view other than the repository
-     * shows the tree. The root is open, so the folders under it are in sight.
+     * Loads the folders and their document counts without choosing one, the root open.
      */
     public void load() {
         foldersDl.load();
@@ -209,7 +199,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
 
         documentCounts = folderService.countDocuments(allFolders.folders());
 
-        // the field keeps its text across the reload, so the tree shows what the field says
         String filter = folderFilterField.getValue();
 
         if (filter != null && !filter.isBlank()) {
@@ -243,8 +232,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Selects the folder and scrolls to it. The folders above it open, and the root is open even when it is
-     * the selected one.
+     * Selects the folder and scrolls to it, the folders above it open.
      */
     public void select(Folder folder) {
         List<Folder> path = getPath(folder);
@@ -254,7 +242,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * The folder whose documents are shown. It stays selected while the filter hides it from the tree.
+     * The folder whose documents are shown, also while the filter hides it.
      */
     @Nullable
     public Folder getSelectedFolder() {
@@ -269,8 +257,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Puts a component under the folders, where it scrolls with them while the folder field and its button stay in
-     * sight. The main view puts the views of its menu there.
+     * Puts a component under the folders, where it scrolls with them.
      */
     public void addUnderFolders(Component component) {
         treeFrame.add(component);
@@ -296,8 +283,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         return tree.folders();
     }
 
-    // the header of the favorites carries a star, as a folder of the tree carries its icon; the descriptor gives
-    // a details a summary text only
     @Subscribe
     public void onReady(final ReadyEvent event) {
         Span summary = uiComponents.create(Span.class);
@@ -305,16 +290,12 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         summary.add(icons.get(JmixFontIcon.STAR), new Text(favoritesDetails.getSummaryText()));
         favoritesDetails.setSummary(summary);
 
-        // the whole section takes a drop, the header of the closed one too
         DropTarget.create(favoritesDetails)
                 .addDropListener(this::onFavoritesDrop);
 
-        // the main menu shows the tree on every view, so it loads the folders and the favorites as soon as it is
-        // created; the repository loads them again when it shows a folder
         load();
         favorites.reload();
 
-        // a right click selects the folder under the pointer, so the menu acts on that folder
         foldersTree.getContextMenu().addGridContextMenuOpenedListener(menu -> {
             if (menu.isOpened()) {
                 menu.getItem().ifPresent(foldersTree::select);
@@ -324,9 +305,7 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
 
     @Subscribe("foldersTree")
     public void onFoldersTreeSelection(final SelectionEvent<TreeDataGrid<Folder>, Folder> event) {
-        // unlike the item tracking actions, a new folder is not refreshed by the selection
         createFolderAction.refreshState();
-        // only those who manage the folder learn that its access can be changed
         accessFolderAction.setVisible(accessFolderActionEnabledRule());
 
         Folder folder = foldersTree.getSingleSelectedItem();
@@ -339,8 +318,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         }
     }
 
-    // a folder goes onto a folder the user may change, but not where it already is, nor into itself or below; one
-    // the user may not change goes only to the favorites
     @Subscribe("foldersTree")
     public void onFoldersTreeDragStart(final GridDragStartEvent<Folder> event) {
         Folder folder = event.getDraggedItems().getFirst();
@@ -364,7 +341,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         stopDrop();
     }
 
-    // the drop comes before the end of the drag, which forgets what was dragged
     @Subscribe("foldersTree")
     public void onFoldersTreeDrop(final GridDropEvent<Folder> event) {
         Folder target = event.getDropTargetItem().orElse(null);
@@ -381,8 +357,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         }
     }
 
-    // the table and the tree put the rows they drag into the drag data: all the selected rows when one of them is
-    // dragged; the closed section opens to show what was dropped on its header
     private void onFavoritesDrop(DropEvent<JmixDetails> event) {
         if (event.getDragData().orElse(null) instanceof Collection<?> rows) {
             List<?> targets = rows.stream()
@@ -407,7 +381,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         boolean filtered = applyFilter(event.getValue());
 
         if (!filtered && selectedFolder != null) {
-            // a cleared filter brings back the folder whose documents are shown
             select(selectedFolder);
         }
     }
@@ -508,7 +481,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         favorites.reload();
     }
 
-    // the root is always one click away, and a greyed folder is only the way to others
     @Install(to = "foldersTree.favoriteAction", subject = "enabledRule")
     private boolean favoriteActionEnabledRule() {
         Folder folder = foldersTree.getSingleSelectedItem();
@@ -538,7 +510,6 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
         return folder != null && tree.levels().allows(folder.getAccessSet(), level);
     }
 
-    // the key tells a manager where access stops being inherited
     private boolean showsOwnAccess(Folder folder) {
         Folder parent = allFolders.parentOf(folder);
 

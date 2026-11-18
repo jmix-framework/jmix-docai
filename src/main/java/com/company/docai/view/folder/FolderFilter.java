@@ -15,9 +15,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * The name filter of the folder trees, in the main menu and in the folder lookup: a tree shows the folders whose name
- * contains the text of its filter field, together with the folders above them; the search palette matches a part of
- * the name the same way, without the folders above.
+ * The name filter of the folder trees and of the search palette; a tree keeps the folders above a match.
  */
 @Component
 public class FolderFilter {
@@ -29,8 +27,9 @@ public class FolderFilter {
     }
 
     /**
-     * Shows in the tree the folders whose shown name contains the text with their parents, all of them open; an
-     * empty text shows every folder. Returns whether the text filters the folders.
+     * Shows in the tree the folders whose shown name contains the text, with their parents, all open.
+     *
+     * @return whether the text filters the folders
      */
     public boolean filterTree(TreeDataGrid<Folder> tree, CollectionContainer<Folder> container,
                               Collection<Folder> folders, @Nullable String text) {
@@ -45,8 +44,7 @@ public class FolderFilter {
     }
 
     /**
-     * Returns the folders whose shown name contains the text, ignoring case, together with their parents among
-     * the given folders, in the given order. An empty text keeps every folder.
+     * Returns the folders whose shown name contains the text, ignoring case, with their parents among the given ones.
      */
     public List<Folder> filterByName(Collection<Folder> folders, @Nullable String text) {
         if (text == null || text.isBlank()) {
@@ -74,8 +72,7 @@ public class FolderFilter {
     }
 
     /**
-     * Returns at most {@code max} of the folders whose shown name contains the text, ignoring case, in the given
-     * order and without their parents; a blank text finds none.
+     * Returns at most {@code max} folders whose shown name contains the text, ignoring case, without their parents.
      */
     public List<Folder> findByName(Collection<Folder> folders, @Nullable String text, int max) {
         if (text == null || text.isBlank()) {

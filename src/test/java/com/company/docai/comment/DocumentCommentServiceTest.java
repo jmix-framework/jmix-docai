@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The rules of the comments: the text, who changes and deletes a comment, and what a comment leaves untouched.
- * peter and alice are employees who may change the documents of the sandbox; admin has full access.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -217,7 +216,6 @@ class DocumentCommentServiceTest {
         return systemAuthenticator.withUser(username, () -> commentService.post(document, text));
     }
 
-    // a message in the language the user gets it in
     private String message(String username, String key, Object... args) {
         return systemAuthenticator.withUser(username,
                 () -> messages.formatMessage(DocumentCommentService.class, key, args));

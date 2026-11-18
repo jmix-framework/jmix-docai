@@ -13,8 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 
 /**
- * The vocabulary of tags, which the administrator keeps: a tag gets its name in a dialog, and a tag in use is not
- * deleted. Employees add tags from the document card.
+ * The vocabulary of tags, which the administrator keeps; employees add tags from the document card.
  */
 @Route(value = "tags", layout = MainView.class)
 @ViewController(id = "Tag.list")

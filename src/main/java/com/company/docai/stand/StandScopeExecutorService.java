@@ -6,9 +6,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An executor that runs each task in the scope its submitter works with, taken when the task is submitted: the scope
- * of the submitting thread, else the one of the browser whose command the thread runs. A task submitted without a
- * scope runs as it would without the stand.
+ * An executor that runs each task in the scope its submitter works with, taken when the task is submitted; a task
+ * submitted without a scope runs as it would without the stand.
  */
 public class StandScopeExecutorService extends AbstractExecutorService {
 

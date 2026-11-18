@@ -19,9 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Set;
 
 /**
- * Names a new folder or renames one. A new folder shows the folder it goes into; an existing folder
- * changes its parent only by a move. Saves through {@link FolderService}, which rejects a name that is
- * taken in the parent folder.
+ * Names a new folder or renames one; an existing folder changes its parent only by a move.
  */
 @ViewController(id = "Folder.detail")
 @ViewDescriptor(path = "folder-detail-view.xml")

@@ -13,25 +13,29 @@ import io.jmix.core.Id;
 import io.jmix.search.utils.FileProcessor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 
+import static com.company.docai.test_support.TestSamples.png;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -105,9 +109,10 @@ class DocumentTextReaderTest {
                 .hasValueSatisfying(text -> assertThat(text).contains("Chamomile Trading LLC"));
     }
 
-    @Test
-    void aPictureHasNoText() {
-        UploadedFile file = TestFiles.file(tempDir, "scan.png", png());
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("filesWithoutText")
+    void aFileWhoseTextCannotBeReadHasNoText(String fileName, byte[] content) {
+        UploadedFile file = TestFiles.file(tempDir, fileName, content);
 
         assertThat(documentTextReader.read(new NewVersion.FromFile(file))).isEmpty();
     }
@@ -119,20 +124,6 @@ class DocumentTextReaderTest {
         documentTextReader.read(new NewVersion.FromFile(file));
 
         assertThat(output).contains("scan-0412.png", "image/png");
-    }
-
-    @Test
-    void aFileOfAnUnknownFormatHasNoText() {
-        UploadedFile file = TestFiles.file(tempDir, "data.bin", new byte[]{0, 1, 2, 3, (byte) 0xFF, (byte) 0xFE});
-
-        assertThat(documentTextReader.read(new NewVersion.FromFile(file))).isEmpty();
-    }
-
-    @Test
-    void aBrokenFileHasNoText() {
-        UploadedFile file = TestFiles.file(tempDir, "contract.pdf", "%PDF-1.7\nnot a document\n%%EOF");
-
-        assertThat(documentTextReader.read(new NewVersion.FromFile(file))).isEmpty();
     }
 
     @Test
@@ -162,12 +153,12 @@ class DocumentTextReaderTest {
         }
     }
 
-    private static byte[] png() {
-        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
-            ImageIO.write(new BufferedImage(40, 20, BufferedImage.TYPE_INT_RGB), "png", bytes);
-            return bytes.toByteArray();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private static Stream<Arguments> filesWithoutText() {
+        return Stream.of(
+                Arguments.of(Named.of("a picture", "scan.png"), png()),
+                Arguments.of(Named.of("an unknown format", "data.bin"),
+                        new byte[]{0, 1, 2, 3, (byte) 0xFF, (byte) 0xFE}),
+                Arguments.of(Named.of("a broken file", "contract.pdf"),
+                        "%PDF-1.7\nnot a document\n%%EOF".getBytes(StandardCharsets.UTF_8)));
     }
 }

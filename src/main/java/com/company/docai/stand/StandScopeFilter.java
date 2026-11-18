@@ -15,11 +15,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
- * Binds the visitor's copy to every request of the browser, before the security of the application reads any user:
- * the cookie names the copy, the copy counts as used, the thread of the request works in its scope, and the HTTP
- * session keeps the scope for the commands Vaadin runs outside the requests. A request with no cookie, a forged one or
- * the one of a deleted copy binds no scope; when its session still keeps a deleted copy, the session is over, so the
- * visitor gets back to the login form instead of a session that reaches no data.
+ * Binds the visitor's copy to every request of the browser, before the security of the application reads any user: the
+ * cookie names the copy, and the HTTP session keeps the scope for the commands Vaadin runs outside the requests. A
+ * request with no cookie, a forged one or the one of a deleted copy binds no scope; when its session still keeps a
+ * deleted copy, the session is over, so the visitor gets back to the login form.
  */
 @Component
 @Profile("stand")
@@ -59,8 +58,7 @@ public class StandScopeFilter extends OncePerRequestFilter {
         }
     }
 
-    // a session takes the cookie's copy only when it has none, since the copy it has may come from a login newer than
-    // the cookie of this request
+    // a session takes the cookie's copy only when it has none: its own may come from a login newer than this cookie
     private void keepInSession(@Nullable HttpSession session, @Nullable StandScope scope) {
         if (session == null) {
             return;

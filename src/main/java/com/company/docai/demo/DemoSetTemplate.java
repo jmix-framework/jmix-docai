@@ -21,19 +21,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A demo set as its {@code demo-data.json} writes it, with the dates as expressions of {@link DemoCalendar}: the
- * language of the set and the formats its texts write dates in, the names of the users, the statuses, and the folders
- * under the root with their documents. A document declares its named dates once; its date, the fields of a date, the
- * history and the texts refer to them. A version takes a file of the {@code files} folder of the set, or makes its file
- * from a text of the {@code texts} folder: a PDF renders the text, and a plain text file is the text itself.
+ * A demo set as its {@code demo-data.json} writes it, with the dates as expressions of {@link DemoCalendar};
  * {@link #generate} gives the set of a day.
  *
- * @param locale   the language of the set as a tag, {@code en} or {@code ru}; English when left out
- * @param formats  the formats of the dates the texts of the set write, by their names, as patterns of
- *                 {@link java.time.format.DateTimeFormatter}
- * @param users    the names the set gives the users of the changelogs
- * @param statuses the statuses of the set
- * @param folders  the folders under the root
+ * @param locale  the language of the set as a tag, {@code en} or {@code ru}; English when left out
+ * @param formats the formats of the dates the texts of the set write, by their names, as patterns of
+ *                {@link java.time.format.DateTimeFormatter}
  */
 public record DemoSetTemplate(@Nullable String locale, Map<String, String> formats, List<DemoSet.User> users,
                               List<DemoSet.Status> statuses, List<Folder> folders) {
@@ -49,7 +42,6 @@ public record DemoSetTemplate(@Nullable String locale, Map<String, String> forma
             .filter(language -> !language.isEmpty())
             .collect(Collectors.toUnmodifiableSet());
 
-    // a list the description leaves out is empty
     public DemoSetTemplate {
         formats = formats == null ? Map.of() : formats;
         users = users == null ? List.of() : users;
@@ -68,8 +60,7 @@ public record DemoSetTemplate(@Nullable String locale, Map<String, String> forma
     }
 
     /**
-     * Returns the text of the set that a file of a version is made from: the file of the {@code texts} folder of the
-     * set with the name of that file and the extension {@code .txt}.
+     * Returns the text a file of a version is made from: {@code texts/<file name>.txt} of the set.
      */
     public static ClassPathResource text(String set, String file) {
         String name = file.contains(".") ? file.substring(0, file.lastIndexOf('.')) : file;
@@ -95,10 +86,8 @@ public record DemoSetTemplate(@Nullable String locale, Map<String, String> forma
     }
 
     /**
-     * Computes the set for a day: the names, the dates, the fields, the history and the texts of its documents.
+     * Computes the set for a day.
      *
-     * @param set   the name of the set, whose folder holds the texts
-     * @param today the day the set loads
      * @throws IllegalArgumentException when an expression cannot be computed, as the check of the set lists it
      * @throws UncheckedIOException     when a text of the set cannot be read
      */
@@ -127,8 +116,6 @@ public record DemoSetTemplate(@Nullable String locale, Map<String, String> forma
      *
      * @param name       the name of the folder, which may write a year
      * @param access     the own access of the folder, or null when it inherits the access of its parent
-     * @param folders    the subfolders
-     * @param documents  the documents of the folder
      * @param deleted    who deleted the folder and when, or null for a live folder
      * @param favoriteOf the logins of the users who marked the folder as a favorite
      */
@@ -210,9 +197,8 @@ public record DemoSetTemplate(@Nullable String locale, Map<String, String> forma
      * A version of a document: a file of the set, or a file the loader makes from a text of the set.
      *
      * @param file     the name of the file in the {@code files} folder of the set, or null for a file made from a text
-     * @param text     the name of the file made from the text {@link DemoSetTemplate#text(String, String)} returns:
-     *                 a PDF renders the text, another file is the text itself; or null for a file of the
-     *                 {@code files} folder
+     * @param text     the name of the file made from the text {@link DemoSetTemplate#text(String, String)} returns, or
+     *                 null for a file of the {@code files} folder
      * @param author   the login of the user who uploads the version
      * @param uploaded when the version was uploaded: a time of the history
      */

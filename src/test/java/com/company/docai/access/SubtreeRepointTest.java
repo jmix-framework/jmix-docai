@@ -31,10 +31,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Breaking the inheritance of a big branch points everything in it that inherited, deleted items included, to the
- * new set in one save. The branch: 21 folders in three levels with 13 documents each; one leaf has its own access;
- * one second-level folder with its subtree and ten more documents are deleted. Next to the branch lies a folder
- * that must not change.
+ * Breaking the inheritance of a big branch points everything in it that inherited, deleted items included, to the new
+ * set in one save.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)

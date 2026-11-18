@@ -13,8 +13,8 @@ import java.util.UUID;
 
 /**
  * The access of a folder or a document as the access dialog edits it; exactly one of {@code folder} and
- * {@code document} is set. While the item inherits, {@code entries} holds a copy of the inherited entries
- * to start from when the inheritance is broken.
+ * {@code document} is set. While the item inherits, {@code entries} holds a copy of the inherited entries to start from
+ * when the inheritance is broken.
  */
 @JmixEntity(annotatedPropertiesOnly = true)
 public class AccessDraft {
@@ -33,9 +33,6 @@ public class AccessDraft {
     @JmixProperty
     private Boolean inherit;
 
-    /**
-     * The name of the folder or document that owns the set of the parent; null at the root, which cannot inherit.
-     */
     @JmixProperty
     private String inheritedFrom;
 

@@ -23,9 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Finds the tags of the shared vocabulary by name, whatever the case and the spaces around it, and makes new ones.
- * A new tag is not saved here: it joins the vocabulary when the document that carries it is saved. A tag is deleted
- * here, and only while no document carries it.
+ * Finds the tags of the shared vocabulary by name and makes new ones.
  */
 @Service
 public class TagService {
@@ -55,11 +53,10 @@ public class TagService {
     }
 
     /**
-     * Returns the tag of the vocabulary with the name, whatever its case, or a new unsaved tag with the name
-     * without the spaces around it.
+     * Returns the tag with the name, whatever its case, or a new unsaved one.
      *
-     * @throws OperationRejectedException if the name is empty, longer than {@link Tag#MAX_NAME_LENGTH} or holds
-     *                                    a line break or another control character
+     * @throws OperationRejectedException if the name is empty, longer than {@link Tag#MAX_NAME_LENGTH} or holds a line
+     *                                    break or another control character
      */
     public Tag findOrCreate(String name) {
         String stripped = checkName(name);
@@ -98,9 +95,7 @@ public class TagService {
     }
 
     /**
-     * Puts the tags of the vocabulary in place of the tags of the document: a new tag whose name the vocabulary got
-     * meanwhile becomes that tag, a tag deleted meanwhile drops out, and a name twice stays once, whatever its case.
-     * Returns the new tags, which are saved with the document. A document loaded without its tags keeps them.
+     * Puts the tags of the vocabulary in place of the tags of the document and returns the new ones.
      */
     public List<Tag> keepVocabulary(Document document) {
         if (!entityStates.isLoaded(document, "tags") || document.getTags() == null) {
@@ -145,10 +140,9 @@ public class TagService {
     }
 
     /**
-     * Deletes the tag for good unless a document carries it, a document in the trash included: such a document can
-     * come back with its tags. The foreign key of the link table stops the other ways to delete a tag in use.
+     * Deletes the tag for good.
      *
-     * @throws OperationRejectedException if a document carries the tag
+     * @throws OperationRejectedException if a document carries the tag, one in the trash included
      */
     public void delete(Tag tag) {
         long carriers = unconstrainedDataManager.loadValue(
@@ -157,7 +151,6 @@ public class TagService {
                 .hint(PersistenceHints.SOFT_DELETION, false)
                 .one();
 
-        // the documents in the trash are out of sight, so the refusal says where they are
         if (carriers > 0) {
             throw new OperationRejectedException(messages.formatMessage(getClass(),
                     countLiveCarriers(tag) > 0 ? "tagInUse" : "tagInTrash", tag.getName()));
@@ -190,10 +183,9 @@ public class TagService {
     }
 
     /**
-     * Returns at most {@code max} tags whose name contains the text, whatever its case and the spaces around it, in
-     * alphabetical order, each with the number of the live documents with it that the user may see. A tag without such
-     * documents is left out, so the number never tells of the documents of the others; a percent sign or an
-     * underscore in the text is matched as it is.
+     * Returns at most {@code max} tags whose name contains the text, with the number of their documents the user may
+     * see; a tag without any is left out, so the number never tells of the documents of the others. A percent sign or
+     * an underscore in the text is matched as it is.
      */
     public List<TagCount> findByName(String text, int max) {
         String part = text.strip().toLowerCase(Locale.ROOT);

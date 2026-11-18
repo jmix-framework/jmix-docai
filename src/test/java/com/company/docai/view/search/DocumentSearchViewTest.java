@@ -76,8 +76,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * The search results as an employee sees them. The index is replaced: it answers with the documents of the test,
- * and the rest of the way, from the reload through {@code DataManager} to the rows, is real.
+ * The search results as an employee sees them. The index is replaced: it answers with the documents of the test.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})

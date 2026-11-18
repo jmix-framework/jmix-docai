@@ -1,6 +1,5 @@
-/* The dashboard at the root of the main view: the greeting and the question for the assistant over the cards. The
-   cards stand in one, two or three columns by the width that the window and the menu leave the dashboard, and each
-   card lays out its rows by its own width */
+/* The dashboard at the root of the main view: the cards stand in one, two or three columns by the width that the
+   window and the menu leave the dashboard */
 
 .dashboard {
     flex: none;
@@ -28,8 +27,6 @@
     gap: var(--vaadin-gap-s);
 }
 
-/* The question is the main control of the page: its field takes the row, and its frame and icon wear the accent of
-   AI, as the other AI controls do */
 .dashboard-question {
     flex: 1 1 auto;
     min-width: 0;
@@ -58,11 +55,9 @@
     white-space: nowrap;
 }
 
-/* A narrow dashboard shows the cards in one column in the order of the page. A wider one has two columns about 3:2,
-   the main one with the dates, the documents without a type and the changes, the side one with the chats and the
-   summary; a wide one has three about equal, the main column's cards taking two of them with the changes beside the
-   other two, so the order of reading stays that of the page. The changes stand over both rows there, and the second
-   row takes what they need beyond the dates, so the documents without a type stay right under the dates */
+/* One column on a narrow dashboard, two about 3:2 on a wider one and three on a wide one, so the order of reading
+   stays that of the page; the second row takes what the changes need beyond the dates, so the documents without a
+   type stay right under the dates */
 .dashboard-columns {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -112,7 +107,6 @@
     line-height: var(--vaadin-card-title-line-height);
 }
 
-/* the number of the documents follows the title in grey */
 .dashboard-card-counted::after {
     content: attr(data-count);
     margin-inline-start: var(--vaadin-gap-s);
@@ -125,8 +119,6 @@
     width: 100%;
 }
 
-/* A row is a line of the list: a button that opens what the row shows, as wide as the buttons after it leave it. The
-   name takes the room left and ends with an ellipsis, so the date and the time stay in sight */
 .dashboard-row {
     display: flex;
     align-items: center;
@@ -190,9 +182,6 @@
     font-size: var(--aura-font-size-s);
 }
 
-/* An upcoming date shows the name of the document on the line of the date, and the field and the folder after it,
-   where the name gives way to them. A narrow card has no room for both: the field and the folder go under the name,
-   not under the date, and end with an ellipsis only at the end of their own line */
 .dashboard-row-texts {
     display: flex;
     flex: 1 1 0;
@@ -219,8 +208,6 @@
     }
 }
 
-/* Fill with AI ends the row of a document without a type; a narrow card puts it under the name, which keeps the
-   line */
 @container dashboard-card (width < 28rem) {
     .dashboard-untyped-card .dashboard-row {
         flex-wrap: wrap;
@@ -242,7 +229,6 @@ span.dashboard-row-date,
     padding: var(--vaadin-padding-xs) var(--vaadin-padding-s);
 }
 
-/* the types and the statuses of the summary stand one under the other, and side by side when the card has the room */
 .dashboard-summary-group {
     width: 100%;
 }
@@ -263,7 +249,6 @@ span.dashboard-row-date,
     font-weight: var(--aura-font-weight-semibold);
 }
 
-/* a row of the summary: the name, the bar against the largest number of its group, and the number */
 .dashboard-summary-row {
     display: grid;
     grid-template-columns: minmax(0, 11rem) 1fr auto;
@@ -290,8 +275,7 @@ span.dashboard-row-date,
     background: var(--vaadin-background-container);
 }
 
-/* the bars of the types are neutral, and a status paints its own in its color; the ring keeps a white or a black bar
-   in sight, as on the dot of a status */
+/* the ring keeps a white or a black bar in sight, as on the dot of a status */
 .dashboard-bar-fill {
     height: 100%;
     border-radius: inherit;

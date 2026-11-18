@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://usageHelpView.title">
+    <layout classNames="usage-help">
+        <!-- the bundle of each language holds the scenarios as one piece of markup -->
+        <html id="content" content="msg://usageHelpView.content"/>
+        <p id="privateNote" text="msg://privateNote.text" visible="false" classNames="usage-help-note"/>
+    </layout>
+</view>

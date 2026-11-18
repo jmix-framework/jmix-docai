@@ -57,14 +57,12 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The caches of the stand: the types of documents and the roles kept in the database are cached per scope, so a field
- * that one copy adds to a type and a role that one copy creates stay in that copy, and another copy still saves its
- * documents; a command of a browser reads the entries of its copy on any thread, a deleted copy leaves no entries,
- * every other cache is the one of the application, and outside the stand no cache is per scope. Search is off and the
- * index of fragments lives in memory, as in the other tests.
+ * The caches of the stand, kept per scope for the types of documents and the roles. The class has the configuration of
+ * the stand tests on {@code build/test-stand-files}, {@link StandFilesTest} and {@link StandUploadTypesTest}, so the
+ * three share a Spring context.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class},
-        properties = "docai.stand.data-dir=build/test-stand-caches")
+        properties = "docai.stand.data-dir=build/test-stand-files")
 @ActiveProfiles({"test", "stand"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StandCachesTest {
@@ -115,8 +113,7 @@ class StandCachesTest {
         copies.clear();
     }
 
-    // the cache of the running jobs holds the state of the scheduler, which its threads write without a scope and the
-    // views of every visitor read
+    // the scheduler's threads write its cache without a scope, and the views of every visitor read it
     @Test
     void onlyTheCachesOfTypesAndRolesArePerScope() {
         assertThat(cacheManager).isInstanceOf(StandCacheManager.class);
@@ -136,7 +133,6 @@ class StandCachesTest {
         assertThat(asAdmin(second, () -> fieldsOf(CONTRACT))).doesNotContain(code);
 
         asAdmin(first, () -> addField(code));
-        // before the second copy reads its types again
         Set<StandScope> cachedAfterTheChange = scopesIn(DynAttrMetadata.DYN_ATTR_CACHE_NAME);
 
         assertThat(asAdmin(first, () -> fieldsOf(CONTRACT))).contains(code);
@@ -223,7 +219,6 @@ class StandCachesTest {
         return StandScopeHolder.call(StandScope.copy(key), () -> systemAuthenticator.withUser(ADMIN, work::get));
     }
 
-    // a thread with the session of the browser of the copy and no scope of its own
     private <T> T inBrowserOf(String key, Supplier<T> work) {
         MockHttpSession httpSession = new MockHttpSession();
         httpSession.setAttribute(StandScopeHolder.SESSION_ATTRIBUTE, StandScope.copy(key).id());
@@ -276,7 +271,6 @@ class StandCachesTest {
                 .toList();
     }
 
-    // the type and its fields as the card of a document shows them
     private CategoryDefinition typeOfDocuments(String typeName) {
         return dynAttrMetadata.getCategories(metadata.getClass(Document.class))
                 .stream()
@@ -299,7 +293,6 @@ class StandCachesTest {
                 .one();
     }
 
-    // a visitor types the text into every text field the card of the contract shows, and saves the card
     private Document filled(Document contract, String text) {
         typeOfDocuments(CONTRACT)
                 .getAttributeDefinitions()
@@ -318,7 +311,6 @@ class StandCachesTest {
         return EntityValues.getValue(stored, "+" + code);
     }
 
-    // what a sign-in and the first card read: the types of documents and the roles of the visitor
     private boolean readTheCaches() {
         dynAttrMetadata.getAttributes(metadata.getClass(Document.class));
         resourceRoles.findRoleByCode(FullAccessRole.CODE);

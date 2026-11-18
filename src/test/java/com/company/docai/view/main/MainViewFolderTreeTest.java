@@ -197,6 +197,7 @@ class MainViewFolderTreeTest {
         favoriteButton("lease.txt").click();
 
         DocumentDetailView card = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(card).isNotNull();
         assertThat(card.getEditedEntity()).isEqualTo(lease);
         View<?> current = UiTestUtils.getCurrentView();
         assertThat(current).isInstanceOf(TrashView.class);
@@ -223,7 +224,6 @@ class MainViewFolderTreeTest {
         return UiTestUtils.getCurrentView();
     }
 
-    // the first button of a row of the favorites opens the item
     private JmixButton favoriteButton(String name) {
         VerticalLayout box = (VerticalLayout) FragmentUtils.getComponent(TestMenus.folderTree().getFavorites(),
                 "favoritesBox");

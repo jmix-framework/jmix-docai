@@ -39,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 import java.util.UUID;
 
+import static com.company.docai.test_support.TestGrids.action;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -81,8 +82,10 @@ class FolderDialogsTest {
         nameField(dialog).setValue("Reports");
         saveButton(dialog).click();
 
-        assertThat(folderTree.getSelectedFolder().getName()).isEqualTo("Reports");
-        assertThat(folderTree.getPath(folderTree.getSelectedFolder())).contains(sandbox);
+        Folder selected = folderTree.getSelectedFolder();
+        assertThat(selected).isNotNull();
+        assertThat(selected.getName()).isEqualTo("Reports");
+        assertThat(folderTree.getPath(selected)).contains(sandbox);
     }
 
     @Test
@@ -102,7 +105,7 @@ class FolderDialogsTest {
     void aRenamedFolderShowsOnlyItsName() {
         FolderTreeFragment folderTree = openTree(folder(sandbox, "Clients"));
 
-        foldersTree(folderTree).getAction("renameFolderAction").actionPerform(foldersTree(folderTree));
+        perform(folderTree, "renameFolderAction");
 
         FolderDetailView dialog = UiTestUtils.getLastOpenedViewDialog();
         assertThat(UiTestUtils.<TypedTextField<String>>getComponent(dialog, "parentField").isVisible()).isFalse();
@@ -124,16 +127,19 @@ class FolderDialogsTest {
     void theRootOffersOnlyANewFolder() {
         TreeDataGrid<Folder> tree = foldersTree(openTree(folderService.getRoot()));
 
-        assertThat(tree.getAction("createFolderAction").isEnabled()).isTrue();
+        assertThat(action(tree, "createFolderAction").isEnabled()).isTrue();
         assertThat(List.of("renameFolderAction", "moveFolderAction", "deleteFolderAction"))
-                .allSatisfy(actionId -> assertThat(tree.getAction(actionId).isEnabled()).as(actionId).isFalse());
+                .allSatisfy(actionId -> assertThat(action(tree, actionId).isEnabled()).as(actionId).isFalse());
     }
 
     @Test
     void theFolderActionsFollowTheClickedFolder() {
         Folder child = folder(sandbox, "Child");
         TreeDataGrid<Folder> tree = foldersTree(openTree(sandbox));
-        Folder root = tree.getItems().getItems().stream()
+        TreeDataGridItems<Folder> items = tree.getItems();
+        assertThat(items).isNotNull();
+
+        Folder root = items.getItems().stream()
                 .filter(Folder::isRoot)
                 .findFirst()
                 .orElseThrow();
@@ -142,11 +148,11 @@ class FolderDialogsTest {
 
         TestGrids.clickRendered(tree, "name", root);
         assertThat(actionIds)
-                .allSatisfy(actionId -> assertThat(tree.getAction(actionId).isEnabled()).as(actionId).isFalse());
+                .allSatisfy(actionId -> assertThat(action(tree, actionId).isEnabled()).as(actionId).isFalse());
 
         TestGrids.clickRendered(tree, "name", child);
         assertThat(actionIds)
-                .allSatisfy(actionId -> assertThat(tree.getAction(actionId).isEnabled()).as(actionId).isTrue());
+                .allSatisfy(actionId -> assertThat(action(tree, actionId).isEnabled()).as(actionId).isTrue());
     }
 
     @Test
@@ -156,9 +162,10 @@ class FolderDialogsTest {
         Folder other = folder(sandbox, "Other");
         FolderTreeFragment folderTree = openTree(parent);
 
-        foldersTree(folderTree).getAction("moveFolderAction").actionPerform(foldersTree(folderTree));
+        perform(folderTree, "moveFolderAction");
 
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(lookup).isNotNull();
         CollectionContainer<Folder> foldersDc = ViewControllerUtils.getViewData(lookup).getContainer("foldersDc");
         assertThat(foldersDc.getItems()).contains(sandbox, other).doesNotContain(parent, child);
     }
@@ -182,7 +189,7 @@ class FolderDialogsTest {
         folder(parent, "Child");
         Folder other = folder(sandbox, "Other");
         FolderTreeFragment folderTree = openTree(other);
-        foldersTree(folderTree).getAction("moveFolderAction").actionPerform(foldersTree(folderTree));
+        perform(folderTree, "moveFolderAction");
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
         TreeDataGrid<Folder> lookupTree = UiTestUtils.getComponent(lookup, "foldersTree");
 
@@ -198,14 +205,16 @@ class FolderDialogsTest {
         Folder invoices = folder(sandbox, "Invoices");
         Folder moved = folder(sandbox, "Moved");
         FolderTreeFragment folderTree = openTree(moved);
-        foldersTree(folderTree).getAction("moveFolderAction").actionPerform(foldersTree(folderTree));
+        perform(folderTree, "moveFolderAction");
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
         TypedTextField<String> filterField = UiTestUtils.getComponent(lookup, "folderFilterField");
 
         filterField.setValue("SIGNED");
 
         TreeDataGrid<Folder> lookupTree = UiTestUtils.getComponent(lookup, "foldersTree");
-        assertThat(lookupTree.getItems().getItems())
+        TreeDataGridItems<Folder> items = lookupTree.getItems();
+        assertThat(items).isNotNull();
+        assertThat(items.getItems())
                 .contains(sandbox, contracts, signed)
                 .doesNotContain(invoices);
 
@@ -217,9 +226,7 @@ class FolderDialogsTest {
         Folder signed = folder(sandbox, "Signed 2026");
         Folder moved = folder(sandbox, "Moved");
         FolderTreeFragment folderTree = openTree(moved);
-        Action move = foldersTree(folderTree).getAction("moveFolderAction");
-        assertThat(move).isNotNull();
-        move.actionPerform(foldersTree(folderTree));
+        perform(folderTree, "moveFolderAction");
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
         TypedTextField<String> filterField = UiTestUtils.getComponent(lookup, "folderFilterField");
         filterField.setValue("Signed ");
@@ -241,14 +248,16 @@ class FolderDialogsTest {
         Folder movedChild = folder(moved, "Contracts 2026");
         Folder other = folder(sandbox, "Old contracts");
         FolderTreeFragment folderTree = openTree(moved);
-        foldersTree(folderTree).getAction("moveFolderAction").actionPerform(foldersTree(folderTree));
+        perform(folderTree, "moveFolderAction");
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
         TypedTextField<String> filterField = UiTestUtils.getComponent(lookup, "folderFilterField");
 
         filterField.setValue("contracts");
 
         TreeDataGrid<Folder> lookupTree = UiTestUtils.getComponent(lookup, "foldersTree");
-        assertThat(lookupTree.getItems().getItems())
+        TreeDataGridItems<Folder> items = lookupTree.getItems();
+        assertThat(items).isNotNull();
+        assertThat(items.getItems())
                 .contains(other)
                 .doesNotContain(moved, movedChild);
     }
@@ -273,8 +282,15 @@ class FolderDialogsTest {
     }
 
     private FolderDetailView openCreateDialog(FolderTreeFragment folderTree) {
-        foldersTree(folderTree).getAction("createFolderAction").actionPerform(foldersTree(folderTree));
+        perform(folderTree, "createFolderAction");
         return UiTestUtils.getLastOpenedViewDialog();
+    }
+
+    private void perform(FolderTreeFragment folderTree, String actionId) {
+        TreeDataGrid<Folder> tree = foldersTree(folderTree);
+        Action action = tree.getAction(actionId);
+        assertThat(action).as(actionId).isNotNull();
+        action.actionPerform(tree);
     }
 
     @SuppressWarnings("unchecked")

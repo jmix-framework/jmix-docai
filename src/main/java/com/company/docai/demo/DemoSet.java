@@ -14,16 +14,10 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * A demo set for one day, which {@link DemoSetTemplate#generate} computes from the {@code demo-data.json} of the set:
- * the names of the users in the language of the set, the statuses of the set (the names of the default statuses in
- * the language of the set and new statuses), and the folders under the root with their own access and their
- * documents, some of them in the trash, with the dates of that day. Users, roles and document types come from the
- * changelogs and the code, and the set refers to them by login, role code and the English name of the type. The
- * loader and its check read a set and its files through it.
+ * A demo set for one day, which {@link DemoSetTemplate#generate} computes from the {@code demo-data.json} of the set.
  *
  * @param users    the names the set gives the users of the changelogs
  * @param statuses the statuses of the set: the default ones renamed in the language of the set, and new ones
- * @param folders  the folders under the root
  */
 public record DemoSet(List<User> users, List<Status> statuses, List<Folder> folders) {
 
@@ -45,7 +39,6 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
             "ACTIVE", DocumentStatus.ACTIVE_ID,
             "ARCHIVED", DocumentStatus.ARCHIVED_ID);
 
-    // a list the description leaves out is empty
     public DemoSet {
         users = users == null ? List.of() : users;
         statuses = statuses == null ? List.of() : statuses;
@@ -83,9 +76,7 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
     }
 
     /**
-     * Returns the problems of the history of the set at a moment: an upload, a comment, a change of a comment or a
-     * deletion after it, a comment changed before it is written, and a document whose last version is uploaded before
-     * the date of the document.
+     * Returns the problems of the history of the set at a moment, such as an event after it.
      *
      * @param now the moment of the load, in the time zone of the server
      */
@@ -147,25 +138,17 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
 
     /**
      * A user of the changelogs, named in the language of the set.
-     *
-     * @param login     the login of the user
-     * @param firstName the first name
-     * @param lastName  the last name
-     * @param email     the e-mail address
      */
     public record User(String login, String firstName, String lastName, String email) {
     }
 
     /**
      * A status of the set. The keys {@code DRAFT}, {@code ACTIVE} and {@code ARCHIVED} are the default statuses of the
-     * changelog; another key makes a new status, or takes the status that has the name already. A field left out
-     * keeps what the status has.
+     * changelog; another key makes a new status, or takes the status that has the name already. A field left out keeps
+     * what the status has.
      *
      * @param key       the key the documents and the targets of the set refer to
-     * @param name      the name of the status in the language of the set
      * @param color     the color, {@code #rrggbb}
-     * @param position  the place of the status in the lists
-     * @param initial   whether new documents get the status
      * @param locked    whether the documents in the status keep their content
      * @param anyTarget whether a document moves from the status to any status
      * @param targets   the keys of the statuses a document moves to from this one
@@ -178,11 +161,8 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
     /**
      * A folder of the set.
      *
-     * @param name      the name of the folder
-     * @param access    the own access of the folder, or null when it inherits the access of its parent
-     * @param folders   the subfolders
-     * @param documents the documents of the folder
-     * @param deleted   who deleted the folder and when, or null for a live folder
+     * @param access     the own access of the folder, or null when it inherits the access of its parent
+     * @param deleted    who deleted the folder and when, or null for a live folder
      * @param favoriteOf the logins of the users who marked the folder as a favorite
      */
     public record Folder(String name, @Nullable List<Access> access, List<Folder> folders, List<Document> documents,
@@ -209,16 +189,14 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
     /**
      * A document of the set.
      *
-     * @param name     the name of the document
-     * @param date     the date of the document
-     * @param type     the English name of the document type, or null for a document without a type
-     * @param fields   the values of the fields of the type by the code of the field, as text
-     * @param tags     the names of the tags of the document; a name is written the same way all over the set
-     * @param status   {@code DRAFT} (when left out), {@code ACTIVE} or {@code ARCHIVED}
-     * @param access   the own access of the document, or null when it inherits the access of its folder
-     * @param versions the versions, the first one first
-     * @param comments the comments, the oldest first
-     * @param deleted  who deleted the document and when, or null for a live document
+     * @param type       the English name of the document type, or null for a document without a type
+     * @param fields     the values of the fields of the type by the code of the field, as text
+     * @param tags       the names of the tags of the document; a name is written the same way all over the set
+     * @param status     {@code DRAFT} (when left out), {@code ACTIVE} or {@code ARCHIVED}
+     * @param access     the own access of the document, or null when it inherits the access of its folder
+     * @param versions   the versions, the first one first
+     * @param comments   the comments, the oldest first
+     * @param deleted    who deleted the document and when, or null for a live document
      * @param favoriteOf the logins of the users who marked the document as a favorite
      */
     public record Document(String name, @Nullable LocalDate date, @Nullable String type, Map<String, String> fields,
@@ -239,8 +217,8 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
      * A version of a document.
      *
      * @param file     the name of the file in the {@code files} folder of the set, or of the file made from a text
-     * @param text     the text the file is made from, with the dates of the day: a PDF renders it, another file is
-     *                 the text itself; or null for a file of the {@code files} folder
+     * @param text     the text the file is made from, with the dates of the day, or null for a file of the
+     *                 {@code files} folder
      * @param author   the login of the user who uploads the version
      * @param uploaded when the version was uploaded, in the time zone of the server
      */
@@ -252,7 +230,6 @@ public record DemoSet(List<User> users, List<Status> statuses, List<Folder> fold
      *
      * @param author the login of the user who writes it
      * @param at     when it was written, in the time zone of the server
-     * @param text   the text of the comment
      * @param edited when its author changed it last, in the time zone of the server, or null for a comment never
      *               changed
      */

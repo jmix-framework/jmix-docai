@@ -32,8 +32,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Who changed the document itself and when: its file, name, date or status. Jmix stamps every save of the row,
- * an access change and a move included; the document's own stamp stays as it is then.
+ * Who changed the document itself and when: its file, name, date or status.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)

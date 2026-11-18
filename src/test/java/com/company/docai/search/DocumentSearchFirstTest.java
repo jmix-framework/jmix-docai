@@ -50,9 +50,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * The first documents found by the beginnings of their words, as the search palette lists them. The index is
- * replaced and answers with the documents of the test; the context is the one of the UI tests that replace it, so
- * that no new context joins the cache.
+ * The first documents found by the beginnings of their words, as the search palette lists them. The context is the one
+ * of the UI tests that replace the index, so that no new context joins the cache.
  */
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)

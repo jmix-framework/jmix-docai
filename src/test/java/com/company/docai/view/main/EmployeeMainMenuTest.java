@@ -17,8 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The main menu of an employee: the folders lead to the repository, the trash stands under them, and only the
- * administrator has the administration; while the AI is off the assistant is not there, and its chat, reached by its
- * address, takes no questions.
+ * administrator has the administration.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})

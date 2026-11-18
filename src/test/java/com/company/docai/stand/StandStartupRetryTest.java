@@ -48,12 +48,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * How the start of the stand gets over a failure: a template whose build fails, as when OpenSearch does not answer, is
- * tried again and again by a one-shot trigger of the retry job on Quartz, after a pause that doubles from the first
- * one up to the longest, with an ERROR line for each failure, while the next template is made ready; a template whose
- * indexes cannot be checked is left as it is for the next try. No template takes a login before the start has deleted
- * what an earlier run left and checked the template, a try of an earlier start does nothing, and the start ends with
- * the application. The builder and the indexes are stand-ins, the folders and the scheduler are real.
+ * How the start of the stand gets over a failure: a template whose build fails is tried again by a one-shot trigger of
+ * the retry job on Quartz, after a pause that doubles up to the longest.
  */
 @ExtendWith(OutputCaptureExtension.class)
 class StandStartupRetryTest {
@@ -321,7 +317,6 @@ class StandStartupRetryTest {
                 DataSize.ofGigabytes(1), dataDir, PAUSE, LONGEST_PAUSE, true);
     }
 
-    // what a build leaves in the folder of the template
     private Path build(InvocationOnMock invocation) throws IOException {
         String language = invocation.getArgument(0);
         Files.createDirectories(inTemplate(language, StandFileStorage.FILES));
@@ -361,7 +356,6 @@ class StandStartupRetryTest {
         return pauses;
     }
 
-    // the message of each ERROR line of the start, without its exception
     private static List<String> errorLines(CapturedOutput output) {
         return output.getAll()
                 .lines()

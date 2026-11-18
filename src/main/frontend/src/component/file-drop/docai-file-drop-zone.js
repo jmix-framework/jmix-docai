@@ -1,16 +1,13 @@
 import { UploadDropZone } from '@vaadin/upload/src/vaadin-upload-drop-zone.js';
 
-// how long the zone waits for the next dragover of the files before it takes them for gone, in milliseconds
 const SILENCE = 700;
 
 /**
- * A drop zone for files from the computer, the element of the server component FileDropZone; the rest is the drop
- * zone of Vaadin. The drop zone answers any drag, so the zone passes on to it only the drags of files: the rows of the
- * document table still go to the folders and the favorites. The files of a drop would join a batch still on its way,
- * whose files the manager holds until the batch ends, so meanwhile the zone refuses them as the page does. The drop
- * zone forgets the files only on a dragleave of its own, which never comes while its content covers it, so the zone
- * tells it so when the files leave it or the drag stops without a drop: the browser repeats dragover while the files
- * are over the zone.
+ * A drop zone for files from the computer, the element of FileDropZone over the drop zone of Vaadin, which answers any
+ * drag: this one passes on only the drags of files and refuses them while the manager holds a batch on its way, which
+ * they would join. Vaadin's zone forgets the files only on a dragleave of its own, which never comes while its content
+ * covers it, so this one dispatches it when the files leave or the drag stops without a drop: the browser repeats
+ * dragover while they are over the zone.
  */
 class FileDropZone extends UploadDropZone {
 

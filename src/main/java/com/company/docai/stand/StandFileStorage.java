@@ -21,11 +21,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * The file storage of the stand, in place of the local storage of Jmix and under its name, so that the references to
- * the files in the rows stay as they are. The files of a scope live in the folder {@code files} of the scope: a
- * template keeps the files of its set there, and a copy keeps hard links to the files of its template and the uploads
- * of its visitor, which {@link StandUploadGuard} checks whoever stores them. A thread without a scope has no files,
- * since the control database holds no documents.
+ * The stand's file storage under the name of Jmix's local storage, so the file references in the rows stay valid.
  */
 public class StandFileStorage extends LocalFileStorage {
 
@@ -36,7 +32,6 @@ public class StandFileStorage extends LocalFileStorage {
 
     private static final Logger log = LoggerFactory.getLogger(StandFileStorage.class);
 
-    // the folders of all copies and of all templates, as StandScope.folder lays them out
     private static final String COPIES = "copies";
     private static final String TEMPLATES = "templates";
 
@@ -49,10 +44,9 @@ public class StandFileStorage extends LocalFileStorage {
     }
 
     /**
-     * Stores the file in the folder of the scope of the thread. A copy takes a file only while the disk has room, and
-     * keeps it only when its bytes show a type a visitor can upload and it fits into the quota of the copy: every
-     * writer of a copy comes here, the upload field of a generic view too, and not every writer asks the guard first.
-     * A template takes any file, and a thread without a scope none.
+     * Stores the file in the folder of the thread's scope if the disk, the type of its bytes and the copy's quota allow
+     * it: every writer of a copy comes here, not every writer asks the guard first. A template takes any file, and a
+     * thread without a scope none.
      *
      * @throws OperationRejectedException when the copy does not take the file, which is gone then
      */
@@ -86,9 +80,7 @@ public class StandFileStorage extends LocalFileStorage {
     }
 
     /**
-     * The folder of the files of the scope of the thread, where every file is stored, read and removed.
-     *
-     * @throws IllegalStateException when the thread has no scope
+     * The folder of the files of the thread's scope, used for every file operation; a thread without a scope fails.
      */
     @Override
     protected Path[] getStorageRoots() {
@@ -141,7 +133,6 @@ public class StandFileStorage extends LocalFileStorage {
                 } catch (IOException | UnsupportedOperationException e) {
                     Files.copy(file, link);
 
-                    // the reason is the same for every file, as a folder on another file system
                     if (!copied) {
                         log.warn("The files of the template {} are copied into {}, not linked: {}", language,
                                 copy.tag(), StandScope.withTags(e.toString()));
@@ -168,10 +159,9 @@ public class StandFileStorage extends LocalFileStorage {
     }
 
     /**
-     * Deletes the folder of the template with its script, its files and its ready marker, before the template is built
-     * again: the files of an earlier build would stay there with no row to refer to them. The copies made of that
-     * build keep their files, which are their own links. It takes nothing but the folder of a well-formed language
-     * right in the folder of the templates.
+     * Deletes the folder of the template before the template is built again; the copies made of that build keep their
+     * files, which are their own links. It takes nothing but the folder of a well-formed language right in the folder
+     * of the templates.
      *
      * @throws IllegalArgumentException for a copy, or for a language that is not well-formed
      */
@@ -184,9 +174,8 @@ public class StandFileStorage extends LocalFileStorage {
     }
 
     /**
-     * Deletes the folders of the copies that are gone, as an earlier run of the application leaves them: the folder of
-     * each well-formed key the predicate does not know goes by {@link #deleteFolder}, and anything else in the folder
-     * of the copies stays.
+     * Deletes the folders of the copies an earlier run of the application left; anything else in the folder of the
+     * copies stays.
      *
      * @param live whether a key belongs to a copy that exists now
      * @return how many folders are deleted

@@ -21,8 +21,8 @@ import jakarta.persistence.Version;
 import java.util.UUID;
 
 /**
- * Gives a user or a Jmix resource role a level of access in an access set. Exactly one of {@code username}
- * and {@code roleCode} is set, and a set holds one entry per subject.
+ * Gives a user or a Jmix resource role a level of access in an access set. Exactly one of {@code username} and
+ * {@code roleCode} is set, and a set holds one entry per subject.
  */
 @ExcludeFromAi
 @JmixEntity

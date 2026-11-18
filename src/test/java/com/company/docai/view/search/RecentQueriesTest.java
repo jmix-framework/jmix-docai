@@ -40,7 +40,9 @@ class RecentQueriesTest {
 
     @Test
     void theLastFiveSearchesComeNewestFirstEachTextOnceWhateverItsCase() {
-        List.of("lease", "tractor", "invoice", "contract", "act")
+        // lease is neither the newest nor the oldest: a comparison that minds the case keeps it beside LEASE, and a
+        // search typed again that keeps its old place leaves LEASE behind act
+        List.of("tractor", "invoice", "contract", "lease", "act")
                 .forEach(text -> recentQueries.add(text, false));
 
         recentQueries.add("  LEASE  ", true);

@@ -26,9 +26,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * The chat of the assistant in the menu: the chat of the AI Tools add-on, which is on while the AI is, and whose
- * answers link the documents they name to their cards and are never saved empty. A conversation about a selection of
- * documents tells the model the documents at the start of every request.
+ * The chat of the assistant in the menu, whose answers link the documents they name to their cards.
  */
 @Component
 public class AssistantChatService extends AiChatDataService {
@@ -57,20 +55,16 @@ public class AssistantChatService extends AiChatDataService {
         this.discussionService = discussionService;
     }
 
-    // Spring AI makes a client without a key as well, and the chat would take questions only to fail on each
     @Override
     public boolean isAvailable() {
         return aiSettings.isAvailable() && super.isAvailable();
     }
 
-    // the add-on asks for the language of the interface, and a person may ask in another one
     @Override
     protected String resolveResponseLanguage() {
         return "the language of the latest message of the user";
     }
 
-    // the selection goes with every request, so the model knows it in the side window, in the full chat and in a
-    // conversation opened later from the history, and a document taken out of the selection leaves it at once
     @Override
     protected List<Message> loadHistory(UUID conversationId, AiChatMessageEntity currentUserMessage) {
         List<Message> history = super.loadHistory(conversationId, currentUserMessage);
@@ -91,9 +85,8 @@ public class AssistantChatService extends AiChatDataService {
         return withSelection;
     }
 
-    // a name is text of whoever uploaded the document: on one line and without brackets, it neither starts a line of
-    // its own in the list nor ends the link before the id
     private static String describe(Document document) {
+        // a name is the uploader's text: one line without brackets cannot forge a line of the list or end the link
         String name = document.getName()
                 .replaceAll("\\R", " ")
                 .replace('[', '(')
@@ -112,20 +105,19 @@ public class AssistantChatService extends AiChatDataService {
         return line.toString();
     }
 
-    // the add-on saves an empty answer as an empty message; an error lets the chat say that the AI did not answer
     @Override
     protected void saveAssistantResponse(AiChatMessageEntity placeholder, @Nullable String response) {
         if (response == null || response.isBlank()) {
+            // the add-on saves an empty answer as an empty message;
+            // an error lets the chat say that the AI did not answer
             throw new IllegalStateException("The model answered with no text");
         }
 
         super.saveAssistantResponse(placeholder, withCardLinks(response));
     }
 
-    // the model knows the id of a document from the tools, and only the code knows the address of its card; a link
-    // to a site stays, and any other link, to a document the person cannot open, to none or without an id at all,
-    // becomes plain text
     private String withCardLinks(String answer) {
+        // a link to a site stays; a link that names no document the person can open becomes plain text
         Set<UUID> ids = LINK.matcher(answer)
                 .results()
                 .map(link -> documentIn(link.group(2)))
@@ -156,7 +148,6 @@ public class AssistantChatService extends AiChatDataService {
                 .orElse(link.group(1));
     }
 
-    // a site may have an id in its address too
     private static Optional<UUID> documentIn(String target) {
         Matcher id = ID.matcher(target);
 
@@ -165,7 +156,6 @@ public class AssistantChatService extends AiChatDataService {
                 : Optional.empty();
     }
 
-    // relative to the root of the application, which the pages of Vaadin set as their base address
     private String cardUrl(UUID id) {
         return viewRegistry.getRouteConfiguration()
                 .getUrl(DocumentDetailView.class, new RouteParameters("id", id.toString()));

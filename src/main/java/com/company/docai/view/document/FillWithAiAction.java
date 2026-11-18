@@ -26,9 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Fills the type, the fields and the date of the document in the card with what the AI reads in the file
- * the card shows, saved or just uploaded, and adds tags to those the document has. The values go into the form only:
- * the user checks them and saves the document as usual, and a new tag joins the vocabulary then.
+ * Fills the type, fields, date and tags of the card's document into the form from what the AI reads in its file.
  */
 @ActionType(FillWithAiAction.ID)
 public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetailView> {
@@ -94,10 +92,6 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
         this.notifications = notifications;
     }
 
-    /**
-     * Shows the action to a user who may edit the document while the AI is on, and enables it when the card
-     * is not archived and shows a file.
-     */
     @Override
     public void refreshState() {
         super.refreshState();
@@ -212,7 +206,6 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
 
         @Override
         public void done(Optional<ClassificationProposal> proposal) {
-            // the user may leave the card while the AI reads, and a late answer has nowhere to go
             if (!target.isAttached()) {
                 return;
             }

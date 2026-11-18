@@ -8,8 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Applies a saved document type or field at once. The add-on keeps the types and their fields in a cache,
- * and its screen reloads the cache only by the "Apply changes" button.
+ * Applies a saved document type or field at once, where the add-on reloads its cache only by "Apply changes".
  */
 @Component
 public class DocumentTypesListener {

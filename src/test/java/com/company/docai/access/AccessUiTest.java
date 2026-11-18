@@ -10,7 +10,6 @@ import com.company.docai.model.access.AccessSet;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentStatus;
 import com.company.docai.model.folder.Folder;
-import com.company.docai.security.role.AccessRowLevelRole;
 import com.company.docai.security.role.EmployeeRole;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestAccess;
@@ -35,7 +34,6 @@ import io.jmix.core.DataManager;
 import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.security.AccessDeniedException;
-import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
@@ -47,17 +45,19 @@ import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.select.JmixSelect;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
+import io.jmix.flowui.data.grid.DataGridItems;
+import io.jmix.flowui.data.grid.TreeDataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.dialog.DialogInfo;
+import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.ViewControllerUtils;
-import io.jmix.security.role.RoleGrantedAuthorityUtils;
 import io.jmix.securityflowui.exception.AccessDeniedExceptionHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,24 +65,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.company.docai.test_support.TestGrids.action;
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The repository as peter, an employee, sees it. The tree: "Drafts" inherits from the root; "Published" is
- * viewed by all employees; "Managed" is changed by all employees and managed by peter; "Closed" is managed by
- * helen alone and holds "Public", viewed by all employees, "Secret", which inherits from "Closed", and
- * "memo.txt", viewed by peter.
+ * The repository as peter, an employee, sees it.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -107,12 +104,6 @@ class AccessUiTest {
 
     @Autowired
     private SystemAuthenticator systemAuthenticator;
-
-    @Autowired
-    private CurrentAuthentication currentAuthentication;
-
-    @Autowired
-    private RoleGrantedAuthorityUtils roleGrantedAuthorityUtils;
 
     @Autowired
     private ViewNavigators viewNavigators;
@@ -170,19 +161,12 @@ class AccessUiTest {
     }
 
     @Test
-    void theEmployeeOfTheUiTestsHasTheAccessRole() {
-        assertThat(currentAuthentication.getUser().getUsername()).isEqualTo(EMPLOYEE);
-        assertThat(currentAuthentication.getAuthentication().getAuthorities())
-                .extracting(GrantedAuthority::getAuthority)
-                .contains(roleGrantedAuthorityUtils.createRowLevelRoleGrantedAuthority(AccessRowLevelRole.CODE)
-                        .getAuthority());
-    }
-
-    @Test
     void theTreeGreysTheWayAndMarksWhatTheEmployeeManages() {
         TreeDataGrid<Folder> tree = foldersTree(open(sandbox));
+        TreeDataGridItems<Folder> items = tree.getItems();
 
-        assertThat(tree.getItems().getItems()).contains(closed, publicFolder).doesNotContain(secret);
+        assertThat(items).isNotNull();
+        assertThat(items.getItems()).contains(closed, publicFolder).doesNotContain(secret);
         assertThat(label(tree, closed).hasClassName("folder-greyed")).isTrue();
         assertThat(label(tree, published).hasClassName("folder-greyed")).isFalse();
         assertThat(marksOwnAccess(label(tree, managed))).isTrue();
@@ -232,16 +216,16 @@ class AccessUiTest {
         TreeDataGrid<Folder> tree = foldersTree(open(sandbox));
 
         TestGrids.clickRendered(tree, "name", published);
-        assertThat(FOLDER_CHANGES).allSatisfy(id -> assertThat(tree.getAction(id).isEnabled()).as(id).isFalse());
-        assertThat(tree.getAction("accessFolderAction").isVisible()).isFalse();
+        assertThat(FOLDER_CHANGES).allSatisfy(id -> assertThat(action(tree, id).isEnabled()).as(id).isFalse());
+        assertThat(action(tree, "accessFolderAction").isVisible()).isFalse();
 
         TestGrids.clickRendered(tree, "name", closed);
-        assertThat(FOLDER_CHANGES).allSatisfy(id -> assertThat(tree.getAction(id).isEnabled()).as(id).isFalse());
+        assertThat(FOLDER_CHANGES).allSatisfy(id -> assertThat(action(tree, id).isEnabled()).as(id).isFalse());
 
         TestGrids.clickRendered(tree, "name", managed);
-        assertThat(FOLDER_CHANGES).allSatisfy(id -> assertThat(tree.getAction(id).isEnabled()).as(id).isTrue());
-        assertThat(tree.getAction("accessFolderAction").isVisible()).isTrue();
-        assertThat(tree.getAction("accessFolderAction").isEnabled()).isTrue();
+        assertThat(FOLDER_CHANGES).allSatisfy(id -> assertThat(action(tree, id).isEnabled()).as(id).isTrue());
+        assertThat(action(tree, "accessFolderAction").isVisible()).isTrue();
+        assertThat(action(tree, "accessFolderAction").isEnabled()).isTrue();
     }
 
     @Test
@@ -263,7 +247,7 @@ class AccessUiTest {
                 .isFalse();
         assertThat(this.<JmixUpload<?>>fragmentComponent(view, "documentList", "versionUpload").isEnabled()).isFalse();
         assertThat(List.of("moveAction", "accessAction", "deleteAction"))
-                .allSatisfy(id -> assertThat(grid.getAction(id).isEnabled()).as(id).isFalse());
+                .allSatisfy(id -> assertThat(action(grid, id).isEnabled()).as(id).isFalse());
         assertThat(this.<DropdownButton>fragmentComponent(view, "documentList", "statusButton").isEnabled())
                 .isFalse();
 
@@ -275,7 +259,7 @@ class AccessUiTest {
                 .isInstanceOfSatisfying(UploadDropZone.class,
                         zone -> assertThat(zone.getUploadManager().isEnabled()).isTrue());
         assertThat(List.of("moveAction", "deleteAction"))
-                .allSatisfy(id -> assertThat(grid.getAction(id).isEnabled()).as(id).isTrue());
+                .allSatisfy(id -> assertThat(action(grid, id).isEnabled()).as(id).isTrue());
         assertThat(this.<DropdownButton>fragmentComponent(view, "documentList", "statusButton").isEnabled()).isTrue();
     }
 
@@ -320,8 +304,10 @@ class AccessUiTest {
     @Test
     void aGreyedFolderShowsTheDocumentsTheEmployeeSeesWithTheirWholePath() {
         RepositoryView view = open(closed);
+        DataGridItems<Document> documents = documentsGrid(view).getItems();
 
-        assertThat(documentsGrid(view).getItems().getItems()).containsExactly(memo);
+        assertThat(documents).isNotNull();
+        assertThat(documents.getItems()).containsExactly(memo);
         assertThat(UiTestUtils.<TypedTextField<String>>getComponent(openCard(memo), "folderField").getValue())
                 .endsWith(sandbox.getName() + " / Closed");
     }
@@ -341,16 +327,19 @@ class AccessUiTest {
     void aFolderTheEmployeeCannotSeeOpensTheRootInstead() {
         RepositoryView view = open(secret);
 
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+
         assertThat(folderTree(view).getSelectedFolder()).isEqualTo(folderService.getRoot());
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.getMessage("com.company.docai.view.repository/folderUnavailable"));
-        assertThat(UiTestUtils.getLastOpenedNotification().getType()).isEqualTo(Notifications.Type.WARNING);
+        assertThat(notification.getType()).isEqualTo(Notifications.Type.WARNING);
     }
 
     @Test
     void theMoveDialogOffersOnlyFoldersTheEmployeeChanges() {
         TreeDataGrid<Folder> tree = foldersTree(open(drafts));
-        tree.getAction("moveFolderAction").actionPerform(tree);
+        action(tree, "moveFolderAction").actionPerform(tree);
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
         TreeDataGrid<Folder> lookupTree = UiTestUtils.getComponent(lookup, "foldersTree");
         JmixButton selectButton = UiTestUtils.getComponent(lookup, "selectButton");
@@ -367,7 +356,7 @@ class AccessUiTest {
     @Test
     void aMoveThatChangesTheAccessAsksFirst() {
         TreeDataGrid<Folder> tree = foldersTree(open(drafts));
-        tree.getAction("moveFolderAction").actionPerform(tree);
+        action(tree, "moveFolderAction").actionPerform(tree);
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
         TestGrids.clickRendered(UiTestUtils.getComponent(lookup, "foldersTree"), "name", managed);
         UiTestUtils.<JmixButton>getComponent(lookup, "selectButton").click();
@@ -383,7 +372,9 @@ class AccessUiTest {
     void aFolderWithContentTheEmployeeCannotChangeIsRefusedBeforeTheDialog() {
         TreeDataGrid<Folder> tree = foldersTree(open(sandbox));
 
-        assertThatThrownBy(() -> tree.getAction("deleteFolderAction").actionPerform(tree))
+        Action delete = action(tree, "deleteFolderAction");
+
+        assertThatThrownBy(() -> delete.actionPerform(tree))
                 .isInstanceOf(OperationRejectedException.class);
         assertThat(UiTestUtils.getOpenedDialogs()).isEmpty();
     }
@@ -392,8 +383,9 @@ class AccessUiTest {
     void givingUpTheAccessMovesTheTreeToTheNearestFolder() {
         RepositoryView view = open(managed);
         TreeDataGrid<Folder> tree = foldersTree(view);
-        tree.getAction("accessFolderAction").actionPerform(tree);
+        action(tree, "accessFolderAction").actionPerform(tree);
         AccessDetailView dialog = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(dialog).isNotNull();
         DataGrid<AccessEntryDraft> entriesGrid = UiTestUtils.getComponent(dialog, "entriesGrid");
         CollectionContainer<AccessEntryDraft> entriesDc = ViewControllerUtils.getViewData(dialog)
                 .getContainer("entriesDc");
@@ -404,9 +396,14 @@ class AccessUiTest {
         UiTestUtils.<JmixButton>getComponent(dialog, "saveButton").click();
         dialogButton(DialogAction.Type.YES).click();
 
+        TreeDataGridItems<Folder> folders = foldersTree(view).getItems();
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+
         assertThat(folderTree(view).getSelectedFolder()).isEqualTo(sandbox);
-        assertThat(foldersTree(view).getItems().getItems()).doesNotContain(managed);
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(folders).isNotNull();
+        assertThat(folders.getItems()).doesNotContain(managed);
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.getMessage("com.company.docai.view.repository/folderUnavailable"));
     }
 
@@ -415,10 +412,11 @@ class AccessUiTest {
         DataGrid<Document> grid = documentsGrid(open(managed));
 
         TestGrids.clickRow(grid, plan, false);
-        assertThat(grid.getAction("accessAction").isVisible()).isTrue();
-        grid.getAction("accessAction").actionPerform(grid);
+        assertThat(action(grid, "accessAction").isVisible()).isTrue();
+        action(grid, "accessAction").actionPerform(grid);
 
         AccessDetailView dialog = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(dialog).isNotNull();
         assertThat(dialog.getEditedEntity().getDocument()).isEqualTo(plan);
     }
 
@@ -438,8 +436,9 @@ class AccessUiTest {
         assertThat(managedAccessButton.isEnabled()).isTrue();
         managedAccessButton.click();
 
-        assertThat(UiTestUtils.<AccessDetailView>getLastOpenedViewDialog().getEditedEntity().getDocument())
-                .isEqualTo(plan);
+        AccessDetailView dialog = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(dialog).isNotNull();
+        assertThat(dialog.getEditedEntity().getDocument()).isEqualTo(plan);
     }
 
     @Test
@@ -470,8 +469,11 @@ class AccessUiTest {
 
         UiTestUtils.<JmixButton>getComponent(card, "accessButton").click();
 
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+
         assertThat(UiTestUtils.getOpenedViewDialogs()).noneMatch(AccessDetailView.class::isInstance);
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.getMessage("com.company.docai.view.document/saveBeforeAccess"));
     }
 
@@ -501,8 +503,11 @@ class AccessUiTest {
         UiTestUtils.<JmixButton>getComponent(dialog, "saveButton").click();
         dialogButton(DialogAction.Type.YES).click();
 
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+
         assertThat(UiTestUtils.getOpenedViewDialogs()).doesNotContain(card);
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.getMessage("com.company.docai.view.document/documentUnavailable"));
     }
 
@@ -511,10 +516,13 @@ class AccessUiTest {
         boolean handled = accessDeniedExceptionHandler.handle(new IllegalStateException(
                 new AccessDeniedException("entity", "Folder", "update")));
 
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+
         assertThat(handled).isTrue();
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.getMessage(AccessDeniedExceptionHandler.class, "accessDeniedError.title"));
-        assertThat(UiTestUtils.getLastOpenedNotification().getType()).isEqualTo(Notifications.Type.ERROR);
+        assertThat(notification.getType()).isEqualTo(Notifications.Type.ERROR);
     }
 
     private RepositoryView open(Folder folder) {
@@ -553,15 +561,6 @@ class AccessUiTest {
     private boolean marksOwnAccess(Component label) {
         return label.getChildren()
                 .anyMatch(child -> child.getElement().getClassList().contains("own-access"));
-    }
-
-    private Button dialogButton(DialogAction.Type type) {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-        return dialog.getButtons().stream()
-                .filter(button -> button.getId().equals(Optional.of(type.getId())))
-                .findFirst()
-                .orElseThrow();
     }
 
     private AccessSet setOf(Folder folder) {

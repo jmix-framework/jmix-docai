@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 @ViewDescriptor(path = "trash-view.xml")
 public class TrashView extends StandardView {
 
-    // more names than these make the question hard to read, so it gives the number
     private static final int NAMED_ITEMS = 3;
 
     @ViewComponent
@@ -140,7 +139,6 @@ public class TrashView extends StandardView {
                 .show();
         reload();
 
-        // the tree and the favorites of the main menu stand next to the trash, so what came back shows there at once
         FolderTreeFragment folderTree = findAncestor(MainView.class).getFolderTree();
         folderTree.load();
         folderTree.getFavorites().reload();
@@ -202,7 +200,6 @@ public class TrashView extends StandardView {
                 .open();
     }
 
-    // the items that came back or were deleted forever leave the list, and the selection with them
     private void reload() {
         trashItemsGrid.deselectAll();
         trashItemsDl.load();

@@ -1,8 +1,10 @@
 package com.company.docai.document;
 
+import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.OperationRejectedException;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.document.NewVersion;
+import com.company.docai.app.service.document.RevisionFiles;
 import com.company.docai.app.service.document.UploadReport;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.folder.FolderService;
@@ -16,6 +18,7 @@ import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.FileStorageLocator;
 import io.jmix.core.Id;
+import io.jmix.core.Messages;
 import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -52,6 +56,12 @@ class DocumentServiceTest {
 
     @Autowired
     private FileStorageLocator fileStorageLocator;
+
+    @Autowired
+    private FilesProperties filesProperties;
+
+    @Autowired
+    private Messages messages;
 
     @Value("${jmix.localfs.storage-dir}")
     private Path storageDir;
@@ -116,6 +126,38 @@ class DocumentServiceTest {
             assertThat(skipped.fileName()).isEqualTo("b.txt");
             assertThat(skipped.reason()).contains("b.txt");
         });
+    }
+
+    @Test
+    void aFileOverTheLimitIsSkipped() throws IOException {
+        Path large = tempDir.resolve("large.txt");
+
+        // a byte over the limit, without writing the bytes
+        try (RandomAccessFile file = new RandomAccessFile(large.toFile(), "rw")) {
+            file.setLength(filesProperties.maxFileSize().toBytes() + 1);
+        }
+
+        UploadReport report = documentService.upload(sandbox, List.of(
+                TestFiles.file(tempDir, "small.txt", "tiny"),
+                new UploadedFile("large.txt", large)));
+
+        assertThat(report.created()).extracting(Document::getName).containsExactly("small.txt");
+        assertThat(report.skipped()).singleElement().satisfies(skipped -> {
+            assertThat(skipped.fileName()).isEqualTo("large.txt");
+            assertThat(skipped.reason()).isEqualTo(messages.formatMessage(RevisionFiles.class, "fileTooLarge",
+                    "large.txt", filesProperties.maxFileSize().toMegabytes()));
+        });
+    }
+
+    @Test
+    void aFileNameLongerThanTheColumnIsSkipped() {
+        String longName = "x".repeat(256) + ".txt";
+
+        UploadReport report = documentService.upload(sandbox, List.of(TestFiles.file(tempDir, longName, "tiny")));
+
+        assertThat(report.created()).isEmpty();
+        assertThat(report.skipped()).singleElement().satisfies(skipped ->
+                assertThat(skipped.fileName()).isEqualTo(longName));
     }
 
     @Test

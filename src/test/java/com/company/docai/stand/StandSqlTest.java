@@ -55,11 +55,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * No SQL that a visitor gets to run in a copy reaches beyond it: the pool of a copy connects to its database as a user
- * without the rights of a DBA, who may read and change the rows of the copy and nothing else, and no database of the
- * stand reads a file; a field of a document type whose options come from SQL kept in the copy gets none, and the
- * query tool of the assistant takes no SQL of its own, however its letters are written. The class shares the context
- * of {@link StandLoginTest}, and the start of the stand makes the templates ready once for the class.
+ * No SQL that a visitor gets to run in a copy reaches beyond it. The class shares the context of
+ * {@link StandLoginTest}, and the start of the stand makes the templates ready once for the class.
  */
 @UiTest(authenticator = AnonymousUiTestAuthenticator.class, initialView = LoginView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class, StubAiConfiguration.class},
@@ -260,7 +257,6 @@ class StandSqlTest {
         return Files.writeString(tempDir.resolve("secret.txt"), SECRET);
     }
 
-    // on a connection of the pool of the copy, as the work of a visitor gets it
     private void executeInCopy(StandScope copy, String sql) throws Exception {
         StandScopeHolder.call(copy, () -> {
             try (Connection connection = dataSource.getConnection();
@@ -295,7 +291,6 @@ class StandSqlTest {
                 where);
     }
 
-    // a lookup field of the type Contract whose options the loader gives, saved as the editor of the field saves it
     private AttributeDefinition field(StandScope copy, String code, AttributeType type, @Nullable String entityClass,
                                       OptionsLoaderType loaderType, @Nullable String script,
                                       @Nullable String where) throws Exception {

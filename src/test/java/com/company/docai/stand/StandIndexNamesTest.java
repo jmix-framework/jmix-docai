@@ -10,9 +10,8 @@ import java.util.concurrent.Callable;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The search indexes are named by the scope of the thread: the index of the search add-on and the index of fragments
- * of a copy or a template are its own, and a thread without a scope works with the indexes of the start, the ones of
- * the control database.
+ * The search indexes are named by the scope of the thread: a copy or a template has its own, and a thread without a
+ * scope works with the indexes of the control database.
  */
 class StandIndexNamesTest {
 
@@ -62,7 +61,6 @@ class StandIndexNamesTest {
         assertThat(fragments.getIndexName(null)).isEqualTo("b5w_document_vectors");
     }
 
-    // the name an index gives itself on a thread that works in the scope
     private static String nameIn(StandScope scope, Callable<String> name) throws Exception {
         return StandScopeHolder.call(scope, name);
     }

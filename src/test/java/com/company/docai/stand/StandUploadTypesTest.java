@@ -42,13 +42,10 @@ import java.util.function.Supplier;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * What a visitor of the stand can upload into their copy: PDF, DOCX, XLSX, TXT, CSV, PNG and JPEG files, told by
- * their bytes, whatever their names say; a text in a legacy encoding passes by its name when its bytes hold no control
- * characters. Any other file is skipped with a message that names the formats of the demo. The build of a template is
- * not checked, outside the stand every type stays allowed, and the search of the stand reads texts within limits.
- * <p>
- * The class has the configuration of {@link StandFilesTest}, so the two share a Spring context: the heap of a full
- * test run takes no further context of the stand.
+ * What a visitor of the stand can upload into their copy: the formats of the demo, told by their bytes, whatever their
+ * names say. The class has the configuration of the stand tests on {@code build/test-stand-files},
+ * {@link StandFilesTest} and {@link StandCachesTest}, so the three share a Spring context: the heap of a full test run
+ * takes no further context of the stand.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class},
         properties = "docai.stand.data-dir=build/test-stand-files")

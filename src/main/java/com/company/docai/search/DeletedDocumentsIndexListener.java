@@ -11,10 +11,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * Removes a deleted document from the search index once the deletion is committed. The add-on enqueues the removal
- * itself, but when the same transaction enqueues the document for indexing through its folder or version, the queue
- * keeps only the later item, and in Jmix 3.1.0 indexing a deleted document does nothing: the document would stay
- * in the index.
+ * Removes a deleted document from the search index once the deletion is committed: when the same transaction enqueues
+ * the document for indexing too, the queue keeps only the later item, and in Jmix 3.1.0 indexing a deleted document
+ * does nothing.
  */
 @Component
 public class DeletedDocumentsIndexListener {

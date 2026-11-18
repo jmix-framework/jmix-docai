@@ -32,8 +32,7 @@ public class DocumentDiscussionService {
     }
 
     /**
-     * Returns the documents of the selection of the conversation that the person who asks may open, in the order
-     * in which they were added.
+     * Returns the documents of the selection that the person who asks may open, in the order they were added.
      */
     public List<Document> documentsOf(UUID conversationId) {
         return readable(discussed(conversationId).stream()
@@ -44,8 +43,8 @@ public class DocumentDiscussionService {
     }
 
     /**
-     * Makes the given documents, in the given order, the selection of the conversation. A document the person who
-     * asks may not open, or one deleted meanwhile, stays out of it.
+     * Makes the given documents, in the given order, the selection of the conversation; a document the person who asks
+     * may not open, or one deleted meanwhile, stays out of it.
      *
      * @throws IllegalArgumentException if the conversation is not one of the person who asks
      */
@@ -97,12 +96,12 @@ public class DocumentDiscussionService {
         dataManager.save(context.setDiscardSaved(true));
     }
 
-    // the documents load on their own, so the access of the person decides which of them come back
     private List<Document> readable(List<UUID> ids) {
         if (ids.isEmpty()) {
             return List.of();
         }
 
+        // the documents load on their own, so the access of the person decides which of them come back
         Map<UUID, Document> loaded = dataManager.load(Document.class)
                 .query("select d from Document d where d.id in :ids")
                 .parameter("ids", ids)

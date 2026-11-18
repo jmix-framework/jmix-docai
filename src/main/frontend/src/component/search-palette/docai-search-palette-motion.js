@@ -1,27 +1,19 @@
 const OUTSIDE_CLICK_GUARD = 400;
 
-// one curve for every stage: it starts at once and settles softly, so nothing reaches its place at full speed
 const EASING = 'cubic-bezier(0.32, 0.72, 0, 1)';
 const FLIGHT = {duration: 200, easing: EASING};
 const UNFOLD = {duration: 160, easing: EASING};
 const FOLD = {duration: 120, easing: EASING};
 const RETURN = {duration: 180, easing: EASING};
 
-// the share of a stage after which the next one starts: the stages overlap, so that each gesture reads as one
 const OVERLAP = 0.55;
 
-// the flight that holds each header field: a palette that opens while the last one still flies back takes it over
+// the flight that holds each header field; a palette that opens while the last one flies back takes it over
 const flights = new WeakMap();
 
 /**
- * The flight of the search palette, the element of the server component SearchPaletteMotion. The query line flies
- * from the search field of the header to its place at the top of the window and widens while the backdrop fades in;
- * the panel under it starts to unfold as the line lands, and the line drops the frame of the header field that it wore
- * in flight. Closing runs the other way: the panel folds, the line flies back into the field while it folds and puts
- * the frame on again, and a close during the opening sends every stage back from where it is. The header field stays
- * transparent while the palette is open, so that it seems to fly itself. The dialog shows and hides itself at once
- * (search-palette.css), and the module holds its closing state as long as the way back takes. Without the parts it
- * needs the palette opens and closes as a plain dialog, and with reduced motion it does so at once.
+ * The flight of the search palette, the element of SearchPaletteMotion; without the parts it needs, or with reduced
+ * motion, the palette opens and closes as a plain dialog.
  */
 class SearchPaletteMotion extends HTMLElement {
 
@@ -32,7 +24,6 @@ class SearchPaletteMotion extends HTMLElement {
     }
 
     connectedCallback() {
-        // the motion shows nothing
         this.hidden = true;
     }
 
@@ -41,13 +32,18 @@ class SearchPaletteMotion extends HTMLElement {
         this.#flight?.closed();
     }
 
+    // a palette whose opening an Esc cancelled closes as it comes, before the flight
     open(origin, field, panel) {
         const dialog = this.closest('vaadin-dialog');
-        const overlay = dialog?.$?.overlay;
+
+        if (!dialog?.opened) {
+            return;
+        }
+
+        const overlay = dialog.$?.overlay;
         const part = overlay?.$?.overlay;
         const backdrop = overlay?.$?.backdrop;
 
-        // the flight needs every part of the dialog: without one the palette stays a plain dialog
         if (origin && panel && part && backdrop) {
             this.#flight = new Flight(dialog, overlay, part, backdrop, origin, field, panel);
             this.#flight.start();
@@ -86,8 +82,8 @@ class Flight {
         this.origin.style.opacity = '0';
         this.#reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // the second click of a double click on the header field lands outside the palette: it neither closes the
-        // palette nor takes the focus from its line to the dialog.
+        // the second click of a double click on the header field lands outside the palette: it must neither close the
+        // palette nor take the focus from its line
         const guard = event => event.preventDefault();
         this.overlay.addEventListener('vaadin-overlay-outside-click', guard);
         this.backdrop.addEventListener('mousedown', guard);
@@ -131,7 +127,7 @@ class Flight {
             return;
         }
 
-        // the part is centered, so it moves by its center: its left edge then runs straight from the field to its place
+        // the part is centered, so it moves by its center, and its left edge runs straight from the field to its place
         this.#course = {x: center(start) - center(end), y: start.top - end.top, from: start.width, to: end.width};
         this.#flying = this.part.animate([this.flightAt(0), this.flightAt(1)], FLIGHT);
 
@@ -139,7 +135,6 @@ class Flight {
         const landing = Math.round(FLIGHT.duration * OVERLAP);
         this.unfold(height, landing);
 
-        // the line drops the frame of the header field as it lands, when it becomes the top of the panel
         this.#framing = this.reframe(true, {
             easing: EASING,
             delay: landing,
@@ -165,7 +160,6 @@ class Flight {
             .then(() => this.release(), () => {});
     }
 
-    // the height the content of the panel asks for, in the terms of the box of the panel
     contentHeight() {
         this.panel.style.removeProperty('height');
         const height = getComputedStyle(this.panel).height;
@@ -174,7 +168,6 @@ class Flight {
         return height;
     }
 
-    // from now on the panel follows its content without animation
     release() {
         if (!this.#closing) {
             this.panel.style.removeProperty('height');
@@ -191,7 +184,6 @@ class Flight {
         }
 
         if (!this.#started) {
-            // nothing has moved yet, and the dialog closes at once
             if (this.#request !== null) {
                 cancelAnimationFrame(this.#request);
             }
@@ -204,14 +196,13 @@ class Flight {
             return;
         }
 
-        // the panel folds from the height it has, which an unfold that still runs has not reached yet
+        // read before the unfold is cancelled, which would drop the panel to its pinned 0px
         const height = getComputedStyle(this.panel).height;
         const foldTime = parseFloat(height) > 0 ? FOLD.duration : 0;
         this.#unfolding?.cancel();
         this.panel.style.overflow = 'hidden';
         this.panel.animate([{height}, {height: '0px'}], {...FOLD, fill: 'forwards'});
 
-        // the window may have changed since the palette opened, so the field is measured again
         const target = this.origin.getBoundingClientRect();
         const returns = hasSize(target);
         const delay = Math.round(foldTime * OVERLAP);
@@ -223,17 +214,14 @@ class Flight {
     }
 
     // a close during the opening sends every stage back from where it is, on the same curve and in the time the opening
-    // has run, so that the line slows down into the field as it slowed down towards its place. Played backwards, the
-    // curve would speed up into the field instead. The line keeps the place and the frame of the field until the dialog
-    // is gone.
+    // has run: played backwards, the curve would speed up into the field
     turnBack() {
         const elapsed = this.#flying.currentTime;
         const flown = this.#flying.effect.getComputedTiming().progress ?? 0;
         const shown = this.#fading.effect.getComputedTiming().progress ?? 0;
 
-        // what each stage shows now is read before the opening lets go of it. The closing animation of Vaadin has just
-        // pinned the place of the part and the opacity of the backdrop in their computed style, so those two come from
-        // the progress of the opening itself.
+        // read before the opening lets go: Vaadin's closing animation has just pinned the place of the part and the
+        // opacity of the backdrop, so those two come from the progress of the opening
         const stages = [
             [this.part, [this.flightAt(flown), this.flightAt(0)]],
             [this.backdrop, [{opacity: shown}, {opacity: 0}]],
@@ -258,8 +246,6 @@ class Flight {
         }
     }
 
-    // the line flies into the field while the panel folds, and it puts the frame of the field on again on the way. Both
-    // are started with the fold and wait for their turn, so that all keep to the closing state that the dialog holds.
     flyBack(target, delay) {
         const current = this.part.getBoundingClientRect();
 
@@ -274,7 +260,6 @@ class Flight {
         this.reframe(false, {...RETURN, delay, fill: 'both'});
     }
 
-    // the line wears the frame of the header field only while it flies: its border, fill and shadow, but no focus ring
     reframe(dropping, timing) {
         const field = inputFieldOf(this.field);
         const header = inputFieldOf(this.origin);
@@ -293,7 +278,6 @@ class Flight {
         this.dialog.style.setProperty('--vaadin-overlay-animation-duration', `${Math.round(duration)}ms`);
     }
 
-    // a palette that opens while this one still flies back takes the field over at once
     end() {
         if (this.#closing) {
             this.overlay.hidden = true;
@@ -301,7 +285,6 @@ class Flight {
     }
 
     closed() {
-        // a palette opened since holds the field
         if (flights.get(this.origin) === this) {
             flights.delete(this.origin);
             this.origin.style.removeProperty('opacity');
@@ -317,7 +300,6 @@ function hasSize(rect) {
     return rect.width > 0 && rect.height > 0;
 }
 
-// the box of a text field that draws its frame
 function inputFieldOf(field) {
     return field?.shadowRoot?.querySelector('[part~="input-field"]') ?? null;
 }

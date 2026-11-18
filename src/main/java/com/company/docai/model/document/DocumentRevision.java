@@ -25,8 +25,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * One file of a document. A saved revision never changes, and it is deleted only together
- * with its document.
+ * One file of a document, which never changes once saved and is deleted only with its document.
  */
 @ExcludeFromAi
 @JmixEntity

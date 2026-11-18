@@ -23,9 +23,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * A discussion of a selection of documents with the assistant, as a side window of the repository holds it: the
- * selection, and the conversation of the AI Tools add-on that the first question starts with it, so the conversation
- * is in the history of the assistant. Each window gets its own instance.
+ * A discussion of a selection of documents with the assistant; each side window gets its own instance.
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -77,7 +75,7 @@ public class DocumentDiscussion {
     }
 
     /**
-     * Adds the documents that are not in the selection yet, while there is room for them.
+     * Adds the documents not in the selection yet while there is room.
      *
      * @return whether all of them found room
      */
@@ -111,19 +109,14 @@ public class DocumentDiscussion {
     }
 
     /**
-     * Asks the question in the conversation, starting it with the selection on the first question, and returns the
-     * answer as the conversation keeps it: with links to the cards of the documents it names.
-     *
-     * @param statuses receives what the tools of the assistant do meanwhile
+     * Asks the question in the conversation and returns the answer with links to the cards of the documents it names.
      */
     public String ask(String question, Consumer<AiToolStatusUpdate> statuses) {
         AiConversation current = conversationFor(question);
         AiChatMessage message = messageService.createMessage(current, AiChatMessageType.USER, question);
 
-        // the add-on returns the answer of the model; the conversation keeps it with the links made by the service
         chatService.processMessage(message, statuses);
 
-        // a document the person may no longer open, or one deleted meanwhile, leaves the selection
         List<Document> readable = discussionService.documentsOf(current.getId());
 
         synchronized (this) {

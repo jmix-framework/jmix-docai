@@ -69,8 +69,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * The documents of the selected folder with the document actions and the upload. The actions follow
- * the user's level in the folder and in the selected documents.
+ * The documents of the selected folder with the document actions and the upload.
  */
 @FragmentDescriptor("document-list-fragment.xml")
 public class DocumentListFragment extends Fragment<VerticalLayout> {
@@ -173,8 +172,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Runnable favoritesChangeHandler = () -> {
     };
 
-    // Jmix takes a saved width other than 100px for one the user dragged and stops the column from growing,
-    // so the name takes its share of the free space again unless the user has changed its width
     @Install(to = "settings", subject = "applySettingsDelegate")
     private void settingsApplySettingsDelegate(final SettingsFacet.SettingsContext<FragmentSettings> context) {
         DataGridColumn<Document> nameColumn = documentsGrid.getColumnByKey("name");
@@ -194,7 +191,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         configureDiscussion();
         // the descriptor gives the column chooser no title, and an icon alone needs one
         columnsButton.setTitle(messageBundle.getMessage("columnsButton.text"));
-        // the star shows the state by its look only, so the button tells a screen reader whether it is pressed
         favoriteAction.addPropertyChangeListener(change -> showFavoritePressed());
         showFavoritePressed();
     }
@@ -213,8 +209,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         versionButton.getElement().setAttribute("title", newVersion);
     }
 
-    // files dropped from the computer onto the table and the files of the upload dialog take one way; Jmix has no
-    // element for the zone, so it wraps the table here
     private void configureDropZone() {
         documentsDropZone = new DocumentsDropZone();
         documentsDropZone.setStartHandler(this::onUploadStarted);
@@ -242,11 +236,9 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         });
     }
 
-    // the discussion keeps its conversation in the chat of the assistant, so it needs the AI and that chat
     private void configureDiscussion() {
         discussAction.setVisible(assistantNavigation.isAvailable());
 
-        // a dialog belongs to the UI and would stay open over the next view
         addDetachListener(detachEvent -> {
             if (discussion != null) {
                 discussion.close();
@@ -276,8 +268,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Receives the documents the user starts to drag when the user may move every one of them, and an empty list
-     * when the drag ends.
+     * Receives the documents the user starts to drag when the user may move every one of them, and an empty list when
+     * the drag ends.
      */
     public void setDragHandler(Consumer<List<Document>> dragHandler) {
         this.dragHandler = dragHandler;
@@ -317,7 +309,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Reloads the documents. The grid keeps the selection, and the focus stays on the same document.
+     * Reloads the documents, keeping the selection and the focus.
      */
     public void reload() {
         UUID focusedId = focusedDocument == null ? null : focusedDocument.getId();
@@ -366,7 +358,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         openCard(event.getItem());
     }
 
-    // the grid fits its columns to the first rows it shows, so they fit again whenever the documents change
     @Subscribe(id = "documentsDc", target = Target.DATA_CONTAINER)
     public void onDocumentsDcCollectionChange(final CollectionContainer.CollectionChangeEvent<Document> event) {
         markedIds = favoriteService.markedIds(event.getSource().getItems());
@@ -377,14 +368,11 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         documentsGrid.recalculateColumnWidths();
     }
 
-    // a column the user has dragged to another width keeps it when the other columns fit again
     @Subscribe("documentsGrid")
     public void onDocumentsGridColumnResize(final ColumnResizeEvent<Document> event) {
         event.getResizedColumn().setAutoWidth(false);
     }
 
-    // the folder tree takes the rows only when the user may move all of them; the discussion window takes them anyway,
-    // and its selection calls for them until the drag ends
     @Subscribe("documentsGrid")
     public void onDocumentsGridDragStart(final GridDragStartEvent<Document> event) {
         List<Document> documents = event.getDraggedItems();
@@ -427,7 +415,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         openCard(documentsGrid.getSingleSelectedItem());
     }
 
-    // an open window takes the selected documents into its selection, as it takes the rows dropped on it
     @Subscribe("documentsGrid.discussAction")
     public void onDiscussAction(final ActionPerformedEvent event) {
         if (discussion == null || !discussion.isOpened()) {
@@ -540,8 +527,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         return documentRenderers.changedRenderer(username -> userNames.getOrDefault(username, username));
     }
 
-    // ---- upload of new documents and of a new version
-
     // the dialog leaves the list live, so a second click already on its way opens no second dialog
     @Subscribe("uploadButton")
     public void onUploadButtonClick(final ClickEvent<JmixButton> event) {
@@ -558,8 +543,7 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 .open();
     }
 
-    // The transfer of the first file starts as the files are dropped or picked, so the batch takes the folder shown
-    // then, the folder the dialog names, and keeps it while another one opens; the dialog has done its part
+    // the first file starts at the drop or the pick, so the batch keeps the folder shown then, the one the dialog names
     private void onUploadStarted() {
         if (dropFolder == null) {
             dropFolder = folder;
@@ -587,7 +571,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         }
     }
 
-    // the version goes to the document selected when the upload began, even if the selection changes meanwhile
     @Subscribe("versionUpload")
     public void onVersionUploadStarted(final StartedEvent event) {
         versionDocument = documentsGrid.getSingleSelectedItem();
@@ -630,7 +613,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         }
 
         documentCards.openIfAvailable(hostView(), document, closeEvent -> {
-            // a saved card may have renamed the document, and any card may have marked it with its star
             if (closeEvent.closedWith(StandardOutcome.SAVE)) {
                 contentsChanged();
             } else {
@@ -661,14 +643,13 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 .allMatch(document -> levels.allows(document.getAccessSet(), AccessLevel.EDIT));
     }
 
-    // a folder the user only views, or only passes through, takes no new documents
     private boolean folderEditable() {
         return folder != null && levels.allows(folder.getAccessSet(), AccessLevel.EDIT);
     }
 
-    // One batch at a time: the files of another drop or pick would join the batch on its way and go into its folder,
-    // so the list takes none until it ends, and its zones refuse them in the browser. A disabled zone would disable
-    // the table inside it, so only the uploads of the zone go off, and not before the files of the batch are in.
+    // one batch at a time: the files of another drop or pick would join the batch on its way and go into its folder, so
+    // the list takes none until it ends, and its zones refuse them in the browser. A disabled zone would disable the
+    // table inside it, so only the uploads of the zone go off, and not before the files of the batch are in.
     private void updateUploads() {
         boolean batchOnItsWay = dropFolder != null;
         uploadButton.setEnabled(folderEditable() && !batchOnItsWay);
@@ -682,7 +663,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 && levels.allows(document.getAccessSet(), AccessLevel.EDIT));
     }
 
-    // the key tells a manager that the document does not inherit the access of its folder
     private boolean showsOwnAccess(Document document) {
         return folder != null
                 && !document.getAccessSet().equals(folder.getAccessSet())
@@ -695,15 +675,12 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Moves the documents into the folder, as the move action does: a move that changes the access of the documents
-     * asks first. The documents and the counts of the folder tree are reloaded after the move.
+     * Moves the documents into the folder as the move action does, asking first when the access changes.
      */
     public void move(Collection<Document> documents, Folder target) {
         repositoryMoves.move(documents, folder, target, this::contentsChanged);
     }
 
-    // the statuses that fit every selected document, in the toolbar and in the submenu of the context menu, which
-    // the dictionary can make long
     private void updateStatusButton() {
         Set<Document> selected = documentsGrid.getSelectedItems();
         List<DocumentStatus> targets = allSelectedEditable()
@@ -712,7 +689,6 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                         .collect(Collectors.toSet()))
                 : List.of();
 
-        // a fragment keeps the id of a menu item in the component data, where @ViewComponent does not look
         GridMenuItem<Document> statusItem = documentsGrid.getContextMenu().getItems().stream()
                 .filter(item -> FragmentUtils.sameId(item, "statusDocumentItem"))
                 .findFirst()

@@ -17,21 +17,16 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * Carries the scope into the threads of Reactor, where the assistant streams its answers and calls its tools: Reactor
- * restores the scope from the context of a subscription on every thread its signals go to, and each subscription
- * takes the scope of the thread or the browser that subscribes. Reactor carries the scope alone: while the hooks are
- * on, the other thread-locals of the registry, Spring Security's context among them, stay where they are, as without
- * the stand. The hooks of Reactor and the registry of thread-locals are static, so the first context of the stand in
- * the JVM puts them in place and the last one to close takes them away and puts the others back; a context that
- * closes while another one lives, as in the cache of the tests, leaves them on.
+ * Carries the scope into the threads of Reactor, where the assistant streams its answers and calls its tools. Reactor
+ * carries the scope alone: the other thread-locals of the registry, Spring Security's context among them, stay where
+ * they are, as without the stand.
  */
 @Component
 @Profile("stand")
 public class StandScopePropagation {
 
     /**
-     * The key of the scope in the context of a subscription, in the registry of thread-locals and among the hooks of
-     * Reactor.
+     * The key of the scope in a subscription's context, the registry of thread-locals and the hooks of Reactor.
      */
     public static final String KEY = "docai.stand.scope";
 

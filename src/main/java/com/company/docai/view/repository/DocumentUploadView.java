@@ -23,11 +23,8 @@ import io.jmix.flowui.view.ViewDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * The dialog of the upload button of the document list: a large zone for the files dragged from the computer and a
- * button that picks them. Both hand the files to the upload manager of the list, so the files travel as the files
- * dropped on the table do, and the list closes the dialog as soon as they start to arrive. The dialog dims the page
- * only for the eye: a strictly modal dialog takes in the notices opened over it, so the notice of a file the manager
- * refuses would leave with the dialog as the other files of the drop start to arrive.
+ * The dialog of the upload button of the document list, which hands the files to the upload manager of the list. It
+ * dims the page only for the eye: a strictly modal dialog takes in the notices opened over it.
  */
 @ViewController(id = "DocumentUploadView")
 @ViewDescriptor(path = "document-upload-view.xml")
@@ -83,7 +80,6 @@ public class DocumentUploadView extends StandardView {
         dropZone.setContent(dropContent);
     }
 
-    // a navigation, such as the back button of the browser, closes the view, but the dialog it lives in would stay
     @Subscribe
     public void onAfterClose(final AfterCloseEvent event) {
         if (event.getCloseAction() instanceof NavigateCloseAction) {
@@ -100,8 +96,7 @@ public class DocumentUploadView extends StandardView {
     }
 
     /**
-     * Hands the files dropped into the zone or picked with the button to the manager, and shows its limits: how many
-     * files it takes at a time and how large each of them may be.
+     * Hands the files of the zone and the button to the manager and shows its limits.
      */
     public void setUploadManager(UploadManager manager) {
         dropZone.setUploadManager(manager);

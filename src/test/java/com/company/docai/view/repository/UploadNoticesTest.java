@@ -50,9 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 /**
- * The notices of uploads in the repository and in the document card: the report of a batch upload, the notices of
- * a file an upload refuses or fails to transfer, the largest file the upload components take, and that they take
- * files of any type.
+ * The notices of uploads in the repository and in the document card.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -125,6 +123,7 @@ class UploadNoticesTest {
 
         DialogInfo report = UiTestUtils.getLastOpenedDialog();
 
+        assertThat(report).isNotNull();
         assertThat(report.getDialog().getHeaderTitle()).isEqualTo(messages.getMessage(MESSAGES, "uploadReport.header"));
 
         assertThat(report.getContent().getChildren().map(line -> line.getElement().getText()))
@@ -145,9 +144,10 @@ class UploadNoticesTest {
 
         assertThat(UiTestUtils.getOpenedDialogs()).isEmpty();
 
-        assertThat(UiTestUtils.getLastOpenedNotification())
-                .extracting(NotificationInfo::getText, NotificationInfo::getType)
-                .containsExactly(messages.formatMessage(MESSAGES, "uploadDone", 2), Notifications.Type.SUCCESS);
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText()).isEqualTo(messages.formatMessage(MESSAGES, "uploadDone", 2));
+        assertThat(notification.getType()).isEqualTo(Notifications.Type.SUCCESS);
     }
 
     @Test
@@ -244,7 +244,6 @@ class UploadNoticesTest {
         return window.getView();
     }
 
-    // the upload dialog and the table hand their files to the manager of this zone
     private UploadDropZone dropZone(View<?> view) {
         DataGrid<Document> grid = fragmentComponent(view, "documentsGrid");
 

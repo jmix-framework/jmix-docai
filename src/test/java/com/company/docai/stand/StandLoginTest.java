@@ -12,6 +12,7 @@ import com.company.docai.test_support.StubAiConfiguration;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.view.login.LoginView;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.usagehelp.UsageHelpView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
@@ -118,12 +119,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
@@ -131,15 +133,8 @@ import static org.awaitility.Awaitility.await;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 /**
- * The login on the stand: the cookie keeps the copy of a browser across logins, another language starts a fresh copy,
- * a language whose template is not ready yet keeps the form, a new copy comes only after the control database takes
- * the credentials, a copy that cannot be made leaves the form with a notice, the form opens in the language of the
- * browser's copy and in English without one, and a signed-in browser whose copy is gone returns to the login form.
- * After the login the Language item of the user menu asks first, then moves the visitor to a fresh copy in the
- * language as the same user, without the password, and every tab of the browser loads anew; a user the templates do
- * not have as the same one gets no copy, and the old copy goes after the response. Each step goes through the filter
- * of the stand as a request of one browser, whose cookie the test keeps; the start of the stand builds the templates
- * of both languages once for the class.
+ * The login on the stand and the change of the language after it, each step a request of one browser through the filter
+ * of the stand.
  */
 @UiTest(authenticator = AnonymousUiTestAuthenticator.class, initialView = LoginView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class, StubAiConfiguration.class},
@@ -211,14 +206,12 @@ class StandLoginTest {
     @TempDir
     private Path tempDir;
 
-    // the cookie of the browser: a response sets it, the next requests send it back
     private @Nullable String cookie;
 
     // the language Jmix's login keeps in the browser for the next login
     private @Nullable String lastLocale;
 
-    // the start of the stand builds the templates of both languages and lets the logins in; Quartz, which the tests of
-    // the application keep in standby, runs the jobs that delete the copies a login or a switch replaces
+    // Quartz, in standby in the other tests, runs the jobs that delete the copies a login or a switch replaces
     @BeforeAll
     static void startTheStand(@Autowired StandStartup startup, @Autowired Scheduler scheduler) throws Exception {
         startup.start()
@@ -286,10 +279,10 @@ class StandLoginTest {
         assertThat(cookie).isNotEqualTo(english);
         assertThat(registry.find(english)).isEmpty();
         assertThat(registry.all()).extracting(Copy::key, Copy::language).containsExactly(tuple(cookie, "ru"));
-        // the views of the visitor and the commands of their session work with the new copy
         assertThat(scope.get()).isEqualTo(StandScope.copy(cookie));
-        assertThat(httpRequest().getSession(false).getAttribute(StandScopeHolder.SESSION_ATTRIBUTE))
-                .isEqualTo(StandScope.copy(cookie).id());
+        HttpSession session = httpRequest().getSession(false);
+        assertThat(session).isNotNull();
+        assertThat(session.getAttribute(StandScopeHolder.SESSION_ATTRIBUTE)).isEqualTo(StandScope.copy(cookie).id());
     }
 
     // a template that is being built has no ready marker, see StandStartupTest
@@ -312,6 +305,7 @@ class StandLoginTest {
 
             assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(LoginView.class);
             assertThat(loginForm().isEnabled()).isTrue();
+            assertThat(notice).isNotNull();
             assertThat(notice.getText()).isEqualTo(messages.getMessage(LoginView.class, "standGettingReady", RUSSIAN));
             assertThat(notice.getType()).isEqualTo(Notifications.Type.WARNING);
             assertThat(notice.getNotification().isOpened()).isTrue();
@@ -320,7 +314,6 @@ class StandLoginTest {
             assertThatThrownBy(() -> request(() -> standLogin.prepare(RUSSIAN, "alice", "alice")))
                     .isInstanceOf(TemplateNotReadyException.class);
 
-            // the next attempt closes the notice of this one
             request(() -> logIn("alice"));
 
             assertThat(notice.getNotification().isOpened()).isFalse();
@@ -382,6 +375,7 @@ class StandLoginTest {
 
         String deleted = cookie;
         MockHttpSession session = (MockHttpSession) httpRequest().getSession(false);
+        assertThat(session).isNotNull();
         copyFactory.delete(deleted);
 
         request(() -> scope.set(StandScopeHolder.current()));
@@ -401,7 +395,6 @@ class StandLoginTest {
 
     @Test
     void theFormOpensInEnglishOnTheStand() throws Exception {
-        // a browser in Russian
         VaadinSession.getCurrent().setLocale(RUSSIAN);
 
         request(this::openLoginForm);
@@ -414,7 +407,6 @@ class StandLoginTest {
     void theFormWarnsThatAnotherLanguageStartsTheDemoAnew() throws Exception {
         request(() -> loginForm().setSelectedLocale(RUSSIAN));
 
-        // a browser without a copy has nothing to lose
         boolean withoutACopy = languageWarning().isVisible();
 
         request(() -> {
@@ -433,6 +425,19 @@ class StandLoginTest {
         assertThat(english).isFalse();
         assertThat(russian).isTrue();
         assertThat(languageWarning().isVisible()).isFalse();
+    }
+
+    // the scenarios of the login form say that the copy of the visitor is the visitor's own; the stand offers them
+    // though its start loads no demo set
+    @Test
+    void theUsageScenariosSayThatTheChangesArePrivate() throws Exception {
+        assertThat(usageHelpButton().isVisible()).isTrue();
+
+        request(() -> usageHelpButton().click());
+
+        UsageHelpView help = UiTestUtils.getLastOpenedViewDialog();
+
+        assertThat(UiTestUtils.<Paragraph>getComponent(help, "privateNote").isVisible()).isTrue();
     }
 
     @Test
@@ -478,6 +483,7 @@ class StandLoginTest {
         DialogInfo question = UiTestUtils.getLastOpenedDialog();
         request(() -> dialogButton(DialogAction.Type.CANCEL).click());
 
+        assertThat(question).isNotNull();
         assertThat(question.getDialog().getHeaderTitle()).isEqualTo("Change the language?");
         assertThat(((Paragraph) question.getContent()).getText())
                 .isEqualTo("Changing the language discards your changes");
@@ -500,6 +506,7 @@ class StandLoginTest {
         User englishAlice = (User) currentAuthentication.getUser();
         Authentication login = SecurityContextHelper.getAuthentication();
         MockHttpSession before = (MockHttpSession) httpRequest().getSession(false);
+        assertThat(before).isNotNull();
 
         request(() -> languageAction().switchTo(RUSSIAN));
         events.clear();
@@ -507,28 +514,30 @@ class StandLoginTest {
         awaitDeleted(english);
 
         Authentication switched = SecurityContextHelper.getAuthentication();
+        assertThat(switched).isNotNull();
         User alice = (User) switched.getPrincipal();
         User russianAlice = userOf(cookie, "alice");
         HttpSession session = httpRequest().getSession(false);
+        assertThat(session).isNotNull();
         SecurityContext stored = (SecurityContext) session.getAttribute(SPRING_SECURITY_CONTEXT_KEY);
+        SessionInformation information = sessionRegistry.getSessionInformation(session.getId());
 
-        // a fresh copy in the language takes the place of the old one in the cookie and in the session
         assertThat(cookie).isNotEqualTo(english);
         assertThat(registry.find(english)).isEmpty();
         assertThat(registry.all()).extracting(Copy::key, Copy::language).containsExactly(tuple(cookie, "ru"));
         assertThat(session.getAttribute(StandScopeHolder.SESSION_ATTRIBUTE)).isEqualTo(StandScope.copy(cookie).id());
-        // the user of the copy: the same username, the names of the set of the language
         assertThat(switched.getName()).isEqualTo("alice");
+        assertThat(alice).isNotNull();
         assertThat(alice.getDisplayName()).isEqualTo(russianAlice.getDisplayName());
         assertThat(alice.getDisplayName()).isNotEqualTo(englishAlice.getDisplayName());
+        assertThat(login).isNotNull();
         assertThat(factors(switched)).isEqualTo(factors(login));
         // a new session against fixation, kept in the registry of sessions with the new context
         assertThat(before.isInvalid()).isTrue();
         assertThat(session.getId()).isNotEqualTo(before.getId());
         assertThat(stored.getAuthentication()).isSameAs(switched);
-        assertThat(sessionRegistry.getSessionInformation(session.getId()))
-                .extracting(SessionInformation::getPrincipal)
-                .isSameAs(alice);
+        assertThat(information).isNotNull();
+        assertThat(information.getPrincipal()).isSameAs(alice);
         // the account is checked in the control database before the copy is made, then in the copy
         assertThat(events.stream(PreAuthenticationCheckEvent.class))
                 .extracting(PreAuthenticationCheckEvent::getUser)
@@ -547,20 +556,19 @@ class StandLoginTest {
         assertThat(events.stream(AuthenticationSuccessEvent.class))
                 .extracting(AbstractAuthenticationEvent::getAuthentication)
                 .noneMatch(UsernamePasswordAuthenticationToken.class::isInstance);
-        // the language, and the page loads anew on the main view, at the root of the application
         assertThat(currentAuthentication.getLocale()).isEqualTo(RUSSIAN);
         assertThat(VaadinSession.getCurrent().getLocale()).isEqualTo(RUSSIAN);
         assertThat(pageLoads()).containsExactly(List.of("/", "_self"));
     }
 
-    // once the stand has checked the user, Jmix's own login takes the steps of the sign-in, through the login support
-    // of the switch: Jmix's change of the session id, its repository of contexts, its cookie of the language and its
-    // event, which names the support that sent it; the context the threads of the session share stays as it was
+    // once the stand has checked the user, Jmix's own login takes the steps of the sign-in through the login support of
+    // the switch; the context the threads of the session share stays as it was
     @Test
     void theSwitchSignsInThroughTheLoginOfJmix() throws Exception {
         request(() -> logIn("alice"));
 
         HttpSession before = httpRequest().getSession(false);
+        assertThat(before).isNotNull();
         SecurityContext shared = (SecurityContext) before.getAttribute(SPRING_SECURITY_CONTEXT_KEY);
         Authentication login = shared.getAuthentication();
         String formLanguage = lastLocale;
@@ -590,8 +598,9 @@ class StandLoginTest {
     void anAddressKeptBeforeTheLoginDoesNotOpenAtTheSwitch() throws Exception {
         request(() -> logIn("alice"));
 
-        httpRequest().getSession(false)
-                .setAttribute(NavigationAccessControl.SESSION_STORED_REDIRECT, "repository");
+        HttpSession session = httpRequest().getSession(false);
+        assertThat(session).isNotNull();
+        session.setAttribute(NavigationAccessControl.SESSION_STORED_REDIRECT, "repository");
 
         switchLanguage(RUSSIAN);
 
@@ -599,8 +608,7 @@ class StandLoginTest {
         assertThat(pageLoads()).containsExactly(List.of("/", "_self"));
     }
 
-    // the login support of the switch is a bean beside Jmix's own, which no injection takes by its type: the login
-    // form keeps Jmix's
+    // the login support of the switch is a bean no injection takes by its type: the login form keeps Jmix's
     @Test
     void theLoginFormKeepsTheLoginSupportOfJmix() throws Exception {
         request(() -> logIn("alice"));
@@ -660,7 +668,6 @@ class StandLoginTest {
         assertThat(SecurityContextHelper.getAuthentication()).isSameAs(login);
     }
 
-    // the login support of the switch signs in again only the user the session is signed in as, before any change
     @Test
     void theLoginSupportOfTheSwitchSignsInNoOtherUser() throws Exception {
         StandLoginViewSupport support = applicationContext.getBean(StandLoginViewSupport.NAME,
@@ -720,7 +727,6 @@ class StandLoginTest {
         assertThat(pageLoads()).containsExactly(List.of("/", "_self"));
     }
 
-    // the page the browser loads after the switch shows the user as the new copy has them
     @Test
     void theMainViewAfterTheSwitchNamesTheUserInTheLanguage() throws Exception {
         request(() -> logIn("alice"));
@@ -792,6 +798,7 @@ class StandLoginTest {
                     .isEqualTo(messages.getMessage(LoginView.class, "standGettingReady", Locale.ENGLISH));
             assertThat(atTheChoice.getType()).isEqualTo(Notifications.Type.WARNING);
             assertThat(questions).isEmpty();
+            assertThat(atTheAnswer).isNotNull();
             assertThat(atTheAnswer).isNotSameAs(atTheChoice);
             assertThat(atTheAnswer.getText()).isEqualTo(atTheChoice.getText());
             assertThat(pageLoads()).isEmpty();
@@ -827,7 +834,6 @@ class StandLoginTest {
 
             NotificationInfo notice = UiTestUtils.getLastOpenedNotification();
 
-            // the visitor changed the language, not signed in
             assertThat(notice).isNotNull();
             assertThat(notice.getText()).isEqualTo("Couldn't change the language. Try again later");
             assertThat(notice.getType()).isEqualTo(Notifications.Type.ERROR);
@@ -938,6 +944,7 @@ class StandLoginTest {
 
         NotificationInfo notice = UiTestUtils.getLastOpenedNotification();
 
+        assertThat(substituted).isNotNull();
         assertThat(substituted.getName()).isEqualTo("admin");
         assertThat(notice).isNotNull();
         assertThat(notice.getText()).isEqualTo("The language isn't changed: your account is unavailable in it");
@@ -950,8 +957,7 @@ class StandLoginTest {
         assertThat(currentUserSubstitution.getEffectiveUser().getUsername()).isEqualTo("alice");
     }
 
-    // the templates have the users of the control database, where a user may be disabled while the copy they signed in
-    // to keeps them active
+    // a user may be disabled in the control database while the copy they signed in to keeps them active
     @Test
     void aDisabledUserIsRefusedBeforeACopyIsMade(CapturedOutput output) throws Exception {
         request(() -> logIn("peter"));
@@ -989,8 +995,9 @@ class StandLoginTest {
         Authentication login = SecurityContextHelper.getAuthentication();
         request(() -> languageAction().switchTo(RUSSIAN));
 
-        httpRequest().getSession(false)
-                .invalidate();
+        HttpSession session = httpRequest().getSession(false);
+        assertThat(session).isNotNull();
+        session.invalidate();
 
         request(() -> dialogButton(DialogAction.Type.OK).click());
 
@@ -1027,8 +1034,9 @@ class StandLoginTest {
         assertThat(cookie).isNotNull();
         assertThat(cookie).isNotEqualTo(english);
         assertThat(registry.all()).extracting(Copy::key, Copy::language).containsExactly(tuple(cookie, "ru"));
-        assertThat(httpRequest().getSession(false).getAttribute(StandScopeHolder.SESSION_ATTRIBUTE))
-                .isEqualTo(StandScope.copy(cookie).id());
+        HttpSession session = httpRequest().getSession(false);
+        assertThat(session).isNotNull();
+        assertThat(session.getAttribute(StandScopeHolder.SESSION_ATTRIBUTE)).isEqualTo(StandScope.copy(cookie).id());
     }
 
     // a crafted client may send two clicks on OK in one request: the second finds the new copy in the language
@@ -1111,6 +1119,7 @@ class StandLoginTest {
         request(() -> logIn("alice"));
 
         MockHttpSession before = (MockHttpSession) httpRequest().getSession(false);
+        assertThat(before).isNotNull();
         switchLanguage(RUSSIAN);
 
         boolean registered = sessionRegistry.getSessionInformation(before.getId()) != null;
@@ -1246,6 +1255,7 @@ class StandLoginTest {
 
             assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(LoginView.class);
             assertThat(loginForm().isEnabled()).isTrue();
+            assertThat(notice).isNotNull();
             assertThat(notice.getText()).isEqualTo(messages.getMessage(LoginView.class, "standUnavailable", RUSSIAN));
             assertThat(notice.getType()).isEqualTo(Notifications.Type.ERROR);
             assertThat(registry.all()).isEmpty();
@@ -1270,7 +1280,6 @@ class StandLoginTest {
         assertThat(registry.all()).extracting(Copy::key).containsExactly(cookie);
     }
 
-    // a request of the browser: its cookie goes in, the filter of the stand wraps the work, a new cookie comes out
     private void request(Runnable work) throws Exception {
         MockHttpServletRequest httpRequest = httpRequest();
         MockHttpServletResponse httpResponse = new MockHttpServletResponse();
@@ -1311,7 +1320,6 @@ class StandLoginTest {
         }
     }
 
-    // what the logout leaves in the browser: the HTTP session is over, the cookie stays, the login form opens
     private void logOut() throws Exception {
         httpRequest().getSession()
                 .invalidate();
@@ -1319,17 +1327,15 @@ class StandLoginTest {
         openTheLoginFormAsNobody();
     }
 
-    // the page of the login form starts a new HTTP session, as Vaadin's page does
     private void openTheLoginFormAsNobody() throws Exception {
         new AnonymousUiTestAuthenticator().setupAuthentication(applicationContext);
         httpRequest().getSession(true);
         request(this::openLoginForm);
     }
 
-    // a request of another tab of the browser, with that tab's cookie, in the session of the current request
     private void requestOfAnotherTab(String tabCookie) {
         MockHttpServletRequest tabRequest = new MockHttpServletRequest();
-        tabRequest.setSession(httpRequest().getSession(false));
+        tabRequest.setSession(Objects.requireNonNull(httpRequest().getSession(false)));
         tabRequest.setCookies(new Cookie(CopyCookie.NAME, tabCookie));
 
         try {
@@ -1345,7 +1351,6 @@ class StandLoginTest {
                 .navigate();
     }
 
-    // the visitor chooses the language in the user menu and confirms
     private void switchLanguage(Locale locale) throws Exception {
         request(() -> languageAction().switchTo(locale));
         request(() -> dialogButton(DialogAction.Type.OK).click());
@@ -1368,22 +1373,10 @@ class StandLoginTest {
                 .getItem("userMenu_languageSwitch_%sUserMenuItem".formatted(language));
     }
 
-    private static Button dialogButton(DialogAction.Type type) {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-
-        return dialog.getButtons()
-                .stream()
-                .filter(button -> button.getId().equals(Optional.of(type.getId())))
-                .findFirst()
-                .orElseThrow();
-    }
-
     private static List<List<Object>> pageLoads() {
         return pageLoads(UI.getCurrent());
     }
 
-    // what the UI asks the browser to load anew: the page itself or another location
     private static List<List<Object>> pageLoads(UI ui) {
         return ui.getInternals()
                 .dumpPendingJavaScriptInvocations()
@@ -1395,7 +1388,6 @@ class StandLoginTest {
                 .toList();
     }
 
-    // the log line of a copy that is made
     private static long copiesMade(CapturedOutput output, String language) {
         return output.getAll()
                 .lines()
@@ -1403,7 +1395,6 @@ class StandLoginTest {
                 .count();
     }
 
-    // the copies whose deletion jobs the scheduler holds
     private List<String> deletionsOnTheScheduler() throws SchedulerException {
         List<String> copies = new ArrayList<>();
 
@@ -1419,13 +1410,11 @@ class StandLoginTest {
         return copies;
     }
 
-    // the old copy goes in a job of the scheduler after the request that replaced it
     private void awaitDeleted(String... keys) {
         await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> assertThat(registry.all()).extracting(Copy::key).doesNotContain(keys));
     }
 
-    // the name the button of the user menu shows
     private String userMenuName() {
         MenuBar bar = (MenuBar) userMenu().getChildren()
                 .findFirst()
@@ -1446,13 +1435,11 @@ class StandLoginTest {
                 .flatMap(StandLoginTest::withDescendants));
     }
 
-    // the user as the copy has them
     private User userOf(String key, String username) throws Exception {
         return StandScopeHolder.call(StandScope.copy(key), () -> systemAuthenticator.withSystem(() ->
                 userNamed(username)));
     }
 
-    // a user of one copy only, with the role the demo users have
     private void addEmployee(String username, String password) {
         User user = dataManager.create(User.class);
         user.setUsername(username);
@@ -1476,7 +1463,7 @@ class StandLoginTest {
     }
 
     private static String sessionId() {
-        return httpRequest().getSession(false)
+        return Objects.requireNonNull(httpRequest().getSession(false))
                 .getId();
     }
 
@@ -1541,7 +1528,10 @@ class StandLoginTest {
         return UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "languageWarning");
     }
 
-    // the request Vaadin wraps in the test
+    private Button usageHelpButton() {
+        return UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "usageHelpButton");
+    }
+
     private static MockHttpServletRequest httpRequest() {
         return (MockHttpServletRequest) ((VaadinServletRequest) VaadinRequest.getCurrent()).getRequest();
     }

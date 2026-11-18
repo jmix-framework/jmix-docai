@@ -3,6 +3,7 @@ package com.company.docai.stand;
 import io.jmix.core.TimeSource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -21,9 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The filter of the stand: the cookie of a copy binds the copy to the request and to the HTTP session, any other
- * cookie binds nothing, a session whose copy is gone or malformed is over, a request with an older cookie leaves the
- * copy a newer login put into the session, and the cleaner does not remove the copy a request has found.
+ * The filter of the stand, which binds the copy of the cookie to the request and to the HTTP session.
  */
 class StandScopeFilterTest {
 
@@ -138,8 +137,11 @@ class StandScopeFilterTest {
             request.getSession(true);
         });
 
-        assertThat(request.getSession(false)).isNotSameAs(session);
-        assertThat(request.getSession(false).getAttribute(StandScopeHolder.SESSION_ATTRIBUTE)).isEqualTo(chosen.id());
+        HttpSession renewed = request.getSession(false);
+
+        assertThat(renewed).isNotNull();
+        assertThat(renewed).isNotSameAs(session);
+        assertThat(renewed.getAttribute(StandScopeHolder.SESSION_ATTRIBUTE)).isEqualTo(chosen.id());
         assertThat(StandScopeHolder.current()).isNull();
     }
 

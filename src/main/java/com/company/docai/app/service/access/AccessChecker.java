@@ -20,9 +20,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * The Java form of the access rule that {@link AccessRowLevelRole} applies to loads: the level of the current user
- * in an access set is the highest level among the entries for their username and for their resource roles.
- * A user with {@link FullAccessRole} is recognized by that role and has {@link AccessLevel#MANAGE} everywhere.
+ * The Java form of the access rule that {@link AccessRowLevelRole} applies to loads.
  */
 @Component
 public class AccessChecker {
@@ -89,8 +87,7 @@ public class AccessChecker {
     }
 
     /**
-     * Tells whether the current user may change the folder: rename, move or delete it with {@link AccessLevel#EDIT}
-     * on its stored access set, or create a new folder with {@link AccessLevel#EDIT} on the set of its parent.
+     * Tells whether the current user has {@link AccessLevel#EDIT} on the folder, or on its parent for a new one.
      */
     public boolean canEdit(Folder folder) {
         if (hasFullAccess()) {
@@ -105,8 +102,7 @@ public class AccessChecker {
     }
 
     /**
-     * Tells whether the current user may change the document or add a version to it: {@link AccessLevel#EDIT}
-     * on its stored access set, or on the set of its folder for a new document.
+     * Tells whether the current user has {@link AccessLevel#EDIT} on the document, or on its folder for a new one.
      */
     public boolean canEdit(Document document) {
         if (hasFullAccess()) {
@@ -121,9 +117,8 @@ public class AccessChecker {
     }
 
     /**
-     * Tells whether the current user may open the live document: with {@link FullAccessRole}, or with an entry of any
-     * level in its access set. Unlike {@link #canEdit(Document)}, deleted rows are not read, so a document in the trash
-     * is open to full access only.
+     * Tells whether the current user may open the live document; unlike {@link #canEdit(Document)}, deleted rows are
+     * not read, so a document in the trash is open to full access only.
      */
     public boolean canRead(Document document) {
         if (hasFullAccess()) {
@@ -136,8 +131,8 @@ public class AccessChecker {
     }
 
     /**
-     * Checks the set the item has in the database, so that the answer depends neither on the fetch plan of
-     * the instance nor on changes not saved yet. A deleted item keeps its set, so deleted rows are read too.
+     * The set comes from the database, so that neither the fetch plan nor unsaved changes decide; a deleted item keeps
+     * its set, so deleted rows are read too.
      */
     private boolean hasEdit(String levelQuery, UUID itemId) {
         AccessLevel level = AccessLevel.fromId(dataManager.loadValue(levelQuery, Integer.class)

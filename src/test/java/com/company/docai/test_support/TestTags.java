@@ -27,9 +27,6 @@ public final class TestTags {
     private TestTags() {
     }
 
-    /**
-     * Saves a new tag with the name.
-     */
     public static Tag tag(UnconstrainedDataManager dataManager, String name) {
         Tag tag = dataManager.create(Tag.class);
         tag.setName(name);
@@ -48,9 +45,6 @@ public final class TestTags {
         return dataManager.save(stored);
     }
 
-    /**
-     * Returns the names on the tag badges inside the component, in their order.
-     */
     public static List<String> names(Component component) {
         return badges(component)
                 .map(button -> button.getChildren()
@@ -61,9 +55,6 @@ public final class TestTags {
                 .toList();
     }
 
-    /**
-     * Clicks the badge of the tag inside the component.
-     */
     public static void click(Component component, String name) {
         NativeButton button = badges(component)
                 .filter(badge -> badge.getChildren()
@@ -74,9 +65,6 @@ public final class TestTags {
         ComponentUtil.fireEvent(button, new ClickEvent<>(button));
     }
 
-    /**
-     * Returns the tag in the address of the view the browser shows.
-     */
     public static Optional<String> tagInAddress() {
         return UI.getCurrent()
                 .getInternals()

@@ -18,7 +18,6 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.badge.Badge;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.dnd.GridDropLocation;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Input;
@@ -40,7 +39,6 @@ import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.dialog.DialogInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,17 +46,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The dictionary of statuses as the administrator keeps it: a new status moves to any status until told otherwise,
- * the palette and the custom color set the color, and the list shows the statuses in their order and colors.
+ * The dictionary of statuses as the administrator keeps it.
  */
 @UiTest
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -144,7 +141,6 @@ class DocumentStatusViewsTest {
         assertThat(saved.getAnyTarget()).isTrue();
     }
 
-    // the flag moves to the saved status from the one that had it, which the list shows too
     @Test
     void theListShowsOneStatusForNewDocumentsAfterAnotherTakesTheFlag() {
         DocumentStatusListView list = openList();
@@ -322,7 +318,6 @@ class DocumentStatusViewsTest {
                 .containsAll(classesOf(icons.get(JmixFontIcon.SQUARE)));
     }
 
-    // the list deletes a status through the service, which keeps the one that new documents get
     @Test
     void theListDoesNotDeleteTheStatusForNewDocuments() {
         DocumentStatusListView list = openList();
@@ -332,7 +327,7 @@ class DocumentStatusViewsTest {
         grid.select(draft);
         UiTestUtils.<JmixButton>getComponent(list, "removeButton").click();
 
-        assertThatThrownBy(() -> confirmButton().click())
+        assertThatThrownBy(() -> dialogButton(DialogAction.Type.YES).click())
                 .isInstanceOf(OperationRejectedException.class)
                 .hasMessage(messages.formatMessage(DocumentStatusService.class, "statusInitialNotDeleted",
                         draft.getName()));
@@ -368,7 +363,7 @@ class DocumentStatusViewsTest {
             grid.select(review);
             UiTestUtils.<JmixButton>getComponent(list, "removeButton").click();
 
-            assertThatThrownBy(() -> confirmButton().click())
+            assertThatThrownBy(() -> dialogButton(DialogAction.Type.YES).click())
                     .isInstanceOf(OperationRejectedException.class)
                     .hasMessage(messages.formatMessage(DocumentStatusService.class, "statusInUse",
                             review.getName()));
@@ -380,7 +375,7 @@ class DocumentStatusViewsTest {
             grid.select(review);
             UiTestUtils.<JmixButton>getComponent(list, "removeButton").click();
 
-            assertThatThrownBy(() -> confirmButton().click())
+            assertThatThrownBy(() -> dialogButton(DialogAction.Type.YES).click())
                     .isInstanceOf(OperationRejectedException.class)
                     .hasMessage(messages.formatMessage(DocumentStatusService.class, "statusInTrash",
                             review.getName()));
@@ -405,17 +400,6 @@ class DocumentStatusViewsTest {
 
     private <T> T asAdmin(Supplier<T> work) {
         return systemAuthenticator.withUser("admin", work::get);
-    }
-
-    private static Button confirmButton() {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-
-        return dialog.getButtons()
-                .stream()
-                .filter(button -> button.getId().equals(Optional.of(DialogAction.Type.YES.getId())))
-                .findFirst()
-                .orElseThrow();
     }
 
     private Set<String> classesOf(Component component) {

@@ -41,14 +41,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The search indexes of the scopes of the stand. Each template and each copy has an index of the search add-on and an
- * index of fragments of its own, named by the scope, see {@link ScopedIndexConfiguration} and
- * {@link DocumentVectorIndex}: a template fills its indexes with its demo set and seals them read-only, a copy gets
- * clones of the indexes of its template, which take its writes, and the indexes go with the copy. The queue of the
- * add-on lives in the database of each copy, while the built-in jobs of the add-on read only the control database, so
- * one loop processes the queue of every copy in its scope. An index is changed or deleted by its exact name, never by
- * a pattern, which only lists the indexes of the copies an earlier run left; with search off nothing here calls
- * OpenSearch.
+ * The search indexes of the scopes of the stand: a template fills its indexes with its demo set and seals them
+ * read-only, and a copy gets clones of the indexes of its template. The built-in jobs of the add-on read only the
+ * control database, so one loop processes the queue of every copy in its scope; an index is changed or deleted by its
+ * exact name, never by a pattern.
  */
 @Component
 @Profile("stand")
@@ -56,7 +52,6 @@ public class StandIndexes {
 
     private static final Logger log = LoggerFactory.getLogger(StandIndexes.class);
 
-    // how long a template waits for its indexes: the queue of its demo set and the vectors of its documents
     private static final Duration TEMPLATE_TIMEOUT = Duration.ofMinutes(10);
 
     // the add-on processes one queue at a time in the whole JVM and gives up at once while the loop holds it
@@ -65,8 +60,7 @@ public class StandIndexes {
     private static final String REPLICAS = "index.number_of_replicas";
     private static final String WRITE_BLOCK = "index.blocks.write";
 
-    // the start of the names of the indexes of every copy after the prefix of the application, as StandScope names a
-    // copy
+    // as StandScope names a copy: the start of the index names of every copy after the prefix of the application
     private static final String COPIES = "copy_";
 
     private final SearchProperties searchProperties;
@@ -128,9 +122,7 @@ public class StandIndexes {
     }
 
     /**
-     * Processes the next batch of the search queue of each copy in the loop, as the system and in the scope of the
-     * copy: the add-on reads the queue from the database of the scope of the thread and writes the index of that
-     * scope. The job of the search queues runs it every five seconds, see {@link SearchQueuesJob}.
+     * Processes the next batch of the search queue of each copy in the loop, as the system in the copy's scope.
      */
     public void processQueues() {
         if (!searchProperties.isEnabled()) {
@@ -154,9 +146,7 @@ public class StandIndexes {
 
     /**
      * Deletes the indexes of an earlier build of the template by their exact names and creates its index of fragments
-     * anew, empty: the vector indexer takes up the documents of the set as soon as they are saved, the removed ones
-     * too, and removes those from an index that has to be there. The loader of the set creates the index of the
-     * add-on.
+     * anew, empty: the vector indexer removes documents from an index that has to be there.
      */
     public void renew(StandScope template) {
         if (!searchProperties.isEnabled()) {
@@ -168,11 +158,9 @@ public class StandIndexes {
     }
 
     /**
-     * Brings the indexes of the template in line with its demo set while its database is in the data source:
-     * processes its search queue to the end in its scope and waits until the vector indexer is done with each of its
-     * documents, indexed or failed. Vectors that are not done in ten minutes are given up with a warning: the model is
-     * optional, so the template keeps the vectors it has, and the documents still waiting fail later at its database,
-     * which is gone by then.
+     * Brings the indexes of the template in line with its demo set: processes its search queue to the end and waits
+     * until the vector indexer is done with each of its documents. Vectors not done in ten minutes are given up with a
+     * warning, as the model is optional.
      *
      * @throws IllegalStateException when the search queue is not processed in ten minutes, or OpenSearch fails
      */
@@ -302,10 +290,8 @@ public class StandIndexes {
     }
 
     /**
-     * Deletes the indexes of the copies that are gone, as an earlier run of the application leaves them: lists the
-     * indexes of copies under the prefix of the application, then deletes each index of a well-formed key the
-     * predicate does not know, one by one, by its exact name. An index of another prefix, or one whose name the stand
-     * gives no copy, stays; one that is not deleted stays for the next start; with search off nothing is called.
+     * Deletes the indexes of the copies an earlier run of the application left, one by one by its exact name; an index
+     * of another prefix, or one whose name the stand gives no copy, stays.
      *
      * @param live whether a key belongs to a copy that exists now
      * @return how many indexes are deleted
@@ -412,7 +398,6 @@ public class StandIndexes {
                 .one();
     }
 
-    // the names of the indexes that match the pattern, open or closed
     private List<String> listIndexes(String pattern) {
         try {
             return client.indices()
@@ -463,9 +448,8 @@ public class StandIndexes {
         }
     }
 
-    // the names the add-on and the index of fragments give the indexes of the scope, sorted, so that the indexes of
-    // two scopes pair up by their places; a name outside the prefix of the scope would reach the indexes of another
-    // scope or of the control database
+    // sorted, so that the indexes of two scopes pair up by their places; a name outside the prefix of the scope would
+    // reach the indexes of another scope or of the control database
     private List<String> namesOf(StandScope scope) {
         List<String> names = new ArrayList<>();
 
@@ -492,7 +476,6 @@ public class StandIndexes {
                 .toList();
     }
 
-    // the work runs as the system on the database and the indexes of the scope
     private <T> T inScope(StandScope scope, SystemAuthenticator.AuthenticatedOperation<T> work) {
         try {
             return StandScopeHolder.call(scope, () -> systemAuthenticator.withSystem(work));

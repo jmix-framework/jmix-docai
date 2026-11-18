@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Keeps document rules on every save path: a new document gets the initial status, the status follows
- * the transitions of its status, a live document in a locked status keeps its name, date, type and version,
- * and the current revision belongs to the document.
+ * Keeps the document rules on every save path: a new document gets the initial status, the status follows the
+ * transitions of its status, a live document in a locked status keeps its name, date, type and version, and the current
+ * revision belongs to the document.
  */
 @Component
 public class DocumentEventListener {
@@ -41,7 +41,6 @@ public class DocumentEventListener {
         this.messages = messages;
     }
 
-    // a new document gets the initial status on every save path: an upload, the card, the demo sets, the tests
     @EventListener
     public void onDocumentSaving(EntitySavingEvent<Document> event) {
         if (event.isNewEntity() && event.getEntity().getStatus() == null) {

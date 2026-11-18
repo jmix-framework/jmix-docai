@@ -37,16 +37,15 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * Plays the browser's side of files dropped on an upload drop zone: the requests that send the files to the manager
- * of the zone, and the events of the manager that the browser fires. Both go to the connector of the manager, the
- * element the browser talks to; the connector is taken from the manager of the zone, so the helper works for every
- * zone linked to the manager, wherever the component that owns the manager is.
+ * Plays the browser's side of files dropped on an upload drop zone: the requests that send the files to the manager of
+ * the zone, and the events of the manager that the browser fires.
  */
 public final class TestDrops {
 
     private static final String CONTENT_TYPE = "application/octet-stream";
-    // the upload handler of the zone puts each file into a temporary directory of its own
-    private static final String TEMPORARY_DIRECTORY = "temp_dir";
+
+    // the zone names its files by a prefix of its own, never by the names of the dropped files
+    private static final String DROPPED_FILE_PREFIX = "docai-drop-";
 
     private TestDrops() {
     }
@@ -126,9 +125,6 @@ public final class TestDrops {
         throw new IllegalStateException("The transfer of " + fileName + " did not break off");
     }
 
-    /**
-     * Fires the event of the browser that refused a dropped file for the reason.
-     */
     public static void reject(UploadDropZone zone, String fileName, UploadManager.FileRejectionReason reason) {
         String errorCode = switch (reason) {
             case TOO_MANY_FILES -> "tooManyFiles";
@@ -169,26 +165,17 @@ public final class TestDrops {
     }
 
     /**
-     * Returns the temporary files that hold the received files of that name.
+     * Returns the files that the drop zone of the document list keeps in the temporary directory of the system, those
+     * of other runs too.
      */
-    public static List<Path> temporaryFiles(String fileName) {
+    public static List<Path> temporaryFiles() {
         Path temporary = Path.of(System.getProperty("java.io.tmpdir"));
 
-        try (Stream<Path> directories = Files.list(temporary)) {
-            return directories
-                    .filter(directory -> directory.getFileName().toString().startsWith(TEMPORARY_DIRECTORY))
-                    .filter(Files::isDirectory)
-                    .flatMap(TestDrops::filesIn)
-                    .filter(file -> file.getFileName().toString().startsWith(fileName))
+        try (Stream<Path> files = Files.list(temporary)) {
+            return files
+                    .filter(file -> file.getFileName().toString().startsWith(DROPPED_FILE_PREFIX))
+                    .filter(Files::isRegularFile)
                     .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static Stream<Path> filesIn(Path directory) {
-        try {
-            return Files.list(directory);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

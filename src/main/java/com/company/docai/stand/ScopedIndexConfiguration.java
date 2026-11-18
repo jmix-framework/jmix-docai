@@ -4,10 +4,8 @@ import io.jmix.search.index.IndexConfiguration;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The configuration of an index of the search add-on whose name follows the scope of the thread: the index of a
- * template or a copy is {@code <prefix><scope>_<entity>}, and a thread without a scope works with the index of the
- * start, the one of the control database. The add-on reads the name of an index wherever it writes, searches or
- * creates one, so the visitors of two copies never meet in an index.
+ * The configuration of an index of the search add-on whose name follows the scope of the thread:
+ * {@code <prefix><scope>_<entity>}, or the index of the start without a scope.
  */
 public class ScopedIndexConfiguration extends IndexConfiguration {
 

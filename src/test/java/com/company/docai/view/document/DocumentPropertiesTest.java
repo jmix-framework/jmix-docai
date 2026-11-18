@@ -18,7 +18,6 @@ import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.HasValueAndElement;
-import com.vaadin.flow.component.button.Button;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.entity.EntityValues;
@@ -39,7 +38,6 @@ import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.dialog.DialogInfo;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.ViewControllerUtils;
@@ -52,9 +50,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -207,7 +205,7 @@ class DocumentPropertiesTest {
 
         entries.getItems().forEach(entry -> entry.setAccessLevel(AccessLevel.VIEW));
         UiTestUtils.<JmixButton>getComponent(dialog, "saveButton").click();
-        yesButton().click();
+        dialogButton(DialogAction.Type.YES).click();
 
         assertThat(card.isReadOnly()).isTrue();
         assertThat(typeField(card).isReadOnly()).isTrue();
@@ -220,16 +218,6 @@ class DocumentPropertiesTest {
 
         assertThat(typeField(card).isReadOnly()).isFalse();
         assertThat(fields(card)).isNotEmpty().noneMatch(DocumentPropertiesTest::isReadOnly);
-    }
-
-    private Button yesButton() {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-
-        return dialog.getButtons().stream()
-                .filter(button -> button.getId().equals(Optional.of(DialogAction.Type.YES.getId())))
-                .findFirst()
-                .orElseThrow();
     }
 
     private DocumentDetailView openProperties(Document document) {

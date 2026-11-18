@@ -23,6 +23,7 @@ import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBoxBase;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
@@ -45,6 +46,7 @@ import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.data.grid.DataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
@@ -196,16 +198,10 @@ class DocumentDetailViewTest {
     }
 
     @Test
-    void withoutTheKeyOfTheModelTheCardHasNoAiButton() {
+    void withoutTheKeyOfTheModelTheCardHasNoAiButtonAndNoAssistant() {
         DocumentDetailView card = openCard(upload("a.txt"));
 
         assertThat(this.<JmixButton>component(card, "fillWithAiButton").isVisible()).isFalse();
-    }
-
-    @Test
-    void withoutTheKeyOfTheModelTheCardHasNoAssistant() {
-        DocumentDetailView card = openCard(upload("a.txt"));
-
         assertThat(this.<Tab>component(card, "assistantTab").isVisible()).isFalse();
     }
 
@@ -267,15 +263,73 @@ class DocumentDetailViewTest {
         JmixSelect<DocumentStatus> statusField = component(card, "statusField");
         DocumentStatus active = TestStatuses.active(dataManager);
 
-        statusField.setValue(active);
-        ComponentUtil.fireEvent(statusField, new AbstractField.ComponentValueChangeEvent<>(statusField, statusField,
-                TestStatuses.draft(dataManager), true));
+        choose(statusField, active, TestStatuses.draft(dataManager));
         assertThat(card.hasUnsavedChanges()).isTrue();
         assertThat(this.<Span>component(card, "pendingChanges").getText()).isEqualTo("→ " + active.getName());
 
         this.<JmixButton>component(card, "saveButton").click();
 
         assertThat(reload(document).getStatus()).isEqualTo(active);
+    }
+
+    // a status chosen back to the current one is no change either
+    @Test
+    void aCardWithNothingStagedShowsNoPendingChanges() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        JmixSelect<DocumentStatus> statusField = component(card, "statusField");
+        Span pendingChanges = component(card, "pendingChanges");
+        DocumentStatus draft = TestStatuses.draft(dataManager);
+        DocumentStatus active = TestStatuses.active(dataManager);
+
+        assertThat(pendingChanges.getText()).isEmpty();
+
+        choose(statusField, active, draft);
+        choose(statusField, draft, active);
+
+        assertThat(pendingChanges.getText()).isEmpty();
+    }
+
+    @Test
+    void thePendingChangesNameTheUploadedFile() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+
+        TestUploads.succeed(component(card, "newVersionUpload"), temporaryStorage, "a-v2.txt", "second");
+
+        assertThat(this.<Span>component(card, "pendingChanges").getText())
+                .isEqualTo(messages.formatMessage(DocumentCardChanges.class, "pendingNewVersion", "a-v2.txt"));
+    }
+
+    @Test
+    void thePendingChangesNameTheNumberOfTheRestoredVersion() {
+        Document document = upload("a.txt");
+        DocumentRevision first = reload(document).getCurrentRevision();
+        documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "second"));
+        DocumentDetailView card = openCard(reload(document));
+        DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
+
+        revisionsGrid.select(first);
+        perform(revisionsGrid, "restoreRevisionAction");
+
+        assertThat(this.<Span>component(card, "pendingChanges").getText())
+                .isEqualTo(messages.formatMessage(DocumentCardChanges.class, "pendingRestoredVersion", 1));
+    }
+
+    // the new version comes first, then the status
+    @Test
+    void thePendingChangesJoinTheVersionAndTheStatusUntilTheStatusIsChosenBack() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        JmixSelect<DocumentStatus> statusField = component(card, "statusField");
+        Span pendingChanges = component(card, "pendingChanges");
+        DocumentStatus draft = TestStatuses.draft(dataManager);
+        DocumentStatus active = TestStatuses.active(dataManager);
+        String newVersion = messages.formatMessage(DocumentCardChanges.class, "pendingNewVersion", "a-v2.txt");
+
+        TestUploads.succeed(component(card, "newVersionUpload"), temporaryStorage, "a-v2.txt", "second");
+        choose(statusField, active, draft);
+        assertThat(pendingChanges.getText()).isEqualTo(newVersion + " · → " + active.getName());
+
+        choose(statusField, draft, active);
+        assertThat(pendingChanges.getText()).isEqualTo(newVersion);
     }
 
     @Test
@@ -304,7 +358,6 @@ class DocumentDetailViewTest {
                 .containsExactly(TestStatuses.active(dataManager), TestStatuses.archived(dataManager));
     }
 
-    // the closed field names the status, and its list draws each status with its dot
     @Test
     void theStatusFieldNamesTheStatusesAndDrawsTheirDots() {
         DocumentDetailView card = openCard(reload(upload("a.txt")));
@@ -408,7 +461,7 @@ class DocumentDetailViewTest {
         DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
 
         revisionsGrid.select(first);
-        revisionsGrid.getAction("restoreRevisionAction").actionPerform(revisionsGrid);
+        perform(revisionsGrid, "restoreRevisionAction");
         this.<JmixButton>component(card, "saveButton").click();
 
         DocumentRevision current = reload(document).getCurrentRevision();
@@ -443,7 +496,7 @@ class DocumentDetailViewTest {
         DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
 
         revisionsGrid.select(first);
-        revisionsGrid.getAction("restoreRevisionAction").actionPerform(revisionsGrid);
+        perform(revisionsGrid, "restoreRevisionAction");
 
         assertThat(previewText(component(card, "preview"))).isEqualTo("first");
     }
@@ -457,7 +510,7 @@ class DocumentDetailViewTest {
         DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
 
         revisionsGrid.select(first);
-        revisionsGrid.getAction("showRevisionAction").actionPerform(revisionsGrid);
+        perform(revisionsGrid, "showRevisionAction");
 
         assertThat(previewText(lastDialogPreview())).isEqualTo("first");
         assertThat(previewText(component(card, "preview"))).isEqualTo("second");
@@ -504,7 +557,8 @@ class DocumentDetailViewTest {
         Button newCardUpload = uploadButton(openNewCard());
         Button existingCardUpload = uploadButton(openCard(upload("a.txt")));
 
-        assertThat(newCardUpload.getText()).isEqualTo(messages.getMessage("com.company.docai.view.document/uploadFile"));
+        assertThat(newCardUpload.getText())
+                .isEqualTo(messages.getMessage("com.company.docai.view.document/uploadFile"));
         assertThat(existingCardUpload.getText())
                 .isEqualTo(messages.getMessage("com.company.docai.view.document/newVersionUpload.uploadText"));
     }
@@ -529,8 +583,7 @@ class DocumentDetailViewTest {
         document.setChangedDate(OffsetDateTime.of(2020, 1, 15, 12, 0, 0, 0, ZoneOffset.UTC));
         unconstrainedDataManager.save(document);
 
-        // the person works in Kiritimati, where noon in UTC is already the next day; the user of the test's login
-        // is loaded for this test alone
+        // in Kiritimati noon in UTC is already the next day; the user of the test's login is loaded for this test alone
         ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
         assertThat(currentAuthentication.getTimeZone().getID()).isEqualTo("Pacific/Kiritimati");
 
@@ -564,8 +617,7 @@ class DocumentDetailViewTest {
 
     @Test
     void theVersionsShowWhenTheyWereUploadedInThePersonsTimeZone() {
-        // the person works in Kiritimati, far from the zone of the server; the user of the test's login is loaded
-        // for this test alone
+        // Kiritimati is far from the zone of the server; the user of the test's login is loaded for this test alone
         ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
         assertThat(currentAuthentication.getTimeZone().getID()).isEqualTo("Pacific/Kiritimati");
 
@@ -703,9 +755,35 @@ class DocumentDetailViewTest {
         assertThat((View<?>) UiTestUtils.getCurrentView()).isNotInstanceOf(DocumentSearchView.class);
     }
 
-    // what the field fires when a name is typed and Enter pressed
+    // the browser sends the server an Esc only for a dialog that closes on Esc, and the card then closes as Cancel
+    // closes it
+    @Test
+    void anEscOnACardWithAStagedChangeAsksAboutTheUnsavedChanges() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        choose(component(card, "statusField"), TestStatuses.active(dataManager), TestStatuses.draft(dataManager));
+        Dialog dialog = card.findAncestor(Dialog.class);
+
+        ComponentUtil.fireEvent(dialog, new Dialog.DialogCloseActionEvent(dialog, true));
+
+        DialogInfo question = UiTestUtils.getLastOpenedDialog();
+        assertThat(dialog.isOpened()).isTrue();
+        assertThat(question).isNotNull();
+        assertThat(question.getDialog().getHeaderTitle()).isEqualTo(messages.getMessage("dialogs.closeUnsaved.title"));
+    }
+
     private static void type(JmixMultiSelectComboBox<Tag> field, String text) {
         ComponentUtil.fireEvent(field, new ComboBoxBase.CustomValueSetEvent<>(field, true, text));
+    }
+
+    private static void perform(DataGrid<DocumentRevision> revisionsGrid, String actionId) {
+        Action action = revisionsGrid.getAction(actionId);
+        assertThat(action).as(actionId).isNotNull();
+        action.actionPerform(revisionsGrid);
+    }
+
+    private static void choose(JmixSelect<DocumentStatus> field, DocumentStatus status, DocumentStatus previous) {
+        field.setValue(status);
+        ComponentUtil.fireEvent(field, new AbstractField.ComponentValueChangeEvent<>(field, field, previous, true));
     }
 
     private DocumentDetailView openNewCard() {

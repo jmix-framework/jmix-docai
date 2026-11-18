@@ -1,8 +1,7 @@
 package com.company.docai.stand;
 
 /**
- * The template of the language a visitor logs in with is not ready yet, as while it is built or checked: the stand is
- * getting ready.
+ * The template of the language a visitor logs in with is not ready yet, as while it is built or checked.
  */
 public class TemplateNotReadyException extends RuntimeException {
 

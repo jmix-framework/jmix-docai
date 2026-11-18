@@ -17,7 +17,6 @@ import com.company.docai.test_support.TestGrids;
 import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.folder.FolderLookupView;
 import com.company.docai.view.main.MainView;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.dnd.GridDropMode;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
@@ -29,13 +28,14 @@ import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.TreeDataGrid;
+import io.jmix.flowui.data.grid.DataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.settings.UserSettingsCache;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.dialog.DialogInfo;
+import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.testassist.notification.OpenedNotifications;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,17 +47,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.company.docai.test_support.TestGrids.action;
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Drag and drop in the repository as peter, an employee, does it. The sandbox inherits from the root and holds
- * "Drafts" with "Old" inside, "Archive", which already has an "offer.txt", "Published", viewed by all employees,
- * and "Managed", changed by all employees and managed by peter; its documents are "offer.txt" and "price.txt",
- * which inherit, and "memo.txt", viewed by peter.
+ * Drag and drop in the repository as peter, an employee, does it.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -177,12 +175,17 @@ class RepositoryDragTest {
         TestGrids.dropOnRow(foldersTree(view), drafts);
         TestGrids.endDrag(grid);
 
+        DataGridItems<Document> documents = grid.getItems();
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+
         assertThat(documentNamesIn(drafts)).containsExactly("offer.txt", "price.txt");
-        assertThat(grid.getItems().getItems()).extracting(Document::getName).containsExactly("memo.txt");
+        assertThat(documents).isNotNull();
+        assertThat(documents.getItems()).extracting(Document::getName).containsExactly("memo.txt");
         assertThat(folderTree(view).getSelectedFolder()).isEqualTo(sandbox);
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.formatMessage(MESSAGES, "documentsMoved", "Drafts", 2));
-        assertThat(UiTestUtils.getLastOpenedNotification().getType()).isEqualTo(Notifications.Type.SUCCESS);
+        assertThat(notification.getType()).isEqualTo(Notifications.Type.SUCCESS);
     }
 
     @Test
@@ -198,8 +201,11 @@ class RepositoryDragTest {
         dragDocuments(view, List.of(offer), managed);
         dialogButton(DialogAction.Type.YES).click();
 
+        DataGridItems<Document> documents = grid.getItems();
+
         assertThat(documentNamesIn(managed)).containsExactly("offer.txt");
-        assertThat(grid.getItems().getItems()).extracting(Document::getName).doesNotContain("offer.txt");
+        assertThat(documents).isNotNull();
+        assertThat(documents.getItems()).extracting(Document::getName).doesNotContain("offer.txt");
     }
 
     @Test
@@ -330,9 +336,12 @@ class RepositoryDragTest {
         TestGrids.dropOnRow(tree, archive);
         TestGrids.endDrag(tree);
 
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+
         assertThat(parentOf(drafts)).isEqualTo(archive);
         assertThat(folderTree(view).getSelectedFolder()).isEqualTo(drafts);
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.formatMessage(MESSAGES, "folderMoved", "Drafts", "Archive"));
     }
 
@@ -359,17 +368,21 @@ class RepositoryDragTest {
         TreeDataGrid<Folder> tree = foldersTree(view);
         grid.select(offer);
 
-        grid.getAction("moveAction").actionPerform(grid);
+        action(grid, "moveAction").actionPerform(grid);
         pickInLookup(drafts);
+        NotificationInfo documentsMoved = UiTestUtils.getLastOpenedNotification();
 
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(documentsMoved).isNotNull();
+        assertThat(documentsMoved.getText())
                 .isEqualTo(messages.formatMessage(MESSAGES, "documentsMoved", "Drafts", 1));
 
         folderTree(view).select(drafts);
-        tree.getAction("moveFolderAction").actionPerform(tree);
+        action(tree, "moveFolderAction").actionPerform(tree);
         pickInLookup(archive);
+        NotificationInfo folderMoved = UiTestUtils.getLastOpenedNotification();
 
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(folderMoved).isNotNull();
+        assertThat(folderMoved.getText())
                 .isEqualTo(messages.formatMessage(MESSAGES, "folderMoved", "Drafts", "Archive"));
     }
 
@@ -381,10 +394,10 @@ class RepositoryDragTest {
         grid.select(offer);
         openedNotifications.closeOpenedNotifications();
 
-        grid.getAction("moveAction").actionPerform(grid);
+        action(grid, "moveAction").actionPerform(grid);
         pickInLookup(sandbox);
         folderTree(view).select(drafts);
-        tree.getAction("moveFolderAction").actionPerform(tree);
+        action(tree, "moveFolderAction").actionPerform(tree);
         pickInLookup(sandbox);
 
         assertThat(documentNamesIn(sandbox)).contains("offer.txt");
@@ -402,15 +415,6 @@ class RepositoryDragTest {
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
         TestGrids.clickRendered(UiTestUtils.getComponent(lookup, "foldersTree"), "name", folder);
         UiTestUtils.<JmixButton>getComponent(lookup, "selectButton").click();
-    }
-
-    private Button dialogButton(DialogAction.Type type) {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-        return dialog.getButtons().stream()
-                .filter(button -> button.getId().equals(Optional.of(type.getId())))
-                .findFirst()
-                .orElseThrow();
     }
 
     private RepositoryView open(Folder folder) {

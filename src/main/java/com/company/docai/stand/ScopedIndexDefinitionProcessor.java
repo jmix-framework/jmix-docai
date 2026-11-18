@@ -14,10 +14,7 @@ import io.jmix.search.index.mapping.propertyvalue.PropertyValueExtractorProvider
 import java.util.List;
 
 /**
- * The processor of the index definitions of the search add-on on the stand, in place of the bean
- * {@code search_AnnotatedIndexDefinitionProcessor}: its configurations name the index of the scope of the thread, see
- * {@link ScopedIndexConfiguration}. The add-on keeps the configurations it gets from the processor and reads the name
- * of an index from them each time.
+ * The processor of the search add-on's index definitions on the stand, which name the index of the scope of the thread.
  */
 public class ScopedIndexDefinitionProcessor extends AnnotatedIndexDefinitionProcessor {
 

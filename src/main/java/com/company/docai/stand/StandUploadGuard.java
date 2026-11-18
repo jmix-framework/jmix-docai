@@ -29,13 +29,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Checks the files a visitor stores in their copy: a copy takes only a file whose bytes show one of the types of
- * {@code docai.stand.upload-types}, whatever its name says; no copy takes a file while the disk of the folder of the
- * stand has less free space than {@code docai.stand.min-free-disk}; and a copy keeps at most
- * {@code docai.stand.copy-upload-quota} of files of its own besides the files of its template. The upload of a
- * document asks before it stores its file, and the file storage of the stand asks for every file a copy stores,
- * whoever writes it. The build of a template and a thread without a scope upload nothing of a visitor, so they are
- * not checked.
+ * Checks the files a visitor stores in their copy: their type by their bytes, the free space on the disk and the quota
+ * of the copy. The file storage of the stand asks for every file a copy stores, whoever writes it; the build of a
+ * template and a thread without a scope upload nothing of a visitor, so they are not checked.
  */
 @Component
 @Profile("stand")
@@ -44,14 +40,12 @@ public class StandUploadGuard {
     private static final String BYTES = MediaType.OCTET_STREAM.toString();
     private static final String TEXT = MediaType.TEXT_PLAIN.toString();
 
-    // the names of the texts whose bytes a legacy encoding hides from Tika
     private static final List<String> TEXT_NAMES = List.of(".txt", ".csv");
 
     private final StandProperties properties;
     private final CopyRegistry registry;
     private final ContentTypeDetector contentTypes;
     private final Messages messages;
-    // a visitor knows a format by its name, as PDF for application/pdf, so a refusal names the formats
     private final String formats;
     private final List<String> extensions;
 
@@ -68,9 +62,7 @@ public class StandUploadGuard {
     }
 
     /**
-     * The extensions of the files a visitor can upload: every extension Tika knows for the types of
-     * {@code docai.stand.upload-types}, in lower case. The upload components offer only such files, while a file is
-     * still checked by its bytes.
+     * The extensions of the files a visitor can upload, in lower case; a file is still checked by its bytes.
      */
     public List<String> fileExtensions() {
         return extensions;
@@ -121,12 +113,11 @@ public class StandUploadGuard {
     }
 
     /**
-     * Checks a file the copy has just stored, as the file storage of the stand does for every file of a copy: its
-     * type, then the quota of the copy, the file counted in. The storage removes a file this refuses.
+     * Checks a file the copy has just stored: its type, then the quota of the copy, the file counted in. The storage
+     * removes a file this refuses.
      *
-     * @param file the stored file
-     * @throws OperationRejectedException when the bytes of the file show a type a visitor cannot upload or the copy
-     *                                    is over its quota with it
+     * @throws OperationRejectedException when the bytes of the file show a type a visitor cannot upload or the copy is
+     *                                    over its quota with it
      * @throws IllegalStateException      when the copy is gone
      */
     public void checkStored(StandScope copy, Path file, String fileName) {
@@ -177,8 +168,7 @@ public class StandUploadGuard {
         }
     }
 
-    // the uploads of the visitor: the files of the copy that its template does not have at the same place, which are
-    // links to the files of the template or copies of them
+    // the uploads of the visitor: the files of the copy that its template does not have at the same place
     private long ownBytes(StandScope copy) throws IOException {
         Copy registered = registry.find(copy.key())
                 .orElseThrow(() -> new IllegalStateException("The copy " + copy.tag() + " is gone"));
@@ -221,8 +211,6 @@ public class StandUploadGuard {
         return new OperationRejectedException(messages.formatMessage(getClass(), key, args));
     }
 
-    // a text whose name says so and whose bytes hold no control character but tabs and the ends of lines; an empty
-    // file holds no text
     private static boolean isText(Path file, String fileName) throws IOException {
         String name = fileName.toLowerCase(Locale.ROOT);
 
@@ -253,7 +241,6 @@ public class StandUploadGuard {
         return value >= 0 && value < 0x20 && value != '\t' && value != '\n' && value != '\r' || value == 0x7F;
     }
 
-    // a format is named by the acronym Tika knows for its type, else by its extension, else by the type itself
     private static String formatsOf(List<String> types) {
         List<String> formats = new ArrayList<>();
 

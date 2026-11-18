@@ -36,8 +36,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * The check of a demo set for {@link DemoDataLoader}: the problems of its description and whether the database is
- * empty enough to take it. It writes nothing.
+ * The check of a demo set for {@link DemoDataLoader}, which writes nothing.
  */
 @Component
 public class DemoSetChecker {
@@ -61,9 +60,8 @@ public class DemoSetChecker {
     }
 
     /**
-     * Returns the problems of the description of the set, as {@link DemoDataLoader#check(String)} lists them; none for
-     * a set that loads. The dates come first: a set whose dates cannot be computed lists only their problems, and the
-     * set the dates give for the day of the moment is checked then.
+     * Returns the problems of the description of the set; a set whose dates cannot be computed lists only their
+     * problems.
      *
      * @param now the moment of the load, in the time zone of the server
      */
@@ -119,7 +117,6 @@ public class DemoSetChecker {
                 .hint(PersistenceHints.SOFT_DELETION, false)
                 .one();
 
-        // the root folder comes with the changelogs
         return folders == 1 && documents == 0;
     }
 
@@ -131,9 +128,7 @@ public class DemoSetChecker {
         }
     }
 
-    // the statuses of the set over the defaults: a new one has a name and a color, a color is #rrggbb, a target is
-    // a key, one status is given to new documents, and every status of the set or of a document can be reached from
-    // that one
+    // every status of the set or of a document can be reached from the one given to new documents
     private static void checkStatuses(List<DemoSet.Status> described, Set<String> documentStatusKeys,
                                       List<String> problems) {
         Map<String, Set<String>> targets = new LinkedHashMap<>();
@@ -217,7 +212,6 @@ public class DemoSetChecker {
             }
         }
 
-        // a key of a document that names no status has its own problem already
         Set<String> checked = new LinkedHashSet<>();
         described.forEach(entry -> checked.add(entry.key()));
 
@@ -397,7 +391,6 @@ public class DemoSetChecker {
         try {
             calendar = template.calendar(now.toLocalDate());
         } catch (IllegalArgumentException e) {
-            // the problem names the locale or the format
             problems.add(e.getMessage());
             return;
         }
@@ -464,7 +457,7 @@ public class DemoSetChecker {
         });
     }
 
-    // the codes of the fields of a date of the type, in lower case, as the type rules match them
+    // in lower case, as the type rules match them
     private Set<String> dateFieldsOf(@Nullable String typeName) {
         if (typeName == null) {
             return Set.of();

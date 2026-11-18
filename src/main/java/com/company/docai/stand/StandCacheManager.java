@@ -13,9 +13,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The cache manager of the application on the stand. The caches of the types of documents and of the roles kept in
- * the database are caches per scope, since a copy changes its types and its roles in its own database; every other
- * cache is the one of the application.
+ * The cache manager of the stand, with the caches of document types and stored roles per scope, as a copy changes them.
  */
 public class StandCacheManager implements CacheManager {
 
@@ -52,9 +50,6 @@ public class StandCacheManager implements CacheManager {
         return delegate.getCacheNames();
     }
 
-    /**
-     * Resets the caches of the application with the entries of every scope.
-     */
     @Override
     public void resetCaches() {
         delegate.resetCaches();

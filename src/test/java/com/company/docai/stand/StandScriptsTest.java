@@ -33,21 +33,24 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.logging.LogLevel;
+import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * No script a visitor keeps in a copy runs on the stand, where it would run in the one JVM that holds every copy: the
- * editor of a field of a document type takes no script, and a row-level role whose predicate is a script denies every
- * row without running it, as Jmix does once its scripts are off. The class shares the context of
- * {@link StandLoginTest}, and the start of the stand makes the templates ready once for the class.
+ * No script a visitor keeps in a copy runs on the stand, where it would run in the one JVM that holds every copy. The
+ * class shares the context of {@link StandLoginTest}, and the start of the stand makes the templates ready once for the
+ * class.
  */
 @UiTest(authenticator = AnonymousUiTestAuthenticator.class, initialView = LoginView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class, StubAiConfiguration.class},
@@ -58,6 +61,9 @@ class StandScriptsTest {
 
     private static final List<String> SCRIPTS = List.of("validationScriptField", "recalculationScriptField",
             "optionsLoaderScriptField");
+
+    private static final String GROOVY_SUPPORT =
+            "io.jmix.securitydata.impl.role.provider.SecurityDataGroovyFeatureSupport";
 
     @Autowired
     private CopyFactory copyFactory;
@@ -79,6 +85,12 @@ class StandScriptsTest {
 
     @Autowired
     private UrlParamSerializer urlParamSerializer;
+
+    @Autowired
+    private LoggingSystem loggingSystem;
+
+    @Autowired
+    private Environment environment;
 
     @BeforeAll
     static void startTheStand(@Autowired StandStartup startup) throws Exception {
@@ -111,6 +123,7 @@ class StandScriptsTest {
     // would log a warning for every row it denies, at every load of a visitor who has the role
     @Test
     void aRowLevelPredicateThatIsAScriptDeniesEveryRowWithoutRunning(CapturedOutput output) throws Exception {
+        takeTheLevelOfTheStandBack(GROOVY_SUPPORT);
         StandScope copy = newCopy();
 
         List<Document> before = StandScopeHolder.call(copy, () -> documentsOf("alice"));
@@ -120,6 +133,12 @@ class StandScriptsTest {
         assertThat(before).isNotEmpty();
         assertThat(after).isEmpty();
         assertThat(output).doesNotContain("Groovy execution is disabled for security row-level predicates");
+    }
+
+    // the contexts of a test run share one logging system, and each sets the levels of its profiles as it starts
+    private void takeTheLevelOfTheStandBack(String logger) {
+        String level = environment.getProperty("logging.level." + logger);
+        loggingSystem.setLogLevel(logger, level == null ? null : LogLevel.valueOf(level.toUpperCase(Locale.ROOT)));
     }
 
     private StandScope newCopy() {
@@ -137,7 +156,6 @@ class StandScriptsTest {
                 .one();
     }
 
-    // by the route of the type and the field, as the edit action of the fields of a type in Document types opens it
     private CategoryAttributesDetailView openEditorOf(CategoryAttribute field) {
         RouteParam type = new RouteParam(CategoryAttributesDetailView.CATEGORY_ID_ROUTE_PARAMETER,
                 urlParamSerializer.serialize(field.getCategory()
@@ -159,7 +177,6 @@ class StandScriptsTest {
                 .list());
     }
 
-    // a row-level role of the copy whose predicate on reading documents is the script, given to the user
     private void assignPredicate(String username, String script) {
         MetaClass documents = metadata.getClass(Document.class);
 

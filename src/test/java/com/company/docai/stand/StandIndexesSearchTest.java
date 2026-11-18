@@ -19,27 +19,23 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 /**
  * The indexes of the stand against OpenSearch from {@code compose.yaml}: the copies of a template search indexes of
- * their own, so a document renamed in one copy is found there and not in another, and a deleted copy leaves no index
- * behind. The loop of the stand processes the queues. Runs only with {@code ./gradlew searchTest}.
+ * their own. The tests keep Quartz in standby, so the test processes the queues of the copies itself; runs only with
+ * {@code ./gradlew searchTest}.
  */
 @Tag("search")
 @SpringBootTest(classes = DocAiApplication.class, properties = "docai.stand.data-dir=build/test-stand-search")
 @ActiveProfiles({"test", "stand"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StandIndexesSearchTest {
-
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
     @Autowired
     private TemplateBuilder templateBuilder;
@@ -91,9 +87,9 @@ class StandIndexesSearchTest {
         UUID document = inCopy(renamed, this::anyDocument);
 
         inCopy(renamed, () -> rename(document, word));
+        indexes.processQueues();
 
-        await().atMost(TIMEOUT)
-                .untilAsserted(() -> assertThat(found(renamed, word)).containsExactly(document));
+        assertThat(found(renamed, word)).containsExactly(document);
         assertThat(found(other, word)).isEmpty();
     }
 
@@ -139,7 +135,6 @@ class StandIndexesSearchTest {
         return id;
     }
 
-    // what the visitor of the copy finds by the word
     private List<UUID> found(String key, String word) throws Exception {
         return StandScopeHolder.call(StandScope.copy(key), () -> systemAuthenticator.withUser("admin",
                 () -> documentSearch.search(word)

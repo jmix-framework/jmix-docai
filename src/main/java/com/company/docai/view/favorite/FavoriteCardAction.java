@@ -15,11 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 /**
- * The star of the document card: marks the document as a favorite of the user or removes the mark. The text stays
- * "Favorites"; only the star tells which of the two a click does: empty when the click marks, yellow when it removes
- * the mark. The service saves the mark, so the card does not count it as a change, and the star works in a card the
- * user only views and in the card of an archived document. A new document gets the star after its first save. The
- * repository shows the new mark when the card closes.
+ * The star of the document card: marks the document as a favorite of the user or removes the mark. The service saves
+ * the mark, so the card does not count it as a change, and the star works in a card the user only views.
  */
 @ActionType(FavoriteCardAction.ID)
 public class FavoriteCardAction extends ViewAction<FavoriteCardAction, DocumentDetailView> {
@@ -61,9 +58,6 @@ public class FavoriteCardAction extends ViewAction<FavoriteCardAction, DocumentD
         this.icon = icons.get(JmixFontIcon.STAR);
     }
 
-    /**
-     * Shows the star for a saved document, yellow when the user has marked it.
-     */
     @Override
     public void refreshState() {
         super.refreshState();

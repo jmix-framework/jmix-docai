@@ -36,9 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 /**
- * The sign-in of a change of the language around a failure of Jmix's steps: before the session works as the new
- * authentication the failure goes on, so that the switch puts the old copy back; after it the sign-in completes and
- * the log keeps the failure. Jmix's steps are a stand-in; the request and its session are real.
+ * The sign-in of a change of the language around a failure of Jmix's steps.
  */
 @ExtendWith(OutputCaptureExtension.class)
 class StandSignInTest {

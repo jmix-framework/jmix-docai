@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 
 /**
  * Keeps the dictionary of statuses whole on every save path: a name loses the spaces around it, is not empty, fits
- * {@link DocumentStatus#MAX_NAME_LENGTH} and differs from the names of the other statuses whatever the case; a color
- * is {@code #rrggbb}; a status does not list itself; and exactly one status is given to new documents, and it does not
+ * {@link DocumentStatus#MAX_NAME_LENGTH} and differs from the names of the other statuses whatever the case; a color is
+ * {@code #rrggbb}; a status does not list itself; and exactly one status is given to new documents, and it does not
  * lock them.
  */
 @Component
@@ -63,8 +63,7 @@ public class DocumentStatusEventListener {
         }
     }
 
-    // the check runs after the save is flushed, when the status that takes over the flag and the one that gives it
-    // up are both written
+    // after the flush, when the status that takes over the flag and the one that gives it up are both written
     @EventListener
     public void onStatusChanged(EntityChangedEvent<DocumentStatus> event) {
         long initial = dataManager.loadValue("select count(s) from DocumentStatus s where s.initial = true",

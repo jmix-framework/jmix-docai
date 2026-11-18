@@ -27,11 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
- * The queue of the indexer with the scopes of the stand: a document is indexed in the scope it was queued in, it waits
- * once in each scope, a forgotten scope loses its waiting documents and is forgotten only once its document in flight
- * is done, the queue is busy for a scope only with its own documents and counts them, and the start of the stand checks
- * no index. The indexing only notes the scope it runs in: the model, the index and the documents are not needed for
- * that.
+ * The queue of the indexer with the scopes of the stand.
  */
 class DocumentVectorIndexerScopeTest {
 

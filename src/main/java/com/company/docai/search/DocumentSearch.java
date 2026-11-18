@@ -36,13 +36,9 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * Searches documents by words: the documents with a word of the text or one of its forms come first, then those with
- * a word that only begins with one, see {@link WordsThenBeginningsStrategy}. The add-on finds them in the index, and
- * every found document is read again through {@link DataManager}, so the user gets only the live documents they may
- * see. Nothing tells how many others match: the index counts them too, so a page is filled with one document more
- * than it shows, and that one proves that the next page is not empty. The first documents for the search palette
- * come by the beginnings of their words, in one request. Lists the documents with a tag the same way, from the
- * database.
+ * Searches documents by words and by the beginnings of words, see {@link WordsThenBeginningsStrategy}. Every found
+ * document is read again through {@link DataManager}, so the user gets only the live documents they may see, and
+ * nothing tells how many others match: the index counts them too.
  */
 @Service
 public class DocumentSearch {
@@ -54,11 +50,9 @@ public class DocumentSearch {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentSearch.class);
 
-    // the palette finds the beginnings of the words, which the extended search of the index keeps
     private static final String PREFIX_STRATEGY = "startsWith";
 
-    // the add-on names a hit in the beginnings of the words after their field, and for a reference keeps the instance
-    // names in that name
+    // the add-on names a hit in the beginnings after its field and keeps the instance names of a reference in that name
     private static final String BEGINNINGS = ".prefix";
     private static final String INSTANCE_NAMES = "._instance_name";
 
@@ -103,8 +97,8 @@ public class DocumentSearch {
 
     /**
      * Returns the first page of the documents that match the words: those with a word of the text or one of its forms
-     * first, then those with a word that begins with a word of the text of three letters or more; each the most
-     * relevant first. A text of more than eight such words is searched by whole words only.
+     * first, then those with a word that begins with a word of the text of three characters or more. A text of more
+     * than eight such words is searched by whole words only.
      *
      * @throws SearchUnavailableException if the search engine does not answer
      */
@@ -128,11 +122,9 @@ public class DocumentSearch {
     }
 
     /**
-     * Returns at most {@code max} documents with a word that begins with a word of the text of three letters or more,
-     * or is a form of it, the most relevant first, with the name marked where it matched. Shorter words are left out,
-     * and a text of none but them finds nothing. If a word left is longer than eight letters, each word left is
-     * matched as a beginning of the stemmed words instead. The add-on pages the index itself to fill the request with
-     * documents the user may see.
+     * Returns at most {@code max} documents with a word that begins with a word of the text of three characters or
+     * more, or is a form of it, the most relevant first. If a word left is longer than eight characters, each word left
+     * is matched as a beginning of the stemmed words instead.
      *
      * @throws SearchUnavailableException if the search engine does not answer
      * @throws IllegalArgumentException   if {@code max} is negative
@@ -175,8 +167,7 @@ public class DocumentSearch {
     }
 
     /**
-     * Returns the live documents with the tag that the user may see, the latest changed first: at most {@code max}
-     * of them from the position {@code first}.
+     * Returns up to {@code max} live documents with the tag the user may see, from {@code first}, latest changed first.
      */
     public List<DocumentSearchHit> findTagged(Tag tag, int first, int max) {
         Map<UUID, List<String>> paths = new HashMap<>();
@@ -199,7 +190,6 @@ public class DocumentSearch {
         List<DocumentSearchHit> hits = new ArrayList<>(found);
         SearchResult last = result;
 
-        // one hit more than the page proves that the next page is not empty
         while (hits.size() <= PAGE_SIZE && last.isMoreDataAvailable()) {
             SearchResult previous = last;
             last = engine(() -> entitySearcher.searchNextPage(previous));
@@ -246,7 +236,6 @@ public class DocumentSearch {
                 : new DocumentSearchHit(document, path, caption(fieldOf(snippet)), snippet.getHighlights());
     }
 
-    // the name is marked when the name or the beginnings of its words matched
     private DocumentSearchHit nameHit(Document document, SearchResultEntry entry, Map<UUID, List<String>> paths) {
         List<String> path = pathOf(document.getFolder(), paths);
         FieldHit name = nameOf(entry.getFieldHits());
@@ -256,17 +245,12 @@ public class DocumentSearch {
                 : new DocumentSearchHit(document, path, caption(NAME), name.getHighlights());
     }
 
-    // the folders of the page usually repeat, and each path is read once
     private List<String> pathOf(Folder folder, Map<UUID, List<String>> paths) {
         return paths.computeIfAbsent(folder.getId(), id -> folderService.getPath(folder).stream()
                 .map(metadataTools::getInstanceName)
                 .toList());
     }
 
-    /**
-     * The hit to show: one by a whole word or its form, which puts the document first, else one by a beginning; of
-     * either, the file text, then the name, then the file name, then the tags, then a field of the type.
-     */
     private static @Nullable FieldHit snippetOf(List<FieldHit> fieldHits) {
         Map<Boolean, List<FieldHit>> byBeginnings = fieldHits.stream()
                 .collect(Collectors.partitioningBy(fieldHit -> fieldHit.getFieldName().endsWith(BEGINNINGS)));

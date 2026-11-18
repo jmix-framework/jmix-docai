@@ -31,8 +31,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Deletes items of the trash forever for {@link TrashService}. The rows go in one transaction, and a deleted folder
- * goes as a whole; the files of the deleted versions leave the storage after the commit.
+ * Deletes items of the trash forever for {@link TrashService}.
  */
 @Component
 public class TrashPurge {
@@ -56,8 +55,7 @@ public class TrashPurge {
     }
 
     /**
-     * Deletes the folders and the documents with the ids forever, as {@link TrashService#purge} describes it. An id
-     * no longer in the trash is left alone.
+     * Deletes the folders and the documents with the ids forever, as {@link TrashService#purge} describes it.
      *
      * @throws OperationRejectedException if a folder holds something that is not in the trash
      */
@@ -127,10 +125,8 @@ public class TrashPurge {
         // a value of a list field refers to the value it belongs to, so it goes first
         deleteForever(CategoryAttributeValue.class, "e.entity.entityId in :ids and e.parent is not null", documents);
         deleteForever(CategoryAttributeValue.class, "e.entity.entityId in :ids", documents);
-        // a comment refers to its document, and the document does not know its comments
         deleteForever(DocumentComment.class, "e.document.id in :ids", documents);
         deleteForever(DocumentRevision.class, "e.document.id in :ids", documents);
-        // the marks of the users keep their targets in the trash and go with them
         deleteForever(Favorite.class, "e.document.id in :ids", documents);
         deleteForever(Favorite.class, "e.folder.id in :ids", folders);
         deleteForever(Document.class, "e.id in :ids and e.deletedDate is not null", documents);
@@ -139,7 +135,6 @@ public class TrashPurge {
             deleteForever(Folder.class, "e.id in :ids and e.deletedDate is not null", folderLevel);
         }
 
-        // the database deletes the entries with the set
         deleteForever(AccessSet.class, "e.id in :ids", ownSets.stream()
                 .map(AccessSet::getId)
                 .toList());
@@ -147,8 +142,7 @@ public class TrashPurge {
         return files;
     }
 
-    // something live below a deleted folder, left by a race of a delete or by a folder restored alone past the trash,
-    // keeps the folder: deleting it forever would take the live item along or fail on it
+    // something live below a deleted folder keeps it: deleting the folder forever would take the live item along
     private void checkNothingLiveBelow(List<Folder> roots, List<UUID> folders, FolderIndex tree) {
         Set<UUID> purged = new HashSet<>(folders);
 
@@ -159,8 +153,7 @@ public class TrashPurge {
                 .map(folder -> folder.getParent().getId())
                 .toList());
 
-        // the soft deletion would hide a live document together with its deleted folder, and with the soft deletion
-        // off the query ignores "deletedDate is null", so the date is checked here
+        // with the soft deletion off the query ignores "deletedDate is null", so the date is checked here
         if (!folders.isEmpty()) {
             unconstrainedDataManager.loadValues("select d.folder.id, d.deletedDate from Document d"
                             + " where d.folder.id in :folders")

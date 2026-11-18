@@ -15,19 +15,22 @@ import org.opensearch.client.opensearch._types.query_dsl.DisMaxQuery;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch.core.SearchRequest;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The request of the results page, made of the two add-on strategies. They are replaced here: each one notes the text
- * it is asked for and answers with a query that names it.
+ * The request of the results page, made of the two add-on strategies, which are replaced here.
  */
 class WordsThenBeginningsStrategyTest {
 
@@ -80,9 +83,47 @@ class WordsThenBeginningsStrategyTest {
     }
 
     @Test
-    void aWordEndsAtEveryCharacterThatIsNeitherALetterNorADigit() {
+    void aWordEndsWhereTheIndexEndsIt() {
         assertThat(strategy.beginningsOf("and/or contract-offer lease.pdf №112 12.03.2026 a-b-c"))
-                .containsExactly("and", "contract", "offer", "lease", "pdf", "112", "2026");
+                .containsExactly("and", "contract", "offer", "lease", "pdf", "112", "12.03.2026");
+    }
+
+    // the standard tokenizer of the index keeps them inside a word, see DocAiIndexSettings
+    @Test
+    void anApostropheOrAnUnderscoreStaysInsideAWord() {
+        assertThat(strategy.beginningsOf("O'Bri O’Bri rock'n'roll word_ne _draft"))
+                .containsExactly("O'Bri", "O’Bri", "rock'n'roll", "word_ne", "_draft");
+    }
+
+    @Test
+    void aMarkJoinsTwoLettersOrTwoDigitsAsTheIndexDoesAndEndsTheWordElsewhere() {
+        assertThat(strategy.beginningsOf("a:b·c 1,5;6 3'000 and, or; end: x.y 1:2 a,b co\u00ADop"))
+                .containsExactly("a:b·c", "1,5;6", "3'000", "and", "end", "co\u00ADop");
+    }
+
+    // the palette splits every text it lists for, a pasted one too: a split that went back over such a run at each of
+    // its characters would hold the session for minutes
+    @Test
+    void aLongRunOfUnderscoresOrNarrowSpacesWithoutALetterIsSplitAtOnce() {
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            assertThat(strategy.beginningsOf("_".repeat(100_000))).isEmpty();
+            assertThat(strategy.beginningsOf("\u202F".repeat(100_000))).isEmpty();
+        });
+    }
+
+    // a pasted token or a paragraph of CJK is one long word: a split that took a frame of stack for each of its
+    // characters would fail on a request thread at a few thousand, so the split runs on a small stack here
+    @Test
+    void aLongWordIsOneWordEvenOnASmallStack() throws Exception {
+        String letters = "a".repeat(100_000);
+        String cjk = "\u4E2D".repeat(100_000);
+
+        FutureTask<List<List<String>>> split = new FutureTask<>(() ->
+                List.of(strategy.beginningsOf(letters), strategy.beginningsOf(cjk)));
+
+        new Thread(null, split, "word-split", 256 * 1024).start();
+
+        assertThat(split.get(5, TimeUnit.SECONDS)).containsExactly(List.of(letters), List.of(cjk));
     }
 
     @Test

@@ -39,11 +39,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * The home page in place of a view at the root of the main view: a greeting with a field and ready questions for
- * the AI assistant, the nearest due dates of the fields of the document types, the documents without a type, what
- * other people did lately, the own recent chats with the assistant and a summary by types and statuses. It loads
- * nothing by itself: the main view calls {@link #refresh()} whenever it shows it. The parts of the AI show only
- * while the AI is on and the user may open its chat.
+ * The home page at the root of the main view, which calls {@link #refresh()} whenever it shows it.
  */
 @FragmentDescriptor("dashboard-fragment.xml")
 public class DashboardFragment extends Fragment<VerticalLayout> {
@@ -99,13 +95,11 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
-        // the questions and the chats belong to the chat of the assistant, so they need the AI and that chat
         assistantAvailable = assistantNavigation.isAvailable();
 
         askBox.setVisible(assistantAvailable);
         chatsCard.setVisible(assistantAvailable);
 
-        // Enter in the field asks as the button does
         askButton.addClickShortcut(Key.ENTER)
                 .listenOn(questionField);
     }
@@ -164,8 +158,7 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Reads every block again. The main view calls it whenever it shows the dashboard and after a card opened from
-     * the dashboard closes.
+     * Reads every block again.
      */
     public void refresh() {
         ZonedDateTime now = dashboardService.now();
@@ -178,13 +171,11 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         showActivities(dashboardService.activities(), now);
         showSummary(dashboardService.summary());
 
-        // the chats come from the add-on of the assistant
         if (assistantAvailable) {
             showChats(dashboardService.recentChats(), now);
         }
     }
 
-    // an empty question asks nothing; the field is emptied for the next visit
     private void ask(@Nullable String question) {
         String text = Strings.nullToEmpty(question).strip();
 
@@ -194,7 +185,6 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         }
     }
 
-    // the greeting by the part of the day in the time zone of the user, and one line on what needs attention
     private void showWelcome(ZonedDateTime now, List<UpcomingDate> dates, UntypedDocuments untyped) {
         UserDetails user = currentUserSubstitution.getEffectiveUser();
 
@@ -220,7 +210,6 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         summaryLine.setVisible(!parts.isEmpty());
     }
 
-    // morning from 5, afternoon from 12, evening from 17, night from 23
     private String greetingOf(int hour, String name) {
         if (hour < 5 || hour >= 23) {
             return messageBundle.formatMessage("greeting.night", name);
@@ -244,7 +233,6 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         show(upcomingBox, rows, messageBundle.getMessage("upcomingEmpty.text"));
     }
 
-    // the count follows the title in the grey of a count
     private void showUntyped(UntypedDocuments untyped) {
         untypedTitle.getElement().setAttribute("data-count", String.valueOf(untyped.count()));
 
@@ -256,7 +244,6 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
         show(untypedBox, rows, messageBundle.getMessage("untypedEmpty.text"));
     }
 
-    // the card offers Fill with AI on the same terms, and the button opens it with the filling started
     private Div untypedRow(UntypedDocuments.Row untyped) {
         Runnable fillWithAi = aiSettings.isAvailable() && untyped.fillable()
                 ? () -> fillWithAiHandler.accept(untyped.document())
@@ -302,7 +289,6 @@ public class DashboardFragment extends Fragment<VerticalLayout> {
                 .ifPresent(summaryBox::add);
     }
 
-    // a block without rows says so in a line of its own
     private void show(VerticalLayout box, List<Div> rows, String emptyText) {
         box.removeAll();
 

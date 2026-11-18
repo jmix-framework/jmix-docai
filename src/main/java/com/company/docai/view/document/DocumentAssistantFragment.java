@@ -21,8 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
 
 /**
- * The assistant tab of the document card: a chat with the AI about the document. The conversation lives while
- * the card is open and is not stored.
+ * The assistant tab of the document card: a chat about the document that lives while the card is open, unsaved.
  */
 @FragmentDescriptor("document-assistant-fragment.xml")
 public class DocumentAssistantFragment extends Fragment<VerticalLayout> {
@@ -38,6 +37,16 @@ public class DocumentAssistantFragment extends Fragment<VerticalLayout> {
     private DocumentAssistant documentAssistant;
     @Autowired
     private Notifications notifications;
+
+    @Subscribe
+    public void onReady(final ReadyEvent event) {
+        // Esc closes the card, and the conversation lives only while the card is open
+        chat.getElement()
+                .addEventListener("keydown", keyDown -> {
+                })
+                .setFilter("event.key === 'Escape'")
+                .stopPropagation();
+    }
 
     /**
      * Starts the conversation about the document.

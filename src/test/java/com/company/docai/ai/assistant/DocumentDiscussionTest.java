@@ -43,8 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 /**
- * A discussion of a selection of documents with the stub model: the selection before the first question and after
- * it, the conversation of the add-on the first question starts, and the answer as the conversation keeps it.
+ * A discussion of a selection of documents with the stub model.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class,

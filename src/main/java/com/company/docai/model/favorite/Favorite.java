@@ -25,9 +25,7 @@ import java.util.UUID;
 
 /**
  * A mark of a person on a folder or a document they come back to often: exactly one of {@code folder} and
- * {@code document} is set. The mark keeps no name of its target: the name comes from the target when the mark is
- * shown, so a renamed target shows its new name and a target the person can no longer read shows nothing. A mark of
- * a target in the trash waits there with it. The marks of a deleted user go with the user.
+ * {@code document} is set.
  */
 @ExcludeFromAi
 @JmixEntity

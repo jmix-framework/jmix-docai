@@ -12,9 +12,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The last searches of the person signed in, newest first: what the search palette opened the search page with. The
- * palette lists them before the person types, and the person removes them there. They live in a user setting of the
- * authenticated user, so a substitute keeps their own searches.
+ * The last searches of the person signed in, newest first: what the search palette opened the search page with. They
+ * live in a user setting of the authenticated user, so a substitute keeps their own searches.
  */
 @Component
 public class RecentQueries {
@@ -43,8 +42,7 @@ public class RecentQueries {
     }
 
     /**
-     * Returns the last searches, newest first. A setting that cannot be read gives none, and the next search writes
-     * it anew; an entry without a text is left out, and an unknown mode reads as the search by words.
+     * Returns the last searches, newest first; a setting that cannot be read gives none.
      */
     public List<RecentQuery> load() {
         return userSettingsService.load(RECENT_QUERIES_SETTING)
@@ -53,8 +51,7 @@ public class RecentQueries {
     }
 
     /**
-     * Puts the search first: the same text in any case leaves its old place, an empty text is not kept, and only
-     * the last {@link #MAX_QUERIES} stay.
+     * Puts the search first; the same text in any case leaves its old place, keeping the last {@link #MAX_QUERIES}.
      */
     public void add(String text, boolean ai) {
         String stripped = text.strip();
@@ -105,7 +102,6 @@ public class RecentQueries {
             return List.of();
         }
 
-        // a setting of null reads as no array at all
         if (stored == null) {
             return List.of();
         }

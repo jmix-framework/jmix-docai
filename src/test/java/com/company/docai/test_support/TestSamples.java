@@ -17,9 +17,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Small files of the formats an upload may bring, built in code: the ones the stand takes and some it refuses. None
- * of them does harm: the program and the document of old Office are only their first bytes, and the scripts are
- * never run. A text given to an Office file is plain words without markup.
+ * Small files of the formats an upload may bring, built in code; none of them does harm: the program and the document
+ * of old Office are only their first bytes.
  */
 public final class TestSamples {
 
@@ -129,9 +128,8 @@ public final class TestSamples {
     }
 
     /**
-     * A CSV as Excel on a Russian Windows saves it: words of the Russian alphabet in Windows-1251 without a byte order
-     * mark, a semicolon between the columns, a tab in a cell and Windows line ends. The words are made of the code
-     * points of the alphabet, so the source holds none of its letters.
+     * A CSV as Excel on a Russian Windows saves it, in Windows-1251 without a byte order mark; the words are made of
+     * the code points of the alphabet, so the source holds none of its letters.
      */
     public static byte[] windows1251Csv() {
         // the letters of the Russian alphabet but its yo: 32 upper case, then 32 lower case

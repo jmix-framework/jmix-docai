@@ -32,10 +32,6 @@ public class FavoriteItem {
     @JmixProperty
     private String name;
 
-    /**
-     * The folder the target lies in: the folder of a document, the parent of a folder; empty for a folder under
-     * the root.
-     */
     @JmixProperty
     private String location;
 

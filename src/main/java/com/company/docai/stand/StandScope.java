@@ -36,7 +36,6 @@ public record StandScope(String id) {
     private static final Pattern KEY_IN_TEXT = Pattern.compile("(" + COPY_PREFIX + "|" + COPIES + "[/\\\\])("
             + KEY.pattern() + ")(?![0-9a-f])");
 
-    // the bytes of the hash of a key that tell the copies apart in a log
     private static final int TAG_BYTES = 4;
 
     /**
@@ -99,9 +98,9 @@ public record StandScope(String id) {
     }
 
     /**
-     * The name of the scope in logs and in the messages of exceptions: the id of a template, and for a copy
-     * {@code copy#} with the first eight hexadecimal characters of the SHA-256 of its key, the same for the same key.
-     * The key opens the copy through the cookie of its browser, and the tag does not give it away.
+     * The name of the scope in logs and in the messages of exceptions: the id of a template, or {@code copy#} with the
+     * first eight hexadecimal characters of the SHA-256 of the key of a copy. The key opens the copy through the cookie
+     * of its browser, and the tag does not give it away.
      */
     public String tag() {
         if (!isCopy()) {
@@ -115,15 +114,13 @@ public record StandScope(String id) {
             return "copy#" + HexFormat.of()
                     .formatHex(hash, 0, TAG_BYTES);
         } catch (NoSuchAlgorithmException e) {
-            // every Java platform has SHA-256
             throw new IllegalStateException(e);
         }
     }
 
     /**
      * The text with the key of each copy it names replaced by the tag of the copy, see {@link #tag()}: for a text the
-     * stand did not write, such as a message of OpenSearch, of the database or of the file system, which names an index
-     * or a database of a copy, {@code copy_<key>}, or its folder, {@code copies/<key>}.
+     * stand did not write, such as a message of OpenSearch, of the database or of the file system.
      */
     public static String withTags(String text) {
         return KEY_IN_TEXT.matcher(text)
@@ -191,8 +188,6 @@ public record StandScope(String id) {
 
     /**
      * The prefix of the search indexes of this scope.
-     *
-     * @param basePrefix the configured prefix of every index name
      */
     public String indexPrefix(String basePrefix) {
         return basePrefix + id + "_";

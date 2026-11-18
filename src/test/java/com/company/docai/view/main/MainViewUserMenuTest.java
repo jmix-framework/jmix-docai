@@ -130,6 +130,7 @@ class MainViewUserMenuTest {
 
         assertThat(currentAuthentication.getAuthentication()).isSameAs(token);
         ClientDetails details = (ClientDetails) token.getDetails();
+        assertThat(details).isNotNull();
         assertThat(details.getLocale()).isEqualTo(RUSSIAN);
         assertThat(details.getTimeZone()).isEqualTo(timeZone);
         assertThat(details.getScope()).isEqualTo(SecurityScope.UI);
@@ -190,7 +191,6 @@ class MainViewUserMenuTest {
         return UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "userMenu");
     }
 
-    // the names the renderers of the main view put on the button of the user menu and into the menu it opens
     private List<String> shownNames() {
         MenuBar bar = (MenuBar) userMenu().getChildren()
                 .findFirst()
@@ -205,7 +205,6 @@ class MainViewUserMenuTest {
                 .toList();
     }
 
-    // the avatars the renderers of the main view put on the button of the user menu and into the menu it opens
     private List<Avatar> shownAvatars() {
         MenuBar bar = (MenuBar) userMenu().getChildren()
                 .findFirst()

@@ -7,14 +7,12 @@ import org.jspecify.annotations.Nullable;
 import java.util.concurrent.Callable;
 
 /**
- * The scope the current thread works with: its own, or the one of the browser whose command it runs. A thread
- * without either is the service one.
+ * The scope the current thread works with: its own, or the one of the browser whose command it runs.
  */
 public final class StandScopeHolder {
 
     /**
-     * The attribute of the HTTP session that holds the id of the scope of the browser, for the commands Vaadin runs
-     * outside the requests of the browser, such as push.
+     * The attribute of the HTTP session with the scope of the browser, for Vaadin's commands outside its requests.
      */
     public static final String SESSION_ATTRIBUTE = "docai.stand.scope";
 
@@ -89,8 +87,7 @@ public final class StandScopeHolder {
 
     /**
      * Runs the work in the control part: without a scope, not even the one of the browser whose command the thread
-     * runs, so the work reads the control database, as the check of the credentials at a login that makes a copy does.
-     * A scope bound within the work counts as usual; the scope of the thread comes back afterwards, also when the work
+     * runs, so the work reads the control database. The scope of the thread comes back afterwards, also when the work
      * fails.
      */
     public static void runInControl(Runnable work) {

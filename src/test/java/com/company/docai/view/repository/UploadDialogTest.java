@@ -51,9 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 /**
- * The upload dialog of the document list. It names the folder the files go to and the limits of the uploads, hands
- * the files dropped into it or picked with its button to the upload manager of the list and closes as soon as they
- * start to arrive; the files then travel as the files dropped on the table do.
+ * The upload dialog of the document list, which hands its files to the upload manager of the list.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -165,9 +163,10 @@ class UploadDialogTest {
         assertThat(documentNamesIn(contracts)).containsExactly("a.txt", "b.txt");
         assertThat(documentNamesIn(invoices)).isEmpty();
 
-        assertThat(UiTestUtils.getLastOpenedNotification())
-                .extracting(NotificationInfo::getText, NotificationInfo::getType)
-                .containsExactly(messages.formatMessage(NOTICES, "uploadDone", 2), Notifications.Type.SUCCESS);
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText()).isEqualTo(messages.formatMessage(NOTICES, "uploadDone", 2));
+        assertThat(notification.getType()).isEqualTo(Notifications.Type.SUCCESS);
     }
 
     @Test
@@ -226,7 +225,9 @@ class UploadDialogTest {
 
         // the manager refuses one file of a drop, and the notice joins the page with the answer of the server
         TestDrops.reject(zone, "a.txt", FileRejectionReason.FILE_TOO_LARGE);
-        Notification notice = UiTestUtils.getLastOpenedNotification().getNotification();
+        NotificationInfo rejection = UiTestUtils.getLastOpenedNotification();
+        assertThat(rejection).isNotNull();
+        Notification notice = rejection.getNotification();
         UI.getCurrent().getInternals().getStateTree().runExecutionsBeforeClientResponse();
 
         // the dialog closes as the other file of the drop starts to arrive

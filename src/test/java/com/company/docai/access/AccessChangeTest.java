@@ -38,10 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Who may change what. A user who only views a folder or a document is told so, and an item hidden from the user
- * is unavailable to them, as if it were deleted. A change that bypasses the services is stopped by the predicates
- * of the access row-level role. The tree: "Published" is viewed by all employees, "Closed" is managed by helen
- * alone; peter is an employee.
+ * Who may change what.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)

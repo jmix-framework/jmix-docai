@@ -23,9 +23,7 @@ import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
 /**
- * Proposes the type, the field values and the tags of a document from its text, and puts a proposal into a document
- * being edited. The types and their fields come from the dynamic attributes and the tags from the vocabulary on every
- * call, so a new type, field or tag reaches the model without a code change. Nothing here saves the document.
+ * Proposes the type, the field values and the tags of a document from its text.
  */
 @Service
 public class DocumentClassifier {
@@ -59,7 +57,6 @@ public class DocumentClassifier {
             Tags:
             %s""";
 
-    // the most tags one proposal puts into a document
     private static final int MAX_TAGS = 3;
 
     private final ChatModel chatModel;
@@ -79,9 +76,6 @@ public class DocumentClassifier {
 
     /**
      * Asks the model for the type and the field values of a document.
-     *
-     * @param documentName the name of the document, which often names its kind
-     * @param text         the text of the document
      */
     public ClassificationProposal classify(String documentName, String text) {
         // the model is held to the schema of the proposal: a model asked for JSON in the prompt alone may break it
@@ -99,8 +93,7 @@ public class DocumentClassifier {
     }
 
     /**
-     * Returns the names of the tags of the proposal as {@link #apply} adds them to the document: three at most, one
-     * new tag at most, none the document has, and the tags of the vocabulary as the vocabulary writes them.
+     * Returns the names of the tags of the proposal as {@link #apply} adds them to the document.
      */
     public List<String> tagsToAdd(ClassificationProposal proposal, Document document) {
         return selectTags(proposal.tags(), Objects.requireNonNullElse(document.getTags(), List.of()))
@@ -110,9 +103,7 @@ public class DocumentClassifier {
     }
 
     /**
-     * Puts the proposal into the document being edited: the type, the values of its fields, the date of the document
-     * and the tags. A value that does not fit its field is left out and reported. The values of other types stay
-     * until the document is saved, which clears them. The tags join those the document has, also when no type fits.
+     * Puts the proposal into the document being edited; a value that does not fit its field is left out and reported.
      */
     public ClassificationResult apply(ClassificationProposal proposal, Document document) {
         List<ClassificationResult.AddedTag> tags = applyTags(proposal.tags(), document);
@@ -134,7 +125,6 @@ public class DocumentClassifier {
         return new ClassificationResult(documentTypes.nameOf(type), filling.filled(), filling.skipped(), tags);
     }
 
-    // the tags of the person stay
     private List<ClassificationResult.AddedTag> applyTags(List<String> names, Document document) {
         List<Tag> current = Objects.requireNonNullElse(document.getTags(), List.of());
         List<Tag> added = selectTags(names, current);
@@ -150,8 +140,6 @@ public class DocumentClassifier {
                 .toList();
     }
 
-    // a tag of the vocabulary comes whatever its case, a new one only once, and a name that does not fit a tag is
-    // left out
     private List<Tag> selectTags(List<String> names, List<Tag> current) {
         List<Tag> selected = new ArrayList<>();
         boolean newTagSelected = false;

@@ -14,7 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Reads users by username as the current user may read them: the names that documents, comments and the trash show.
+ * Reads users by username as the current user may read them.
  */
 @Service
 public class UserService {
@@ -28,8 +28,7 @@ public class UserService {
     }
 
     /**
-     * Returns the names of the users as the application shows them, by username. A null username is skipped, and
-     * a user deleted since is not in the map, so the caller keeps the username.
+     * Returns the names of the users by username; a user deleted since is not in the map.
      */
     public Map<String, String> namesOf(Collection<String> usernames) {
         return usersOf(usernames)
@@ -39,8 +38,7 @@ public class UserService {
     }
 
     /**
-     * Returns the users by username, loaded with the attributes of their instance names. A null username is skipped,
-     * and a user deleted since is not in the map.
+     * Returns the users by username with the attributes of their instance names; one deleted since is not in the map.
      */
     public Map<String, User> usersOf(Collection<String> usernames) {
         Set<String> wanted = usernames.stream()

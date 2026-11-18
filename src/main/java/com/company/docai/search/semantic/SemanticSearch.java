@@ -33,9 +33,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Finds documents by the meaning of a query among the documents the person may open: the fragments of the index
- * nearest to the query, grouped by document. The search page gets the documents a model confirmed, each with the quote
- * that fits the query; the chat of the assistant gets the fragments to answer from.
+ * Finds documents by the meaning of a query among the documents the person may open.
  */
 @Component
 public class SemanticSearch {
@@ -60,7 +58,6 @@ public class SemanticSearch {
     // the nearest fragments are often of one document, so there are more of them than documents to show
     private static final int NEAREST_FRAGMENTS = 40;
 
-    // the shown part of a fragment: about as long as a snippet of the search by words
     private static final int SNIPPET_LENGTH = 300;
 
     private static final String MATCH_START = "<b>";
@@ -133,25 +130,23 @@ public class SemanticSearch {
     }
 
     /**
-     * The decision of the model on a candidate. The model writes the quote before the decision: a schema in the
-     * order of the names would let it decide first, and near misses would get through.
+     * The decision of the model on a candidate. The model writes the quote before the decision: a schema in the order
+     * of the names would let it decide first, and near misses would get through.
      *
      * @param number the number of the candidate in the list the model got, from 1
      * @param quote  the shortest exact quote of the name or the fragment that belongs to the query
-     * @param fits   whether the candidate fits the query
      */
     @JsonPropertyOrder({"number", "quote", "fits"})
     public record Verdict(int number, String quote, boolean fits) {
     }
 
-    // the ids of the documents the model keeps with the quotes it confirmed, and the documents and fragments found
     private record Fitting(List<UUID> ids, Map<UUID, String> quotes, Map<UUID, Document> documents,
                            Map<UUID, List<DocumentVectorIndex.Match>> nearest, boolean more) {
     }
 
     /**
-     * Returns the documents that fit the query by meaning, the nearest first: at most {@link #PAGE_DOCUMENTS}, each
-     * with its nearest fragment, where the quote the model confirmed is marked as in a snippet of the search by words.
+     * Returns at most {@link #PAGE_DOCUMENTS} documents that fit the query by meaning, each with its nearest fragment
+     * and the confirmed quote marked.
      *
      * @throws SearchUnavailableException if OpenSearch does not answer
      */
@@ -167,9 +162,8 @@ public class SemanticSearch {
     }
 
     /**
-     * Returns the documents that fit the topic by meaning, as {@link #search} finds them, each with its fragments
-     * nearest to the topic: at most {@link #CHAT_FRAGMENTS} of the first {@link #CHAT_DOCUMENTS} documents and one of
-     * the rest; and whether the limits of the search may have left out more documents about the topic.
+     * Returns the documents that fit the topic by meaning, as {@link #search} finds them, with their fragments nearest
+     * to the topic.
      *
      * @throws SearchUnavailableException if OpenSearch does not answer
      */
@@ -189,7 +183,6 @@ public class SemanticSearch {
         return new Found(passages, fitting.more());
     }
 
-    // the nearest candidates that the model keeps, the nearest first, with what the search knows about them
     private Fitting fitting(String query) {
         Map<UUID, List<DocumentVectorIndex.Match>> nearest = nearest(query);
         Map<UUID, Document> documents = load(nearest.keySet());
@@ -226,8 +219,8 @@ public class SemanticSearch {
         return new Fitting(ids, quotes, documents, nearest, more);
     }
 
-    // the rights of the person decide which documents the index may answer with, before it looks for the nearest
     private Map<UUID, List<DocumentVectorIndex.Match>> nearest(String text) {
+        // the rights of the person decide which documents the index may answer with, before it looks for the nearest
         List<UUID> readable = dataManager.loadValues("select d.id from Document d")
                 .properties("id")
                 .list()
@@ -254,7 +247,6 @@ public class SemanticSearch {
                         Collectors.toList()));
     }
 
-    // a query leaves out a document deleted after the fragments were found, where ids() would fail
     private Map<UUID, Document> load(Iterable<UUID> ids) {
         List<UUID> wanted = new ArrayList<>();
         ids.forEach(wanted::add);
@@ -322,7 +314,7 @@ public class SemanticSearch {
         return new DocumentSearchHit(document, path, caption, snippet(match.text(), quote));
     }
 
-    // the part of the fragment around the quote, the quote marked; a quote the model did not copy exactly is not marked
+    // a quote the model did not copy exactly is not marked
     private static String snippet(String fragment, @Nullable String quote) {
         String text = fragment.replace('\n', ' ');
         int start = quote == null || quote.isBlank() ? -1 : text.indexOf(quote.strip());
@@ -332,7 +324,6 @@ public class SemanticSearch {
         }
 
         int end = start + quote.strip().length();
-        // a quote longer than the snippet is shown whole
         int from = Math.max(0, start - Math.max(0, SNIPPET_LENGTH - (end - start)) / 2);
         int to = Math.clamp(from + SNIPPET_LENGTH, end, text.length());
 

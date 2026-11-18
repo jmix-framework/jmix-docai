@@ -21,11 +21,9 @@ import io.jmix.security.role.annotation.RowLevelRole;
 import org.springframework.context.ApplicationContext;
 
 /**
- * Applies the access entries to everything loaded and saved through {@code DataManager}: a user sees a folder,
- * a document and its versions with an entry of any level in their access set, and changes them with
- * {@link AccessLevel#EDIT}. {@link AccessRoleAssignmentProvider} assigns the role to everyone without
- * {@link FullAccessRole}. Saves are checked by {@link AccessChecker}, the Java form of the same rule. Folder
- * references of loaded documents stay: there is no read predicate to erase them.
+ * Applies the access entries in {@code DataManager}: a user sees a folder, a document and its versions with an entry of
+ * any level in their access set, and changes them with {@link AccessLevel#EDIT}. {@link AccessRoleAssignmentProvider}
+ * assigns the role. Folder references of loaded documents stay: no read predicate erases them.
  */
 @RowLevelRole(name = "msg://AccessRowLevelRole.name", code = AccessRowLevelRole.CODE,
         description = "msg://AccessRowLevelRole.description")
@@ -34,10 +32,9 @@ public interface AccessRowLevelRole {
     String CODE = "access-rl";
 
     /**
-     * The condition that the access entry {@code ae} is for the current user: for their username or for one of
-     * their resource roles. The policies look for the access set of a row among the sets of such entries, so the
-     * row stays outside the subquery: Jmix puts the alias of a query in place of {@code {E}} as text, and inside
-     * the subquery an alias {@code ae}, which the AI may choose, would mean the entry and let every row through.
+     * The condition that the access entry {@code ae} is for the current user. The row stays outside the subquery: Jmix
+     * puts the alias of a query in place of {@code {E}} as text, and an alias {@code ae}, which the AI may choose,
+     * would mean the entry inside it and let every row through.
      */
     String MY_ENTRY = "(ae.username = :current_user_username or ae.roleCode in :current_role_codes)";
 

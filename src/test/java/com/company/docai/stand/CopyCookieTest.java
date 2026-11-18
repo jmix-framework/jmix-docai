@@ -19,7 +19,6 @@ class CopyCookieTest {
         assertThat(cookie.getSecure()).isTrue();
         assertThat(cookie.getAttribute("SameSite")).isEqualTo("Lax");
         assertThat(cookie.getPath()).isEqualTo("/docai");
-        // no expiry: the cookie ends with the browser
         assertThat(cookie.getMaxAge()).isEqualTo(-1);
     }
 

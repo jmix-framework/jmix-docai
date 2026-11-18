@@ -10,12 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 
 /**
- * The job of the stand that deletes the copies of the visitors who have left: a copy no request of its browser has
- * used for longer than {@code docai.stand.copy-idle-timeout} goes with its database, indexes, files and cache entries,
- * see {@link CopyFactory#delete}. A copy leaves the registry only if it is still idle at that moment, so a request
- * that comes after the check keeps it. The next login of its browser starts with a fresh copy, and a session the
- * browser still has returns to the login form, see {@link StandScopeFilter}. Quartz runs the job every minute, see
- * {@link StandSchedulingConfiguration}, never two runs at once.
+ * The job of the stand that deletes the copies unused for longer than {@code docai.stand.copy-idle-timeout}; a request
+ * that comes after the check keeps its copy.
  */
 @DisallowConcurrentExecution
 public class CopyCleaner implements Job {
@@ -32,9 +28,6 @@ public class CopyCleaner implements Job {
         this.copyFactory = copyFactory;
     }
 
-    /**
-     * Deletes the idle copies as the system, on a thread of the scheduler, without a scope.
-     */
     @Authenticated
     @Override
     public void execute(JobExecutionContext context) {
@@ -57,7 +50,6 @@ public class CopyCleaner implements Job {
         try {
             copyFactory.delete(copy.key());
         } catch (RuntimeException e) {
-            // one copy that fails keeps no other copy
             log.warn("An idle copy is not deleted: {}", StandScope.withTags(e.toString()));
         }
     }

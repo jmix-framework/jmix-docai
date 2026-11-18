@@ -55,9 +55,9 @@ public class CopyRegistry {
     }
 
     /**
-     * Finds a registered copy and marks it as used now, in one step: the removal of an idle copy, see
+     * Finds a registered copy and marks it as used now, in one step: a removal of an idle copy, see
      * {@link #removeIfIdleLongerThan}, comes either before, and the copy is not found, or after, and the copy is no
-     * longer idle. A missing or malformed key finds nothing.
+     * longer idle.
      */
     public Optional<Copy> touch(@Nullable String key) {
         if (key == null) {
@@ -92,8 +92,6 @@ public class CopyRegistry {
 
     /**
      * Forgets the copy; its database is the caller's to shut down.
-     *
-     * @return the copy that was registered under the key, if any
      */
     public Optional<Copy> remove(String key) {
         return Optional.ofNullable(copies.remove(key));

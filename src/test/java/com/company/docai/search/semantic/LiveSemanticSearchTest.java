@@ -43,10 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
- * The search by meaning with the OpenAI models and OpenSearch, on English samples: the page finds the agricultural
- * machinery and nothing else, the assistant in the menu quotes the penalties of both supply contracts, and a document
- * the employee may not open is found by neither. Runs only with {@code ./gradlew aiTest}, the key in
- * {@code OPENAI_API_KEY} and OpenSearch from {@code compose.yaml}.
+ * The search by meaning with the OpenAI models and OpenSearch, on English samples. Runs only with
+ * {@code ./gradlew aiTest}, the key in {@code OPENAI_API_KEY} and OpenSearch from {@code compose.yaml}.
  */
 @Tag("ai")
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)

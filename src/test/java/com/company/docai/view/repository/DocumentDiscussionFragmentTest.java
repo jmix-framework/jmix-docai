@@ -21,7 +21,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
-import com.vaadin.flow.server.VaadinSession;
 import io.jmix.aichat.component.chat.AiChat;
 import io.jmix.aichat.component.messagelist.GenerationState;
 import io.jmix.aichat.component.messagelist.ThinkingStatusItem;
@@ -66,6 +65,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import static com.company.docai.test_support.TestUi.awaitAccess;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.awaitility.Awaitility.await;
@@ -185,7 +185,7 @@ class DocumentDiscussionFragmentTest {
     }
 
     @Test
-    void theWindowDerivesItsColorsForTheMixedScheme() {
+    void theWindowDerivesItsColorsForTheMixedSchemeAndWearsTheTintOfTheAiAccent() {
         Document lease = upload("lease.txt");
         RepositoryView view = open();
         DataGrid<Document> grid = listComponent(view, "documentsGrid");
@@ -193,19 +193,7 @@ class DocumentDiscussionFragmentTest {
         grid.select(lease);
         discuss(view);
 
-        assertThat(sideDialog().getClassNames()).contains("aura-accent-color");
-    }
-
-    @Test
-    void theWindowWearsTheTintOfTheAiAccent() {
-        Document lease = upload("lease.txt");
-        RepositoryView view = open();
-        DataGrid<Document> grid = listComponent(view, "documentsGrid");
-
-        grid.select(lease);
-        discuss(view);
-
-        assertThat(sideDialog().getClassNames()).contains("document-discussion-window");
+        assertThat(sideDialog().getClassNames()).contains("aura-accent-color", "document-discussion-window");
     }
 
     @Test
@@ -273,7 +261,6 @@ class DocumentDiscussionFragmentTest {
         assertThat(chips(discussion)).containsExactly("lease.txt", "invoice.txt", "act.txt");
     }
 
-    // the rest of the window, the chat and its input among it, takes no rows
     @Test
     void rowsDroppedBesideTheSelectionStayOutOfIt() {
         Document lease = upload("lease.txt");
@@ -517,19 +504,12 @@ class DocumentDiscussionFragmentTest {
 
     // the answer comes back through UI.access, which a UI test runs only when asked
     private void ask(DocumentDiscussionFragment discussion, Runnable question) {
-        VaadinSession session = VaadinSession.getCurrent();
         AiChat<SimpleAiChatMessage> chat = chat(discussion);
         openedNotifications.closeOpenedNotifications();
 
         question.run();
 
-        await().pollInSameThread()
-                .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(50))
-                .until(() -> {
-                    session.getService().runPendingAccessTasks(session);
-                    return chat.getState() != GenerationState.GENERATING;
-                });
+        awaitAccess(() -> chat.getState() != GenerationState.GENERATING);
     }
 
     // a dialog joins the page right before the response to the browser
@@ -566,7 +546,6 @@ class DocumentDiscussionFragmentTest {
                 .toList();
     }
 
-    // a chip holds the name of its document and the cross
     private JmixButton chipButton(DocumentDiscussionFragment discussion, String name, int index) {
         Component chip = this.<HorizontalLayout>component(discussion, "selection").getChildren()
                 .filter(candidate -> candidate.getChildren()

@@ -291,7 +291,6 @@ class DocumentAssistantTest {
                 .doesNotContain("Until when is the lease valid?", "Until 31 December 2027.");
     }
 
-    // the chat of the card streams the answer
     private static @Nullable String ask(ChatClient chatClient, String question) {
         return chatClient.prompt()
                 .user(question)

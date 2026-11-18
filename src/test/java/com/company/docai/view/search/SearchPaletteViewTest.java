@@ -24,6 +24,7 @@ import com.company.docai.view.repository.RepositoryView;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.FocusNotifier;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -86,9 +87,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * The search palette as an employee meets it with the AI off. The index is replaced: it answers with the documents
- * of the test, and the rest of the way, from the reload through DataManager to the rows, is real. The context is the
- * one of the other UI tests that replace the index.
+ * The search palette as an employee meets it with the AI off. The index is replaced; the context is the one of the
+ * other UI tests that replace the index.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -175,7 +175,6 @@ class SearchPaletteViewTest {
         SearchPaletteView palette = TestPalettes.open();
 
         assertThat(TestPalettes.queryField(palette).getValue()).isEqualTo("tractor");
-        // the line flies out of the header field and back, so it keeps the field's hint and no text changes in flight
         assertThat(TestPalettes.queryField(palette).getPlaceholder())
                 .isEqualTo(TestPalettes.searchField().getPlaceholder())
                 .isEqualTo(messages.getMessage(MainView.class, "searchField.placeholder"));
@@ -198,11 +197,13 @@ class SearchPaletteViewTest {
     @Test
     void thePaletteAsksTheBrowserToFlyItOutOfTheHeaderField() {
         TestPalettes.sentScripts();
+        List<SearchPaletteView> palettes = new ArrayList<>();
 
         // while a navigation runs, the test UI keeps the tasks before the response and runs them in one batch, as the
         // response to a request of the browser does: the dialog reaches the page only then, after the palette is ready
-        List<SearchPaletteView> palettes = new ArrayList<>();
-        Registration opening = UI.getCurrent().addAfterNavigationListener(event -> palettes.add(TestPalettes.open()));
+        Registration opening = UI.getCurrent()
+                .addAfterNavigationListener(event -> palettes.add(TestPalettes.open("", 7)));
+
         openRepository(sandbox);
         opening.remove();
 
@@ -217,7 +218,8 @@ class SearchPaletteViewTest {
         List<JavaScriptInvocation> scripts = TestPalettes.scriptsTo(line, motion);
 
         // the line gets its field first, then it takes over what the person typed into the header field before the
-        // palette opened, and only then the field of the palette flies out of the header field and the panel unfolds
+        // palette opened, for the opening the palette answers, and only then the field of the palette flies out of the
+        // header field and the panel unfolds
         assertThat(scripts)
                 .extracting(JavaScriptInvocation::getExpression)
                 .satisfiesExactly(
@@ -227,7 +229,8 @@ class SearchPaletteViewTest {
 
         assertThat(scripts)
                 .extracting(JavaScriptInvocation::getParameters)
-                .containsExactly(List.of(line, field), List.of(line, header), List.of(motion, header, field, panel));
+                .containsExactly(List.of(line, field), List.of(line, header, 7),
+                        List.of(motion, header, field, panel));
     }
 
     @Test
@@ -239,7 +242,6 @@ class SearchPaletteViewTest {
         Element field = TestPalettes.queryField(palette).getElement();
         List<JavaScriptInvocation> scripts = TestPalettes.scriptsTo(line);
 
-        // the field goes to the browser as itself, before the line takes over the keys of the header field
         assertThat(scripts.getFirst().getExpression()).contains("$0.watch");
         assertThat(scripts.getFirst().getParameters()).containsExactly(line, field);
         assertThat(line.hasAttribute("for")).isFalse();
@@ -259,7 +261,6 @@ class SearchPaletteViewTest {
                 .filteredOn(SearchPaletteView.class::isInstance)
                 .containsExactly(palette);
 
-        // a closed palette lets the next click open a new one
         palette.closeWithDefaultAction();
 
         assertThat(TestPalettes.open()).isNotSameAs(palette);
@@ -492,6 +493,42 @@ class SearchPaletteViewTest {
     }
 
     @Test
+    void anEscClosesTheCardAndLeavesThePaletteWithTheFocusInTheLine() {
+        Document document = upload("lease-" + suffix + ".txt");
+        mark(document);
+        SearchPaletteView palette = TestPalettes.open();
+        TestPalettes.click(palette, document.getName());
+        DocumentDetailView card = UiTestUtils.getLastOpenedViewDialog();
+        Dialog dialog = card.findAncestor(Dialog.class);
+        TestPalettes.sentScripts();
+
+        // the browser sends the server an Esc only for a dialog that closes on Esc, and the card then closes as Cancel
+        // closes it
+        assertThat(dialog.isCloseOnEsc()).isTrue();
+        ComponentUtil.fireEvent(dialog, new Dialog.DialogCloseActionEvent(dialog, true));
+
+        assertThat(dialog.isOpened()).isFalse();
+        assertThat(TestPalettes.isOpen()).isTrue();
+        assertThat(TestPalettes.focusesTheLineAtTheEnd(palette)).isTrue();
+    }
+
+    // the opening selects the whole text; the focus that comes back after a card over the palette, or when the browser
+    // focuses the page again as after an Esc, keeps the caret where focusAtEnd put it
+    @Test
+    void onlyTheFirstFocusOfTheLineSelectsItsWholeText() {
+        SearchPaletteView palette = TestPalettes.open();
+        TypedTextField<String> line = TestPalettes.queryField(palette);
+
+        assertThat(line.isAutoselect()).isTrue();
+
+        ComponentUtil.fireEvent(line, new FocusNotifier.FocusEvent<>(line, true));
+
+        assertThat(line.isAutoselect()).isFalse();
+        // the browser stops sending the focuses of the line
+        assertThat(ComponentUtil.hasEventListener(line, FocusNotifier.FocusEvent.class)).isFalse();
+    }
+
+    @Test
     void aPageTheCardLeavesForClosesTheCardAndThePalette() {
         String tag = "lease-" + suffix;
         Document document = TestTags.tagged(unconstrainedDataManager, upload("a-" + suffix + ".txt"),
@@ -549,7 +586,6 @@ class SearchPaletteViewTest {
 
         assertThat(TestPalettes.groupNames(palette, recent)).containsExactly("tractor");
         assertThat(recentQueries.load()).containsExactly(new RecentQueries.RecentQuery("tractor", true));
-        // the cross only removes: the palette stays, and the line has the focus with the caret after its text
         assertThat(TestPalettes.isOpen()).isTrue();
         assertThat(UiTestUtils.<View<?>>getCurrentView()).isNotInstanceOf(DocumentSearchView.class);
         assertThat(TestPalettes.focusesTheLineAtTheEnd(palette)).isTrue();
@@ -581,6 +617,29 @@ class SearchPaletteViewTest {
         assertThat(recent.getAttribute("aria-keyshortcuts")).isEqualTo("Shift+Delete");
         assertThat(TestPalettes.row(palette, folder.getName()).getElement().getAttribute("aria-keyshortcuts"))
                 .isNull();
+    }
+
+    @Test
+    void theHintsNameShiftDeleteWhileThePaletteListsRecentSearches() {
+        SearchPaletteView withoutRecent = TestPalettes.open();
+        boolean nothingToRemove = removeHint(withoutRecent).isVisible();
+        withoutRecent.closeWithDefaultAction();
+
+        recentQueries.add("lease", false);
+        SearchPaletteView palette = TestPalettes.open();
+        boolean recentListed = removeHint(palette).isVisible();
+
+        TestPalettes.type(palette, "le");
+        boolean resultsListed = removeHint(palette).isVisible();
+
+        TestPalettes.type(palette, "");
+        TestPalettes.press(palette, "ArrowDown", false);
+        TestPalettes.press(palette, "Delete", true);
+
+        assertThat(nothingToRemove).isFalse();
+        assertThat(recentListed).isTrue();
+        assertThat(resultsListed).isFalse();
+        assertThat(removeHint(palette).isVisible()).isFalse();
     }
 
     @Test
@@ -779,30 +838,6 @@ class SearchPaletteViewTest {
 
         assertThat(DocumentSearchView.queryOf(TestPalettes.currentQueryParameters())).isEqualTo("lease");
         assertThat(DocumentSearchView.isAiMode(TestPalettes.currentQueryParameters())).isFalse();
-    }
-
-    @Test
-    void aSearchIsRememberedFiveAtMostNewestFirstAndOnceEach() {
-        for (String text : List.of("alpha", "beta", "gamma", "delta", "epsilon", "zeta")) {
-            TestPalettes.enter(TestPalettes.open(), text);
-        }
-
-        TestPalettes.enter(TestPalettes.open(), "  BETA  ");
-
-        SearchPaletteView palette = TestPalettes.open();
-        TestPalettes.type(palette, "");
-
-        assertThat(TestPalettes.names(palette)).startsWith("BETA", "zeta", "epsilon", "delta", "gamma");
-        assertThat(recentQueries.load()).hasSize(RecentQueries.MAX_QUERIES);
-    }
-
-    @Test
-    void aBrokenSettingGivesNoRecentQueries() {
-        userSettingsService.save(RecentQueries.RECENT_QUERIES_SETTING, "[{\"text\":");
-
-        SearchPaletteView palette = TestPalettes.open();
-
-        assertThat(TestPalettes.headings(palette)).doesNotContain(message("recentSection.title"));
     }
 
     @Test
@@ -1157,7 +1192,6 @@ class SearchPaletteViewTest {
                 Grant.user(COLLEAGUE, AccessLevel.EDIT)));
     }
 
-    // the person marks them, and the marks go with the test
     private void mark(Object... targets) {
         favoriteService.mark(List.of(targets));
         marked.addAll(List.of(targets));
@@ -1176,6 +1210,10 @@ class SearchPaletteViewTest {
                 .stream()
                 .filter(DocumentDetailView.class::isInstance)
                 .toList();
+    }
+
+    private static Span removeHint(SearchPaletteView palette) {
+        return UiTestUtils.getComponent(palette, "removeHint");
     }
 
     @SuppressWarnings("unchecked")

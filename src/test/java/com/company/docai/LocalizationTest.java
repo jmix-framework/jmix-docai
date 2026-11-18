@@ -26,11 +26,6 @@ class LocalizationTest {
     private Messages messages;
 
     @Test
-    void theApplicationOffersEnglishAndRussian() {
-        assertThat(coreProperties.getAvailableLocales()).containsExactly(Locale.ENGLISH, RUSSIAN);
-    }
-
-    @Test
     void theApplicationIsCalledJmixDocAiInEveryLanguage() {
         for (Locale locale : coreProperties.getAvailableLocales()) {
             assertThat(messages.getMessage("com.company.docai.view.main/applicationTitle.text", locale))

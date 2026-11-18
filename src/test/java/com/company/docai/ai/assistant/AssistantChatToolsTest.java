@@ -59,8 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
- * The search of documents by the fields of their types, called the way the model calls it in the chat of the menu:
- * as the person who asks, with the status feed of the add-on in the tool context.
+ * The search of documents by the fields of their types, called the way the model calls it in the chat of the menu.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -163,8 +162,11 @@ class AssistantChatToolsTest {
                 .findFirst()
                 .orElseThrow();
 
+        String nameBundle = invoiceAmount.getNameMsgBundle();
+        assertThat(nameBundle).isNotNull();
+
         Properties names = new Properties();
-        names.load(new StringReader(invoiceAmount.getNameMsgBundle()));
+        names.load(new StringReader(nameBundle));
         String russianName = names.getProperty("ru");
 
         assertThat(russianName).isNotBlank().isNotEqualTo("Amount");
@@ -341,7 +343,6 @@ class AssistantChatToolsTest {
         return new DocumentVectorIndex.Fragment(0, text, false, StubEmbeddingModel.vectorOf(text));
     }
 
-    // the decisions of the check that keeps every candidate
     private static String allFit(int candidates) {
         return IntStream.rangeClosed(1, candidates)
                 .mapToObj("{\"number\": %d, \"quote\": \"\", \"fits\": true}"::formatted)

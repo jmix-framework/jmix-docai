@@ -50,15 +50,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doAnswer;
 
 /**
- * The data of the stand: the template of a language gets the demo set in a database of its own, completes and seals
- * its indexes while it has the database and leaves its script, a copy made from the script has the rows of the
- * template, copies do not see each other, the control database holds the schema without documents, a thread of a
- * visitor reaches no database without a scope of its own or of the browser whose command it runs, and the index of
- * the search add-on is the one of the scope of the thread. Search is off and the index of fragments lives in memory,
- * as in the other tests.
- * <p>
- * {@link StandStartupTest} has the same configuration, the two spies included, so the two classes share a Spring
- * context: a change here gives that class a context of its own, which the heap of a full test run has no room for.
+ * The data of the stand: the templates, the copies made from their scripts and the control database, and the database
+ * and the index a thread reaches by its scope. {@link StandStartupTest} has the same configuration, the two spies
+ * included, so the two classes share a Spring context: a change here gives that class a context of its own, which the
+ * heap of a full test run has no room for.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class},
         properties = "docai.stand.data-dir=build/test-stand")
@@ -93,11 +88,9 @@ class StandDataTest {
     @Autowired
     private FolderService folderService;
 
-    // reads what the template holds in its own scope, right after the set loads into it
     @MockitoSpyBean
     private DemoDataLoader loader;
 
-    // notes the steps of the indexes of the template while it builds
     @MockitoSpyBean
     private StandIndexes indexes;
 
@@ -341,7 +334,6 @@ class StandDataTest {
         }
     }
 
-    // the session of Vaadin over the HTTP session of a browser
     private static VaadinSession browserSession(HttpSession httpSession) {
         return new VaadinSession(null) {
             @Override

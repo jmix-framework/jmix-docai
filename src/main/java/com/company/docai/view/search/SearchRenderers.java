@@ -35,11 +35,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * The rows of the search palette and the groups that hold them, built from what the palette lists: the found
- * documents, folders and tags, the recent searches, the favorites, the questions for the assistant and the row of the
- * search page. A row runs the choice it is given on a click; the palette decides what a choice does and which rows it
- * lists, and goes through them with the keys. The matched text of a found document is marked here for the search page
- * too.
+ * The rows of the search palette and the groups that hold them.
  */
 @SpringComponent
 public class SearchRenderers {
@@ -105,7 +101,6 @@ public class SearchRenderers {
         return row;
     }
 
-    // the name is marked only where the snippet is the whole name: a long name may come back cut
     private Span documentName(DocumentSearchHit hit) {
         String name = hit.document().getName();
         List<Part> parts = hit.snippet() == null ? List.of() : DocumentSearchHit.partsOf(hit.snippet());
@@ -143,8 +138,7 @@ public class SearchRenderers {
     }
 
     /**
-     * Builds the row of a folder from its path, the folders from the top down to it: the place of the folder is the
-     * way to its parent, and a folder the user only passes through is greyed, as in the tree.
+     * Builds the row of a folder from its path, greyed as in the tree when the user only passes through it.
      */
     public Div folderRow(Folder folder, List<Folder> path, boolean greyed, Runnable choice) {
         String place = folderRenderers.pathText(path.subList(0, Math.max(0, path.size() - 1)));
@@ -166,8 +160,8 @@ public class SearchRenderers {
     }
 
     /**
-     * Builds the row of a recent search with the cross that removes it. A search by meaning keeps its wand while the
-     * AI is on; without it the search goes by words.
+     * Builds the row of a recent search with the cross that removes it; a search by meaning keeps its wand while the AI
+     * is on.
      */
     public Div recentRow(RecentQuery query, Runnable choice, Runnable remove) {
         Component icon = query.ai() && aiSettings.isAvailable()
@@ -177,16 +171,13 @@ public class SearchRenderers {
         Div row = choiceRow(icon, name(query.text()), null, choice);
         row.add(removeButton(remove));
 
-        // the name of the cross would join the name of the row; the keys never reach the cross, so the row names the
-        // key that removes it
         row.getElement().setAttribute("aria-label", query.text());
         row.getElement().setAttribute("aria-keyshortcuts", REMOVE_SHORTCUT);
 
         return row;
     }
 
-    // the cross shows on the row the mouse is over or the arrows chose; a click on it is its own, as the row under it
-    // would run the search
+    // a click on the cross is its own, as the row under it would run the search
     private JmixButton removeButton(Runnable remove) {
         JmixButton button = uiComponents.create(JmixButton.class);
         button.addClassName("search-palette-remove");
@@ -196,7 +187,6 @@ public class SearchRenderers {
         button.setAriaLabel(messages.getMessage(getClass(), "removeRecentButton.ariaLabel"));
         button.setTooltipText(messages.getMessage(getClass(), "removeRecentButton.tooltip"));
 
-        // the class literal of a generic event is raw, so the listener gets its type from a cast
         @SuppressWarnings("unchecked")
         Class<ClickEvent<JmixButton>> click = (Class<ClickEvent<JmixButton>>) (Class<?>) ClickEvent.class;
 
@@ -244,7 +234,6 @@ public class SearchRenderers {
     public Span notice(String text) {
         Span notice = uiComponents.create(Span.class);
         notice.addClassName("search-palette-message");
-        // a screen reader hears it once, from the status line
         notice.getElement().setAttribute("aria-hidden", "true");
         notice.setText(text);
 
@@ -252,8 +241,7 @@ public class SearchRenderers {
     }
 
     /**
-     * Builds a group of the list: the heading with the id, which names the group to a screen reader, and the content
-     * under it.
+     * Builds a group of the list: the heading whose id names the group to a screen reader, and the content under it.
      */
     public Div group(String headingId, String title, List<? extends Component> content) {
         Span heading = uiComponents.create(Span.class);
@@ -303,7 +291,6 @@ public class SearchRenderers {
         return name;
     }
 
-    // the icons of the assistant and of the search by meaning wear the accent of AI, as in the menu
     private Component aiIcon(JmixFontIcon icon) {
         Component component = icons.get(icon);
         component.addClassNames("aura-accent-purple", "search-palette-ai-icon");

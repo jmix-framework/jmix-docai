@@ -19,9 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Comparator;
 
 /**
- * The type of a document and the fields of the type. The panel of the dynamic attributes add-on follows
- * the type of the edited document and rebuilds its fields; the type itself is chosen in a field of the form,
- * the panel's own selector stays hidden.
+ * The type of a document and its fields, which the panel of the dynamic attributes add-on rebuilds for the chosen type.
  */
 @FragmentDescriptor("document-properties-fragment.xml")
 public class DocumentPropertiesFragment extends Fragment<VerticalLayout> {
@@ -40,7 +38,6 @@ public class DocumentPropertiesFragment extends Fragment<VerticalLayout> {
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
-        // the types come from the add-on's cache, like the fields of the panel
         typeField.setItems(dynAttrMetadata.getCategories(metadata.getClass(Document.class)).stream()
                 .map(type -> (Category) type.getSource())
                 .sorted(Comparator.comparing(metadataTools::getInstanceName))
@@ -48,8 +45,7 @@ public class DocumentPropertiesFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Makes the type and the fields of the type read-only. Nothing here makes them editable again: the fields
-     * stay as the data binding and the roles left them.
+     * Makes the type and its fields read-only; nothing here makes them editable again.
      */
     public void lock() {
         typeField.setReadOnly(true);

@@ -22,6 +22,7 @@ import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
+import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.View;
 import org.apache.tika.metadata.Metadata;
@@ -44,11 +45,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The upload components of the stand offer only the files a visitor can upload there: the version uploads of the
- * repository and of the document card and the drop zone of the repository, whose manager the upload dialog shares,
- * take the extensions of the types of {@code docai.stand.upload-types} and no media types of the browser; a file of
- * another type dropped on the zone gets the notice the stand gives a file it refuses by its bytes. The class shares
- * the context of {@link StandLoginTest}, and the start of the stand makes the templates ready once for the class.
+ * The upload components of the stand offer only the files a visitor can upload there. The class shares the context of
+ * {@link StandLoginTest}, and the start of the stand makes the templates ready once for the class.
  */
 @UiTest(authenticator = AnonymousUiTestAuthenticator.class, initialView = LoginView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class, StubAiConfiguration.class},
@@ -133,8 +131,9 @@ class StandUploadPickersTest {
         asAdminInACopy(() -> {
             TestDrops.reject(dropZone(openRepository()), "Logo.svg", FileRejectionReason.INCORRECT_FILE_TYPE);
 
-            notice.set(UiTestUtils.getLastOpenedNotification()
-                    .getText());
+            NotificationInfo shown = UiTestUtils.getLastOpenedNotification();
+            assertThat(shown).isNotNull();
+            notice.set(shown.getText());
 
             refusal.set(messages.formatMessage(StandUploadGuard.class, "uploadTypeNotAllowed", "Logo.svg",
                     FORMATS));
@@ -175,7 +174,6 @@ class StandUploadPickersTest {
         return window.getView();
     }
 
-    // the upload dialog and the table hand their files to the manager of this zone
     private UploadDropZone dropZone(View<?> view) {
         DataGrid<Document> grid = fragmentComponent(view, "documentsGrid");
 
@@ -188,7 +186,6 @@ class StandUploadPickersTest {
         return (T) FragmentUtils.getComponent(UiTestUtils.getComponent(view, "documentList"), componentId);
     }
 
-    // the type Tika gives a file by its name alone
     private static String typeOfAFileEndingWith(String extension) {
         Metadata metadata = new Metadata();
         metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, "file" + extension);

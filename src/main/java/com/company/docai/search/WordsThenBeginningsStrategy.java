@@ -13,15 +13,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 /**
  * The search of the results page: first the documents with a word of the text or one of its forms, then the documents
- * with a word that only begins with a word of the text of three letters or more, each part the most relevant first.
- * The words are what the add-on strategy {@code anyTermAnyField} finds and the beginnings what {@code startsWith}
- * finds for the search palette: each of them builds its query with the indexes and the fields the user may read, and
- * this strategy joins the two queries in one request, which the add-on pages and marks as its own. A text of more than
- * eight words of three letters or more, or of none, is searched by whole words only.
+ * with a word that only begins with a word of the text of three characters or more. It joins the queries of the add-on
+ * strategies {@code anyTermAnyField} and {@code startsWith} in one request; a text of more than eight words of three
+ * characters or more, or of none, is searched by whole words only.
  */
 @NullMarked
 @Component
@@ -40,9 +39,16 @@ public class WordsThenBeginningsStrategy implements OpenSearchSearchStrategy {
     // the beginnings alone: BM25 gives a word at most its idf, under 20 even in millions of documents
     private static final float WORDS_FIRST = 1000;
 
-    // the analyzer of the index splits "and/or" or "contract.pdf" into two words, and a short one of them must not
-    // become a beginning, nor slip past the count of words
-    private static final Pattern WORD_BREAK = Pattern.compile("[^\\p{L}\\p{N}]+");
+    // a word as the index keeps it, see DocAiIndexSettings: with the underscore and the invisible joiners, an
+    // apostrophe, a colon or a middle dot between two letters, an apostrophe, a dot, a comma or a semicolon between two
+    // digits; a part of such a word begins no word of the index, and a short part of "and/or" must not be a beginning.
+    // A word starts only where a run of underscores or narrow spaces starts and keeps the run whole: a try at each
+    // start inside a long run would take minutes. The rest of a word never gives a character back, since a loop that
+    // may give one back takes a frame of stack for each character and runs out on one long word
+    private static final Pattern WORD = Pattern.compile("(?<![_\\u202F])[_\\u202F]*+[\\p{L}\\p{N}]"
+            + "(?:[\\p{L}\\p{M}\\p{N}_\\u202F\\u00AD\\u200C\\u200D\\u2060\\uFEFF]"
+            + "|(?<=\\p{L})['\\u2019\\u2018:\\u00B7](?=\\p{L})"
+            + "|(?<=\\p{N})['\\u2019\\u2018.,;](?=\\p{N}))*+");
 
     private final AnyTermAnyFieldOpenSearchSearchStrategy anyTermAnyField;
     private final StartsWithOpenSearchSearchStrategy startsWith;
@@ -88,7 +94,6 @@ public class WordsThenBeginningsStrategy implements OpenSearchSearchStrategy {
 
         Query beginningsQuery = queryOf(beginningsRequest);
 
-        // the better of the two: the words over the constant, or the beginnings for a document without a word
         requestContext.getRequestBuilder()
                 .query(query -> query.disMax(best -> best
                         .queries(wordsFirst, beginningsQuery)
@@ -98,13 +103,15 @@ public class WordsThenBeginningsStrategy implements OpenSearchSearchStrategy {
     }
 
     /**
-     * Returns the words of the text that a search by beginnings takes. A word ends at every character that is neither
-     * a letter nor a digit, so "and/or" and "contract.pdf" are two words each, and the words kept have at least as
-     * many letters and digits as the shortest beginning that the index keeps, three by default. A shorter word would
-     * match, and mark, every word it begins. The search palette leaves out the same words.
+     * Returns the words of the text that a search by beginnings takes, split as the index splits them: "O'Brien",
+     * "file_name" and "12.03.2026" are one word each, "and/or" and "contract.pdf" two words each. The words kept have
+     * at least as many characters as the shortest beginning that the index keeps, three by default; the search palette
+     * leaves out the shorter words too.
      */
     public List<String> beginningsOf(String text) {
-        return WORD_BREAK.splitAsStream(text)
+        return WORD.matcher(text)
+                .results()
+                .map(MatchResult::group)
                 .filter(word -> word.codePointCount(0, word.length()) >= searchProperties.getMinPrefixLength())
                 .toList();
     }

@@ -18,9 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The index of fragments against OpenSearch from {@code compose.yaml}: it is built for the model, keeps the latest
- * fragments of a document and finds the nearest ones only among the documents it is given. Runs only with
- * {@code ./gradlew searchTest}.
+ * The index of fragments against OpenSearch from {@code compose.yaml}. Runs only with {@code ./gradlew searchTest}.
  */
 @Tag("search")
 @SpringBootTest

@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Starts the conversations of the assistant in the document card. A conversation knows its document, keeps what
- * was said while the card is open and calls the {@link DocumentAssistantTools} as the person who asks.
+ * Starts the conversations of the assistant in the document card.
  */
 @Component
 public class DocumentAssistant {
@@ -57,8 +56,6 @@ public class DocumentAssistant {
 
     /**
      * Returns a chat client for a new conversation about the document, as the person signed in now.
-     *
-     * @param statuses the feed of the chat that shows what the tools do
      */
     public ChatClient chatClient(Document document, ToolStatusFeed statuses) {
         ChatMemory memory = MessageWindowChatMemory.builder().build();
@@ -70,8 +67,7 @@ public class DocumentAssistant {
                         DocumentAssistantTools.USERNAME, currentAuthentication.getUser().getUsername(),
                         DocumentAssistantTools.STATUSES, statuses))
                 // the tools run in the advisor chain, so the memory inside it keeps the text they read for the next
-                // question; otherwise the model answers it from the conversation alone and makes the facts up.
-                // A history of the tool advisor's own would send that next question to the model twice
+                // question; a history of the tool advisor's own would send that question to the model twice
                 .defaultAdvisors(ToolCallingAdvisor.builder()
                         .disableInternalConversationHistory()
                         .build())
@@ -83,8 +79,8 @@ public class DocumentAssistant {
                 .build();
     }
 
-    // a question stopped while a tool works, or a tool round that fails, leaves a call without its result in the
-    // memory, and the model rejects every later question that carries it; after the memory, this leaves it out
+    // a stopped or failed tool round leaves a call without its result in the memory, which makes the model reject every
+    // later question that carries it; after the memory, this leaves it out
     private static final class UnansweredToolCallFilter implements BaseAdvisor {
 
         @Override

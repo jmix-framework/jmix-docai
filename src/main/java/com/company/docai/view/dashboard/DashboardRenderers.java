@@ -34,9 +34,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The rows of the blocks of the dashboard, built from the records of the dashboard service, and the dates and the
- * times they show. A row opens what it shows through the callback it is given; the dashboard decides what a row
- * offers and fills its blocks.
+ * The rows of the blocks of the dashboard, built from the records of the dashboard service.
  */
 @SpringComponent
 public class DashboardRenderers {
@@ -60,8 +58,7 @@ public class DashboardRenderers {
     }
 
     /**
-     * Returns the date with the full name of the month, as the summary line names it, with the year when it is not
-     * the current one.
+     * Returns the date with the full name of the month, with the year when it is not the current one.
      */
     public String longDate(LocalDate date, LocalDate today) {
         return dateText(date, today, messages.getMessage(getClass(), "longDate.format"),
@@ -72,21 +69,18 @@ public class DashboardRenderers {
      * Builds the row of an upcoming date: the date, the name of the document, the field and the folder.
      */
     public Div upcomingRow(UpcomingDate upcoming, LocalDate today, Runnable open) {
-        return row(open, dateOf(upcoming, today), textsOf(upcoming));
+        return row(open, dateOf(upcoming, today),
+                texts(upcoming.document().getName(), upcoming.field() + " · " + upcoming.folder()));
     }
 
-    // the field and the folder follow the name, and on a narrow screen they go under it, so the name keeps the row
-    private Div textsOf(UpcomingDate upcoming) {
+    private Div texts(String name, String details) {
         Div texts = uiComponents.create(Div.class);
         texts.addClassName("dashboard-row-texts");
-
-        texts.add(text(upcoming.document().getName(), "dashboard-row-name"),
-                text(upcoming.field() + " · " + upcoming.folder(), "dashboard-row-details"));
+        texts.add(text(name, "dashboard-row-name"), text(details, "dashboard-row-details"));
 
         return texts;
     }
 
-    // a date within a week stands out in a yellow badge
     private Component dateOf(UpcomingDate upcoming, LocalDate today) {
         String date = dateText(upcoming.date(), today, messages.getMessage(getClass(), "shortDate.format"),
                 messages.getMessage(getClass(), "shortDateWithYear.format"));
@@ -103,25 +97,19 @@ public class DashboardRenderers {
     }
 
     /**
-     * Builds the row of a document without a type: its name, its folder and the date of the upload, and Fill with AI
-     * after it when the dashboard gives the callback of the button.
+     * Builds the row of a document without a type, with Fill with AI after it when the dashboard gives its callback.
      */
     public Div untypedRow(UntypedDocuments.Row untyped, Runnable open, @Nullable Runnable fillWithAi) {
         String details = untyped.folder() + " · " + documentRenderers.userDate(untyped.uploaded());
-
-        Div row = row(open,
-                text(untyped.document().getName(), "dashboard-row-name"),
-                text(details, "dashboard-row-details"));
+        Div row = row(open, texts(untyped.document().getName(), details));
 
         if (fillWithAi != null) {
             JmixButton fill = uiComponents.create(JmixButton.class);
             fill.setText(messages.getMessage(getClass(), "fillWithAiButton.text"));
 
-            // the buttons of the rows read the same, so each names its document to a screen reader
             fill.setAriaLabel(messages.formatMessage(getClass(), "fillWithAiButton.ariaLabel",
                     untyped.document().getName()));
 
-            // a link in the purple of AI rather than a button: the row keeps the height of the rows of the other blocks
             fill.setIcon(icons.get(JmixFontIcon.MAGIC));
             fill.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
             fill.addClassName("aura-accent-purple");
@@ -133,12 +121,9 @@ public class DashboardRenderers {
     }
 
     /**
-     * Builds the row of an event: who, what and on which document, without verbs that would need the gender of the
-     * person, and how long ago.
+     * Builds the row of an event, without verbs that would need the gender of the person.
      */
     public Div activityRow(Activity activity, ZonedDateTime now, Runnable open) {
-        // the first and the last name, without the username in brackets of the lists: on a glance the avatar beside
-        // it is enough; a person without a name, or deleted since, keeps the username
         String name = userRenderers.shortName(activity.author(), activity.username());
         String event = " · " + eventOf(activity) + " · " + activity.document().getName();
 
@@ -157,7 +142,6 @@ public class DashboardRenderers {
         };
     }
 
-    // the row names the person already, so the avatar is hidden from a screen reader
     private Avatar avatarOf(Activity activity, String name) {
         Avatar avatar = uiComponents.create(Avatar.class);
         userRenderers.fillAvatar(avatar, name, activity.author(), activity.username());
@@ -175,7 +159,6 @@ public class DashboardRenderers {
         return row(open, chatIcon(chat), text(chat.title(), "dashboard-row-name"), timeOf(chat.time(), now));
     }
 
-    // a discussion of chosen documents wears the icon of a document instead of the icon of a chat
     private Component chatIcon(RecentChat chat) {
         Component icon = icons.get(chat.discussion() ? JmixFontIcon.FILE_TEXT : JmixFontIcon.COMMENTS);
         icon.addClassNames("aura-accent-purple", "dashboard-ai-icon");
@@ -189,9 +172,7 @@ public class DashboardRenderers {
     }
 
     /**
-     * Builds a group of the summary in an element of its own, which a wide card sets beside the other group: its
-     * heading and a line for each row. A bar shows the number against the largest one of its group; a status keeps
-     * the color of its badge. A group without rows has nothing to show.
+     * Builds a group of the summary, or nothing for a group without rows.
      */
     public Optional<Div> summaryGroup(String title, List<Summary.Row> rows) {
         if (rows.isEmpty()) {
@@ -220,7 +201,6 @@ public class DashboardRenderers {
                 fill.getStyle().set("background-color", row.color());
             }
 
-            // the number stands next to the bar, so a screen reader skips the bar
             Div bar = uiComponents.create(Div.class);
             bar.addClassName("dashboard-bar");
             bar.getElement().setAttribute("aria-hidden", "true");
@@ -245,7 +225,6 @@ public class DashboardRenderers {
         return text(text, "dashboard-empty");
     }
 
-    // a row opens what it shows; a button after it, such as Fill with AI, is no part of it
     private Div row(Runnable open, Component... content) {
         NativeButton button = uiComponents.create(NativeButton.class);
         button.addClassName("dashboard-row-open");
@@ -259,7 +238,6 @@ public class DashboardRenderers {
         return row;
     }
 
-    // within the hour in minutes, today in hours, then yesterday, then the date; the title gives the moment
     private Span timeOf(OffsetDateTime time, ZonedDateTime now) {
         Span span = text(ago(time, now), "dashboard-row-time");
         span.setTitle(documentRenderers.userDateTime(time));
@@ -289,7 +267,6 @@ public class DashboardRenderers {
                 : documentRenderers.userDate(time);
     }
 
-    // "30 Nov" in a row and "30 November" in the summary line, with the year when it is not the current one
     private String dateText(LocalDate date, LocalDate today, String pattern, String patternWithYear) {
         String format = date.getYear() == today.getYear() ? pattern : patternWithYear;
 

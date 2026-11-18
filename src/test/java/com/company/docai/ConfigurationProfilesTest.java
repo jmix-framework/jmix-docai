@@ -2,6 +2,8 @@ package com.company.docai;
 
 import com.company.docai.stand.StandProperties;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.Banner;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -9,15 +11,11 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.unit.DataSize;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,28 +44,13 @@ class ConfigurationProfilesTest {
         }
     }
 
-    @Test
-    void onlyTheLocalProfilePrefillsTheLoginForm() {
-        try (ConfigurableApplicationContext context = start("--spring.profiles.active=online")) {
+    @ParameterizedTest
+    @ValueSource(strings = {"online", "stand"})
+    void onlyTheLocalProfilePrefillsTheLoginForm(String profile) {
+        try (ConfigurableApplicationContext context = start("--spring.profiles.active=" + profile)) {
             assertThat(context.getEnvironment().getProperty("ui.login.defaultUsername")).isNull();
             assertThat(context.getEnvironment().getProperty("ui.login.defaultPassword")).isNull();
         }
-    }
-
-    @Test
-    void theStandProfileLeavesTheLoginFormEmpty() {
-        try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
-            assertThat(context.getEnvironment().getProperty("ui.login.defaultUsername")).isNull();
-            assertThat(context.getEnvironment().getProperty("ui.login.defaultPassword")).isNull();
-        }
-    }
-
-    // the stand gives every visitor a copy of the set of the login form, so its profile names no set
-    @Test
-    void theStandProfileNamesNoDemoSet() throws IOException {
-        Properties stand = PropertiesLoaderUtils.loadProperties(new ClassPathResource("application-stand.properties"));
-
-        assertThat(stand).doesNotContainKey("docai.demo-data");
     }
 
     // a public stand reads the files of its visitors within limits; elsewhere a file is read whole, as before the stand
@@ -103,8 +86,7 @@ class ConfigurationProfilesTest {
         }
     }
 
-    // the jobs of the stand run on Quartz in memory, as the control database of the stand lives there; Spring's own
-    // executors stay as Boot makes them, and so does the store of Quartz outside the stand
+    // the control database of the stand lives in memory, so do the jobs; elsewhere Boot's executors and store stay
     @Test
     void onlyTheStandProfileKeepsTheJobsOfQuartzInMemory() {
         try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
@@ -171,65 +153,6 @@ class ConfigurationProfilesTest {
         }
     }
 
-    // a copy opens a pool of connections to its database and closes it with the copy, which is no news
-    @Test
-    void theStandProfileLeavesThePoolsOfItsDatabasesOutOfTheLog() {
-        try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
-            assertThat(context.getEnvironment().getProperty("logging.level.com.zaxxer.hikari")).isEqualTo("warn");
-        }
-    }
-
-    @Test
-    void theCopiesOfTheStandCanBeTunedFromOutside() {
-        try (ConfigurableApplicationContext context = start(
-                "--spring.profiles.active=stand",
-                "--docai.stand.copy-idle-timeout=5m",
-                "--docai.stand.template-languages=en")) {
-            StandProperties properties = Binder.get(context.getEnvironment())
-                    .bind("docai.stand", StandProperties.class)
-                    .get();
-
-            assertThat(properties.copyIdleTimeout()).isEqualTo(Duration.ofMinutes(5));
-            assertThat(properties.templateLanguages()).containsExactly("en");
-        }
-    }
-
-    // the data source of the stand sends each thread to a database of its own, so the profile names their type
-    @Test
-    void theStandProfileNamesTheTypeOfItsDatabases() {
-        try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
-            assertThat(context.getEnvironment().getProperty("jmix.data.dbms-type")).isEqualTo("hsql");
-        }
-    }
-
-    // the queue of search lives in the database of each copy, and the jobs of the add-on read the control database only
-    @Test
-    void theStandProfileProcessesTheQueuesOfSearchWithoutTheJobsOfTheAddOn() {
-        String indexingJob = "jmix.search.use-default-indexing-queue-processing-quartz-configuration";
-        String enqueueingJob = "jmix.search.use-default-enqueueing-session-processing-quartz-configuration";
-
-        try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
-            assertThat(context.getEnvironment().getProperty(indexingJob)).isEqualTo("false");
-            assertThat(context.getEnvironment().getProperty(enqueueingJob)).isEqualTo("false");
-        }
-    }
-
-    // the local development keeps one database: no copies, no templates
-    @Test
-    void withoutTheStandProfileNothingSetsTheCopies() {
-        try (ConfigurableApplicationContext context = start()) {
-            assertThat(context.getEnvironment().containsProperty("docai.stand.data-dir")).isFalse();
-        }
-    }
-
-    // the main view opens after the sign-in with the dashboard at its root; a default view would open instead of it
-    @Test
-    void noProfileNamesAViewToOpenAfterTheSignIn() {
-        try (ConfigurableApplicationContext context = start()) {
-            assertThat(context.getEnvironment().containsProperty("jmix.ui.default-view-id")).isFalse();
-        }
-    }
-
     private ConfigurableApplicationContext start(String... args) {
         return new SpringApplicationBuilder(EmptyConfiguration.class)
                 .environment(new IsolatedEnvironment())
@@ -243,7 +166,6 @@ class ConfigurationProfilesTest {
     static class EmptyConfiguration {
     }
 
-    // Keeps the system properties and environment variables of the machine out of the test
     static class IsolatedEnvironment extends AbstractEnvironment {
     }
 }

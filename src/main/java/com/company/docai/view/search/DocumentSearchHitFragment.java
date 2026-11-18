@@ -22,8 +22,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * A found document as a row of the search page: its name, which opens the card, its type, status and tags, its
- * folder and the matched text. The page creates a row for each hit.
+ * A found document as a row of the search page.
  */
 @FragmentDescriptor("document-search-hit-fragment.xml")
 public class DocumentSearchHitFragment extends Fragment<Div> {
@@ -53,7 +52,7 @@ public class DocumentSearchHitFragment extends Fragment<Div> {
     };
 
     /**
-     * Shows the found document. The page sets the hit once, before it adds the row.
+     * Shows the found document; the page sets it once, before it adds the row.
      */
     public void setHit(DocumentSearchHit hit) {
         this.hit = hit;
@@ -98,8 +97,7 @@ public class DocumentSearchHitFragment extends Fragment<Div> {
     }
 
     /**
-     * Builds the matched text from text nodes and match spans: the text comes from the users, so it is never
-     * put into the page as HTML.
+     * Builds the matched text from text nodes and match spans: user text is never put into the page as HTML.
      */
     private Div createSnippet(@Nullable String field, String snippet) {
         Div div = uiComponents.create(Div.class);

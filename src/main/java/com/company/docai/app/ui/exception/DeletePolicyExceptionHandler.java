@@ -10,8 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Explains a delete that a reference forbids, such as the delete of a document type that documents are
- * marked with. Jmix has no handler for it and would show the technical error dialog.
+ * Explains a delete that a reference forbids, which Jmix would show in the technical error dialog.
  */
 @Component
 @Order(JmixOrder.HIGHEST_PRECEDENCE + 40)

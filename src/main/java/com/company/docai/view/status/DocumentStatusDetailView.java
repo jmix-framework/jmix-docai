@@ -30,8 +30,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * A status of the dictionary: its name, its color from the palette or any other, its place in the lists, its flags
- * and the statuses it moves to. The list of statuses hides while the status moves to any of them.
+ * A status of the dictionary: its name, its color, its place in the lists, its flags and the statuses it moves to.
  */
 @Route(value = "document-statuses/:id", layout = MainView.class)
 @ViewController(id = "DocumentStatus.detail")
@@ -126,7 +125,6 @@ public class DocumentStatusDetailView extends StandardDetailView<DocumentStatus>
         showColor(hex);
     }
 
-    // the swatch of the color is pressed; a color off the palette shows in the custom swatch, pressed too
     private void showColor(String color) {
         boolean inPalette = false;
 

@@ -16,9 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The changes of the document card that apply only on OK: a new version, from an uploaded
- * file or from an earlier revision, and a status transition. Owns the temporary file. Each card gets its own
- * instance: the bean is a prototype.
+ * The changes of the document card that apply only on OK; each card gets its own instance, as the bean is a prototype.
  */
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
@@ -84,8 +82,7 @@ public class DocumentCardChanges {
     }
 
     /**
-     * Describes the staged changes in the texts of the card: the new or the restored version, then the target
-     * status; an empty text when nothing is staged.
+     * Describes the staged changes in the texts of the card, or gives an empty text when nothing is staged.
      */
     public String describe() {
         List<String> parts = new ArrayList<>();

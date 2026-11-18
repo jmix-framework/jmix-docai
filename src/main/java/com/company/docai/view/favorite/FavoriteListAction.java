@@ -12,13 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Set;
 
 /**
- * Marks the folders or the documents selected in a table as favorites, or removes the marks when all of them are
- * marked already. The text stays "Favorites", so a bound button keeps the text and the title of its descriptor; only
- * the star tells which of the two a click does: a yellow outline when the click marks, a filled yellow star when it
- * removes the marks. The table learns of a click through {@link #setAfterToggleHandler(Runnable)}. The other places
- * that show a favorite take the same star from {@link #star(Icons, boolean)}.
- *
- * @param <E> the folders or the documents of the table
+ * Marks the folders or the documents selected in a table as favorites, or removes the marks when all of them are marked
+ * already. The text stays "Favorites", so a bound button keeps the text and the title of its descriptor; only the star
+ * tells which of the two a click does.
  */
 @ActionType(FavoriteListAction.ID)
 public class FavoriteListAction<E> extends SecuredListDataComponentAction<FavoriteListAction<E>, E> {
@@ -67,9 +63,8 @@ public class FavoriteListAction<E> extends SecuredListDataComponentAction<Favori
     }
 
     /**
-     * Returns a new star of the favorites: an outline when the item is not marked, filled when it is; a disabled
-     * action shows it grey. Both are the same glyph, which the theme draws as an outline for the class of an item
-     * that is not marked: the outline glyph is deprecated since Jmix 3.1.
+     * Returns a new star of the favorites: an outline when the item is not marked, filled when it is. Both are the same
+     * glyph, which the theme draws as an outline: the outline glyph is deprecated since Jmix 3.1.
      */
     public static Component star(Icons icons, boolean marked) {
         Component star = icons.get(JmixFontIcon.STAR);
@@ -92,9 +87,6 @@ public class FavoriteListAction<E> extends SecuredListDataComponentAction<Favori
         this.afterToggleHandler = afterToggleHandler;
     }
 
-    /**
-     * Follows the selection with the star: a click marks the selected items unless all of them are marked.
-     */
     @Override
     public void refreshState() {
         super.refreshState();

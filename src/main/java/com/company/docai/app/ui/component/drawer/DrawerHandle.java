@@ -16,18 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Optional;
 
 /**
- * The resizable edge of the main menu: a drag or the arrow keys move it within limits, in steps of a quarter of a
- * rem, and the menu opens as wide as the user left it. The element {@code docai-drawer-handle} of
- * {@code src/component/drawer/docai-drawer-handle.js} moves the edge in the browser; this class restores the width,
- * keeps it within the limits and saves it. The main view declares it in its descriptor. It is not a Spring bean: the
- * component factory would give every browser tab the same one.
+ * The resizable edge of the main menu; not a Spring bean, as the component factory would give every tab the same one.
  */
 @Tag("docai-drawer-handle")
 @JsModule("./src/component/drawer/docai-drawer-handle.js")
 public class DrawerHandle extends Component implements HasStyle {
 
     /**
-     * The user setting with the width of the main menu in rem, which the user drags with its edge.
+     * The user setting with the width of the main menu, in rem.
      */
     public static final String DRAWER_WIDTH_SETTING = "docai.drawerWidth";
 
@@ -38,8 +34,7 @@ public class DrawerHandle extends Component implements HasStyle {
     private UserSettingsService userSettingsService;
 
     /**
-     * Creates the edge with its class, the role of a separator that takes the keyboard focus, and the limits of the
-     * width in rem for the browser.
+     * Creates the edge as a separator that takes the keyboard focus, with the width limits in rem for the browser.
      */
     public DrawerHandle() {
         addClassName("main-view-drawer-handle");
@@ -68,7 +63,6 @@ public class DrawerHandle extends Component implements HasStyle {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
-        // the menu opens as wide as the user left it
         if (attachEvent.isInitialAttach()) {
             userSettingsService.load(DRAWER_WIDTH_SETTING)
                     .flatMap(DrawerHandle::parseDrawerWidth)
@@ -106,7 +100,8 @@ public class DrawerHandle extends Component implements HasStyle {
     }
 
     /**
-     * The edge of the main menu dragged to a new width, as the browser reports it at the end of the drag.
+     * The edge of the main menu moved to a new width, as the browser reports it at the end of a drag or at an
+     * arrow key.
      */
     @DomEvent("docai-drawer-resize")
     public static class DrawerResizeEvent extends ComponentEvent<DrawerHandle> {
@@ -114,7 +109,7 @@ public class DrawerHandle extends Component implements HasStyle {
         private final double width;
 
         /**
-         * Creates the event of the edge of the menu with the width it was dragged to, in rem.
+         * Creates the event with the new width of the menu, in rem.
          */
         public DrawerResizeEvent(DrawerHandle source, boolean fromClient, @EventData("event.detail") double width) {
             super(source, fromClient);
@@ -122,7 +117,7 @@ public class DrawerHandle extends Component implements HasStyle {
         }
 
         /**
-         * Returns the width the edge was dragged to, in rem.
+         * Returns the new width of the menu, in rem.
          */
         public double getWidth() {
             return width;

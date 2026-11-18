@@ -25,18 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Renders a text of a demo set into an A4 PDF with a text layer, in PT Serif and PT Sans by ParaType, which lie with
- * their license, the SIL Open Font License 1.1, in {@code com/company/docai/demo/fonts/}. A line of the text is:
- * <ul>
- *     <li>{@code # text}, a title, centered, in PT Sans Bold;</li>
- *     <li>{@code ## text}, a heading in PT Serif Bold, centered right under the title;</li>
- *     <li>{@code left<TAB>right}, a part at each margin;</li>
- *     <li>empty, a gap;</li>
- *     <li>anything else, a paragraph wrapped by the measured width of its words, which keeps a space between digits,
- *     after {@code №} and after a single letter with a period.</li>
- * </ul>
- * The same text gives the same bytes: the information of the file holds only the title, and the identifier of the
- * file is the hash of the text.
+ * Renders a text of a demo set into an A4 PDF with a text layer, in PT Serif and PT Sans by ParaType (SIL Open Font
+ * License 1.1, {@code com/company/docai/demo/fonts/}). A line is a title ({@code # text}), a heading ({@code ## text}),
+ * a part at each margin ({@code left<TAB>right}), a gap when empty, or a paragraph.
  */
 @Component
 public class DemoPdf {
@@ -45,7 +36,6 @@ public class DemoPdf {
     private static final float BODY_SIZE = 11f;
     private static final float TITLE_SIZE = 14f;
     private static final float LINE_SPACING = 1.35f;
-    // two centimeters
     private static final float MARGIN = 2f / 2.54f * 72f;
     private static final PDRectangle PAGE = PDRectangle.A4;
     private static final float TEXT_WIDTH = PAGE.getWidth() - 2 * MARGIN;
@@ -103,7 +93,7 @@ public class DemoPdf {
         return font.getStringWidth(text) * size / 1000f;
     }
 
-    // splits a paragraph at the spaces where a line may break; the other spaces stay inside a unit
+    // the spaces where a line may not break stay inside a unit
     private static List<String> units(String text) {
         List<String> units = new ArrayList<>();
         StringBuilder current = new StringBuilder();
@@ -148,7 +138,6 @@ public class DemoPdf {
         return c >= '0' && c <= '9';
     }
 
-    // the pages of one rendering, written from the top down
     private final class Pages {
 
         private final PDDocument document;
@@ -167,7 +156,6 @@ public class DemoPdf {
             stream = openPage();
         }
 
-        // returns the first title of the text
         private @Nullable String write(List<String> lines) throws IOException {
             String title = null;
             boolean afterTitle = false;

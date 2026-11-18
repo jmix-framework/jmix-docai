@@ -20,11 +20,8 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The client modules of the components of the application. A component lives in the package of its feature under
- * {@code app.ui.component}, and its module, named after its tag, in the folder of that feature under
- * {@code src/main/frontend/src/component}. A wrong path fails only the production build, a module that defines another
- * tag leaves an element that does nothing, and an event that the module sends under another name than the component
- * listens to is lost without a trace.
+ * The client modules of the components of the application. A wrong path fails only the production build, and a wrong
+ * tag or event name is lost without a trace.
  */
 class ComponentModulesTest {
 
@@ -35,7 +32,6 @@ class ComponentModulesTest {
     void everyComponentHasItsModuleInTheFolderOfItsFeatureAndTheModuleDefinesItsTag() throws IOException {
         List<Class<?>> components = components();
 
-        // the scan sees the components of every feature
         assertThat(components)
                 .extracting(Class::getSimpleName)
                 .contains("DrawerHandle", "FileDropGuard", "FileDropZone", "SearchPaletteOpener", "SearchPaletteLine",
@@ -65,7 +61,6 @@ class ComponentModulesTest {
     void everyEventOfAComponentHasItsNameInTheModule() throws IOException {
         List<Class<?>> components = components();
 
-        // the scan sees the events of the edge, the opener and the line
         assertThat(components)
                 .flatExtracting(ComponentModulesTest::events)
                 .contains("docai-drawer-resize", "docai-search-palette-open", "docai-search-palette-cancel",
@@ -98,7 +93,6 @@ class ComponentModulesTest {
                 .toList();
     }
 
-    // the events the element sends the server, by the names that the nested event classes of the component listen to
     private static List<String> events(Class<?> component) {
         return Arrays.stream(component.getDeclaredClasses())
                 .map(event -> event.getAnnotation(DomEvent.class))

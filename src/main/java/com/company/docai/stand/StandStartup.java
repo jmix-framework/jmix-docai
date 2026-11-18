@@ -38,16 +38,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
 
 /**
- * The start of the stand. Once the application is ready, a thread of its own deletes what an earlier run of the
- * application left, the folders and the indexes of copies no registry knows any more, then makes the template of each
- * language of {@code docai.stand.template-languages} ready, one after another in that order: a template whose ready
- * marker, script, files and indexes are all there is used as it is, as after a restart of the container, and any
- * other is built anew in a cleared folder, as after a deploy. A template takes logins from the moment it is ready, so
- * the first language is open while the next one builds; a login in a language whose template is not ready waits, see
- * {@link StandLogin}. A template that fails is tried again until it is ready, by a one-shot trigger of
- * {@link TemplateRetryJob} on Quartz, first after {@code docai.stand.template-retry-pause}, then after a pause twice
- * as long each time, up to {@code docai.stand.template-retry-pause-max}; the next language is made ready meanwhile, and
- * no two builds overlap.
+ * The start of the stand: once the application is ready, a thread of its own deletes what an earlier run left and makes
+ * the template of each language ready in order, using a complete template as it is and building any other anew. A
+ * template that fails is tried again by a one-shot trigger of {@link TemplateRetryJob} after a pause that doubles each
+ * time.
  */
 @Component
 @Profile("stand")
@@ -58,8 +52,6 @@ public class StandStartup {
     private static final String DAY = "day";
     private static final String INDEXES = "indexes";
 
-    // the data of a try again: the start it belongs to, the language, the tries that failed so far and the pause after
-    // the try, should it fail too
     private static final String START = "start";
     private static final String LANGUAGE = "language";
     private static final String FAILURES = "failures";
@@ -113,9 +105,6 @@ public class StandStartup {
         }
     }
 
-    /**
-     * Starts the stand once the application is ready, unless {@code docai.stand.auto-startup} is off.
-     */
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
         if (properties.autoStartup()) {
@@ -124,10 +113,8 @@ public class StandStartup {
     }
 
     /**
-     * Starts the stand on the thread of the start, after a start that runs: takes the logins from every template
-     * until it is checked, deletes the folders and the indexes of the copies the registry does not know, then makes
-     * the templates ready in the order of their languages, each one taking logins from then on. The tries again of an
-     * earlier start do nothing from then on.
+     * Starts the stand on the thread of the start, after a start that runs; the tries again of an earlier start do
+     * nothing from then on.
      *
      * @return a future that completes when this start has made every template ready, or when the application stops
      */
@@ -140,8 +127,7 @@ public class StandStartup {
 
     /**
      * Tries a template again, as a trigger of {@link TemplateRetryJob} asks: makes it ready, or schedules the next try
-     * after a pause twice as long, up to the longest. A try of an earlier start, or one that comes as the application
-     * stops, does nothing.
+     * after a pause twice as long, up to the longest.
      *
      * @param data the data the start gave the trigger
      * @throws InterruptedException when the application stops while another build runs
@@ -183,7 +169,6 @@ public class StandStartup {
         try {
             building.lockInterruptibly();
         } catch (InterruptedException e) {
-            // the application stops while a try again builds a template
             Thread.currentThread().interrupt();
             start.ready().complete(null);
 
@@ -244,8 +229,7 @@ public class StandStartup {
         }
     }
 
-    // an OpenSearch that stays away for a while, as at a deploy, does not keep a language closed until the next start:
-    // a template that fails is tried again by a trigger once the pause is over, while the next language goes on
+    // an OpenSearch that stays away for a while, as at a deploy, does not keep a language closed until the next start
     private void tryToMakeReady(Start start, StandScope template, int failures, Duration pause) {
         try {
             makeReady(template);
@@ -318,8 +302,6 @@ public class StandStartup {
         log.info("The template {} is ready", template.id());
     }
 
-    // the day of the build the ready marker in the folder vouches for, null without a marker; one that cannot be read
-    // counts as none, and its template is built again
     private static @Nullable String builtOnIn(Path folder) {
         Path path = folder.resolve(TemplateBuilder.READY);
 
@@ -340,7 +322,6 @@ public class StandStartup {
         return marker.getProperty(DAY);
     }
 
-    // written whole under another name, then moved in at once: a marker vouches for a whole template or is not there
     private void writeMarker(Path folder, StandScope template, LocalDate day) {
         Properties marker = new Properties();
         marker.setProperty(DAY, day.toString());
@@ -367,7 +348,6 @@ public class StandStartup {
                 : pause;
     }
 
-    // a start: its number, the languages whose templates it has not made ready yet, and its future
     private record Start(long number, Set<String> waiting, CompletableFuture<Void> ready) {
     }
 }

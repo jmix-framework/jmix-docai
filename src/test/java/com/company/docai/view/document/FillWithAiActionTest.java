@@ -18,7 +18,6 @@ import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTags;
 import com.company.docai.test_support.TestUploads;
 import com.company.docai.view.main.MainView;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.server.VaadinSession;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
@@ -40,7 +39,6 @@ import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.dialog.DialogInfo;
 import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.testassist.notification.OpenedNotifications;
 import io.jmix.flowui.upload.TemporaryStorage;
@@ -58,19 +56,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.company.docai.test_support.TestSamples.png;
+import static com.company.docai.test_support.TestUi.awaitAccess;
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -494,29 +489,11 @@ class FillWithAiActionTest {
 
     // the result comes back through UI.access, which a UI test runs only when asked
     private void waitForNotification() {
-        VaadinSession session = VaadinSession.getCurrent();
-
-        await().pollInSameThread()
-                .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(50))
-                .until(() -> {
-                    session.getService().runPendingAccessTasks(session);
-                    return !openedNotifications.getNotifications().isEmpty();
-                });
+        awaitAccess(() -> !openedNotifications.getNotifications().isEmpty());
     }
 
     private NotificationInfo lastNotification() {
         return openedNotifications.getLastNotification();
-    }
-
-    private Button dialogButton(DialogAction.Type type) {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-
-        return dialog.getButtons().stream()
-                .filter(button -> button.getId().equals(Optional.of(type.getId())))
-                .findFirst()
-                .orElseThrow();
     }
 
     private Document upload(String fileName, byte[] content) {
@@ -566,14 +543,5 @@ class FillWithAiActionTest {
 
     private <T> T component(DocumentDetailView card, String id) {
         return UiTestUtils.getComponent(card, id);
-    }
-
-    private static byte[] png() {
-        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
-            ImageIO.write(new BufferedImage(40, 20, BufferedImage.TYPE_INT_RGB), "png", bytes);
-            return bytes.toByteArray();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 }

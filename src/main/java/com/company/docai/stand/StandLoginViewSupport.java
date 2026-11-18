@@ -19,9 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Locale;
 
 /**
- * Jmix's login support for the language switch of the stand: it takes the steps Jmix's login takes for an
- * authentication that {@link StandSignIn} made, so that they stay Jmix's own. The login form keeps the support of Jmix,
- * see {@link StandSignInConfiguration}.
+ * Takes Jmix's login steps for the sign-in {@link StandSignIn} makes on a language switch, so they stay Jmix's own.
  */
 public class StandLoginViewSupport extends LoginViewSupport {
 
@@ -31,10 +29,10 @@ public class StandLoginViewSupport extends LoginViewSupport {
     public static final String NAME = "stand_LoginViewSupport";
 
     /**
-     * Runs the validators of the details of a login, which Jmix's login runs before it checks the credentials, on the
-     * details of a switch: the username, the language and no password.
+     * Runs the validators of the details of a login on the details of a switch: the username, the language and no
+     * password.
      *
-     * @throws DisabledException when a validator refuses, as Jmix's login refuses a login then
+     * @throws DisabledException when a validator refuses
      */
     protected void validate(String username, Locale locale) {
         AuthDetails details = detailsOf(username, locale);
@@ -50,12 +48,10 @@ public class StandLoginViewSupport extends LoginViewSupport {
 
     /**
      * Signs the authentication in to the session of the current request as Jmix's login does once the password is
-     * checked: a new session id against session fixation, the registry of sessions with its limit per user, the
-     * security context of the session, the cookie of the language for the next login and the event of an interactive
-     * login. The view the browser opens is the caller's.
+     * checked, a new session id against session fixation and the registry of sessions with its limit per user included;
+     * the view the browser opens is the caller's.
      *
      * @param authentication what {@link StandSignIn#authenticate} gave
-     * @param locale         the language the authentication has
      * @throws InsufficientAuthenticationException when the authentication is not the user the session is signed in as,
      *                                             before any change
      */
@@ -97,8 +93,7 @@ public class StandLoginViewSupport extends LoginViewSupport {
         }
     }
 
-    // no password: a switch checks none, and Jmix's steps after the check read the username, the language and the
-    // remember-me only
+    // no password: a switch checks none, and Jmix's later steps read only the username, the language and remember-me
     private static AuthDetails detailsOf(String username, Locale locale) {
         return AuthDetails.of(username, "")
                 .withLocale(locale);

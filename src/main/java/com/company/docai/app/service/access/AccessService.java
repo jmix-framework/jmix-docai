@@ -49,17 +49,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Changes who may see, change and manage folders and documents. The access sets and their entries are written
- * only here: every change needs {@link AccessLevel#MANAGE} in the set in effect for the item, and the folders and
- * documents that inherit from the item follow the change, including the ones in the trash.
+ * Changes who may see, change and manage folders and documents.
  */
 @Service
 public class AccessService {
 
-    // these roles are technical, so access entries are not given to them
     private static final Set<String> TECHNICAL_ROLES = Set.of(FullAccessRole.CODE, UiMinimalRole.CODE);
 
-    // the lookup matches the name the list shows for a user, "First Last [username]"
     private static final String USER_NAME = "lower(concat(coalesce(u.firstName, ''), ' ', coalesce(u.lastName, ''),"
             + " ' [', u.username, ']'))";
 
@@ -91,8 +87,7 @@ public class AccessService {
     /**
      * Describes the access of the folder for the access dialog.
      *
-     * @throws OperationRejectedException if the folder is deleted or hidden from the user, or the user does not
-     *                                    manage its access
+     * @throws OperationRejectedException if the folder is deleted, hidden or not managed by the user
      */
     public AccessDraft describe(Folder folder) {
         Folder stored = loadFolder(folder);
@@ -105,8 +100,7 @@ public class AccessService {
     /**
      * Describes the access of the document for the access dialog.
      *
-     * @throws OperationRejectedException if the document is deleted or hidden from the user, or the user does not
-     *                                    manage its access
+     * @throws OperationRejectedException if the document is deleted, hidden or not managed by the user
      */
     public AccessDraft describe(Document document) {
         Document stored = loadDocument(document);
@@ -117,13 +111,11 @@ public class AccessService {
     }
 
     /**
-     * Applies the access dialog in one transaction: breaks the inheritance or returns to it, then writes the
-     * difference of the entries. Access changes queue with folder moves on the root row, so a branch does not
-     * move while its access changes.
+     * Applies the access dialog in one transaction. Access changes queue with folder moves on the root row, so a branch
+     * does not move while its access changes.
      *
-     * @throws OperationRejectedException if the item is deleted or hidden from the user, the user does not manage
-     *                                    its access, the access changed since the dialog opened, a user or a role
-     *                                    is listed twice, an entry has no level, or a technical role gets access
+     * @throws OperationRejectedException if the item is deleted, hidden or not managed by the user, the access changed
+     *                                    since the dialog opened, or an entry is not valid
      */
     @Transactional
     public void save(AccessDraft draft) {
@@ -153,8 +145,7 @@ public class AccessService {
     }
 
     /**
-     * Tells whether the current user still manages the item after the draft is applied, so the dialog can warn
-     * before the user takes management from themselves.
+     * Tells whether the current user still manages the item after the draft is applied.
      */
     public boolean keepsManagement(AccessDraft draft) {
         if (accessChecker.hasFullAccess()) {
@@ -189,16 +180,14 @@ public class AccessService {
     }
 
     /**
-     * Tells whether the current user manages the access of any folder or document that is not deleted, so that
-     * access is offered only to those who can use it.
+     * Tells whether the current user manages the access of any live folder or document.
      */
     public boolean managesAnything() {
         return accessChecker.hasFullAccess() || managesAny("Folder") || managesAny("Document");
     }
 
     /**
-     * Finds the resource roles and the users that can get access and whose names contain the text, roles first,
-     * each by name, one page at a time: the access dialog looks them up as the user types.
+     * Finds the roles, then the users, that can get access and whose names contain the text, a page at a time.
      */
     public List<AccessSubject> findSubjects(String text, int offset, int limit) {
         String part = text.strip().toLowerCase(Locale.ROOT);
@@ -216,7 +205,6 @@ public class AccessService {
             dataManager.load(User.class)
                     .query("select u from User u where " + USER_NAME + " like :part escape '\\'"
                             + " order by u.firstName, u.lastName, u.username")
-                    // what the user types is matched as it is: a percent sign or an underscore is not a wildcard
                     .parameter("part", "%" + QueryUtils.escapeForLike(part) + "%")
                     .firstResult(Math.max(0, offset - roles.size()))
                     .maxResults(limit - page.size())
@@ -230,7 +218,6 @@ public class AccessService {
 
     /**
      * Tells whether moving the folder changes its access: it inherits, and the target passes down another set.
-     * A folder or a target deleted meanwhile changes nothing here, and the move then refuses it.
      */
     public boolean changesOnMove(Folder folder, Folder target) {
         Folder stored = unconstrainedDataManager.load(Folder.class)
@@ -245,8 +232,7 @@ public class AccessService {
     }
 
     /**
-     * Tells whether moving the documents changes the access of any of them: it inherits, and the target passes
-     * down another set. A target deleted meanwhile changes nothing here, and the move then refuses it.
+     * Tells whether moving the documents changes the access of any of them.
      */
     public boolean changesOnMove(Collection<Document> documents, Folder target) {
         AccessSet targetSet = setOf(target).orElse(null);
@@ -266,9 +252,7 @@ public class AccessService {
     }
 
     /**
-     * Makes the access of a moved folder follow the move, in the save context of the move: a folder that inherits
-     * takes the set of the target, together with the folders and documents below it that inherit from it, deleted
-     * ones included; a folder with its own access keeps it. The save context then saves deleted items too.
+     * Makes the access of a moved folder follow the move in the save context of the move, deleted items included.
      */
     public void followMove(Folder folder, Folder target, SaveContext saveContext) {
         Folder stored = unconstrainedDataManager.load(Folder.class)
@@ -286,8 +270,7 @@ public class AccessService {
     }
 
     /**
-     * Makes the access of moved documents follow the move, in the save context of the move: a document that
-     * inherits takes the set of the target; a document with its own access keeps it.
+     * Makes the access of moved documents follow the move, in the save context of the move.
      */
     public void followMove(Collection<Document> documents, Folder target, SaveContext saveContext) {
         if (documents.isEmpty()) {
@@ -351,7 +334,6 @@ public class AccessService {
         if (Boolean.TRUE.equals(draft.getInherit())) {
             if (own && parentSet != null) {
                 repointing.accept(set, parentSet);
-                // the database deletes the entries with the set
                 saveContext.removing(set);
             }
         } else if (own) {
@@ -377,7 +359,6 @@ public class AccessService {
 
         Set<String> wanted = new HashSet<>();
         for (AccessEntryDraft draft : drafts) {
-            // the dialog never sends these; a draft that comes another way gets a reason, not a database error
             if (draft.getAccessLevel() == null) {
                 throw reject("accessLevelMissing", draft.getSubjectName());
             }
@@ -414,8 +395,7 @@ public class AccessService {
     }
 
     /**
-     * Moves the folder and the folders and documents below it that use the same set to another set. A folder
-     * with its own set stops the walk: the items below it use that set.
+     * A folder with its own set stops the walk: the items below it use that set.
      */
     private void repointBranch(Folder folder, AccessSet from, AccessSet to, SaveContext saveContext) {
         List<Folder> branch = new ArrayList<>();
@@ -555,8 +535,8 @@ public class AccessService {
         return username != null ? "user:" + username : "role:" + roleCode;
     }
 
-    // the query skips deleted items, so a set left behind in the trash does not count
     private boolean managesAny(String entityName) {
+        // the query skips deleted items, so a set left behind in the trash does not count
         return unconstrainedDataManager.loadValue("select e.id from " + entityName + " e"
                         + " where exists (select ae from AccessEntry ae where ae.accessSet = e.accessSet"
                         + " and ae.accessLevel >= @enum(com.company.docai.model.access.AccessLevel.MANAGE)"

@@ -27,9 +27,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * The files of the document versions in the file storage, which is not transactional: the file of a new version is
- * stored before the data and removed again if the data cannot be saved, and the files of the versions deleted forever
- * go after the commit.
+ * The files of the document versions in the file storage, which is not transactional.
  */
 @Component
 public class RevisionFiles {
@@ -42,7 +40,6 @@ public class RevisionFiles {
     private final FilesProperties filesProperties;
     private final Messages messages;
     private final TransactionTemplate transaction;
-    // only the stand has one
     private final ObjectProvider<StandUploadGuard> uploadGuard;
 
     public RevisionFiles(UnconstrainedDataManager unconstrainedDataManager, FileStorageLocator fileStorageLocator,
@@ -64,12 +61,9 @@ public class RevisionFiles {
     }
 
     /**
-     * Stores the uploaded file in the default storage for a new version and returns it with its size and content
-     * type.
+     * Stores the uploaded file in the default storage for a new version.
      *
-     * @throws OperationRejectedException if the file is larger than the maximum file size, or on the stand when its
-     *                                    bytes show a type a visitor cannot upload, the disk is low or the file does
-     *                                    not fit into the quota of the visitor's copy
+     * @throws OperationRejectedException if the file is larger than the maximum file size, or the stand refuses it
      */
     public StoredFile store(UploadedFile file) {
         try {
@@ -94,8 +88,7 @@ public class RevisionFiles {
     }
 
     /**
-     * Runs the work in a transaction and removes the just stored file if the transaction fails:
-     * file storage is not transactional.
+     * Runs the work in a transaction and removes the just stored file if the transaction fails.
      */
     public Document inTransaction(@Nullable StoredFile stored, Supplier<Document> work) {
         try {
@@ -111,8 +104,7 @@ public class RevisionFiles {
     }
 
     /**
-     * Removes the files of the versions deleted forever. File storage is not transactional: a file goes after its
-     * rows, and only when no version refers to it any more. A file that cannot be removed is logged.
+     * Removes the files of the versions deleted forever, each only when no version refers to it any more.
      */
     public void removeFiles(List<FileRef> files) {
         for (FileRef file : files) {

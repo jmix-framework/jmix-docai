@@ -18,8 +18,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.UUID;
 
 /**
- * Sets up access the way the access service and the administrator will: gives a folder or a document an access
- * set of its own and gives a user a runtime role that stands for a department. Run it as the administrator.
+ * Sets up access the way the access service and the administrator will; run it as the administrator.
  */
 public final class TestAccess {
 
@@ -27,8 +26,7 @@ public final class TestAccess {
     }
 
     /**
-     * Gives the folder an access set of its own with the grants. Call it before the folder gets content:
-     * the content keeps the set it has.
+     * Gives the folder an access set of its own with the grants; call it before the folder gets content.
      */
     public static Folder giveOwnAccess(DataManager dataManager, Folder folder, Grant... grants) {
         Folder stored = dataManager.load(Id.of(folder)).one();
@@ -39,9 +37,6 @@ public final class TestAccess {
         return dataManager.save(withEntries(dataManager, accessSet, grants).saving(stored)).get(stored);
     }
 
-    /**
-     * Gives the document an access set of its own with the grants.
-     */
     public static Document giveOwnAccess(DataManager dataManager, Document document, Grant... grants) {
         Document stored = dataManager.load(Id.of(document)).one();
         AccessSet accessSet = dataManager.create(AccessSet.class);
@@ -102,14 +97,11 @@ public final class TestAccess {
     }
 
     /**
-     * A runtime resource role without policies that stands for a department, as an administrator creates it
-     * in the role views, assigned to one user. The user gets it at their next authentication.
+     * A runtime resource role without policies that stands for a department, assigned to one user, who gets it at their
+     * next authentication.
      */
     public record DepartmentRole(String code, ResourceRoleEntity role, RoleAssignmentEntity assignment) {
 
-        /**
-         * Creates the role with a unique code and assigns it to the user.
-         */
         public static DepartmentRole assign(DataManager dataManager, String username) {
             ResourceRoleEntity role = dataManager.create(ResourceRoleEntity.class);
             role.setCode("department-" + UUID.randomUUID());

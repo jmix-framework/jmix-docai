@@ -12,8 +12,7 @@ import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * A model of vectors that gives the same vector for the same words: each word of a text adds to one coordinate, so
- * texts with common words are near each other. It keeps the texts it got.
+ * A model of vectors that gives the same vector for the same words, so texts with common words are near each other.
  */
 public class StubEmbeddingModel implements EmbeddingModel {
 
@@ -24,9 +23,6 @@ public class StubEmbeddingModel implements EmbeddingModel {
 
     private final List<String> texts = new CopyOnWriteArrayList<>();
 
-    /**
-     * Returns the vector of the text.
-     */
     public static float[] vectorOf(String text) {
         float[] vector = new float[DIMENSIONS];
 
@@ -58,9 +54,6 @@ public class StubEmbeddingModel implements EmbeddingModel {
         return texts;
     }
 
-    /**
-     * Forgets the texts.
-     */
     public void reset() {
         texts.clear();
     }

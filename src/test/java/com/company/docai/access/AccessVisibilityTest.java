@@ -42,11 +42,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Who sees what, on the tree of the design: the root is open; "Contracts" inherits from it; "HR" has its own
- * access, managed by the HR department, and "HR/Payroll" and "HR/Archive" inherit it; "HR/Vacations" has its own
- * access, viewed by all employees; "Contracts/secret.txt" is for helen alone; "HR/policy.txt" is viewed by all
- * employees inside the closed "HR"; "HR/Payroll/payslip.txt" is viewed by peter alone. peter is an employee,
- * helen is an employee in the HR department, admin has full access.
+ * Who sees what on the tree of the design.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)

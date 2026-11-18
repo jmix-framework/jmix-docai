@@ -45,9 +45,6 @@ public final class TestTrash {
                 .setHint(PersistenceHints.SOFT_DELETION, false));
     }
 
-    /**
-     * Returns the item with the id among the items.
-     */
     public static TrashItem itemOf(Collection<TrashItem> items, UUID id) {
         return items.stream()
                 .filter(item -> item.getId().equals(id))
@@ -55,9 +52,6 @@ public final class TestTrash {
                 .orElseThrow(() -> new AssertionError("No item " + id + " in the trash"));
     }
 
-    /**
-     * Returns the ids of the items in their order.
-     */
     public static List<UUID> ids(Collection<TrashItem> items) {
         return items.stream()
                 .map(TrashItem::getId)
@@ -75,9 +69,6 @@ public final class TestTrash {
                 .isPresent();
     }
 
-    /**
-     * Tells whether the row with the id lies in the trash.
-     */
     public static boolean isDeleted(DataManager dataManager, Class<?> type, UUID id) {
         return dataManager.load(type)
                 .id(id)

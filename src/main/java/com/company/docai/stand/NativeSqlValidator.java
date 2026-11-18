@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Refuses a query of the assistant's query tool that puts SQL of its own into JPQL: SQL(...) and FUNCTION(...) reach
- * the database of the copy as they are written. The add-on refuses them too, but it reads the query in small letters,
- * and a letter whose capital is S or I, as the long s (U+017F) or the dotless i (U+0131), passes that check, while the
- * parsers of Jmix and EclipseLink read the letter as S or I.
+ * Refuses a query of the assistant's query tool that puts SQL of its own into JPQL with SQL(...) or FUNCTION(...),
+ * which reach the database of the copy as they are written. The add-on refuses them too, but it reads the query in
+ * small letters, and a letter whose capital is S or I, as the long s (U+017F) or the dotless i (U+0131), passes that
+ * check, while the parsers of Jmix and EclipseLink read the letter as S or I.
  */
 @Component
 @Profile("stand")
@@ -27,8 +27,7 @@ public class NativeSqlValidator implements JpqlResultValidator, Ordered {
 
     /**
      * Whether the JPQL holds SQL(...) or FUNCTION(...) as Jmix's parser reads a query: each letter on its own as its
-     * capital, nothing between the name and the parenthesis. A string literal counts too, so a rare query that only
-     * names them in a literal is refused as well.
+     * capital, nothing between the name and the parenthesis. A string literal counts too.
      */
     public static boolean namesNativeSql(@Nullable String jpql) {
         if (jpql == null) {

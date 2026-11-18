@@ -111,7 +111,6 @@ class DemoDataCheckTest {
         assertThat(loader.check("sample")).isEmpty();
     }
 
-    // the tags of every document of the set, in the order of the description
     private static List<List<String>> tagsOf(String set) throws IOException {
         List<List<String>> tags = new ArrayList<>();
         collectTags(DemoSetTemplate.read(set).folders(), tags);

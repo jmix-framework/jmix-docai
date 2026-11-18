@@ -46,10 +46,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The Language item of the user menu: a submenu of the languages of the application. Another language changes the
- * language of the session and reloads the page; on the stand it moves the visitor to a fresh copy of the demo data in
- * that language after a question, see {@link StandLogin#switchLanguage}, and every tab of the browser loads the main
- * view.
+ * The Language item of the user menu, which on the stand moves the visitor to a fresh copy in the language.
  */
 @ActionType(UserMenuLanguageSwitchAction.ID)
 public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguageSwitchAction, UserMenu> {
@@ -69,7 +66,6 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
     private ViewRegistry viewRegistry;
     private ServletContext servletContext;
 
-    // the login of the stand, present only in its profile
     private ObjectProvider<StandLogin> standLogin;
 
     private HasSubMenu.SubMenu subMenu;
@@ -194,7 +190,6 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
             return;
         }
 
-        // reloading the page would lose the changes of an open editor
         if (UI.getCurrent().getCurrentView() instanceof StandardDetailView<?> detailView
                 && detailView.hasUnsavedChanges()) {
             viewValidation.showUnsavedChangesDialog(detailView)
@@ -220,8 +215,6 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
         UI.getCurrent().getPage().reload();
     }
 
-    // the copy replaces whatever the visitor changed, open editors included, so this question is the only one; the
-    // notice of a template that is not ready is the login's, which meets the same states of the templates
     private void confirmNewCopy(StandLogin stand, Locale locale) {
         if (!stand.isReady(locale)) {
             showNotice(messages.getMessage(LoginView.class, "standGettingReady"), Notifications.Type.WARNING);
@@ -232,8 +225,10 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
                 .withHeader(messages.getMessage(getClass(), "languageSwitchDialog.header"))
                 .withText(messages.getMessage(getClass(), "languageSwitchDialog.text"))
                 .withActions(
-                        new DialogAction(DialogAction.Type.OK).withHandler(event -> switchCopy(stand, locale)),
-                        new DialogAction(DialogAction.Type.CANCEL).withVariant(ActionVariant.PRIMARY))
+                        new DialogAction(DialogAction.Type.OK)
+                                .withHandler(event -> switchCopy(stand, locale)),
+                        new DialogAction(DialogAction.Type.CANCEL)
+                                .withVariant(ActionVariant.PRIMARY))
                 .open();
     }
 
@@ -244,8 +239,7 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
             showNotice(messages.getMessage(LoginView.class, "standGettingReady"), Notifications.Type.WARNING);
             return;
         } catch (CopyNotMadeException e) {
-            // what failed names paths and indexes of the server, which the log keeps with the tags of the copies for
-            // their keys, and the visitor does not need
+            // what failed names paths and indexes of the server: the log keeps it, and the visitor does not need it
             log.error("A copy of the demo data is not made at a change of the language: {}", StandScope.withTags(e));
             showNotice(messages.getMessage(getClass(), "languageSwitchFailed"), Notifications.Type.ERROR);
             return;
@@ -260,8 +254,6 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
         openMainViewInEveryTab();
     }
 
-    // the main view, as after Jmix's substitution of a user: a view open now may show records of the old copy, in this
-    // tab or in another one of the browser, and push brings the other tabs the change
     private void openMainViewInEveryTab() {
         String location = mainViewLocation();
         UI current = UI.getCurrent();
@@ -297,6 +289,6 @@ public class UserMenuLanguageSwitchAction extends UserMenuAction<UserMenuLanguag
 
     @Override
     public void execute() {
-        // do nothing, the items of the submenu switch the language
+        // do nothing
     }
 }

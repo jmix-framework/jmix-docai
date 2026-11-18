@@ -1,8 +1,7 @@
 /* Predefined styles for the MainView */
 
 .jmix-main-view-app-layout {
-    /* the menu holds the folder tree, whose names need the room; the user may drag it wider, and the drawer handle
-       sets --main-view-drawer-width then */
+    /* the drawer handle sets it when the user drags the menu wider for long names */
     --main-view-drawer-width: 18rem;
     --vaadin-app-layout-drawer-width: var(--main-view-drawer-width);
     /* the header and the brand card share one height: the padding of the header and the button of the user menu */
@@ -88,7 +87,6 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     min-height: 100%;
 }
 
-/* The brand card starts at the inset of the content, as the header does, so the two stand in one line */
 .jmix-main-view-application-title {
     display: flex;
     align-items: center;
@@ -102,7 +100,6 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     text-decoration: none;
 }
 
-/* The brand: the mark and the name in the middle of a band as high as the header, on the background of the drawer */
 .brand-card {
     display: flex;
     flex: 1;
@@ -127,15 +124,14 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     line-height: var(--aura-line-height-s);
 }
 
-/* The folders are the main navigation. The brand, the assistant and the folder field with its button stay on top of
-   the drawer; under them the favorites, the folders and the views of the menu scroll together in the frame of the
-   tree, which shows all its rows. A list menu would shrink to nothing in a low window, so the top keeps its height */
+/* The brand, the assistant and the folder field stay on top of the drawer: a list menu would shrink to nothing in a
+   low window, so the top keeps its height */
 .jmix-main-view-application-title {
     flex: none;
 }
 
-/* The assistant stands apart from the folders, as the folder field stands apart from the favorites. Its landmark
-   keeps its height, so the list menu inside, which scrolls on its own, has no reason to shrink and show a scrollbar */
+/* The landmark of the assistant keeps its height, so the list menu inside has no reason to shrink and show a
+   scrollbar */
 .assistant-navigation {
     flex: none;
     margin-block-end: var(--vaadin-gap-s);
@@ -158,13 +154,11 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     flex-shrink: 0;
 }
 
-/* The filter gives way to the folder button, so the row of the two fits the width of the drawer */
 .main-view-folder-tree vaadin-text-field {
     min-width: 0;
 }
 
-/* The views stand in the frame of the folders, as wide as the folders and in line with them: the list menu would add
-   its own inset to the inset of the folders */
+/* The views stand in the frame of the folders: the list menu would add its own inset to the inset of the folders */
 .jmix-main-view-navigation {
     display: flex;
     flex-direction: column;
@@ -176,10 +170,8 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     padding-inline: 0;
 }
 
-/* The edge of the menu takes a drag for long names. It looks as the edge of the preview does: a grip in the middle
-   shows under the pointer, the keyboard focus and the drag, and the target is as wide. The edge runs along the
-   content, from the inset of the window down, and reaches past the inline padding Aura gives the drawer. Over a
-   narrow window the menu covers the view, so its width stays then */
+/* The edge of the menu reaches past the inline padding Aura gives the drawer; over a narrow window the menu covers
+   the view, so its width stays then */
 .main-view-drawer-handle {
     position: absolute;
     inset-block: var(--aura-app-layout-inset) 0;
@@ -223,9 +215,7 @@ vaadin-app-layout.jmix-main-view-app-layout[overlay] {
     --vaadin-app-layout-drawer-width: 18rem;
 }
 
-/* The assistant wears the tint of the AI accent, as the AI actions do, in the rounded shape of the current item;
-   aura-accent-purple colors the item. The rule names the item as the list menu does, so the tint stays on the
-   current item as well */
+/* The rule names the item as the list menu does, so the tint of the assistant stays on the current item as well */
 .jmix-list-menu a.jmix-menu-item.ai-menu-item {
     border-radius: var(--vaadin-radius-m);
     background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
@@ -327,7 +317,6 @@ vaadin-app-layout.jmix-main-view-app-layout[overlay] {
 
 /* Initial Layout */
 
-/* the dashboard stands at the root in place of a view, so it scrolls from the top as a view does */
 .main-view-initial-layout {
     height: 100%;
     overflow-y: auto;

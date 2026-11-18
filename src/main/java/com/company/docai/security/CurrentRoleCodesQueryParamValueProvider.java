@@ -11,9 +11,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Provides the {@code :current_role_codes} query parameter of {@link AccessRowLevelRole}: the codes of the resource
- * roles in the authorities of the current authentication. The authorities are built at sign-in, so a change of
- * the user's roles takes effect at their next sign-in.
+ * Provides the {@code :current_role_codes} query parameter of {@link AccessRowLevelRole}. The authorities are built at
+ * sign-in, so a change of the user's roles takes effect at their next sign-in.
  */
 @Component
 public class CurrentRoleCodesQueryParamValueProvider implements QueryParamValueProvider {
@@ -44,8 +43,7 @@ public class CurrentRoleCodesQueryParamValueProvider implements QueryParamValueP
     }
 
     /**
-     * Returns the codes of the resource roles in the authorities of the current authentication, or an empty list
-     * when nobody is authenticated.
+     * Returns the codes of the resource roles in the authorities of the current authentication.
      */
     public List<String> currentRoleCodes() {
         if (!currentAuthentication.isSet()) {

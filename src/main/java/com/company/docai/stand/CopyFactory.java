@@ -20,10 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Makes and deletes the copies of the demo data. A copy is a new in-memory database filled from the script of the
- * template of its language, with the same rows and ids, under a new key, and clones of the search indexes of the
- * template; the data source of the application sends the scope of the copy to its database, and the add-on and the
- * index of fragments to its indexes.
+ * Makes and deletes the copies of the demo data: in-memory databases from a template's script with its cloned indexes.
  */
 @Component
 @Profile("stand")
@@ -39,7 +36,6 @@ public class CopyFactory {
     private final StandFileStorage files;
     private final StandCacheManager caches;
 
-    // the statements of the script of each language, read once for each build of its template
     private final Map<String, Script> scripts = new ConcurrentHashMap<>();
 
     // the languages whose templates the start of this run has checked or built
@@ -71,9 +67,7 @@ public class CopyFactory {
     }
 
     /**
-     * Whether a copy of the template of the language can be made now: the start of this run of the application allows
-     * the template, which it does once it has deleted what an earlier run left and checked or built the template, and
-     * the ready marker of the template, written after its build and gone while it is built again, is in its folder.
+     * Whether a copy of the template of the language can be made now: this run allows it and its ready marker is there.
      */
     public boolean isReady(String language) {
         return allowed.contains(language) && Files.isRegularFile(inTemplate(language, TemplateBuilder.READY));
@@ -94,11 +88,10 @@ public class CopyFactory {
     }
 
     /**
-     * Makes a copy of the template of the language under a new key, with hard links to the files of the template and
-     * clones of its indexes, and registers it; the loop of the search queues takes it from then on.
+     * Makes and registers a copy of the template of the language, with hard links to its files and clones of its
+     * indexes.
      *
-     * @throws IllegalStateException when the template has no script, the copy cannot be filled from it, or its files
-     *                               are not linked or its indexes are not cloned; nothing of the copy stays then
+     * @throws IllegalStateException when the copy cannot be made; nothing of the copy stays then
      */
     public Copy create(String language) {
         long started = System.nanoTime();
@@ -120,10 +113,8 @@ public class CopyFactory {
     }
 
     /**
-     * Deletes the copy: forgets its key, takes it out of the loop of the search queues and of the vector indexer,
-     * deletes its indexes, shuts its database down, drops its entries from the caches kept per scope and deletes its
-     * folder with its files. A copy the registry has forgotten already, as the cleaner forgets an idle one, is deleted
-     * all the same; the key of no copy deletes nothing.
+     * Deletes the copy with its database, indexes, cache entries and files, also when the registry has forgotten it
+     * already.
      *
      * @throws IllegalArgumentException if the key is not well-formed
      */
@@ -164,7 +155,6 @@ public class CopyFactory {
                 .resolve(name);
     }
 
-    // a template built again is read again
     private List<String> statementsOf(String language) {
         Path path = inTemplate(language, TemplateBuilder.SCRIPT);
 
@@ -183,7 +173,6 @@ public class CopyFactory {
         }
     }
 
-    // a copy without the files of its template would show documents whose files are gone
     private void linkFiles(String language, StandScope scope) {
         try {
             files.linkTemplate(language, scope);
@@ -195,8 +184,7 @@ public class CopyFactory {
         }
     }
 
-    // a copy without the indexes of its template would find nothing, and its writes would create the indexes with a
-    // mapping OpenSearch guesses
+    // without its template's indexes a copy would find nothing, and its writes would create them with a guessed mapping
     private void cloneIndexes(String language, StandScope scope) {
         try {
             indexes.cloneTemplate(language, scope);
@@ -208,8 +196,7 @@ public class CopyFactory {
         }
     }
 
-    // logged, not thrown: the copy is gone by then, and a folder left behind is found by its key later, as indexes are
-    // by their names
+    // logged, not thrown: the copy is gone by then, and a folder left behind is found by its key later
     private void deleteFolder(StandScope scope) {
         try {
             files.deleteFolder(scope);

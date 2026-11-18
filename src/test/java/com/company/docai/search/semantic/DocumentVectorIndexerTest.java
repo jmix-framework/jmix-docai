@@ -20,6 +20,7 @@ import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.dynattr.model.Category;
+import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingProperti
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -38,11 +40,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
- * The indexer keeps the index of fragments in line with the documents: the index lives in memory, the model of
- * vectors is a stub, and the uploads, versions, renames, moves and deletions are real.
+ * The indexer keeps the index of fragments in line with the documents. The class has the configuration of the UI tests
+ * with the AI, such as {@code FillWithAiActionTest}, so they share a Spring context.
  */
-@SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class},
-        properties = "spring.ai.openai.api-key=test-key")
+@SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class, StubAiConfiguration.class})
+@TestPropertySource(properties = "spring.ai.openai.api-key=test-key")
 @ExtendWith(AuthenticatedAsAdmin.class)
 class DocumentVectorIndexerTest {
 
@@ -82,7 +84,7 @@ class DocumentVectorIndexerTest {
     void setUp() {
         index.reset();
         embeddingModel.reset();
-        sandbox = folder("vector-indexer-test-" + UUID.randomUUID());
+        sandbox = folder(folderService.getRoot(), "vector-indexer-test-" + UUID.randomUUID());
     }
 
     @AfterEach
@@ -131,7 +133,8 @@ class DocumentVectorIndexerTest {
         Document document = upload("contract.txt", "Supply contract 45 with Northwind for office paper.");
         await().untilAsserted(() -> assertThat(index.replacements(document.getId())).isEqualTo(1));
 
-        documentService.move(List.of(editable(document)), folder("vector-indexer-target-" + UUID.randomUUID()));
+        // a target in the sandbox goes with it, as other classes share the Spring context
+        documentService.move(List.of(editable(document)), folder(sandbox, "Target"));
         documentService.changeStatus(List.of(editable(document)), TestStatuses.active(dataManager));
         Document typed = editable(document);
         typed.setCategory(dataManager.load(Category.class)
@@ -219,9 +222,9 @@ class DocumentVectorIndexerTest {
         assertThat(embeddingProperties.getDimensions()).isEqualTo(dimensions);
     }
 
-    private Folder folder(String name) {
+    private Folder folder(Folder parent, String name) {
         Folder folder = dataManager.create(Folder.class);
-        folder.setParent(folderService.getRoot());
+        folder.setParent(parent);
         folder.setName(name);
 
         return folderService.save(folder);

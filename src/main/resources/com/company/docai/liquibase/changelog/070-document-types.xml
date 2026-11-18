@@ -19,7 +19,6 @@
                                  constraintName="FK_DOCUMENT_ON_CATEGORY"/>
     </changeSet>
 
-    <!-- The document types of the demo; the values of their fields come with the documents -->
     <changeSet id="2" author="jmix-docai" context="!cuba" dbms="postgresql, mssql, hsqldb, h2">
         <insert tableName="DYNAT_CATEGORY">
             <column name="ID" value="8e1c6a52-3f0d-4b7a-9c21-5d4e7f8a1b01"/>

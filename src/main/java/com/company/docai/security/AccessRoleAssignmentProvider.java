@@ -16,9 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Assigns {@link AccessRowLevelRole} to every user without {@link FullAccessRole}, so that nobody works without
- * the access entries applied. Who has full access is told by the other role assignment providers, such as the
- * database one.
+ * Assigns {@link AccessRowLevelRole} to every user without {@link FullAccessRole}, so the access entries always apply.
  */
 @Component
 public class AccessRoleAssignmentProvider implements RoleAssignmentProvider {

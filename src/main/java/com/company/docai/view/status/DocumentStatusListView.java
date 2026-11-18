@@ -33,8 +33,7 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * The dictionary of document statuses, which the administrator keeps: a status gets its name, color, place and rules
- * in a dialog, and a status that new documents get or a document has is not deleted.
+ * The dictionary of document statuses, which the administrator keeps.
  */
 @Route(value = "document-statuses", layout = MainView.class)
 @ViewController(id = "DocumentStatus.list")
@@ -92,7 +91,6 @@ public class DocumentStatusListView extends StandardListView<DocumentStatus> {
         draggedStatus = null;
     }
 
-    // a status dropped on the upper half of a row goes above it, on the lower half below it
     @Subscribe("statusesDataGrid")
     public void onStatusesDataGridDrop(final GridDropEvent<DocumentStatus> event) {
         DocumentStatus target = event.getDropTargetItem().orElse(null);
@@ -125,7 +123,6 @@ public class DocumentStatusListView extends StandardListView<DocumentStatus> {
         return neighbour(1) != null;
     }
 
-    // the selected status changes places with its neighbour and stays selected for the next step
     private void moveSelected(int step) {
         DocumentStatus status = statusesDataGrid.getSingleSelectedItem();
         DocumentStatus neighbour = neighbour(step);
@@ -177,7 +174,6 @@ public class DocumentStatusListView extends StandardListView<DocumentStatus> {
         return flagRenderer(DocumentStatus::getAnyTarget);
     }
 
-    // a flag shows as a ticked box or an empty one, and a screen reader hears the value
     private Renderer<DocumentStatus> flagRenderer(Function<DocumentStatus, Boolean> flag) {
         return new ComponentRenderer<>(status -> {
             boolean set = Boolean.TRUE.equals(flag.apply(status));

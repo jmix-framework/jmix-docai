@@ -53,6 +53,7 @@ import io.jmix.core.security.CurrentAuthentication;
 import io.jmix.dynattr.model.Category;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.gridcolumnvisibility.JmixGridColumnVisibility;
 import io.jmix.flowui.component.sidepanellayout.SidePanelLayout;
@@ -60,6 +61,7 @@ import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.data.grid.DataGridItems;
 import io.jmix.flowui.fragment.FragmentUtils;
+import io.jmix.flowui.kit.action.Action;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.dropdownbutton.ComponentItem;
 import io.jmix.flowui.kit.component.dropdownbutton.DropdownButton;
@@ -183,7 +185,9 @@ class RepositoryViewTest {
         RepositoryView view = open(folder(sandbox, "Clients"), false);
         TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
 
-        tree.getAction("renameFolderAction").actionPerform(tree);
+        Action rename = tree.getAction("renameFolderAction");
+        assertThat(rename).isNotNull();
+        rename.actionPerform(tree);
         FolderDetailView dialog = UiTestUtils.getLastOpenedViewDialog();
         UiTestUtils.<TypedTextField<String>>getComponent(dialog, "nameField").setValue("Partners");
         UiTestUtils.<JmixButton>getComponent(dialog, "saveButton").click();
@@ -197,7 +201,9 @@ class RepositoryViewTest {
         RepositoryView view = open(folder(sandbox, "Clients"), false);
         TreeDataGrid<Folder> tree = TestMenus.folderTreeComponent("foldersTree");
 
-        tree.getAction("moveFolderAction").actionPerform(tree);
+        Action move = tree.getAction("moveFolderAction");
+        assertThat(move).isNotNull();
+        move.actionPerform(tree);
         FolderLookupView lookup = UiTestUtils.getLastOpenedViewDialog();
         TreeDataGrid<Folder> lookupTree = UiTestUtils.getComponent(lookup, "foldersTree");
         TestGrids.clickRendered(lookupTree, "name", archive);
@@ -405,15 +411,19 @@ class RepositoryViewTest {
         DocumentListFragment documentList = UiTestUtils.getComponent(view, "documentList");
         SidePanelLayout previewLayout = UiTestUtils.getComponent(view, "previewLayout");
         DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+        DataGridItems<Document> documents = grid.getItems();
+        assertThat(documents).isNotNull();
 
-        grid.getItems().getItems().forEach(document -> TestGrids.clickRow(grid, document, true));
+        documents.getItems().forEach(document -> TestGrids.clickRow(grid, document, true));
         assertThat(documentList.getFocusedDocument()).isEqualTo(b);
 
         clickStatus(fragmentComponent(view, "documentList", "statusButton"), TestStatuses.active(dataManager));
+        Document focused = documentList.getFocusedDocument();
 
         assertThat(previewLayout.isSidePanelOpened()).isTrue();
-        assertThat(documentList.getFocusedDocument()).isEqualTo(b);
-        assertThat(documentList.getFocusedDocument().getStatus()).isEqualTo(TestStatuses.active(dataManager));
+        assertThat(focused).isNotNull();
+        assertThat(focused).isEqualTo(b);
+        assertThat(focused.getStatus()).isEqualTo(TestStatuses.active(dataManager));
     }
 
     @Test
@@ -421,7 +431,6 @@ class RepositoryViewTest {
         RepositoryView view = open(sandbox, true);
         SidePanelLayout previewLayout = UiTestUtils.getComponent(view, "previewLayout");
 
-        // a thin line, with the grip shown on hover only
         assertThat(previewLayout.getThemeNames()).contains("resizer-small");
     }
 
@@ -551,6 +560,7 @@ class RepositoryViewTest {
         openButton.click();
 
         DocumentDetailView card = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(card).isNotNull();
         assertThat(card.getEditedEntity()).isEqualTo(document);
     }
 
@@ -563,8 +573,11 @@ class RepositoryViewTest {
         unconstrainedDataManager.remove(document);
         TestGrids.doubleClickRow(grid, document);
 
+        DataGridItems<Document> documents = grid.getItems();
+
         assertUnavailableNotice();
-        assertThat(grid.getItems().getItems()).contains(document);
+        assertThat(documents).isNotNull();
+        assertThat(documents.getItems()).contains(document);
     }
 
     @Test
@@ -612,8 +625,7 @@ class RepositoryViewTest {
         document.setChangedDate(OffsetDateTime.of(2020, 1, 15, 12, 0, 0, 0, ZoneOffset.UTC));
         unconstrainedDataManager.save(document);
 
-        // the person works in Kiritimati, where noon in UTC is already the next day; the user of the test's login
-        // is loaded for this test alone
+        // in Kiritimati noon in UTC is already the next day; the user of the test's login is loaded for this test alone
         ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
         assertThat(currentAuthentication.getTimeZone().getID()).isEqualTo("Pacific/Kiritimati");
 
@@ -634,8 +646,7 @@ class RepositoryViewTest {
                         + datatypeFormatter.formatLocalDate(LocalDate.of(2020, 1, 16)));
         assertThat(TestGrids.property(grid, "changedDate", "time", shown))
                 .isEqualTo(datatypeFormatter.formatLocalDateTime(LocalDateTime.of(2020, 1, 16, 2, 0)));
-        // the time is the title of the cell: the tooltip that a column's tooltip generator puts into the grid fails in
-        // the browser of Vaadin 25.3
+        // the time is the title of the cell: a tooltip of a column's generator fails in the browser of Vaadin 25.3
         assertThat(grid.getElement().getChildren()).noneMatch(child -> "tooltip".equals(child.getAttribute("slot")));
     }
 
@@ -764,24 +775,29 @@ class RepositoryViewTest {
         RepositoryView view = open(sandbox, false);
 
         DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
-        assertThat(grid.getColumnByKey("name").getWidth()).isEqualTo("15em");
-        assertThat(grid.getColumnByKey("name").getFlexGrow()).isEqualTo(1);
+        DataGridColumn<Document> name = grid.getColumnByKey("name");
+        assertThat(name).isNotNull();
+        assertThat(name.getWidth()).isEqualTo("15em");
+        assertThat(name.getFlexGrow()).isEqualTo(1);
     }
 
     @Test
     void theNameKeepsTheWidthTheUserGaveIt() {
         RepositoryView first = open(sandbox, false);
+        DataGrid<Document> firstGrid = fragmentComponent(first, "documentList", "documentsGrid");
+        DataGridColumn<Document> firstName = firstGrid.getColumnByKey("name");
+        assertThat(firstName).isNotNull();
         // a drag of the column border leaves the new width on the server
-        this.<DataGrid<Document>>fragmentComponent(first, "documentList", "documentsGrid")
-                .getColumnByKey("name")
-                .setWidth("300px");
+        firstName.setWidth("300px");
         viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
 
         RepositoryView view = open(sandbox, false);
 
         DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
-        assertThat(grid.getColumnByKey("name").getWidth()).isEqualTo("300px");
-        assertThat(grid.getColumnByKey("name").getFlexGrow()).isZero();
+        DataGridColumn<Document> name = grid.getColumnByKey("name");
+        assertThat(name).isNotNull();
+        assertThat(name.getWidth()).isEqualTo("300px");
+        assertThat(name.getFlexGrow()).isZero();
     }
 
     private RepositoryView open(Folder folder, boolean preview) {
@@ -813,7 +829,6 @@ class RepositoryViewTest {
                 .reduce((first, last) -> last);
     }
 
-    // the calls of the browser's code that the server sends with its next response
     private List<String> pendingClientCalls() {
         UI ui = UI.getCurrent();
         ui.getInternals().getStateTree().runExecutionsBeforeClientResponse();
@@ -832,10 +847,11 @@ class RepositoryViewTest {
 
     private List<String> documentNames(RepositoryView view) {
         DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
-        return grid.getItems().getItems().stream().map(Document::getName).toList();
+        DataGridItems<Document> documents = grid.getItems();
+        assertThat(documents).isNotNull();
+        return documents.getItems().stream().map(Document::getName).toList();
     }
 
-    // the upload dialog and the table hand their files to the manager of this zone
     private UploadDropZone dropZone(RepositoryView view) {
         DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
 

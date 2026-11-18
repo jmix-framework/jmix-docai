@@ -26,12 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
- * The data source of the stand. A connection goes to the database of the scope the current thread works with, a
- * template or a visitor's copy, its own or the one of the browser whose command it runs, and to the control database
- * when the thread has no scope: the start of the application, the jobs and the login form work there. The thread of a
- * signed-in visitor without a scope gets no connection, since the control database would answer it quietly with no
- * data. Every database of the stand is an in-memory HSQLDB with a pool of its own; the pool of a copy connects as a
- * user without the rights of a DBA, see {@link #addVisitor}.
+ * The data source of the stand: a connection goes to the database of the scope the current thread works with, and to
+ * the control database when the thread has no scope. The thread of a signed-in visitor without a scope gets no
+ * connection, since the control database would answer it quietly with no data.
  */
 public class StandDataSource extends AbstractDataSource implements AutoCloseable {
 
@@ -67,8 +64,6 @@ public class StandDataSource extends AbstractDataSource implements AutoCloseable
     /**
      * Opens a pool of connections to an in-memory database of the stand as SA; its first connection creates the
      * database, unless the URL says {@code ifexists=true}. The pools share one thread for their housekeeping.
-     *
-     * @param name the name of the pool in the logs and in the names of its threads
      */
     public static HikariDataSource pool(String name, String url) {
         return pool(name, url, USER, PASSWORD);
@@ -83,10 +78,9 @@ public class StandDataSource extends AbstractDataSource implements AutoCloseable
     }
 
     /**
-     * Adds to the database of a new copy the user its pool connects as: a user without the rights of a DBA who may
-     * read and change the rows of every table, which is all the application does with a copy. Whatever SQL a visitor
-     * gets run in the copy, HSQLDB lets this user write no file ({@code SCRIPT}), read none ({@code LOAD_FILE}, text
-     * tables), declare no routine and change no setting of the database.
+     * Adds to the database of a new copy the user its pool connects as: a user without the rights of a DBA who may read
+     * and change the rows of every table. Whatever SQL a visitor gets run in the copy, HSQLDB lets this user write no
+     * file, read none, declare no routine and change no setting of the database.
      *
      * @param copy a connection to the database of the copy as SA
      */
@@ -202,7 +196,6 @@ public class StandDataSource extends AbstractDataSource implements AutoCloseable
         config.setJdbcUrl(url);
         config.setUsername(user);
         config.setPassword(password);
-        // a database nobody works with keeps no connections
         config.setMinimumIdle(0);
         config.setScheduledExecutor(HOUSEKEEPER);
 

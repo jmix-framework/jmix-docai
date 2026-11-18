@@ -18,8 +18,8 @@ public final class TestComments {
     }
 
     /**
-     * Deletes for good the comments on the documents of the folder and of its subfolders, the documents in the trash
-     * included. Run it as the administrator.
+     * Deletes for good the comments on the documents of the folder and its subfolders, in the trash too; run it as the
+     * administrator.
      */
     public static void removeAll(DataManager dataManager, Folder folder) {
         List<DocumentComment> comments = dataManager.load(DocumentComment.class)

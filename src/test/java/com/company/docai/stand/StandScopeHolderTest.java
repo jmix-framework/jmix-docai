@@ -177,7 +177,6 @@ class StandScopeHolderTest {
         Reference.reachabilityFence(browser);
     }
 
-    // the session of Vaadin over the HTTP session of a browser
     private static VaadinSession browserSession(HttpSession httpSession) {
         return new VaadinSession(null) {
             @Override

@@ -13,7 +13,6 @@ import com.company.docai.model.tag.Tag;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestTags;
 import com.company.docai.test_support.TestTrash;
-import com.vaadin.flow.component.button.Button;
 import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.UnconstrainedDataManager;
@@ -27,7 +26,6 @@ import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.dialog.DialogInfo;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,9 +35,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -163,13 +161,13 @@ class TagViewsTest {
         grid.select(lease);
         UiTestUtils.<JmixButton>getComponent(list, "removeButton").click();
 
-        assertThatThrownBy(() -> confirmButton().click())
+        assertThatThrownBy(() -> dialogButton(DialogAction.Type.YES).click())
                 .isInstanceOf(OperationRejectedException.class)
                 .hasMessage(messages.formatMessage(TagService.class, "tagInUse", lease.getName()));
 
         grid.select(office);
         UiTestUtils.<JmixButton>getComponent(list, "removeButton").click();
-        confirmButton().click();
+        dialogButton(DialogAction.Type.YES).click();
 
         assertThat(names()).containsExactly("Lease " + suffix);
         assertThat(unconstrainedDataManager.load(Id.of(lease)).optional()).isPresent();
@@ -183,17 +181,6 @@ class TagViewsTest {
 
     private static DataGrid<Tag> grid(TagListView list) {
         return UiTestUtils.getComponent(list, "tagsDataGrid");
-    }
-
-    private static Button confirmButton() {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-
-        return dialog.getButtons()
-                .stream()
-                .filter(button -> button.getId().equals(Optional.of(DialogAction.Type.YES.getId())))
-                .findFirst()
-                .orElseThrow();
     }
 
     private List<String> names() {

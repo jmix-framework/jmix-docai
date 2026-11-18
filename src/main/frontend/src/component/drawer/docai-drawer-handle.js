@@ -1,12 +1,9 @@
 /**
- * The edge of the main menu in the browser, the element of the server component DrawerHandle. A drag of the edge
- * widens the menu in the browser at once, in steps of a quarter of a rem, and reports the width at its end; the arrows
- * of the keyboard move the edge by a rem. The limits, in rem, come from the attributes min and max that the server
- * sets. Outside the layout of the application the edge does nothing.
+ * The edge of the main menu in the browser, the element of DrawerHandle, which sets its limits in the attributes min
+ * and max.
  */
 class DrawerHandle extends HTMLElement {
 
-    // ends the drag that is on, without a report
     #endDrag = null;
 
     static get is() {
@@ -20,8 +17,7 @@ class DrawerHandle extends HTMLElement {
         this.addEventListener('keydown', event => this.step(event));
     }
 
-    // an edge taken off the page in the middle of a drag gives the page back its cursor, its text selection and the
-    // transitions of the menu
+    // taken off mid-drag, the edge gives the page back its cursor, its text selection and the menu's transitions
     disconnectedCallback() {
         this.#endDrag?.();
     }

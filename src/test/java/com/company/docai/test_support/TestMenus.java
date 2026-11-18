@@ -11,8 +11,7 @@ import io.jmix.flowui.view.View;
 import java.util.Optional;
 
 /**
- * The parts of the main menu of the current UI for UI tests: the folder tree and the list menus live in the main view,
- * around the view that is open.
+ * The parts of the main menu of the current UI, which live in the main view around the view that is open.
  */
 public final class TestMenus {
 
@@ -27,16 +26,10 @@ public final class TestMenus {
         return view instanceof MainView mainView ? mainView : view.findAncestor(MainView.class);
     }
 
-    /**
-     * The folder tree of the main menu.
-     */
     public static FolderTreeFragment folderTree() {
         return mainView().getFolderTree();
     }
 
-    /**
-     * A component of the folder tree of the main menu by its id in the fragment.
-     */
     @SuppressWarnings("unchecked")
     public static <T> T folderTreeComponent(String id) {
         return (T) FragmentUtils.getComponent(folderTree(), id);

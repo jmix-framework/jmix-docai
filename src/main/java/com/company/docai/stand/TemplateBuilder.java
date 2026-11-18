@@ -19,10 +19,7 @@ import java.nio.file.Path;
 import java.sql.Connection;
 
 /**
- * Builds the template of a language: an in-memory database with the schema of the changelogs and the demo set of the
- * language for today, dumped into {@code <data-dir>/templates/<language>/db.script}, the files of the set in the
- * folder {@code files} beside it, and the search indexes of the set, sealed read-only; the copies of the visitors are
- * made from all three. The database of the template is shut down after the dump.
+ * Builds the template of a language: the schema and the demo set for today in a script, its files and sealed indexes.
  */
 @Component
 @Profile("stand")
@@ -34,8 +31,7 @@ public class TemplateBuilder {
     public static final String SCRIPT = "db.script";
 
     /**
-     * The name of the marker in the folder of a template that says the template is complete: the start of the stand
-     * writes it once the build is over, see {@link StandStartup}.
+     * The marker the start of the stand writes into the folder of a template once its build is over.
      */
     public static final String READY = "ready";
 
@@ -66,10 +62,7 @@ public class TemplateBuilder {
     }
 
     /**
-     * Builds the template of the language anew: renews its indexes, runs the changelogs on a new in-memory database,
-     * loads the demo set into it in the scope of the template, whose files the file storage of the stand keeps in the
-     * folder of the template, fills and seals its indexes and dumps the database into the script, in place of the
-     * script of an earlier build.
+     * Builds the template of the language anew, in place of an earlier build.
      *
      * @return the script of the template
      * @throws IllegalStateException when the template is not built; its database is shut down then too

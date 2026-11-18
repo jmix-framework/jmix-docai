@@ -61,9 +61,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The dashboard as an employee sees it with the AI off. The test makes the fragment as the main view does and gives it
- * handlers that keep what they get. The database is shared with the other tests, so the assertions look for the rows of
- * the test, and the numbers are those the service gives.
+ * The dashboard as an employee sees it with the AI off. The database is shared with the other tests, so the assertions
+ * look for the rows of the test.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -217,7 +216,6 @@ class DashboardFragmentTest {
                 .locale(Locale.forLanguageTag("ru"))
                 .build());
 
-        // the first and the last hour of each part of the day
         Map<Integer, String> parts = Map.of(5, "morning", 11, "morning", 12, "afternoon", 16, "afternoon",
                 17, "evening", 22, "evening", 23, "night", 4, "night");
 
@@ -304,7 +302,6 @@ class DashboardFragmentTest {
                 .toList();
     }
 
-    // the bar of a row of the summary, and the part of it the number fills
     private static Div fill(Div row) {
         return (Div) row.getChildren()
                 .filter(child -> child.hasClassName("dashboard-bar"))
@@ -315,7 +312,6 @@ class DashboardFragmentTest {
                 .orElseThrow();
     }
 
-    // the date at the start of the row of an upcoming document
     private Component dateOf(Document document) {
         return TestDashboards.parts(TestDashboards.row(dashboard, "upcomingBox", document.getName()))
                 .getFirst();

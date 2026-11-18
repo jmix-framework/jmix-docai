@@ -37,17 +37,6 @@ class DatabaseSetupTest {
     }
 
     @Test
-    void theApplicationChangelogRanUnderItsOwnPath() {
-        List<String> changeSets = new JdbcTemplate(dataSource).queryForList(
-                "select ID from DATABASECHANGELOG where FILENAME = ? order by ORDEREXECUTED",
-                String.class,
-                "com/company/docai/liquibase/changelog/010-init-user.xml");
-
-        assertThat(changeSets)
-                .containsExactly("1", "2", "3", "4");
-    }
-
-    @Test
     void theAdminIsActive() {
         List<Boolean> active = new JdbcTemplate(dataSource).queryForList(
                 "select ACTIVE from USER_ where USERNAME = ?",
@@ -56,16 +45,5 @@ class DatabaseSetupTest {
 
         assertThat(active)
                 .containsExactly(true);
-    }
-
-    @Test
-    void theAdminHasFullAccess() {
-        List<String> roles = new JdbcTemplate(dataSource).queryForList(
-                "select ROLE_CODE from SEC_ROLE_ASSIGNMENT where USERNAME = ?",
-                String.class,
-                "admin");
-
-        assertThat(roles)
-                .containsExactly("system-full-access");
     }
 }

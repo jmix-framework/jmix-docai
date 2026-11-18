@@ -22,9 +22,7 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
- * Moves of documents and folders in the repository, from the menus and by drag and drop: the choice of the target
- * folder, the question when a move changes the access, the move and its notice. The views pass what happens after
- * a move: the list shows its documents again, the tree reloads and selects the moved folder.
+ * Moves of documents and folders in the repository, from the menus and by drag and drop.
  */
 @Component
 public class RepositoryMoves {
@@ -52,8 +50,7 @@ public class RepositoryMoves {
     }
 
     /**
-     * Opens the folder lookup over the view and passes on the folder the user picks. The hidden folders and their
-     * subfolders are not offered.
+     * Opens the folder lookup over the view without the hidden folders and passes on the folder the user picks.
      */
     public void chooseTarget(View<?> origin, Collection<Folder> hidden, Consumer<Folder> chosen) {
         DialogWindow<FolderLookupView> window = dialogWindows.lookup(origin, Folder.class)
@@ -66,15 +63,14 @@ public class RepositoryMoves {
     }
 
     /**
-     * Moves the documents into the target folder: a move that changes the access of the documents asks first. After
-     * the move comes the caller's work, then a notice, unless the target is the folder the list shows.
+     * Moves the documents into the target folder, asking first when the access changes; the caller's work comes before
+     * the notice.
      */
     public void move(Collection<Document> documents, @Nullable Folder from, Folder target, Runnable afterMove) {
         Runnable move = () -> {
             documentService.move(documents, target);
             afterMove.run();
 
-            // the documents of the shown folder stay where they are when it is the target
             if (!target.equals(from)) {
                 notifications.create(messages.formatMessage(getClass(), "documentsMoved",
                                 metadataTools.getInstanceName(target), documents.size()))
@@ -90,15 +86,14 @@ public class RepositoryMoves {
     }
 
     /**
-     * Moves the folder into the target folder: a move that changes the access of the folder asks first. After the
-     * move comes the caller's work, then a notice, unless the folder went back into its parent.
+     * Moves the folder into the target folder, asking first when the access changes; the caller's work comes before the
+     * notice.
      */
     public void move(Folder folder, Folder target, Runnable afterMove) {
         Runnable move = () -> {
             folderService.move(folder, target);
             afterMove.run();
 
-            // a folder put back into its parent stays where it was
             if (!target.equals(folder.getParent())) {
                 notifications.create(messages.formatMessage(getClass(), "folderMoved",
                                 metadataTools.getInstanceName(folder), metadataTools.getInstanceName(target)))

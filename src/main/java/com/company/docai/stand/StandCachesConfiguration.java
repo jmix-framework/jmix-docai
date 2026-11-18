@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Keeps the caches of the types of documents and of the roles stored in the database per scope on the stand: a copy
- * changes them in its own database, and an entry shared by the copies would show the change of one copy in all of
- * them, where a field the database of another copy does not have breaks the save of its documents.
+ * Keeps the caches of the document types and the stored roles per scope on the stand, so no copy sees another's change.
  */
 @Configuration(proxyBeanMethods = false)
 @Profile("stand")

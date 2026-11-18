@@ -18,7 +18,7 @@ import com.company.docai.view.main.MainView;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.internal.nodefeature.ElementListenerMap;
 import io.jmix.aichat.component.chat.AiChat;
 import io.jmix.aichat.component.messagelist.GenerationState;
 import io.jmix.aichat.component.messagelist.ThinkingStatusItem;
@@ -50,16 +50,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.company.docai.test_support.TestUi.awaitAccess;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.awaitility.Awaitility.await;
 
 /**
  * The assistant tab of the document card, used by an employee, with the model replaced by a stub.
@@ -161,6 +160,19 @@ class DocumentAssistantFragmentTest {
         DocumentDetailView card = openNewCard();
 
         assertThat(this.<Tab>component(card, "assistantTab").isVisible()).isFalse();
+    }
+
+    // Esc closes the card, and the conversation lives only while the card is open; the browser stops the key on the
+    // chat, so the server never hears it and only the listener tells
+    @Test
+    void theChatKeepsEveryEsc() {
+        DocumentDetailView card = openCard(upload());
+
+        assertThat(chat(card).getElement()
+                .getNode()
+                .getFeature(ElementListenerMap.class)
+                .getExpressions("keydown"))
+                .contains("(event.key === 'Escape') && event.stopPropagation()");
     }
 
     @Test
@@ -273,20 +285,13 @@ class DocumentAssistantFragmentTest {
 
     // the answer comes back through UI.access, which a UI test runs only when asked
     private void ask(DocumentDetailView card, String suggestionId) {
-        VaadinSession session = VaadinSession.getCurrent();
         AiChat<SimpleAiChatMessage> chat = chat(card);
         openedNotifications.closeOpenedNotifications();
 
         this.<JmixTabSheet>component(card, "cardTabs").setSelectedTab(component(card, "assistantTab"));
         this.<JmixButton>assistantComponent(card, suggestionId).click();
 
-        await().pollInSameThread()
-                .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(50))
-                .until(() -> {
-                    session.getService().runPendingAccessTasks(session);
-                    return chat.getState() != GenerationState.GENERATING;
-                });
+        awaitAccess(() -> chat.getState() != GenerationState.GENERATING);
     }
 
     private static String readCall(DocumentDetailView card) {

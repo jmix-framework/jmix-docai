@@ -9,8 +9,8 @@ import io.jmix.core.metamodel.annotation.JmixProperty;
 import java.util.UUID;
 
 /**
- * One user or role with its level, as the access dialog shows and edits it. Exactly one of {@code username}
- * and {@code roleCode} is set.
+ * One user or role with its level, as the access dialog shows and edits it. Exactly one of {@code username} and
+ * {@code roleCode} is set.
  */
 @JmixEntity(annotatedPropertiesOnly = true)
 public class AccessEntryDraft {

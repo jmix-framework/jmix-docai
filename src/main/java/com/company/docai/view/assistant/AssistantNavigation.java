@@ -25,10 +25,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 /**
- * Opens the assistant of the AI Tools add-on: its chat on a new conversation with a question, its chat on a
- * conversation that has begun, and the hub with the chats of the user; and tells whether the user has the assistant
- * at all. The search palette, the dashboard and the document list of the repository with its discussion window go
- * through it.
+ * Opens the assistant of the AI Tools add-on: a new conversation with a question, a begun conversation, or the hub.
  */
 @Component
 public class AssistantNavigation {
@@ -58,7 +55,7 @@ public class AssistantNavigation {
     }
 
     /**
-     * Returns whether the user has the assistant: the AI is on and the user may open the chat of the assistant.
+     * Returns whether the AI is on and the user may open the chat of the assistant.
      */
     public boolean isAvailable() {
         UiShowViewContext assistantChat = new UiShowViewContext(ASSISTANT_CHAT_VIEW);
@@ -68,9 +65,7 @@ public class AssistantNavigation {
     }
 
     /**
-     * Opens the chat of the assistant on a new conversation, which answers the question at once, as when a
-     * conversation starts in the hub. The view open now is the origin: from an open chat Jmix then makes a new one,
-     * which sends its first message once. A conversation that cannot be created gives an error notice instead.
+     * Opens the chat of the assistant on a new conversation that answers the question at once.
      */
     public void openAssistant(String question) {
         AiConversation conversation;
@@ -106,9 +101,8 @@ public class AssistantNavigation {
             return;
         }
 
-        // the handler runs when the origin detaches; a chat that is still answering lets it go only after Leave. After
-        // Stay the handler stays on that chat and later runs with the chat itself, which it leaves alone. The new
-        // conversation then stays empty, as when the start of a conversation in the hub is cancelled.
+        // the handler runs when the origin detaches, which a chat still answering does only after Leave; after Stay it
+        // later runs with the chat itself, which it leaves alone
         navigator.withAfterNavigationHandler(navigation -> {
                     if (navigation.getView() != origin) {
                         navigation.getView().sendInitialPrompt(question);
@@ -126,7 +120,6 @@ public class AssistantNavigation {
                 .withRouteParameters(routeSupport.createRouteParameters(AiChatView.ROUTE_PARAM_ID, conversationId))
                 .navigate();
 
-        // an origin that holds the person on the way out stays shown, with its own address
         if (UiComponentUtils.getCurrentView() instanceof AiChatView) {
             showChatAddress();
         }
@@ -140,10 +133,9 @@ public class AssistantNavigation {
                 .navigate();
     }
 
-    // a workaround for AiChatView.syncUrl of AI Tools 3.1.0, which copies the query the browser shows into the address
-    // of a chat while the browser still shows the page the chat was opened from. The browser answers in turn, so this
-    // request comes back after the one of the chat and puts back the address the router gave the chat, unless the
-    // person has left the chat meanwhile. The method can go once the add-on takes the query from the server's location.
+    // a workaround for AiChatView.syncUrl of AI Tools 3.1.0, which copies the query of the previous page into the
+    // address of a chat: this request comes back after the chat's and restores the router's address. It can go once the
+    // add-on takes the query from the server's location.
     private void showChatAddress() {
         UI ui = UI.getCurrent();
         String chat = routeSupport.getActiveViewLocation(ui).getPathWithQueryParameters();

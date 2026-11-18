@@ -16,10 +16,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Keeps access whole on every save path: a new folder or document gets the access set of its parent,
- * a folder or a document refers to the set of its parent or to its own one and leaves its own one only
- * together with the set, an access entry is for exactly one subject, and the entries of a deleted user go
- * away with the user.
+ * Keeps access whole on every save path: a new folder or document gets the access set of its parent, a folder or a
+ * document refers to the set of its parent or to its own one and leaves its own one only together with the set, an
+ * access entry is for exactly one subject, and the entries of a deleted user go away with the user.
  */
 @Component
 public class AccessEventListener {
@@ -128,8 +127,7 @@ public class AccessEventListener {
     }
 
     /**
-     * An item leaves its own set only together with the set: what lies below the item still refers to the set,
-     * and a set left behind would keep them out of the access of the parent.
+     * A set left behind would keep what lies below the item out of the access of the parent.
      */
     private void checkOwnSetGone(EntityChangedEvent<?> event, Object item) {
         Id<AccessSet> previous = event.getChanges().getOldReferenceId("accessSet");

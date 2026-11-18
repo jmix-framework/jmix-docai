@@ -11,9 +11,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * The selection of a multi-select grid as in a file manager, for the views to call from their own handlers: a click
- * selects its row, a click with Ctrl or Cmd adds or removes it, and the row that has just joined the selection takes
- * the focus.
+ * The selection of a multi-select grid as in a file manager, for the views to call from their own handlers.
  */
 public final class GridSelectionUtils {
 
@@ -49,8 +47,7 @@ public final class GridSelectionUtils {
     }
 
     /**
-     * The row that has just joined the selection is the one in focus; when the focused row has left the selection,
-     * the first selected row takes it, or none. The focus gets the row only in these two cases: otherwise it stays.
+     * Focuses the row that just joined the selection, or the first selected one when the focused row left it.
      */
     public static <E> void focusAfter(SelectionEvent<DataGrid<E>, E> event, @Nullable E focused,
                                       Consumer<@Nullable E> focus) {

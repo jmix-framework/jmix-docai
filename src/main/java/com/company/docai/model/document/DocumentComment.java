@@ -21,10 +21,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * A comment a person left on a document: plain text that everyone who sees the document reads. It is saved at once,
- * apart from the card, and is no part of the document: the document has no list of its comments, and a change of a
- * comment changes nothing in the document. Only its author changes it. A deleted comment is gone for good; the trash
- * keeps the comments of a deleted document hidden with it.
+ * A comment a person left on a document, saved at once and apart from the card.
  */
 @ExcludeFromAi
 @JmixEntity
@@ -57,9 +54,6 @@ public class DocumentComment {
     @Column(name = "TEXT_", nullable = false, length = MAX_TEXT_LENGTH)
     private String text;
 
-    /**
-     * When the author changed the text last, or null for a comment never changed.
-     */
     @Column(name = "EDITED_DATE")
     private OffsetDateTime editedDate;
 

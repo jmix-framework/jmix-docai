@@ -26,11 +26,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
- * The English demo set with the OpenAI models and OpenSearch: the AI search for agricultural machinery finds the
- * twelve documents about farm equipment and nothing else, and an employee who may not open the archive of the last
- * year finds nine.
- * Runs only with {@code ./gradlew aiTest}, the key in {@code OPENAI_API_KEY} and OpenSearch from {@code compose.yaml};
- * the set goes into a database and an index of its own, and the test deletes the index.
+ * The English demo set with the OpenAI models and OpenSearch. Runs only with {@code ./gradlew aiTest}, the key in
+ * {@code OPENAI_API_KEY} and OpenSearch from {@code compose.yaml}; the test deletes its index.
  */
 @Tag("ai")
 @SpringBootTest(properties = {"main.datasource.url=jdbc:hsqldb:mem:demo-live",
@@ -40,8 +37,7 @@ class LiveDemoSetTest {
 
     private static final String TOPIC = "agricultural machinery";
 
-    // the documents of the set about farm equipment that lie in Procurement, by their names in the description, which
-    // write the years and the dates of the day of the load
+    // the documents about farm equipment in Procurement, by the names of the description
     private static final List<String> PROCUREMENT = List.of(
             "Equipment Lease Agreement No. 14 — Corwin 82 Tractor",
             "Equipment Purchase Agreement No. 37/{year:signed} — Combine",
@@ -118,7 +114,6 @@ class LiveDemoSetTest {
         assertThat(found("peter")).containsExactlyInAnyOrderElementsOf(procurement);
     }
 
-    // the generated names of the documents the description names so, in the same places of the set
     private static List<String> namesOf(List<String> written, List<DemoSetTemplate.Folder> template,
                                         List<DemoSet.Folder> generated) {
         List<String> names = new ArrayList<>();

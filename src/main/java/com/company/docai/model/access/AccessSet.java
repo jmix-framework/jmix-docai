@@ -21,11 +21,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The entries that give access to folders and documents. A folder or a document refers to the set in effect:
- * an inheriting one to the set of its parent, one with its own access to its own set. Exactly one owner is set,
- * the folder or the document the set was created for, and an item owns one set at most; the root owns
- * the first set. A set is deleted physically,
- * and the database deletes its entries with it.
+ * The entries that give access to folders and documents. An inheriting folder or document refers to the set of its
+ * parent, one with its own access to its own set. Exactly one owner is set, the item the set was created for, and an
+ * item owns one set at most, the root the first one; a set is deleted physically, and the database deletes its entries
+ * with it.
  */
 @ExcludeFromAi
 @JmixEntity

@@ -38,10 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The document types and their fields, which the dynamic attributes add-on keeps as the categories of documents and
- * their attributes. Finds a type by its name in any language, names the types and the fields in the language of the
- * current user, and puts a type with the values of its fields, written as text, into a document being edited.
- * Nothing here saves the document.
+ * The document types and their fields: the categories of the dynamic attributes add-on and their attributes.
  */
 @Component
 public class DocumentTypes {
@@ -63,9 +60,6 @@ public class DocumentTypes {
 
     /**
      * The value of one field of a type, written as text.
-     *
-     * @param code  the code of the field
-     * @param value the value as it is written
      */
     public record FieldValue(String code, String value) {
     }
@@ -109,10 +103,9 @@ public class DocumentTypes {
     }
 
     /**
-     * Puts the type and the values of its fields into the document being edited, and the date of the document,
-     * written as {@code yyyy-MM-dd}. A value that is blank or the word null is passed over, and a value that does not
-     * fit its field, or whose field the type lacks or leaves to the person, is left out and reported. The values of
-     * other types stay until the document is saved, which clears them.
+     * Puts the type, the values of its fields and the date, written as text, the date as {@code yyyy-MM-dd}, into the
+     * document being edited. A value that is blank or the word null is passed over, and a value that does not fit its
+     * field, or whose field the type lacks or leaves to the person, is left out and reported.
      */
     public Filling fill(Document document, CategoryDefinition type, List<FieldValue> values,
                         @Nullable String documentDate) {
@@ -149,8 +142,7 @@ public class DocumentTypes {
     }
 
     /**
-     * Tells whether {@link #fill} puts values into the field: a list of values and a reference to an entity are
-     * left for the person to fill.
+     * Tells whether {@link #fill} puts values into the field; lists and references are left to the person.
      */
     public boolean isFillable(AttributeDefinition attribute) {
         return !attribute.isCollection() && attribute.getDataType() != AttributeType.ENTITY;
@@ -166,8 +158,7 @@ public class DocumentTypes {
     }
 
     /**
-     * Returns the name of the field in the language of the current user; a field not named in that language keeps
-     * its name, and a field without a name its code.
+     * Returns the name of the field in the language of the current user, else its name or its code.
      */
     public String nameOf(AttributeDefinition attribute) {
         String name = Objects.requireNonNullElse(attribute.getName(), attribute.getCode());

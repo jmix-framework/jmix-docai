@@ -1,5 +1,3 @@
-/* Repository, document preview and document card */
-
 .breadcrumbs {
     gap: var(--vaadin-gap-s);
     color: var(--vaadin-text-color-secondary);
@@ -16,7 +14,7 @@
     font-weight: var(--aura-font-weight-medium);
 }
 
-/* A grid cell name with its icon. A click anywhere inside goes to the name itself, so in a folder tree it selects the folder */
+/* A click anywhere inside a name with its icon goes to the name itself, so in a folder tree it selects the folder */
 .name-with-icon {
     display: inline-flex;
     align-items: center;
@@ -29,7 +27,6 @@
     flex-shrink: 0;
 }
 
-/* A long name ends with an ellipsis, so the marks after it, the star and the key, stay in sight */
 .name-with-icon > .name-text {
     min-width: 0;
     flex-shrink: 1;
@@ -42,14 +39,12 @@
     color: var(--vaadin-text-color-secondary);
 }
 
-/* A greyed folder is only the way to folders and documents the user has access to */
 .folder-greyed,
 .own-access {
     color: var(--vaadin-text-color-secondary);
 }
 
-/* Menu items take no action variant, so the menus mark their main and their dangerous items here: a dropdown item by
-   its id, a context menu item by a class, as the items of a grid menu keep their ids on the server */
+/* Menu items take no action variant, so the menus mark their main and their dangerous items here, by id or by class */
 vaadin-context-menu-item.main-menu-item:not([disabled]) {
     color: var(--aura-accent-text-color);
 }
@@ -75,9 +70,7 @@ vaadin-upload.upload-button::part(drop-label) {
     display: none;
 }
 
-/* The upload dialog: the folder the files go to, a large zone for them and the limits under it. The zone draws
-   nothing itself, so its content draws the dashed frame, which lights up while files are dragged over the zone, as
-   the table does; the veil the zone lays over its content stays off */
+/* The upload dialog: the zone draws nothing itself, so its content draws the dashed frame */
 .document-upload-folder {
     gap: var(--vaadin-gap-s);
     color: var(--vaadin-text-color-secondary);
@@ -102,7 +95,6 @@ docai-file-drop-zone.document-upload-zone[dragover]::after {
     content: none;
 }
 
-/* The icon sits on a tile of the accent */
 .document-upload-icon {
     display: flex;
     align-items: center;
@@ -139,12 +131,10 @@ docai-file-drop-zone.document-upload-zone[dragover]::after {
     margin-inline-start: auto;
 }
 
-/* An AI action wears the tint of the AI accent, as the AI search does; aura-accent-purple colors its text */
 .ai-button {
     --vaadin-button-background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
 }
 
-/* The form and the preview share the row; when both do not fit, the preview moves under the form */
 .document-card-form {
     flex: 1 1 20em;
 }
@@ -156,7 +146,6 @@ docai-file-drop-zone.document-upload-zone[dragover]::after {
     min-height: 30em;
 }
 
-/* Sized without its content like the preview, the assistant stretches to the height of the row */
 .document-card-assistant {
     flex: 1 1 24em;
     contain: size;
@@ -170,7 +159,6 @@ docai-file-drop-zone.document-upload-zone[dragover]::after {
     min-height: 0;
 }
 
-/* The virtual list of the comments fills the tab under the field and scrolls the comments itself */
 .document-comments-list {
     flex: 1 1 auto;
     min-height: 0;
@@ -200,7 +188,6 @@ docai-file-drop-zone.document-upload-zone[dragover]::after {
     margin-inline-start: auto;
 }
 
-/* The text of a comment keeps the line breaks of its author and wraps a long word */
 .document-comment-text {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -210,20 +197,17 @@ docai-file-drop-zone.document-upload-zone[dragover]::after {
     color: var(--aura-red-text);
 }
 
-/* The send icon stays in the bottom corner of the comment field however tall the field grows */
 vaadin-button.document-comment-send {
     align-self: flex-end;
     min-width: 0;
 }
 
-/* The window of a discussion with AI lies over the page, so it stays opaque, with a light tint of the AI accent */
 jmix-side-dialog.document-discussion-window::part(overlay) {
     background: color-mix(in oklab, var(--aura-purple) 5%, var(--aura-surface-color-solid));
 }
 
-/* The selection of a discussion with AI is where documents are dropped: it calls for the rows while the table drags
-   them and lights up under them, as the favorites do. A long selection scrolls instead of squeezing the chat, and a
-   short one keeps its height, since a scrolling flex item may otherwise shrink below its content */
+/* A long selection scrolls instead of squeezing the chat, and a short one keeps its height, since a scrolling flex
+   item may otherwise shrink below its content */
 .document-discussion-selection {
     flex-shrink: 0;
     max-height: 9rem;
@@ -260,8 +244,7 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     border-radius: var(--vaadin-radius-m);
 }
 
-/* A long name keeps to one line and ends with an ellipsis, so the chips leave the window to the chat; the button
-   wraps its text otherwise */
+/* A long name keeps to one line, as the button wraps its text otherwise */
 .document-discussion-chip > vaadin-button:first-child {
     min-width: 0;
     flex-shrink: 1;
@@ -273,13 +256,12 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     text-overflow: ellipsis;
 }
 
-/* The side panel shrinks the preview to the rest of its height, so a long text scrolls inside the preview */
 .repository-preview {
     min-height: 0;
 }
 
-/* The docked preview is a part of the content, as the tree and the table are, so it takes the surface of the content
-   instead of a sheet of its own; on a small screen the panel opens in a dialog that keeps its background */
+/* The docked preview is a part of the content and takes its surface; on a small screen the panel opens in a dialog
+   that keeps its background */
 .repository-preview-layout:not([overlay])::part(sidePanel) {
     background: transparent;
     box-shadow: none;
@@ -290,7 +272,6 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     padding-inline-end: var(--vaadin-gap-s);
 }
 
-/* The same gap after the resize handle of the panel, so the handle sits between two gaps */
 .repository-preview-panel {
     padding-inline-start: var(--vaadin-gap-s);
 }
@@ -300,7 +281,6 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     --jmix-side-panel-layout-splitter-target-size: 8px;
 }
 
-/* In a low window the document table keeps its minimum height, and the pane scrolls instead of cutting it */
 .repository-documents {
     overflow: auto;
 }

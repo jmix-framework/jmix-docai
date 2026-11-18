@@ -43,8 +43,7 @@ public class TagBadges {
     }
 
     /**
-     * Returns the badges of the tags in alphabetical order whatever the case; a click on a badge passes its tag to
-     * the handler.
+     * Returns the tag badges in alphabetical order whatever the case; a click on a badge passes its tag to the handler.
      */
     public Span create(@Nullable Collection<Tag> tags, Consumer<Tag> clickHandler) {
         Span badges = uiComponents.create(Span.class);
@@ -54,7 +53,6 @@ public class TagBadges {
             return badges;
         }
 
-        // a tag typed in the card or added by the AI joins the end of the list
         List<Tag> sorted = tags.stream()
                 .sorted(Comparator.comparing((Tag tag) -> tag.getName().toLowerCase(Locale.ROOT)))
                 .toList();

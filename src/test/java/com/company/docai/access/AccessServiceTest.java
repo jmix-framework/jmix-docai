@@ -399,9 +399,6 @@ class AccessServiceTest {
         return setOf(folder);
     }
 
-    /**
-     * Gives the document its own access through the service.
-     */
     private AccessSet ownAccess(Document document, AccessEntryDraft... entries) {
         AccessDraft draft = accessService.describe(document);
         draft.setInherit(false);

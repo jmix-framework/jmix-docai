@@ -67,10 +67,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 /**
- * The blocks of the dashboard as the people of a sandbox see them: peter is an employee, helen an employee who gets
- * her own access to a closed folder, maria the colleague whose work they see, and admin has full access. The
- * database is shared with the other tests, so the assertions look for the rows of the test, and today is the day in
- * the time zone of the person who asks.
+ * The blocks of the dashboard as the people of a sandbox see them. The database is shared with the other tests, so the
+ * assertions look for the rows of the test, and today is the day in the time zone of the person who asks.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -502,7 +500,6 @@ class DashboardServiceTest {
         return as(EMPLOYEE, () -> dashboardService.now().toLocalDate());
     }
 
-    // the chat of the user with a title and one question
     private AiConversation chat(String owner, String title) {
         AiConversation conversation = as(owner, () -> {
             AiConversation created = conversationService.create();

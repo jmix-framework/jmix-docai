@@ -38,11 +38,8 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 
 /**
- * The documents found by the words from the address, the most relevant first, a page at a time, or in the
- * {@link #AI_MODE} by meaning: at most {@link SemanticSearch#PAGE_DOCUMENTS} of the nearest documents that a model
- * confirmed, the nearest first. With a {@link #TAG_PARAMETER} the page lists the documents with the tag instead, the
- * latest changed first. Every row shows the folder, the type, the status, the tags and the matched text of a document
- * the user may see; how many other documents match is never shown.
+ * The documents found by the words from the address, by meaning in the {@link #AI_MODE}, or with the tag of
+ * {@link #TAG_PARAMETER}; how many other documents match is never shown.
  */
 @Route(value = "search", layout = MainView.class)
 @ViewController(id = "DocumentSearchView")
@@ -208,7 +205,6 @@ public class DocumentSearchView extends StandardView {
         setPageTitle(messageBundle.formatMessage("tagTitle", tag.getName()));
         loadTagged(tag);
 
-        // the documents in the trash are out of sight, so the page says where they are
         if (hitsBox.getComponentCount() == 0) {
             messageText.setText(messageBundle.formatMessage(
                     tagService.isInTrash(tag) ? "taggedOnlyInTrash" : "nothingTagged", tag.getName()));
@@ -216,7 +212,6 @@ public class DocumentSearchView extends StandardView {
         }
     }
 
-    // one document more than the page proves that the next page is not empty
     private void loadTagged(Tag tag) {
         List<DocumentSearchHit> hits = documentSearch.findTagged(tag, taggedShown, DocumentSearch.PAGE_SIZE + 1);
 
@@ -316,8 +311,7 @@ public class DocumentSearchView extends StandardView {
         return row;
     }
 
-    // the row shows the document as the card saved it; one the user may no longer see, or that lost the tag
-    // of the page, leaves the page
+    // a document the user may no longer see, or that lost the tag of the page, leaves the page
     private void showSaved(DocumentSearchHit hit, Component row) {
         Document saved = documentSearch.reload(hit.document())
                 .orElse(null);

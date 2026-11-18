@@ -14,13 +14,11 @@ import com.company.docai.test_support.TestMenus;
 import com.company.docai.test_support.TestStatuses;
 import com.company.docai.view.dashboard.DashboardFragment;
 import com.company.docai.view.document.DocumentDetailView;
-import com.vaadin.flow.server.VaadinSession;
 import io.jmix.aitoolsflowui.model.AiChatMessage;
 import io.jmix.aitoolsflowui.model.AiChatMessageType;
 import io.jmix.aitoolsflowui.model.AiConversation;
 import io.jmix.aitoolsflowui.service.AiChatMessageService;
 import io.jmix.aitoolsflowui.service.AiConversationService;
-import io.jmix.aitoolsflowui.view.chat.AiChatFragment;
 import io.jmix.aitoolsflowui.view.chat.AiChatView;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
@@ -45,19 +43,18 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.company.docai.test_support.TestUi.awaitAccess;
+import static com.company.docai.test_support.TestUi.awaitAnswer;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 /**
- * What the main view does with the dashboard of an employee while the AI is on: a question opens the chat of the
- * assistant with it, and Fill with AI opens the card of the document and fills it, with the model replaced by a stub.
+ * What the main view does with the dashboard of an employee while the AI is on, with the model replaced by a stub.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class,
@@ -226,30 +223,6 @@ class MainViewDashboardAiTest {
 
     // the result of Fill with AI comes back through UI.access, which a UI test runs only when asked
     private void waitForNotification() {
-        VaadinSession session = VaadinSession.getCurrent();
-
-        await().pollInSameThread()
-                .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(50))
-                .until(() -> {
-                    session.getService().runPendingAccessTasks(session);
-
-                    return !openedNotifications.getNotifications().isEmpty();
-                });
-    }
-
-    // the answer of the stub comes back through UI.access as well
-    private static void awaitAnswer(View<?> chat) {
-        AiChatFragment fragment = UiTestUtils.getComponent(chat, "chatFragment");
-        VaadinSession session = VaadinSession.getCurrent();
-
-        await().pollInSameThread()
-                .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(50))
-                .until(() -> {
-                    session.getService().runPendingAccessTasks(session);
-
-                    return !fragment.isAwaitingResponse();
-                });
+        awaitAccess(() -> !openedNotifications.getNotifications().isEmpty());
     }
 }

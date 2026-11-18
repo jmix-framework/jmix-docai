@@ -21,8 +21,7 @@ import jakarta.persistence.Version;
 import java.util.UUID;
 
 /**
- * A document of the selection that a conversation of the assistant is about. A document is in the selection of a
- * conversation once, and the selection keeps the order in which the person added its documents.
+ * A document of the selection that a conversation of the assistant is about.
  */
 @ExcludeFromAi
 @JmixEntity
@@ -43,8 +42,6 @@ public class DiscussedDocument {
     @Column(name = "VERSION", nullable = false)
     private Integer version;
 
-    // IntelliJ counts only the project's classes as entities, not the add-on's conversation
-    @SuppressWarnings("JpaAttributeTypeInspection")
     @OnDeleteInverse(DeletePolicy.CASCADE)
     @JoinColumn(name = "CONVERSATION_ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

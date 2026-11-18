@@ -33,9 +33,6 @@ import java.util.UUID;
 
 /**
  * The document repository: the documents of the folder chosen in the tree of the main menu and the preview panel.
- * While the view is shown, the tree reports its choices, drops and changes here. The address keeps the open folder
- * and the preview mode, and the header shows the name of the folder. Documents dragged from the list move into
- * the folder of the tree they are dropped on.
  */
 @Route(value = "repository", layout = MainView.class)
 @ViewController(id = "RepositoryView")
@@ -65,7 +62,6 @@ public class RepositoryView extends StandardView {
     private MetadataTools metadataTools;
 
     private final AddressBinder address = new AddressBinder();
-    // the tree of the main menu, which the view takes over while it is shown
     private FolderTreeFragment folderTree;
     @Nullable
     private UUID requestedFolderId;
@@ -86,15 +82,14 @@ public class RepositoryView extends StandardView {
     }
 
     /**
-     * Opens the card of the document as the documents of the list open: a save refreshes the list, and any card may
-     * change the star of the document.
+     * Opens the card of the document as the list does, so a save refreshes the list.
      */
     public void openCard(Document document) {
         documentList.openCard(document);
     }
 
-    // The tree lives in the main menu, which exists by the time the view is attached; the main view gives the tree
-    // its own handlers back after a navigation that leaves the repository.
+    // the tree lives in the main menu, which exists by the time the view is attached; the main view gives the tree its
+    // own handlers back after a navigation that leaves the repository
     private void connectFolderTree() {
         folderTree = findAncestor(MainView.class).getFolderTree();
 
@@ -125,7 +120,6 @@ public class RepositoryView extends StandardView {
     private void showFolder(Folder folder) {
         showBreadcrumbs(folderTree.getPath(folder));
         documentList.setFolder(folder);
-        // the header names the folder, as the tab of the browser does
         setPageTitle(metadataTools.getInstanceName(folder));
         address.update();
     }
@@ -144,7 +138,6 @@ public class RepositoryView extends StandardView {
                 current.addClassName("breadcrumb-current");
                 breadcrumbs.add(current);
             } else if (folderTree.isGreyed(step)) {
-                // a greyed folder is only the way here, so it is named but not opened
                 breadcrumbs.add(text(metadataTools.getInstanceName(step)));
             } else {
                 JmixButton link = uiComponents.create(JmixButton.class);
@@ -193,9 +186,8 @@ public class RepositoryView extends StandardView {
     }
 
     /**
-     * Keeps the open folder and the preview mode in the address. The facet writes the address of a view
-     * that is being opened right before the response, when the navigation has already set the view's own
-     * path; written earlier, the parameters would land on the previous address, such as the login.
+     * Keeps the open folder and the preview mode in the address, written right before the response: written earlier,
+     * the parameters would land on the previous address, such as the login.
      */
     private class AddressBinder extends AbstractUrlQueryParametersBinder {
 

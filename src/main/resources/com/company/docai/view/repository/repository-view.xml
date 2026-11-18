@@ -10,7 +10,6 @@
                          sidePanelPosition="RIGHT" sidePanelOverlay="false" modal="false"
                          closeOnOutsideClick="false" sidePanelResizable="true" themeNames="resizer-small"
                          sidePanelHorizontalSize="40%" sidePanelHorizontalMinSize="20em">
-            <!-- the folder tree is in the main menu; the view shows the documents of the folder chosen there -->
             <vbox id="documentPane" classNames="repository-documents" width="100%" height="100%" padding="false">
                 <hbox id="breadcrumbs" classNames="breadcrumbs" width="100%" alignItems="BASELINE"
                       spacing="false" wrap="true"/>

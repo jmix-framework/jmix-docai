@@ -6,10 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Gives beans of Jmix the classes of the stand, which every injection point gets in place of the classes of Jmix:
- * the background and the asynchronous tasks of the views carry the scope into their threads, the indexes of the
- * search add-on are the ones of the scope of the thread, and so are the files of the file storage; the options of a
- * field of a document type come from no SQL of a visitor.
+ * Gives beans of Jmix the classes of the stand, which every injection point gets in place of the classes of Jmix.
  */
 @Configuration(proxyBeanMethods = false)
 @Profile("stand")

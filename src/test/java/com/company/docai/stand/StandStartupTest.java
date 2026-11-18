@@ -63,18 +63,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * The start of the stand: the templates of the languages are built one after another in their order, and a login in
- * a language works as soon as its template is ready and waits while it is built; a start finds the templates of an
- * earlier run and uses them as they are, but builds again in a cleared folder a template without its ready marker or
- * without its indexes; the start deletes the folders of copies an earlier run left, and a template whose build fails
- * is tried again by the retry job. The jobs of the stand run on Quartz, which keeps them in memory: the cleaner
- * deletes a copy nobody has used for longer than the idle timeout, and the job of the search queues runs their loop as
- * the system. The stand brings no scheduler of its own, so Vaadin finds its executor. Search is off, so a spy says
- * which template has its indexes. The tests start the scheduler only while they need it, as the tests of the
- * application keep Quartz in standby.
- * <p>
- * The class has the configuration of {@link StandDataTest}, its spies included, so the two share a Spring context:
- * the heap of a full test run takes no further context of the stand.
+ * The start of the stand: the templates are built one after another, a login waits for its template, and the jobs of
+ * the stand run on Quartz. The class has the configuration of {@link StandDataTest}, its spies included, so the two
+ * share a Spring context: the heap of a full test run takes no further context of the stand.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class},
         properties = "docai.stand.data-dir=build/test-stand")
@@ -111,11 +102,9 @@ class StandStartupTest {
     @Autowired
     private CurrentAuthentication currentAuthentication;
 
-    // holds and notes the builds of the templates
     @MockitoSpyBean
     private DemoDataLoader loader;
 
-    // says which templates have their indexes
     @MockitoSpyBean
     private StandIndexes indexes;
 
@@ -394,7 +383,6 @@ class StandStartupTest {
                 .get(START.toSeconds(), TimeUnit.SECONDS);
     }
 
-    // the job runs as Quartz runs it, made by Spring and on a thread of the scheduler, until the condition holds
     private void runJob(JobKey job, BooleanSupplier done) throws SchedulerException {
         scheduler.start();
 
@@ -421,7 +409,6 @@ class StandStartupTest {
         }
     }
 
-    // the interval of the one trigger of the job, which repeats as long as the application runs
     private Duration repeatOf(JobKey job) throws SchedulerException {
         SimpleTrigger trigger = (SimpleTrigger) scheduler.getTriggersOfJob(job)
                 .getFirst();
@@ -494,7 +481,6 @@ class StandStartupTest {
         }
     }
 
-    // the service of the servlet of Vaadin, whose start chooses its executor among the beans of the context
     private static class ServletService extends SpringVaadinServletService {
 
         ServletService(ApplicationContext context) {

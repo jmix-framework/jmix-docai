@@ -1,31 +1,29 @@
 import { composes, followCompositions, HAND_OVER, heldKeys } from './typing.js';
 
-// the elements whose keys belong to them: an open overlay, a modal and a dialog with its content
 const OVERLAYS = ':popover-open, :modal, vaadin-dialog';
 
 // a palette that has not come by then does not come: the field takes its keys back and drops a held Enter
 const WAIT = 3000;
 
+const SHORTCUTS = 'Meta+K Control+K';
+
 /**
- * Opens the search palette from the search field of the header, the element of the server component
- * SearchPaletteOpener. A click on the field, except on its wand and its clear button, ⌘K or Ctrl+K anywhere on the
- * page, and the first character or Enter typed in the field send the server one event with the text of the field; the
- * focus alone, as after Tab, opens nothing. As Flow's shortcuts do, the keys match the K by its place on the keyboard,
- * so that any layout works, and do nothing inside a dialog or another overlay. The keys typed while the palette is on
- * its way belong to it: the characters go into the field, which the palette takes them from, and the field holds an
- * Enter back until the palette asks for it. An Esc typed meanwhile cancels the opening: the field keeps the text it
- * had, and the server gets a second event, which closes the palette. The server hands the opener the field itself.
+ * Opens the search palette from the search field of the header, the element of SearchPaletteOpener; the keys typed
+ * while the palette is on its way belong to it. An Esc typed meanwhile cancels the opening: the field gets back the
+ * text it had and opens the next palette at once, and the server gets a second event, which closes the palette. The
+ * next Esc is the field's own, which clears it.
  */
 class SearchPaletteOpener extends HTMLElement {
 
     #field = null;
-    // the palette is on its way with the text the field had then; an Enter typed meanwhile waits for it, and an Esc
-    // cancels it
-    #opening = false;
+    // the last opening and the one on its way, 0 when none is, with the text the field had then
+    #openings = 0;
+    #opening = 0;
     #text = '';
     #enter = false;
-    #cancelled = false;
     #timer = null;
+    // the openings an Esc cancelled whose palettes may still come
+    #cancelled = new Set();
 
     #openByShortcut = event => {
         if (this.#field && isShortcut(event) && !inOverlay(event)) {
@@ -38,20 +36,17 @@ class SearchPaletteOpener extends HTMLElement {
     #openByClick = event => {
         const path = event.composedPath();
 
-        // the wand switches the mode and the clear button empties the field
         if (!path.slice(0, path.indexOf(this.#field)).some(isFieldButton)) {
             this.#open();
         }
     };
 
-    // the keys of the focused wand are its own, and a key held down opens nothing again
     #openByKey = event => {
         if (event.defaultPrevented || composes(event) || !this.#fromInput(event)) {
             return;
         }
 
         if (event.key === 'Enter') {
-            // the field searches nothing itself
             event.preventDefault();
 
             if (event.repeat) {
@@ -60,7 +55,7 @@ class SearchPaletteOpener extends HTMLElement {
 
             if (!this.#opening) {
                 this.#open();
-            } else if (!this.#cancelled) {
+            } else {
                 this.#enter = true;
             }
         } else if (!this.#opening && !event.repeat && typesCharacter(event)) {
@@ -77,35 +72,40 @@ class SearchPaletteOpener extends HTMLElement {
         event.preventDefault();
         event.stopPropagation();
 
-        if (this.#cancelled) {
-            return;
-        }
-
-        this.#cancelled = true;
-        this.#enter = false;
-
-        // the characters typed on the way belonged to the palette
         if (this.#field.value !== this.#text) {
             this.#field.value = this.#text;
             this.#field.inputElement?.dispatchEvent(new Event('change', {bubbles: true}));
         }
 
+        this.#cancelled.add(this.#opening);
+        this.#settle();
         this.dispatchEvent(new CustomEvent('docai-search-palette-cancel'));
     };
 
-    // the palette takes the characters from the field as it opens and asks for the Enter; a cancelled one takes nothing
+    // the palette names its opening as it comes, and the palettes come in the order of their openings
     #handOver = event => {
-        Object.assign(event.detail, heldKeys(this.#enter, this.#cancelled));
-        this.#settle();
+        const opening = event.detail.opening;
+        const cancelled = this.#cancelled.has(opening);
+
+        for (const each of this.#cancelled) {
+            if (each <= opening) {
+                this.#cancelled.delete(each);
+            }
+        }
+
+        if (cancelled) {
+            Object.assign(event.detail, heldKeys(false, true));
+        } else {
+            Object.assign(event.detail, heldKeys(this.#enter, false));
+            this.#settle();
+        }
     };
 
-    // a palette that does not come leaves the keys to the field once the focus goes or the wait is over
     #settle = () => {
         clearTimeout(this.#timer);
         this.#timer = null;
-        this.#opening = false;
+        this.#opening = 0;
         this.#enter = false;
-        this.#cancelled = false;
     };
 
     static get is() {
@@ -113,7 +113,6 @@ class SearchPaletteOpener extends HTMLElement {
     }
 
     connectedCallback() {
-        // the opener shows nothing
         this.hidden = true;
         followCompositions();
         document.addEventListener('keydown', this.#openByShortcut);
@@ -126,7 +125,6 @@ class SearchPaletteOpener extends HTMLElement {
         this.#unlisten();
     }
 
-    // the server sends the field whenever the opener reaches the page; the opener keeps it while it is off the page
     watch(field) {
         if (field === this.#field) {
             return;
@@ -152,8 +150,11 @@ class SearchPaletteOpener extends HTMLElement {
         field.addEventListener('keydown', this.#cancelByEscape, true);
         field.addEventListener('focusout', this.#settle);
         field.addEventListener(HAND_OVER, this.#handOver);
-        // the field makes its native input on its first render; a screen reader then hears that it opens a dialog
-        field.updateComplete.then(() => field.inputElement?.setAttribute('aria-haspopup', 'dialog'));
+        // the field makes its native input on its first render
+        field.updateComplete.then(() => {
+            field.inputElement?.setAttribute('aria-haspopup', 'dialog');
+            field.inputElement?.setAttribute('aria-keyshortcuts', SHORTCUTS);
+        });
     }
 
     #unlisten() {
@@ -170,8 +171,8 @@ class SearchPaletteOpener extends HTMLElement {
         field.removeEventListener(HAND_OVER, this.#handOver);
     }
 
-    // a text the field selects as it takes the focus would give way to the first character, and the palette could not
-    // tell the characters typed on the way from it: they go after the text
+    // the characters typed on the way go after the text: a text selected as the field takes the focus would give way to
+    // the first of them
     #open() {
         // a second click or Cmd+K on the way would take the characters typed since the first one for the field's text
         if (this.#opening) {
@@ -181,11 +182,13 @@ class SearchPaletteOpener extends HTMLElement {
         const input = this.#field.inputElement;
         input?.setSelectionRange(input.value.length, input.value.length);
         clearTimeout(this.#timer);
-        this.#opening = true;
-        this.#cancelled = false;
+        this.#opening = ++this.#openings;
         this.#text = this.#field.value ?? '';
         this.#timer = setTimeout(this.#settle, WAIT);
-        this.dispatchEvent(new CustomEvent('docai-search-palette-open', {detail: {text: this.#text}}));
+
+        this.dispatchEvent(new CustomEvent('docai-search-palette-open', {
+            detail: {text: this.#text, opening: this.#opening}
+        }));
     }
 
     #fromInput(event) {
@@ -193,7 +196,7 @@ class SearchPaletteOpener extends HTMLElement {
     }
 }
 
-// Cmd or Ctrl with K and no other modifier; a key that the page has taken already, or one held down, opens nothing
+// the K by its place on the keyboard, as Flow's shortcuts match it, so that any layout works
 function isShortcut(event) {
     return event.code === 'KeyK' && event.metaKey !== event.ctrlKey && !event.altKey && !event.shiftKey
         && !event.repeat && !event.defaultPrevented;
@@ -204,7 +207,6 @@ function inOverlay(event) {
         .some(node => node instanceof Element && node.matches(OVERLAYS));
 }
 
-// the wand is a button of the field, and the clear button a part of its shadow DOM
 function isFieldButton(node) {
     return node instanceof Element && (node.localName === 'vaadin-button' || node.part?.contains('clear-button'));
 }

@@ -6,7 +6,6 @@
                 <h2 id="greeting" classNames="dashboard-greeting"/>
                 <span id="summaryLine" classNames="dashboard-summary-line"/>
             </vbox>
-            <!-- the field and the questions open the chat of the assistant, so they show only with the AI on -->
             <vbox id="askBox" classNames="dashboard-ask" padding="false" visible="false">
                 <hbox id="questionRow" classNames="dashboard-question-row" width="100%" alignItems="CENTER"
                       padding="false">
@@ -31,7 +30,6 @@
                             text="msg://question3Button.text"/>
                 </hbox>
             </vbox>
-            <!-- the cards stand in one, two or three columns by the width of the dashboard (dashboard.css) -->
             <div id="columns" classNames="dashboard-columns" width="100%">
                 <vbox id="mainColumn" classNames="dashboard-main-column" padding="false">
                     <card id="upcomingCard" classNames="dashboard-card dashboard-upcoming-card" width="100%">

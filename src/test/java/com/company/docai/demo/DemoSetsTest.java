@@ -23,10 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The demo sets keep the demo alive on every day of the two years after November 7, 2026, the day they were written
- * for: the history lies before the load, a date of a field lies ahead for the nearest deadlines of the dashboard, and
- * a contract ends in the quarter for the question about the contracts that end this quarter. Two documents that share
- * a text write it alike, and a range of a text keeps its order and reads right without the year or the month it leaves
- * out. The English and the Russian set declare the same dates.
+ * for.
  */
 class DemoSetsTest {
 
@@ -182,7 +179,6 @@ class DemoSetsTest {
         }
     }
 
-    // the dates of the folders and documents by their places in the set, as the descriptions write them
     private static List<String> datesOf(List<DemoSetTemplate.Folder> folders, String place) {
         List<String> dates = new ArrayList<>();
 

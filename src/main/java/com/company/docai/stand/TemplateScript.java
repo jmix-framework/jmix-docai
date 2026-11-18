@@ -19,10 +19,9 @@ import java.util.HexFormat;
 import java.util.List;
 
 /**
- * The script of a template, which the copies are made from. The template is dumped by {@code SCRIPT} of HSQLDB, which
- * writes a large object of an in-memory database as its number only, so the values of the large objects go to
- * {@code UPDATE} statements at the end of the same file. A copy is a new in-memory database that replays the
- * statements.
+ * The script of a template, which the copies are made from. {@code SCRIPT} of HSQLDB writes a large object of an
+ * in-memory database as its number only, so the values of the large objects go to {@code UPDATE} statements at the end
+ * of the same file.
  */
 public final class TemplateScript {
 

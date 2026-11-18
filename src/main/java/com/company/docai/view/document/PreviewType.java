@@ -20,8 +20,7 @@ public enum PreviewType {
     private static final Set<String> TEXT_TYPES = Set.of("application/json", "application/xml");
 
     /**
-     * The kind for the content type; parameters such as {@code charset} are ignored. A missing or unlisted
-     * type gets {@link #NONE}.
+     * The kind for the content type, its parameters ignored; a missing or unlisted type gets {@link #NONE}.
      */
     public static PreviewType of(@Nullable String contentType) {
         if (contentType == null) {

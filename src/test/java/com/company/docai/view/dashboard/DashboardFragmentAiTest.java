@@ -56,9 +56,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The parts of the AI on the dashboard of an employee while the AI is on: the question and the ready questions for
- * the assistant, the own recent chats and Fill with AI for the documents without a type. The models are stubs, and
- * nothing here asks them: the dashboard only reads the chats and hands the questions over.
+ * The parts of the AI on the dashboard of an employee while the AI is on.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class,
@@ -242,7 +240,6 @@ class DashboardFragmentAiTest {
         assertThat(filled).containsExactly(editable);
     }
 
-    // the chat of the employee with a title and one question
     private AiConversation chat(String title) {
         AiConversation conversation = conversationService.create();
         conversation.setTitle(title);
@@ -260,7 +257,6 @@ class DashboardFragmentAiTest {
                 .getFirst();
     }
 
-    // the title of a chat in its row, without the time after it
     private static String title(Div row) {
         Component title = TestDashboards.parts(row)
                 .get(1);
@@ -268,7 +264,6 @@ class DashboardFragmentAiTest {
         return TestDashboards.text(title);
     }
 
-    // the icon class of the icon a row starts with
     private static String iconClass(Div row) {
         Component icon = TestDashboards.parts(row)
                 .getFirst();

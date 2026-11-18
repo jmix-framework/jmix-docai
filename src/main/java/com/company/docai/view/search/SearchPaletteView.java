@@ -23,6 +23,7 @@ import com.google.common.base.Strings;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.FocusNotifier;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ScrollIntoViewOption;
@@ -59,14 +60,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * The search palette: a dialog at the top of the window that the search field of the header opens. Before the person
- * types it lists the recent searches, the favorites and questions for the assistant; from two characters on, the
- * documents found by the beginnings of their words, the folders and the tags with the text in their name, then the
- * rows that open the search page and ask the assistant. The keys never take the focus off the line: the arrows go
- * through the rows, Tab through the chips, Enter opens the selected row or searches, Shift+Delete removes the selected
- * recent search. The palette goes nowhere itself: the main view gives it what each choice opens. A document opens its
- * card over the palette, which stays as it is for the next choice; for any other choice the palette closes before it
- * hands the choice over.
+ * The search palette, a dialog the header's search field opens; the main view gives it what each choice opens.
  */
 @ViewController(id = "SearchPaletteView")
 @ViewDescriptor(path = "search-palette-view.xml")
@@ -102,6 +96,8 @@ public class SearchPaletteView extends StandardView {
     @ViewComponent
     private Div hintsBox;
     @ViewComponent
+    private Span removeHint;
+    @ViewComponent
     private SearchPaletteMotion motion;
     @ViewComponent
     private SearchPaletteLine line;
@@ -134,6 +130,7 @@ public class SearchPaletteView extends StandardView {
     @Nullable
     private Component origin;
     private String query = "";
+    private int opening;
     private boolean aiMode;
     private Consumer<Boolean> modeChangeHandler = ai -> {
     };
@@ -147,7 +144,6 @@ public class SearchPaletteView extends StandardView {
     };
     private Consumer<String> tagOpenHandler = tag -> {
     };
-    // the folders of the menu tree, read at the first text of an opening that looks for folders
     @Nullable
     private MenuFolders menuFolders;
 
@@ -160,7 +156,6 @@ public class SearchPaletteView extends StandardView {
     private boolean assistantAvailable;
     private List<RecentQuery> recent = List.of();
     private List<FavoriteItem> favorites = List.of();
-    // the rows in the order of the arrows; none is selected at -1
     private final List<Row> rows = new ArrayList<>();
     // the places of the rows of the recent searches among the rows, in the order of the searches
     private final List<Integer> recentRows = new ArrayList<>();
@@ -171,8 +166,7 @@ public class SearchPaletteView extends StandardView {
     private boolean chosen;
 
     /**
-     * Sets the field the line flies out of and back into: the search field of the header. Without one the palette
-     * opens and closes in place.
+     * Sets the field the line flies out of and back into; without one the palette opens and closes in place.
      */
     public void setOrigin(@Nullable Component origin) {
         this.origin = origin;
@@ -183,6 +177,14 @@ public class SearchPaletteView extends StandardView {
      */
     public void setQuery(@Nullable String query) {
         this.query = Strings.nullToEmpty(query);
+    }
+
+    /**
+     * Sets the number the browser gave the request that opens the palette, so that a palette whose opening an Esc
+     * cancelled closes as it comes.
+     */
+    public void setOpening(int opening) {
+        this.opening = opening;
     }
 
     /**
@@ -200,7 +202,7 @@ public class SearchPaletteView extends StandardView {
     }
 
     /**
-     * Receives the text and the mode to open the search page with.
+     * Receives the text and the mode to open the search page with, true for the search by meaning.
      */
     public void setSearchHandler(BiConsumer<String, Boolean> searchHandler) {
         this.searchHandler = searchHandler;
@@ -214,8 +216,7 @@ public class SearchPaletteView extends StandardView {
     }
 
     /**
-     * Receives a document to open in its card, a view dialog over the palette, which stays open under it. The
-     * document may have been deleted or hidden from the user since it was shown; then no card opens.
+     * Receives a document to open in its card over the palette; it may have been deleted or hidden since.
      */
     public void setDocumentOpenHandler(Consumer<Document> documentOpenHandler) {
         this.documentOpenHandler = documentOpenHandler;
@@ -243,10 +244,8 @@ public class SearchPaletteView extends StandardView {
         chipButtons.put(Chip.TAGS, tagsChip);
         searchModeButton.setVisible(aiSettings.isAvailable());
 
-        // the questions go to the chat of the assistant, so they need the AI and that chat
         assistantAvailable = assistantNavigation.isAvailable();
 
-        // the line keeps the focus, and the palette handles the arrows, Tab and Enter itself
         line.setField(queryField);
         line.setList(resultsBox);
         line.addKeyListener(this::onQueryKey);
@@ -287,17 +286,16 @@ public class SearchPaletteView extends StandardView {
             Component headerField = origin;
 
             UI.getCurrent().beforeClientResponse(this, context -> {
-                line.takeOver(headerField);
+                line.takeOver(headerField, opening);
                 motion.open(headerField, queryField, panel);
             });
         }
     }
 
-    // the palette is always a dialog, and a closed dialog stays on the page until the browser has played the closing:
-    // the navigation a choice starts would announce the closed palette as opened and ready again, while a dialog is
-    // announced once, when it opens
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
+        // the palette is always a dialog, and a closed dialog stays on the page until the browser has played
+        // the closing: the navigation a choice starts would announce the closed palette as opened and ready again
     }
 
     @Subscribe("queryField")
@@ -305,10 +303,17 @@ public class SearchPaletteView extends StandardView {
             final AbstractField.ComponentValueChangeEvent<TypedTextField<String>, String> event) {
         String text = Strings.nullToEmpty(event.getValue()).strip();
 
-        // the spaces around the text change nothing in the list
         if (!text.equals(shownText)) {
             showList(text);
         }
+    }
+
+    // the field selects its whole text on every focus, and only the opening asks for that: the focus that comes back
+    // later, after a card over the palette or when the browser focuses the page again, keeps the caret where it is
+    @Subscribe("queryField")
+    public void onQueryFieldFocus(final FocusNotifier.FocusEvent<TypedTextField<String>> event) {
+        queryField.setAutoselect(false);
+        event.unregisterListener();
     }
 
     @Subscribe(id = "searchModeButton", subject = "clickListener")
@@ -349,7 +354,6 @@ public class SearchPaletteView extends StandardView {
         }
 
         switch (event.getKey()) {
-            // from none to the first row and on to the last, then none again; up goes back
             case "ArrowDown" -> select(selected + 1 < rows.size() ? selected + 1 : -1);
             case "ArrowUp" -> select(selected < 0 ? rows.size() - 1 : selected - 1);
             case "Tab" -> chooseChip(chip.next(event.isShift()), text);
@@ -373,12 +377,10 @@ public class SearchPaletteView extends StandardView {
         }
     }
 
-    // a click carries no text, so the list keeps the text it shows
     private void chooseChip(Chip pressed) {
         chooseChip(pressed, Strings.nullToEmpty(shownText));
     }
 
-    // a click on a chip gives the focus back to the line
     private void chooseChip(Chip pressed, String text) {
         chip = pressed;
         showChips();
@@ -398,8 +400,6 @@ public class SearchPaletteView extends StandardView {
         action.run();
     }
 
-    // the card opens over the palette, which keeps its text, chip and row; a document gone since the list was made
-    // gives a notice instead
     private void openCard(Document document) {
         if (chosen || covered()) {
             return;
@@ -427,7 +427,6 @@ public class SearchPaletteView extends StandardView {
                 .isEmpty();
     }
 
-    // the document that is gone may be one of the favorites the palette read at its opening
     private void showWhatIsLeft() {
         favorites = firstFavorites();
         showList(Strings.nullToEmpty(shownText));
@@ -448,7 +447,6 @@ public class SearchPaletteView extends StandardView {
         }
     }
 
-    // a selected search gives the selection to the recent search that takes its place, else to the one before it
     private void removeRecent(RecentQuery query) {
         int place = recentRows.indexOf(selected);
         boolean selectedRemoved = place >= 0 && recent.get(place).equals(query);
@@ -461,11 +459,9 @@ public class SearchPaletteView extends StandardView {
             select(recentRows.get(Math.min(place, recentRows.size() - 1)));
         }
 
-        // the list shows the removal, and a screen reader hears it
         showStatus(messageBundle.formatMessage("recentRemoved", query.text()), false);
     }
 
-    // every new list starts without a selected row and with nothing to say
     private void showList(String text) {
         shownText = text;
         rows.clear();
@@ -482,6 +478,7 @@ public class SearchPaletteView extends StandardView {
         }
 
         line.setActiveRow(null);
+        removeHint.setVisible(!recentRows.isEmpty());
     }
 
     private void showSections() {
@@ -502,7 +499,6 @@ public class SearchPaletteView extends StandardView {
         }
     }
 
-    // only the groups the chip shows are asked for; the rows of the page and of the assistant follow them
     private void showResults(String text) {
         if (shows(Chip.DOCUMENTS)) {
             showDocuments(text, chip.rowLimit);
@@ -528,7 +524,6 @@ public class SearchPaletteView extends StandardView {
             addGroup(messageBundle.getMessage("tagsGroup.title"), tagRows);
         }
 
-        // the page finds the forms of the words too, and the assistant may know the answer
         if (groups == 0) {
             showStatus(messageBundle.getMessage("nothingFound"), true);
         }
@@ -540,7 +535,6 @@ public class SearchPaletteView extends StandardView {
         }
     }
 
-    // an index that does not answer is said in its group: the folders and the tags come from the database
     private void showDocuments(String text, int limit) {
         String title = messageBundle.getMessage("documentsGroup.title");
         List<DocumentSearchHit> hits;
@@ -630,7 +624,6 @@ public class SearchPaletteView extends StandardView {
         return register(searchRenderers.allResultsRow(text, aiMode, choice), choice);
     }
 
-    // a group without rows is not shown
     private void addGroup(String title, List<? extends Component> content) {
         if (content.isEmpty()) {
             return;
@@ -684,8 +677,7 @@ public class SearchPaletteView extends StandardView {
                 aiMode ? "searchField.aiPlaceholder" : "searchField.placeholder"));
     }
 
-    // the line is never hidden, only out of sight: a screen reader hears a status only from a region already on the
-    // page. A text the list shows itself is said, not shown twice.
+    // never hidden, only out of sight: a screen reader hears a status only from a region already on the page
     private void showStatus(String text, boolean shown) {
         messageText.setText(text);
         messageText.setClassName("search-palette-live", !shown);
@@ -705,7 +697,6 @@ public class SearchPaletteView extends StandardView {
             this.rowLimit = rowLimit;
         }
 
-        // Tab goes round the chips, Shift+Tab the other way
         private Chip next(boolean back) {
             Chip[] chips = values();
 
@@ -716,7 +707,6 @@ public class SearchPaletteView extends StandardView {
     private record Row(Div element, Runnable choice) {
     }
 
-    // the folders of the menu tree in its order, the ids of those the user only passes through, and the way up to each
     private record MenuFolders(List<Folder> inTreeOrder, Set<UUID> greyed, FolderIndex index) {
     }
 }

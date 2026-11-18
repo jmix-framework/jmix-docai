@@ -4,8 +4,8 @@ import io.jmix.core.metamodel.datatype.EnumClass;
 import org.jspecify.annotations.Nullable;
 
 /**
- * What an access entry allows. The levels add up: {@link #MANAGE} includes {@link #EDIT}, and {@link #EDIT}
- * includes {@link #VIEW}. The ids grow with the level, so "at least this level" is a comparison in JPQL.
+ * What an access entry allows. The levels add up, and the ids grow with the level, so "at least this level" is a
+ * comparison in JPQL.
  */
 public enum AccessLevel implements EnumClass<Integer> {
 

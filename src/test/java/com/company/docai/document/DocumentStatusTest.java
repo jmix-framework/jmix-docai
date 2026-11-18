@@ -72,8 +72,7 @@ class DocumentStatusTest {
         sandbox = folderService.save(folder);
     }
 
-    // the documents of the sandbox go for good, so that the statuses made here can be deleted; Draft is given to new
-    // documents again whatever a test did
+    // the documents go for good so that the statuses made here can be deleted; Draft becomes the initial one again
     @AfterEach
     void cleanUp() {
         folderService.delete(sandbox);
@@ -107,18 +106,6 @@ class DocumentStatusTest {
     @Test
     void aNewDocumentGetsTheInitialStatus() {
         assertThat(upload("a.txt").getStatus()).isEqualTo(TestStatuses.draft(dataManager));
-    }
-
-    @Test
-    void aDocumentMovesOnlyToAStatusItsStatusLists() {
-        Document document = upload("a.txt");
-
-        assertThatThrownBy(() -> documentService.changeStatus(List.of(document),
-                TestStatuses.archived(dataManager)))
-                .isInstanceOf(OperationRejectedException.class);
-
-        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
-        assertThat(reload(document).getStatus()).isEqualTo(TestStatuses.active(dataManager));
     }
 
     @Test

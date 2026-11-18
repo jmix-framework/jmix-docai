@@ -43,10 +43,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The OpenAI model in the chat of the assistant in the menu, asked by an employee: a question by a value or a range of
- * a field of the document types, a list, a count and a question about the content of a document each reach the tool
- * that answers them, and the answer speaks the language of the question. Runs only with {@code ./gradlew aiTest} and
- * the key in {@code OPENAI_API_KEY}.
+ * The OpenAI model in the chat of the assistant in the menu, asked by an employee. Runs only with
+ * {@code ./gradlew aiTest} and the key in {@code OPENAI_API_KEY}.
  */
 @Tag("ai")
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)

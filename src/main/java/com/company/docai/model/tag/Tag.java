@@ -18,10 +18,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * A tag of the shared vocabulary that marks documents. A name is unique whatever its case: the database holds it
- * through the key of the name, and the tag listener refuses a namesake with a message. A tag knows nothing of its
- * documents: the document owns the association, so saving a tag never changes a document. A tag is deleted for good,
- * and only while no document carries it.
+ * A tag of the shared vocabulary; the document owns the association, so saving a tag never changes a document.
  */
 @JmixEntity
 @Entity
@@ -50,8 +47,7 @@ public class Tag {
     private String name;
 
     /**
-     * The name in lower case, made by the application, so that the unique constraint holds whatever the case on any
-     * database and also against two saves at once.
+     * The name in lower case for the unique constraint, whatever the case, on any database and for two saves at once.
      */
     @ExcludeFromAi
     @Column(name = "NAME_KEY", nullable = false, length = MAX_NAME_LENGTH)

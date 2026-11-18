@@ -31,8 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 /**
- * Shows one file of a document in the browser: images, PDF and text from an allow-list,
- * and a download button for anything else.
+ * Shows one file of a document: images, PDF and text from an allow-list, else a download button.
  */
 @FragmentDescriptor("document-preview-fragment.xml")
 public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
@@ -68,9 +67,7 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
     private DocumentRevision revision;
 
     /**
-     * Shows the revision, or a hint when there is no revision or its file is gone from the storage.
-     * The revision already shown is left as it is: a revision never changes, so the browser need not
-     * load its file again.
+     * Shows the revision, or a hint when there is none or its file is gone; a revision already shown is left as it is.
      */
     public void showRevision(@Nullable DocumentRevision revision) {
         if (revision != null && revision.equals(this.revision)) {
@@ -96,8 +93,7 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Shows a file that is not saved yet, such as a new version that waits for OK in the document card.
-     * The type is detected from the content, as on save.
+     * Shows a file that is not saved yet, its type detected from the content as on save.
      */
     public void showFile(UploadedFile file) {
         this.revision = null;
@@ -167,9 +163,7 @@ public class DocumentPreviewFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * The browser fetches the preview by itself, also while a dialog makes the panel inert: a double click
-     * on a row opens the card before the fetch arrives. Vaadin answers such a fetch with 403 unless the
-     * handler allows it.
+     * The preview is fetched also while a dialog makes the panel inert, which Vaadin answers with 403 unless allowed.
      */
     private DownloadHandler inlineHandler(String fileName, String contentType, long size, Content content) {
         DownloadHandler handler = DownloadHandler.fromInputStream(

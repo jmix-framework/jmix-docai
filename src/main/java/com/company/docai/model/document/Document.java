@@ -45,11 +45,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * A document in a folder. Its files are revisions, and {@code currentRevision} points to the one
- * in use. Names are unique among the live documents of one folder and are case-sensitive. Its type
- * is a category of the dynamic attributes add-on, and the fields of the type are the dynamic attributes
- * of the category, properties named {@code +code}. Its status comes from the dictionary of
- * {@link DocumentStatus}.
+ * A document in a folder, with its files as revisions and its type as a category of the dynamic attributes add-on.
+ * Names are unique among the live documents of one folder and are case-sensitive.
  */
 @JmixEntity
 @Entity
@@ -79,8 +76,7 @@ public class Document implements Categorized {
     private String name;
 
     /**
-     * The name of a live document and null for a deleted one, so that the unique constraint
-     * ignores deleted documents on any database.
+     * The name of a live document, null for a deleted one, so the unique constraint skips deleted ones on any database.
      */
     @ExcludeFromAi
     @Column(name = "NAME_KEY")
@@ -95,9 +91,6 @@ public class Document implements Categorized {
     @ManyToOne(fetch = FetchType.LAZY)
     private DocumentRevision currentRevision;
 
-    /**
-     * The access set in effect: the set of the folder for an inheriting document, its own set otherwise.
-     */
     @JoinColumn(name = "ACCESS_SET_ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private AccessSet accessSet;
@@ -117,20 +110,12 @@ public class Document implements Categorized {
     @Column(name = "DOCUMENT_DATE")
     private LocalDate documentDate;
 
-    /**
-     * The type of the document. A type that documents are marked with cannot be deleted.
-     */
-    // IntelliJ counts only the project's classes as entities, not the add-on's Category
     @SuppressWarnings("JpaAttributeTypeInspection")
     @OnDeleteInverse(DeletePolicy.DENY)
     @JoinColumn(name = "CATEGORY_ID")
     @ManyToOne(fetch = FetchType.LAZY)
     private Category category;
 
-    /**
-     * The tags of the document, by name. The document owns the association, and a tag in use cannot be deleted:
-     * the tag service refuses it, and the foreign key of the link table stops the other ways.
-     */
     @OrderBy("nameKey")
     @JoinTable(name = "DOCUMENT_TAG_LINK",
             joinColumns = @JoinColumn(name = "DOCUMENT_ID", referencedColumnName = "ID"),
@@ -140,15 +125,11 @@ public class Document implements Categorized {
     private List<Tag> tags;
 
     /**
-     * Who changed the document itself last: its file, name, date, type, fields or status. The audit stamps below
-     * change with every save of the row, an access change and a move included.
+     * Who changed the document itself last; the audit stamps change with every save of the row.
      */
     @Column(name = "CHANGED_BY")
     private String changedBy;
 
-    /**
-     * When the document itself was changed last, see {@link #changedBy}.
-     */
     @Column(name = "CHANGED_DATE")
     private OffsetDateTime changedDate;
 

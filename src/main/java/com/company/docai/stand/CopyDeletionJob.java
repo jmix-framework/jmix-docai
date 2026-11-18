@@ -7,9 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The job of the stand that deletes a copy the browser of a visitor has left for a new one, after a login in another
- * language or a change of the language: the request does not wait for the deletion, which waits for a document of the
- * copy being indexed, see {@link StandLogin}. Each replaced copy gets a job of its own with a one-shot trigger.
+ * The job of the stand that deletes a copy a browser has left for a new one, so no request waits for the deletion.
  */
 public class CopyDeletionJob implements Job {
 
@@ -26,9 +24,6 @@ public class CopyDeletionJob implements Job {
         this.copyFactory = copyFactory;
     }
 
-    /**
-     * Deletes the copy of the data of the job as the system, see {@link CopyFactory#delete}.
-     */
     @Authenticated
     @Override
     public void execute(JobExecutionContext context) {

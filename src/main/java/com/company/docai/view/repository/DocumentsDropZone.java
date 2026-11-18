@@ -6,7 +6,7 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.upload.UploadManager;
 import com.vaadin.flow.dom.ElementUtil;
-import com.vaadin.flow.server.streams.TemporaryFileUploadHandler;
+import com.vaadin.flow.server.streams.FileUploadHandler;
 import com.vaadin.flow.server.streams.TransferContext;
 import com.vaadin.flow.server.streams.UploadHandler;
 import com.vaadin.flow.server.streams.UploadMetadata;
@@ -21,14 +21,17 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * The drop zone around the document table. Its own upload manager keeps the dropped files in the temporary directory
- * of the system until the drop ends or the zone leaves the page; the upload dialog of the list hands its files to the
- * same manager. A disabled zone would disable the table inside it, so only the manager is ever disabled, and a
- * strictly modal dialog opened over the page does not stop a drop on its way.
+ * The drop zone around the document table, whose own upload manager the upload dialog of the list shares. A disabled
+ * zone would disable the table inside it, so only the manager is ever disabled.
  */
 public class DocumentsDropZone extends FileDropZone {
 
     private static final Logger log = LoggerFactory.getLogger(DocumentsDropZone.class);
+
+    // a name of the zone's own: the name of a dropped file may be too long for the file system or hold a slash, and
+    // other accounts of the host may list the temporary directory
+    private static final String TEMPORARY_FILE_PREFIX = "docai-drop-";
+    private static final String TEMPORARY_FILE_SUFFIX = ".tmp";
 
     private final List<UploadedFile> droppedFiles = new ArrayList<>();
 
@@ -45,12 +48,12 @@ public class DocumentsDropZone extends FileDropZone {
      * Creates the zone with its own upload manager.
      */
     public DocumentsDropZone() {
-        TemporaryFileUploadHandler handler = UploadHandler.toTempFile(this::onFileDropped)
+        FileUploadHandler handler = UploadHandler.toFile(this::onFileDropped, DocumentsDropZone::createTemporaryFile)
                 .whenStart(() -> startHandler.run())
                 .whenComplete(this::onTransferEnded);
 
-        // a strictly modal dialog such as the document card makes the page behind it inert, and the server would then
-        // refuse the rest of a batch on its way and never hear of its end; so the manager gets an owner of its own that
+        // a strictly modal dialog such as the document card makes the page behind it inert, and the server would refuse
+        // the rest of a batch on its way and never hear of its end; so the manager gets an owner of its own that
         // ignores the dialog, and only the enabled state of the manager decides what it takes
         Div owner = new Div();
         getElement().appendVirtualChild(owner.getElement());
@@ -63,16 +66,15 @@ public class DocumentsDropZone extends FileDropZone {
     }
 
     /**
-     * Receives the start of the transfer of each file, as the file leaves the browser: the first file of a drop starts
-     * as the files are dropped.
+     * Receives the start of the transfer of each file; the first one starts as the files are dropped.
      */
     public void setStartHandler(Runnable startHandler) {
         this.startHandler = startHandler;
     }
 
     /**
-     * Receives the files of a drop when the last of them has arrived, an empty list when none has; the zone deletes
-     * the files when the handler returns.
+     * Receives the files of a drop once the last has arrived, an empty list when none has; the zone deletes them when
+     * the handler returns.
      */
     public void setBatchHandler(Consumer<List<UploadedFile>> batchHandler) {
         this.batchHandler = batchHandler;
@@ -86,7 +88,7 @@ public class DocumentsDropZone extends FileDropZone {
     }
 
     /**
-     * Receives the name of a file whose transfer breaks off; the file joins no drop, and nothing of it is kept.
+     * Receives the name of a file whose transfer breaks off; nothing of it is kept.
      */
     public void setFailureHandler(Consumer<String> failureHandler) {
         this.failureHandler = failureHandler;
@@ -96,8 +98,14 @@ public class DocumentsDropZone extends FileDropZone {
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
 
-        // leaving the page in the middle of a drop would leave its files in the temporary directory
         discardDroppedFiles();
+    }
+
+    // the file lies in the temporary directory itself: the factory of Vaadin gives each file a directory of its own,
+    // and deleting the file would leave that directory behind, empty
+    private static File createTemporaryFile(UploadMetadata metadata) throws IOException {
+        return Files.createTempFile(TEMPORARY_FILE_PREFIX, TEMPORARY_FILE_SUFFIX)
+                .toFile();
     }
 
     private void onFileDropped(UploadMetadata metadata, File file) {
@@ -126,7 +134,6 @@ public class DocumentsDropZone extends FileDropZone {
         }
     }
 
-    // the zone keeps its files in the temporary directory of the system, not in the temporary storage of Jmix
     private void discardDroppedFiles() {
         for (UploadedFile file : droppedFiles) {
             try {

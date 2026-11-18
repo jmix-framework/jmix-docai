@@ -519,7 +519,6 @@ class DocumentSearchTest {
         return dataManager.save(tag);
     }
 
-    // the tags as the card saves them
     private void tagged(Document document, Tag... tags) {
         Document edited = dataManager.load(Document.class)
                 .id(document.getId())
@@ -626,6 +625,30 @@ class DocumentSearchTest {
         assertThat(hitOf(documentSearch.first(word.substring(0, 6), 5), document).snippet())
                 .isEqualTo("<b>" + word + "_" + next + "</b>.txt");
         assertThat(ids(documentSearch.first(next.substring(0, 6), 5))).doesNotContain(document.getId());
+    }
+
+    // "O'Bri" finds "O'Brien": the split of the beginnings keeps the apostrophe inside the word, as the index does
+    @Test
+    void aBeginningWithAnApostropheFindsTheWordWithIt() {
+        String word = token();
+        Document document = upload(sandbox, "O'" + word + ".txt",
+                "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+
+        index();
+
+        assertThat(ids(documentSearch.first("O'" + word.substring(0, 4), 5))).contains(document.getId());
+    }
+
+    @Test
+    void aBeginningWithAnUnderscoreFindsOnlyTheWordsWithIt() {
+        String word = token();
+        Document next = upload(sandbox, word + "_next.txt", "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+        Document other = upload(sandbox, word + "_other.txt", "Nothing else here.".getBytes(StandardCharsets.UTF_8));
+        index();
+
+        assertThat(ids(documentSearch.first(word + "_ne", 5)))
+                .contains(next.getId())
+                .doesNotContain(other.getId());
     }
 
     @Test

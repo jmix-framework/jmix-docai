@@ -46,10 +46,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * The access dialog of a folder or a document, over the draft that {@link AccessService#describe} builds.
- * The box is bound to {@code inherit}: checked, it shows the inherited entries read-only; cleared, it edits
- * the item's own entries. OK hands the draft to {@link AccessService#save(AccessDraft)}, which applies it
- * in one transaction.
+ * The access dialog over the draft that {@link AccessService#describe} builds and {@link AccessService#save} applies.
  */
 @ViewController(id = "AccessDraft.detail")
 @ViewDescriptor(path = "access-detail-view.xml")
@@ -100,7 +97,6 @@ public class AccessDetailView extends StandardDetailView<AccessDraft> {
         AccessDraft access = getEditedEntity();
         setPageTitle(messageBundle.formatMessage("accessTitle", itemName()));
 
-        // the root has no parent to inherit from
         if (access.getInheritedFrom() != null) {
             inheritField.setLabel(messageBundle.formatMessage("inheritField.label", access.getInheritedFrom()));
         } else {
@@ -117,7 +113,6 @@ public class AccessDetailView extends StandardDetailView<AccessDraft> {
         }
     }
 
-    // a subject that is listed already gets the new level instead of a second entry
     @Subscribe("addButton")
     public void onAddButtonClick(final ClickEvent<JmixButton> event) {
         AccessSubject subject = subjectField.getValue();
@@ -163,14 +158,13 @@ public class AccessDetailView extends StandardDetailView<AccessDraft> {
                 .open();
     }
 
-    // the service applies the draft; the dialog closes, so nothing comes back into its data context
     @Install(target = Target.DATA_CONTEXT)
     private Set<Object> saveDelegate(final SaveContext saveContext) {
         accessService.save(getEditedEntity());
+        // the service applies the draft; the dialog closes, so nothing comes back into its data context
         return Set.of();
     }
 
-    // there may be many users, so the field looks them up by a part of the name, a page at a time
     @Install(to = "subjectField", subject = "itemsFetchCallback")
     private Stream<AccessSubject> subjectFieldItemsFetchCallback(final Query<AccessSubject, String> query) {
         return accessService.findSubjects(query.getFilter().orElse(""), query.getOffset(), query.getLimit())

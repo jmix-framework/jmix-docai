@@ -12,9 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
- * The index of fragments kept in memory in place of OpenSearch. It finds the nearest fragments by the cosine of their
- * vectors among the documents it is given, as OpenSearch does, keeps the documents every search was allowed, and can
- * be told not to answer.
+ * The index of fragments kept in memory in place of OpenSearch: it finds the nearest fragments among the documents it
+ * is given, keeps the documents every search was allowed, and can be told not to answer.
  */
 public class InMemoryVectorIndex extends DocumentVectorIndex {
 
@@ -83,9 +82,6 @@ public class InMemoryVectorIndex extends DocumentVectorIndex {
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().sourceKey()));
     }
 
-    /**
-     * Puts the fragments of a document into the index, as an indexing would.
-     */
     public void put(UUID documentId, String sourceKey, List<Fragment> fragments) {
         entries.put(documentId, new Entry(sourceKey, List.copyOf(fragments)));
     }
@@ -99,9 +95,6 @@ public class InMemoryVectorIndex extends DocumentVectorIndex {
         return entry == null ? List.of() : entry.fragments();
     }
 
-    /**
-     * Returns how many times the fragments of the document were replaced.
-     */
     public long replacements(UUID documentId) {
         return replaced.stream()
                 .filter(documentId::equals)
@@ -122,9 +115,6 @@ public class InMemoryVectorIndex extends DocumentVectorIndex {
         this.down = down;
     }
 
-    /**
-     * Empties the index, forgets the searches and answers again.
-     */
     public void reset() {
         entries.clear();
         searchedAmong.clear();

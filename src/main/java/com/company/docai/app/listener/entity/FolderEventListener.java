@@ -10,8 +10,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
- * Keeps the folder tree whole on every save path: only the root has no parent,
- * and the root is never renamed, moved or deleted.
+ * Keeps the folder tree whole: only the root has no parent, and it is never renamed, moved or deleted.
  */
 @Component
 public class FolderEventListener {

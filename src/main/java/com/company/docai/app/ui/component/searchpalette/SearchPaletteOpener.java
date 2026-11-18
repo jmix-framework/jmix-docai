@@ -14,13 +14,7 @@ import com.vaadin.flow.shared.Registration;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Opens the search palette from the search field of the header: the element {@code docai-search-palette-opener} of
- * {@code src/component/search-palette/docai-search-palette-opener.js} decides in the browser what opens the palette and
- * sends the server one event with the text of the field. A click on the field, except on its wand and its clear button,
- * ⌘K or Ctrl+K anywhere on the page, and the first character or Enter typed in the field open the palette; the focus
- * alone, as after Tab, opens nothing. The keys typed while the palette is on its way stay with the field, and the
- * palette takes them over as it opens; an Esc among them cancels the opening, with a second event. It shows nothing.
- * The main view declares it in its descriptor and names the field.
+ * Opens the search palette from the header field; an Esc typed while the palette is on its way cancels the opening.
  */
 @Tag("docai-search-palette-opener")
 @JsModule("./src/component/search-palette/docai-search-palette-opener.js")
@@ -30,8 +24,7 @@ public class SearchPaletteOpener extends Component {
     private Component field;
 
     /**
-     * Sets the field that opens the palette. The browser gets the field itself whenever the opener reaches the page,
-     * so the field needs no id and may stand anywhere on the page.
+     * Sets the field that opens the palette, which needs no id: the browser gets the field itself.
      */
     public void setField(Component field) {
         this.field = field;
@@ -42,10 +35,12 @@ public class SearchPaletteOpener extends Component {
     }
 
     /**
-     * Adds a listener of the requests to open the palette.
+     * Adds a listener of the requests to open the palette, which may come over an inert page: the listener checks for
+     * dialogs itself.
      */
     public Registration addOpenListener(ComponentEventListener<OpenEvent> listener) {
-        return addListener(OpenEvent.class, listener);
+        // a click right after an Esc comes in the cancel's request, which closes the palette before Flow frees the page
+        return ComponentUtil.addListener(this, OpenEvent.class, listener, DomListenerRegistration::allowInert);
     }
 
     /**
@@ -71,21 +66,23 @@ public class SearchPaletteOpener extends Component {
     }
 
     /**
-     * A request to open the palette, with the text the field showed in the browser: the field sends its text to the
-     * server only when the person leaves it, so the server may not have it yet.
+     * A request to open the palette, with the text the field showed in the browser and the number of the request.
      */
     @DomEvent("docai-search-palette-open")
     public static class OpenEvent extends ComponentEvent<SearchPaletteOpener> {
 
         private final String text;
+        private final int opening;
 
         /**
-         * Creates the request with the text of the field.
+         * Creates the request with the text of the field and the number of the request.
          */
         public OpenEvent(SearchPaletteOpener source, boolean fromClient,
-                         @EventData("event.detail.text") String text) {
+                         @EventData("event.detail.text") String text,
+                         @EventData("event.detail.opening") int opening) {
             super(source, fromClient);
             this.text = text;
+            this.opening = opening;
         }
 
         /**
@@ -94,11 +91,17 @@ public class SearchPaletteOpener extends Component {
         public String getText() {
             return text;
         }
+
+        /**
+         * Returns the number the browser gave the request.
+         */
+        public int getOpening() {
+            return opening;
+        }
     }
 
     /**
-     * A request to cancel the opening of the palette: an Esc typed into the field after the request to open it and
-     * before the palette appeared.
+     * A request to cancel the opening of the palette: an Esc typed before the palette appeared.
      */
     @DomEvent("docai-search-palette-cancel")
     public static class CancelEvent extends ComponentEvent<SearchPaletteOpener> {

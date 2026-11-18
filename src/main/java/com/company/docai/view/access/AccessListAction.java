@@ -15,11 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.function.Consumer;
 
 /**
- * Opens the access dialog of the folder or the document selected in a table over the view of the table. The table
- * learns of a saved dialog through {@link #setAfterSaveHandler(Consumer)}. The descriptor that declares the action
- * gives it its text and icon, and the table decides when it is enabled and shown.
- *
- * @param <E> the folders or the documents of the table
+ * Opens the access dialog of the folder or the document selected in a table over the view of the table.
  */
 @ActionType(AccessListAction.ID)
 public class AccessListAction<E> extends SecuredListDataComponentAction<AccessListAction<E>, E> {

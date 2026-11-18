@@ -10,8 +10,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Downloads a revision as an attachment, under the name it was uploaded with. When the file is gone
- * from the storage, the user gets the same message as in the preview instead of a broken download.
+ * Downloads a revision as an attachment under the name it was uploaded with.
  */
 @Component
 public class RevisionDownloader {

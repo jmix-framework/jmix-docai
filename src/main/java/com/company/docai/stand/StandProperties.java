@@ -13,17 +13,15 @@ import java.util.List;
  *
  * @param copyIdleTimeout       how long a copy of the demo data may stay unused before it is deleted
  * @param copyUploadQuota       the total size of the files a visitor can upload into their copy
- * @param templateLanguages     the languages of the demo sets that are built into templates at the start, in that
- *                              order
- * @param uploadTypes           the media types a visitor can upload, told by the bytes of a file; the upload
- *                              components offer the files of their extensions
+ * @param templateLanguages     the languages of the demo sets that are built into templates at the start, in that order
+ * @param uploadTypes           the media types a visitor can upload, told by the bytes of a file
  * @param minFreeDisk           the free space on the disk of the data folder below which no visitor can upload
  * @param dataDir               the folder of the templates and the copies, with their files
  * @param templateRetryPause    how long the start waits before it tries again a template that failed for the first
  *                              time; the pause doubles with each failure that follows
  * @param templateRetryPauseMax the longest pause between two tries of a template, see {@link StandStartup}
- * @param autoStartup           whether the stand starts by itself once the application is ready, see
- *                              {@link StandStartup}; the tests start it themselves
+ * @param autoStartup           whether the stand starts by itself once the application is ready; the tests start it
+ *                              themselves
  */
 @ConfigurationProperties("docai.stand")
 public record StandProperties(Duration copyIdleTimeout,

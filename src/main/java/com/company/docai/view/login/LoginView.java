@@ -1,9 +1,12 @@
 package com.company.docai.view.login;
 
+import com.company.docai.demo.DemoDataLoader;
 import com.company.docai.stand.CopyNotMadeException;
 import com.company.docai.stand.StandLogin;
 import com.company.docai.stand.StandScope;
 import com.company.docai.stand.TemplateNotReadyException;
+import com.company.docai.view.usagehelp.UsageHelpView;
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
@@ -16,9 +19,11 @@ import com.vaadin.flow.server.VaadinSession;
 import io.jmix.core.CoreProperties;
 import io.jmix.core.MessageTools;
 import io.jmix.core.security.AccessDeniedException;
+import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.loginform.JmixLoginForm;
 import io.jmix.flowui.kit.component.ComponentUtils;
+import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.kit.component.loginform.EnhancedLoginForm;
 import io.jmix.flowui.kit.component.loginform.JmixLoginI18n;
 import io.jmix.flowui.view.*;
@@ -41,6 +46,9 @@ import java.util.Locale;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * The login form; on the stand a login first chooses the visitor's copy of the demo data by the language of the form.
+ */
 @Route(value = "login")
 @ViewController(id = "LoginView")
 @ViewDescriptor(path = "login-view.xml")
@@ -60,7 +68,12 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Autowired
     private Notifications notifications;
 
-    // the login of the stand, present only in its profile
+    @Autowired
+    private DialogWindows dialogWindows;
+
+    @Autowired
+    private DemoDataLoader demoDataLoader;
+
     @Autowired
     private ObjectProvider<StandLogin> standLogin;
 
@@ -71,6 +84,9 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     private Span languageWarning;
 
     @ViewComponent
+    private JmixButton usageHelpButton;
+
+    @ViewComponent
     private MessageBundle messageBundle;
 
     @Value("${ui.login.defaultUsername:}")
@@ -79,7 +95,6 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Value("${ui.login.defaultPassword:}")
     private String defaultPassword;
 
-    // the notice of an attempt on the stand that found no copy to work in, closed when the next attempt starts
     @Nullable
     private Notification standNotice;
 
@@ -87,6 +102,7 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     public void onInit(final InitEvent event) {
         initLocales();
         initDefaultCredentials();
+        initUsageHelp();
         showLanguageWarning(login.getSelectedLocale());
     }
 
@@ -104,6 +120,12 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
         login.setSelectedLocale(stand == null
                 ? VaadinSession.getCurrent().getLocale()
                 : stand.formLocale(coreProperties.getAvailableLocales()));
+    }
+
+    // outside the stand the scenarios tell the demo set of the database, so without one the form offers none
+    private void initUsageHelp() {
+        boolean stand = standLogin.getIfAvailable() != null;
+        usageHelpButton.setVisible(stand || demoDataLoader.getDemoSetLanguage().isPresent());
     }
 
     private void initDefaultCredentials() {
@@ -138,8 +160,7 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
             event.getSource().setEnabled(true);
             standNotice = openNotice("standGettingReady", Notifications.Type.WARNING);
         } catch (final CopyNotMadeException e) {
-            // what failed names paths and indexes of the server, which the log keeps with the tags of the copies for
-            // their keys, and the visitor does not need
+            // what failed names paths and indexes of the server: the log keeps it, and the visitor does not need it
             log.error("A copy of the demo data is not made at a login: {}", StandScope.withTags(e));
             event.getSource().setEnabled(true);
             standNotice = openNotice("standUnavailable", Notifications.Type.ERROR);
@@ -164,6 +185,12 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Subscribe("login")
     public void onLoginLocaleChanged(final EnhancedLoginForm.LocaleChangedEvent event) {
         showLanguageWarning(event.getValue());
+    }
+
+    @Subscribe(id = "usageHelpButton", subject = "clickListener")
+    public void onUsageHelpButtonClick(final ClickEvent<JmixButton> event) {
+        dialogWindows.view(this, UsageHelpView.class)
+                .open();
     }
 
     // on the stand a login in another language than the one of the copy of the browser deletes that copy
@@ -197,5 +224,6 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
         login.setI18n(loginI18n);
 
         languageWarning.setText(messageBundle.getMessage("languageWarning.text"));
+        usageHelpButton.setText(messageBundle.getMessage("usageHelpButton.text"));
     }
 }

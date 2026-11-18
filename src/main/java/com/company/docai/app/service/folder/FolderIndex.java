@@ -17,9 +17,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Folders by id with the ways up the tree among them: the parent of a folder, its path, its depth, and whether it lies
- * below another folder. A folder is looked up by its id, so a copy of it gets the same answers; a folder whose parent
- * is not among them stands at the top, as the root does.
+ * Folders by id with the ways up the tree among them.
  */
 public final class FolderIndex {
 
@@ -30,7 +28,7 @@ public final class FolderIndex {
     }
 
     /**
-     * Indexes the folders, keeping their order. Of two folders with the same id, the first one counts.
+     * Indexes the folders in their order; of two with the same id, the first counts.
      */
     public static FolderIndex of(Collection<Folder> folders) {
         return new FolderIndex(folders.stream()
@@ -98,8 +96,7 @@ public final class FolderIndex {
     }
 
     /**
-     * Returns the folders as a tree shows them: each folder right after its parent, and the folders with the same
-     * parent in their order here.
+     * Returns the folders as a tree shows them: each folder right after its parent.
      */
     public List<Folder> inTreeOrder() {
         List<Folder> all = List.copyOf(folders.values());

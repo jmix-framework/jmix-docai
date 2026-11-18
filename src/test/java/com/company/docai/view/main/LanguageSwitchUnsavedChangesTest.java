@@ -5,7 +5,6 @@ import com.company.docai.app.ui.action.UserMenuLanguageSwitchAction;
 import com.company.docai.model.user.User;
 import com.company.docai.view.user.UserDetailView;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.core.security.CurrentAuthentication;
@@ -26,8 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Locale;
-import java.util.Optional;
 
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
@@ -119,15 +118,6 @@ class LanguageSwitchUnsavedChangesTest {
     private UserMenuItem languageItem(String languageTag) {
         UserMenuItem.HasSubMenu item = (UserMenuItem.HasSubMenu) userMenu().getItem("languageMenuItem");
         return item.getSubMenu().getItem("userMenu_languageSwitch_%sUserMenuItem".formatted(languageTag));
-    }
-
-    private Button dialogButton(DialogAction.Type type) {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-        return dialog.getButtons().stream()
-                .filter(button -> button.getId().equals(Optional.of(type.getId())))
-                .findFirst()
-                .orElseThrow();
     }
 
     private boolean pageReloadRequested() {

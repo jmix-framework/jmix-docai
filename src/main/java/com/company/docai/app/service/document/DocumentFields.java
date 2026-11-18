@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 
 /**
  * The fields of a document type: the dynamic attributes of the category the document is marked with.
- * A document loaded without its type or its dynamic attributes has nothing to compare or clear here,
- * so the paths that do not touch the fields leave them as they are.
  */
 @Component
 public class DocumentFields {
@@ -41,9 +39,7 @@ public class DocumentFields {
     }
 
     /**
-     * Tells whether the type or a field value of the edited document differs from the saved document.
-     * A value typed and then put back is no difference, and a field the edited document has not loaded
-     * is no difference either.
+     * Tells whether the type or a field value of the edited document differs from the saved one.
      */
     public boolean differ(Document edited, Document saved) {
         if (entityStates.isLoaded(edited, TYPE) && !Objects.equals(edited.getCategory(), saved.getCategory())) {
@@ -62,8 +58,7 @@ public class DocumentFields {
     }
 
     /**
-     * Clears the fields that the type of the document does not have, all of them for a document without
-     * a type, so that the save deletes their values. A type the add-on does not know keeps the values.
+     * Clears the fields that the type of the document does not have, so that the save deletes their values.
      */
     public void keepOwnType(Document document) {
         DynamicAttributes fields = fieldsOf(document);
@@ -108,7 +103,6 @@ public class DocumentFields {
     }
 
     private static boolean sameValue(@Nullable Object first, @Nullable Object second) {
-        // 1.50 and 1.5 are the same amount
         if (first instanceof BigDecimal firstAmount && second instanceof BigDecimal secondAmount) {
             return firstAmount.compareTo(secondAmount) == 0;
         }

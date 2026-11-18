@@ -36,8 +36,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Who reads and writes the comments: everyone who sees a document, also with the view level only, and nobody else.
- * "open.txt" inherits the access of the root, where employees edit; "viewed.txt" is viewed by peter alone; "closed.txt"
- * is viewed by maria alone.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -136,8 +134,7 @@ class DocumentCommentAccessTest {
         assertThat(dataManager.load(Id.of(comment)).one().getText()).isEqualTo("Please add the annex");
     }
 
-    // the access rules hold for a save past the comment service as well; they judge the author the saved comment
-    // names, and the comment service checks the stored one
+    // the access rules judge a save past the comment service by the author the saved comment names
     @Test
     void aCommentThatNamesAnotherAuthorIsNeitherSavedNorDeletedThroughDataManager() {
         DocumentComment comment = post(VIEWER, open, "Check item 4.2");

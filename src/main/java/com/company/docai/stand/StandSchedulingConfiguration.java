@@ -11,10 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 /**
- * The jobs of the stand on the Quartz scheduler of the application: the cleaner of the copies every minute and the loop
- * of the search queues every five seconds, each run after the one before is over, and the job that tries a template
- * again, whose one-shot triggers the start schedules, see {@link StandStartup}. A replaced copy goes in a job of its
- * own, see {@link CopyDeletionJob}.
+ * The jobs of the stand on the Quartz scheduler of the application.
  */
 @Configuration(proxyBeanMethods = false)
 @Profile("stand")
@@ -80,8 +77,7 @@ public class StandSchedulingConfiguration {
     }
 
     /**
-     * Runs the loop of the search queues every five seconds; a run that is due while the one before still runs waits
-     * for it.
+     * Runs the loop of the search queues every five seconds, a due run waiting for the one before.
      */
     @Bean
     public Trigger searchQueuesTrigger() {

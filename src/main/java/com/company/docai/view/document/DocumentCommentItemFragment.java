@@ -22,9 +22,7 @@ import io.jmix.flowui.view.ViewComponent;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * One comment in the list of the comments tab: who wrote it and when, whether it was changed, and its text with the
- * line breaks. The list creates it for each comment it draws and puts the comment into {@code commentDc}. The author
- * changes the own comment in place; the comments tab saves and deletes it.
+ * One comment of the comments tab, which the author changes in place and the tab saves and deletes.
  */
 @FragmentDescriptor("document-comment-item-fragment.xml")
 @RendererItemContainer("commentDc")
@@ -66,6 +64,7 @@ public class DocumentCommentItemFragment extends FragmentRenderer<HorizontalLayo
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
+        host().keepEscape(editCommentField);
         host().trackLength(editCommentField, editCommentLength, saveCommentButton);
     }
 

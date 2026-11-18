@@ -1,11 +1,9 @@
 /**
- * What the elements of the search palette share about typing: when an input method composes a word, and the hand-over
- * of the keys typed into the header field while the palette comes. The line of the palette asks the header field for
- * them with an event, and the opener of the field answers it.
+ * What the elements of the search palette share about typing: input methods and the hand-over of the keys typed into
+ * the header field.
  */
 export const HAND_OVER = 'docai-search-palette-hand-over';
 
-// the element where an input method composes a word now
 let composing = null;
 let following = false;
 
@@ -15,8 +13,7 @@ export function composes(event) {
     return event.isComposing || event.keyCode === 229;
 }
 
-// once for the page: the opener starts it as it reaches the page, so that a word begun in the header field before the
-// palette comes is known when the line takes the keys over
+// once for the page, so that a word begun in the header field before the palette comes is known at the hand-over
 export function followCompositions() {
     if (following) {
         return;
@@ -37,14 +34,13 @@ export function composesIn(element) {
     return composing !== null && element.contains(composing);
 }
 
-// the answer of the header field: an Enter it held back for the palette, an Esc that cancelled the opening
 export function heldKeys(enter, cancel) {
     return {enter, cancel};
 }
 
-// a field without an opener held nothing
-export function askHeldKeys(field) {
-    const asked = new CustomEvent(HAND_OVER, {detail: heldKeys(false, false)});
+// the palette asks for the keys of its opening; a field without an opener held nothing
+export function askHeldKeys(field, opening) {
+    const asked = new CustomEvent(HAND_OVER, {detail: {opening, ...heldKeys(false, false)}});
     field.dispatchEvent(asked);
 
     return asked.detail;

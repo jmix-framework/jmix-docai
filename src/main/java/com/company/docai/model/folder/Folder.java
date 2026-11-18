@@ -33,8 +33,8 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * A folder of the repository tree. One root folder, created by the changelog, holds the whole tree;
- * names are unique among the live folders of one parent and are case-sensitive.
+ * A folder of the repository tree; one root folder, created by the changelog, holds the whole tree. Names are unique
+ * among the live folders of one parent and are case-sensitive.
  */
 @JmixEntity
 @Entity
@@ -47,7 +47,7 @@ import java.util.UUID;
 public class Folder {
 
     /**
-     * The root folder, created by the Liquibase changelog.
+     * The root folder, created by the changelog.
      */
     public static final UUID ROOT_ID = UUID.fromString("1a6e3c0e-5b0f-4c55-9a3e-6f1d2c7b8e01");
 
@@ -70,16 +70,12 @@ public class Folder {
     private Folder parent;
 
     /**
-     * The name of a live folder and null for a deleted one, so that the unique constraint
-     * ignores deleted folders on any database.
+     * The name of a live folder, null for a deleted one, so the unique constraint skips deleted ones on any database.
      */
     @ExcludeFromAi
     @Column(name = "NAME_KEY")
     private String nameKey;
 
-    /**
-     * The access set in effect: the set of the parent for an inheriting folder, its own set otherwise.
-     */
     @JoinColumn(name = "ACCESS_SET_ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private AccessSet accessSet;

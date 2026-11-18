@@ -18,9 +18,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * Fills the document index when it is empty while live documents exist: at the first start with data, after
- * the index schema changes and after the OpenSearch data is lost. The add-on would enqueue the documents of a new
- * index itself, but in Jmix 3.1.0 it reads its enqueueing sessions without a user at startup and fails.
+ * Fills the document index when it is empty while live documents exist: in Jmix 3.1.0 the add-on fails to enqueue them
+ * at startup without a user.
  */
 @Component
 public class SearchIndexInitializer {
@@ -59,8 +58,7 @@ public class SearchIndexInitializer {
     }
 
     /**
-     * Enqueues every live document when the document index is empty and there are documents. The queue job
-     * indexes them in batches.
+     * Enqueues every live document when the document index is empty and there are documents.
      *
      * @return whether the documents were enqueued
      */

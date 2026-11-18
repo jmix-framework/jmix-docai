@@ -34,17 +34,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Reads the texts of files with Tika: for the AI the text of a document version, the file of a saved version or a
- * file uploaded into the card and not saved yet, and on the stand for the full-text search the whole text of a file,
- * see {@link com.company.docai.search.DocumentFileProcessor}. Tika detects the format by the content, so the AI reads
- * more formats than the full-text search, which takes the files whose extensions the search add-on knows.
- * <p>
- * The stand limits reading a file to {@code docai.files.text-timeout} of time and {@code docai.files.max-text-length}
- * characters of text, so a hostile file, such as a zip bomb or a broken PDF, leaves its document without text, found
- * by its name, and the application goes on. With the time limit a parse runs in a thread of the reader: its caller
- * gets the answer at the limit, and the parse is interrupted and loses its file; a parse that neither reads nor stops
- * keeps its thread until it ends. Without the limits, as elsewhere than on the stand, a file is parsed in the thread
- * of its caller, and the AI reads as much of its text as it takes.
+ * Reads the texts of files with Tika, on the stand within limits of time and length, so a zip bomb or a broken PDF
+ * leaves its document without text.
  */
 @Component
 public class DocumentTextReader {
@@ -78,9 +69,7 @@ public class DocumentTextReader {
     }
 
     /**
-     * Returns the text of the version with its whitespace tidied, at most {@link AiSettings#getMaxTextLength()}
-     * characters of it and a note where a longer text is cut, or nothing when the file has no text to read:
-     * pictures, scanned pages, an unknown format, a broken file, or a file that takes too long to read.
+     * Returns the text of the version, cut with a note after {@link AiSettings#getMaxTextLength()} characters.
      */
     public Optional<String> read(NewVersion version) {
         return switch (version) {
@@ -99,22 +88,16 @@ public class DocumentTextReader {
     }
 
     /**
-     * Returns the first characters of the text of a saved version, without a note where the text is cut, or nothing
-     * when the file has no text to read.
-     *
-     * @param maxLength how many characters of the text to read at most
+     * Returns the first characters of the text of a saved version, without a note where the text is cut.
      */
     public Optional<String> readStart(DocumentRevision revision, int maxLength) {
         return read(revision.getFileName(), () -> open(revision.getFile()), maxLength, false);
     }
 
     /**
-     * Returns the whole text of a file for the full-text search, parsed in the given context, or nothing when the file
-     * has no text to read, its text is longer than {@code docai.files.max-text-length} characters or it takes longer
-     * than {@code docai.files.text-timeout} to read.
+     * Returns the whole text of a file for the full-text search, or nothing when it exceeds the limits.
      */
     public Optional<String> readWhole(FileRef file, ParseContext context) {
-        // a handler of Tika takes -1 for no limit
         int limit = maxTextLength == null ? -1 : maxTextLength;
         Optional<Parsed> parsed = parse(file.getFileName(), () -> open(file), limit, context);
 
@@ -144,7 +127,6 @@ public class DocumentTextReader {
                 .map(parsed -> {
                     String text = tidy(parsed.text());
 
-                    // without the note the model takes the beginning for the whole text and says the rest is not there
                     return parsed.cut() && noteTheCut ? text + CUT.formatted(length) : text;
                 });
     }
@@ -164,14 +146,12 @@ public class DocumentTextReader {
             Thread.currentThread().interrupt();
             return Optional.empty();
         } catch (ExecutionException e) {
-            // the failure of a parse in a thread of the reader
             if (!WriteLimitReachedException.isWriteLimitReached(e.getCause())) {
                 return unreadable(fileName, e.getCause());
             }
 
             cut = true;
         } catch (SAXException e) {
-            // a long text stops at the limit, and its first part is what the model reads anyway
             if (!WriteLimitReachedException.isWriteLimitReached(e)) {
                 return unreadable(fileName, e);
             }
@@ -191,9 +171,7 @@ public class DocumentTextReader {
         return Optional.of(new Parsed(text, cut));
     }
 
-    // without the time limit the parse runs in the thread of the caller; with it, in a thread of the reader, which the
-    // caller leaves at the limit: false then, and the file is closed on the way out, so a parse that still reads it
-    // stops
+    // with the time limit the parse runs in a thread of the reader, and closing the file at the limit stops it
     private boolean parseInTime(String fileName, InputStream stream, BodyContentHandler handler, Metadata metadata,
                                 ParseContext context)
             throws IOException, SAXException, TikaException, ExecutionException, InterruptedException {
@@ -237,7 +215,6 @@ public class DocumentTextReader {
                 .strip();
     }
 
-    // the text a parse wrote, and whether the parse stopped at the length it was given
     private record Parsed(String text, boolean cut) {
     }
 }

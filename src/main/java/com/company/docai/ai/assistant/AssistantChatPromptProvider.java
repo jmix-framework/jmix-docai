@@ -13,8 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 /**
- * The system prompt of the assistant in the menu: the prompt of the AI Tools add-on, the rules of the documents, the
- * document statuses and the document types with their fields.
+ * The system prompt of the assistant in the menu.
  */
 @Component
 public class AssistantChatPromptProvider implements AiChatSystemPromptProvider {
@@ -60,8 +59,6 @@ public class AssistantChatPromptProvider implements AiChatSystemPromptProvider {
         this.today = today;
     }
 
-    // the add-on asks for the prompt on every message, so a new status, type or field reaches the model at once;
-    // a brace in the name of a status, a type or a field would break the template for every chat
     @Override
     public Resource getResource() {
         String statuses = statusService.loadAll().stream()

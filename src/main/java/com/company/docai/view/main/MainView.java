@@ -18,6 +18,7 @@ import com.company.docai.view.search.SearchPaletteView;
 import com.company.docai.view.user.UserRenderers;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.html.Div;
@@ -50,14 +51,17 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/**
+ * The main view: the menu with the assistant, the folders and the views, the header with the search field that opens
+ * the search palette, and the dashboard in place of a view at the root.
+ */
 @Route("")
 @ViewController(id = "MainView")
 @ViewDescriptor(path = "main-view.xml")
 public class MainView extends StandardMainView {
 
     /**
-     * The user setting with the mode of the search the person chose last: {@link DocumentSearchView#AI_MODE} or
-     * the search by words.
+     * The user setting with the mode of the search the person chose last.
      */
     public static final String SEARCH_MODE_SETTING = "docai.searchMode";
 
@@ -132,7 +136,6 @@ public class MainView extends StandardMainView {
         refreshDashboard();
     }
 
-    // the dashboard is no view, so it names itself in the header
     @Override
     protected String getTitleFromOpenedView() {
         return isDashboardShown()
@@ -140,7 +143,6 @@ public class MainView extends StandardMainView {
                 : super.getTitleFromOpenedView();
     }
 
-    // the open results stay until the palette runs the query in the chosen mode
     @Subscribe(id = "searchModeButton", subject = "clickListener")
     public void onSearchModeButtonClick(final ClickEvent<JmixButton> event) {
         chooseSearchMode(!aiSearch);
@@ -148,10 +150,9 @@ public class MainView extends StandardMainView {
 
     @Subscribe("searchPaletteOpener")
     public void onSearchPaletteOpenerOpen(final SearchPaletteOpener.OpenEvent event) {
-        openSearchPalette(event.getText());
+        openSearchPalette(event.getText(), event.getOpening());
     }
 
-    // the browser has given the field its text back and dropped the keys typed on the way: only the palette is left
     @Subscribe("searchPaletteOpener")
     public void onSearchPaletteOpenerCancel(final SearchPaletteOpener.CancelEvent event) {
         if (searchPalette != null) {
@@ -231,15 +232,13 @@ public class MainView extends StandardMainView {
     }
 
     /**
-     * The folder tree of the main menu. The repository plugs its own handlers into it while it is shown; on any
+     * The folder tree of the main menu, into which the repository plugs its own handlers while it is shown; on any
      * other view the tree opens the repository on the chosen folder.
      */
     public FolderTreeFragment getFolderTree() {
         return folderTree;
     }
 
-    // the assistant stands above the folders, apart from the views under them; the menu file cannot depend on the key,
-    // and an item hidden after the menu is drawn stays on the page
     private void initAssistantMenu() {
         ListMenu.MenuItem assistantChat = menu.getMenuItem(ASSISTANT_CHAT_ITEM);
 
@@ -255,23 +254,18 @@ public class MainView extends StandardMainView {
     }
 
     private void initFolderTree() {
-        // the views scroll with the folders, under the brand, the assistant and the folder field that stay in sight
         folderTree.addUnderFolders(navigation);
 
         openFoldersInRepository();
-        // over a narrow window the menu covers the view, so a chosen folder closes it, as a chosen view does
         folderTree.addSelectionListener(folder -> closeOverlayDrawer());
     }
 
-    // the repository plugs its own handlers into the tree while it is shown
     private void restoreFolderTree(AfterNavigationEvent event) {
         if (event.getActiveChain().stream().noneMatch(RepositoryView.class::isInstance)) {
             openFoldersInRepository();
         }
     }
 
-    // outside the repository no folder is the current one, a chosen folder opens there, and a document of the
-    // favorites opens over the view, as from the search
     private void openFoldersInRepository() {
         FavoritesFragment favorites = folderTree.getFavorites();
         folderTree.setSelectionHandler(this::openRepository);
@@ -294,7 +288,6 @@ public class MainView extends StandardMainView {
         documentCards.open(this, document, closeEvent -> refreshFavorites());
     }
 
-    // the card may mark the document with its star or take it away
     private void refreshFavorites() {
         folderTree.getFavorites().reload();
         folderTree.refreshFavorites();
@@ -307,7 +300,6 @@ public class MainView extends StandardMainView {
     }
 
     private void initSearch() {
-        // the field searches nothing itself: the browser decides what in it opens the palette
         searchPaletteOpener.setField(searchField);
         searchModeButton.setVisible(aiSettings.isAvailable());
 
@@ -318,7 +310,6 @@ public class MainView extends StandardMainView {
         showSearchMode();
     }
 
-    // the field shows the words and the mode of the open search and is empty elsewhere
     private void showSearchOf(AfterNavigationEvent event) {
         boolean searchOpen = event.getActiveChain().stream().anyMatch(DocumentSearchView.class::isInstance);
         QueryParameters parameters = event.getLocation().getQueryParameters();
@@ -334,11 +325,10 @@ public class MainView extends StandardMainView {
         }
     }
 
-    // one palette at a time: a second click or shortcut while it is open does nothing. The text is the one the browser
-    // shows, which the field sends the server only when the person leaves it. The main view is the origin of the
-    // search and of the tag, so an open search page shows them.
-    private void openSearchPalette(@Nullable String text) {
-        if (searchPalette != null) {
+    // one palette at a time and none over a strictly modal dialog: the request passes over an inert page, so they are
+    // checked here. The main view is the origin of the search and of the tag, so an open search page shows them.
+    private void openSearchPalette(@Nullable String text, int opening) {
+        if (searchPalette != null || UI.getCurrent().hasModalComponent()) {
             return;
         }
 
@@ -348,6 +338,7 @@ public class MainView extends StandardMainView {
         SearchPaletteView palette = window.getView();
         palette.setOrigin(searchField);
         palette.setQuery(text);
+        palette.setOpening(opening);
         palette.setAiMode(aiSearch);
         palette.setModeChangeHandler(this::chooseSearchMode);
         palette.setSearchHandler((query, ai) -> searchNavigation.openSearch(this, query, ai));
@@ -356,7 +347,6 @@ public class MainView extends StandardMainView {
         palette.setFolderOpenHandler(folder -> folderTree.loadAndSelect(folder.getId()));
         palette.setTagOpenHandler(tag -> searchNavigation.openTag(this, tag));
 
-        // a Vaadin dialog has no style of its own: the palette looks as its class says
         window.addClassName("search-palette");
 
         window.addAfterCloseListener(closeEvent -> {
@@ -372,8 +362,6 @@ public class MainView extends StandardMainView {
         window.open();
     }
 
-    // in the repository the list opens the card, so that a save refreshes its table; elsewhere the favorites are reread
-    // after the card. The card opens over the palette, which takes the focus back.
     private void openPaletteDocument(Document document) {
         if (UiComponentUtils.getCurrentView() instanceof RepositoryView repository) {
             repository.openCard(document);
@@ -398,7 +386,6 @@ public class MainView extends StandardMainView {
                 aiSearch ? "searchField.aiPlaceholder" : "searchField.placeholder"));
     }
 
-    // a document of the dashboard opens over it, and the dashboard and the favorites follow what the card changed
     private void initDashboard() {
         dashboard.setDocumentOpenHandler(document -> documentCards.openIfAvailable(this, document,
                 closeEvent -> afterDashboardCard()));
@@ -409,7 +396,6 @@ public class MainView extends StandardMainView {
         dashboard.setAssistantHandler(assistant::openAssistant);
     }
 
-    // the dashboard stands in place of a view, so it reads its blocks whenever the root shows it
     private void refreshDashboard() {
         if (isDashboardShown()) {
             dashboard.refresh();
@@ -425,7 +411,6 @@ public class MainView extends StandardMainView {
         return getContent().getContent() == getInitialLayout();
     }
 
-    // the menu shows the person as the comments and the dashboard do: the initials in the color of the user
     private Avatar createAvatar(User user, String name) {
         Avatar avatar = uiComponents.create(Avatar.class);
         userRenderers.fillAvatar(avatar, name, user, user.getUsername());

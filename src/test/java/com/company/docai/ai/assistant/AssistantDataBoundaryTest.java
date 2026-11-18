@@ -54,8 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 /**
- * What the data tools of the AI Tools add-on give the assistant in the menu: the documents, the folders, the document
- * types and the tags, and of them only what the person who asks may open, wherever a query reaches them.
+ * What the data tools of the AI Tools add-on give the assistant in the menu: only what the person who asks may open.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -214,8 +213,7 @@ class AssistantDataBoundaryTest {
                 .contains("by their folder, name, status, type, tags or date");
     }
 
-    // the vocabulary keeps one tag for a name whatever its case, and a query that compares the name as written
-    // misses a tag spelled otherwise
+    // one tag a name whatever its case: a query that compares the name as written misses a tag spelled otherwise
     @Test
     void theRulesSayThatATagNameIgnoresCase() throws IOException {
         assertThat(promptProvider.getResource().getContentAsString(StandardCharsets.UTF_8))

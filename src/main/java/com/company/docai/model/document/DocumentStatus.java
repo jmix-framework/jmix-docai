@@ -26,11 +26,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * A status of documents from the dictionary that the administrator keeps: a name, a color and a place in the lists,
- * and the rules of the documents in it. A new document gets the one initial status; a document moves to the statuses
- * its status lists, or to any status when its status allows that; a locked status keeps the name, the date, the type
- * with its fields and the version of its documents. A name is unique whatever its case. A status is deleted for good,
- * and only while no document has it.
+ * A status of documents from the dictionary that the administrator keeps.
  */
 @JmixEntity
 @Entity
@@ -45,8 +41,7 @@ public class DocumentStatus {
     public static final int MAX_NAME_LENGTH = 50;
 
     /**
-     * The id of the default initial status Draft, as the changelog creates it. Only the demo sets and the tests refer
-     * to the default statuses: the rules read the flags.
+     * The default initial status Draft; only demo sets and tests use the default ids, the rules read the flags.
      */
     public static final UUID DRAFT_ID = UUID.fromString("0f6b1b3e-5c1a-4b9e-8a52-6a1f3d2c7e01");
 
@@ -75,8 +70,7 @@ public class DocumentStatus {
     private String name;
 
     /**
-     * The name in lower case, made by the application, so that the unique constraint holds whatever the case on any
-     * database and also against two saves at once.
+     * The name in lower case for the unique constraint, whatever the case, on any database and for two saves at once.
      */
     @ExcludeFromAi
     @Column(name = "NAME_KEY", nullable = false, length = MAX_NAME_LENGTH)

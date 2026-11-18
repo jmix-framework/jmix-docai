@@ -50,7 +50,6 @@ public class DynAttrDraftPayloadSupport extends DraftPayloadSupport {
             MetaPropertyPath path = metadataTools.resolveMetaPropertyPathOrNull(metaClass, name);
             JsonElement value = dynamicAttributes.get(name);
 
-            // a field removed from the type since the draft, or a value that is not a single datatype value
             if (path == null || !path.getRange().isDatatype() || !(value.isJsonNull() || value.isJsonPrimitive())) {
                 log.warn("Skipping drafted dynamic attribute '{}' of {}", name, metaClass.getName());
                 continue;

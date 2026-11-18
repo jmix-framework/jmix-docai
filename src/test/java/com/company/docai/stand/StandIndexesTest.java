@@ -20,6 +20,8 @@ import org.opensearch.client.opensearch.indices.CloneIndexResponse;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexResponse;
 import org.opensearch.client.opensearch.indices.ExistsRequest;
+import org.opensearch.client.opensearch.indices.IndexSettingBlocks;
+import org.opensearch.client.opensearch.indices.IndexSettings;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 import org.opensearch.client.opensearch.indices.PutIndicesSettingsRequest;
 import org.opensearch.client.opensearch.indices.PutIndicesSettingsResponse;
@@ -61,13 +63,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * The indexes of the scopes of the stand against a stand-in of OpenSearch and of the queue of the search add-on: the
- * loop processes the queue of each live copy in its scope and lets a copy go only once its batch in flight is done; a
- * template renews its indexes, completes its queue and its vectors in its scope and seals both indexes, keeping the
- * vectors it has when they take too long; a copy gets clones of the indexes of its template, open for writes, and a
- * failed clone leaves the copy none; a scope loses its indexes by their exact names and has them when OpenSearch has
- * each of them; the indexes of copies an earlier run left go one by one by their exact names. With search off, nothing
- * reaches OpenSearch or the queues.
+ * The indexes of the scopes of the stand against a stand-in of OpenSearch and of the queue of the search add-on.
  */
 @ExtendWith(OutputCaptureExtension.class)
 class StandIndexesTest {
@@ -290,8 +286,7 @@ class StandIndexesTest {
         assertThat(indexes.exist(template)).isFalse();
     }
 
-    // an earlier run of the application leaves the indexes of the copies it had; only the names the stand gives a
-    // copy go, never one of another prefix or of another shape
+    // only the names the stand gives a copy go, never one of another prefix or of another shape
     @Test
     void theIndexesOfGoneCopiesGoOneByOneByTheirExactNames() throws IOException {
         String gone = "b5w_copy_" + KEY;
@@ -380,9 +375,13 @@ class StandIndexesTest {
         order.verify(indices).refresh(refresh.capture());
         order.verify(indices).putSettings(settings.capture());
         assertThat(refresh.getValue().index()).containsExactly("b5w_tpl_en_document", "b5w_tpl_en_document_vectors");
+        IndexSettings index = settings.getValue().settings().index();
         assertThat(settings.getValue().index()).containsExactly("b5w_tpl_en_document", "b5w_tpl_en_document_vectors");
-        assertThat(settings.getValue().settings().index().blocks().write()).isTrue();
-        assertThat(settings.getValue().settings().index().numberOfReplicas()).isZero();
+        assertThat(index).isNotNull();
+        IndexSettingBlocks blocks = index.blocks();
+        assertThat(blocks).isNotNull();
+        assertThat(blocks.write()).isTrue();
+        assertThat(index.numberOfReplicas()).isZero();
     }
 
     @Test
@@ -471,7 +470,6 @@ class StandIndexesTest {
         verifyNoInteractions(client, indices, queue, dataManager, vectorIndex);
     }
 
-    // what OpenSearch lists for a pattern
     private static ResolveIndexResponse listing(String... names) {
         List<ResolveIndexItem> items = Stream.of(names)
                 .map(name -> ResolveIndexItem.of(item -> item.name(name)

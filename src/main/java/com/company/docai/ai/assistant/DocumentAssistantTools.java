@@ -30,10 +30,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * The tools the assistants call to read a document: the assistant of a document card and the assistant in the menu,
- * whose add-on registers them as a {@link JmixAiTool}. They only read: the proposal of a type and fields changes
- * nothing. Each tool works as the person who asks, so the model gets only what that person may open, and shows
- * the status the model wrote in the chat that asks.
+ * The tools the assistants call to read a document, each as the person who asks.
  */
 @Component
 public class DocumentAssistantTools implements JmixAiTool {
@@ -130,8 +127,6 @@ public class DocumentAssistantTools implements JmixAiTool {
                 .orElse(UNAVAILABLE));
     }
 
-    // the card asks on a thread of its own, where nobody is signed in, and names the person; the chat in the menu
-    // asks from a task that already runs as the person
     private String asThePerson(String status, ToolContext context, Supplier<String> work) {
         Runnable done = showStatus(status, context);
         String username = (String) context.getContext().get(USERNAME);
@@ -143,7 +138,6 @@ public class DocumentAssistantTools implements JmixAiTool {
         }
     }
 
-    // a model may leave the status out, and a chat takes no empty one; the chat in the menu has a feed of its own
     private Runnable showStatus(@Nullable String status, ToolContext context) {
         if (status == null || status.isBlank()) {
             return () -> {
@@ -187,7 +181,6 @@ public class DocumentAssistantTools implements JmixAiTool {
                 .flatMap(documentTextReader::read);
     }
 
-    // the latest comments that fit into what the model reads, put back in the order they were written
     private String commentsOf(Document document) {
         List<DocumentComment> latest = dataManager.load(DocumentComment.class)
                 .query("select c from DocumentComment c where c.document = :document"
@@ -228,7 +221,6 @@ public class DocumentAssistantTools implements JmixAiTool {
         return entries.size() < latest.size() ? EARLIER_LEFT_OUT + "\n\n" + comments : comments;
     }
 
-    // the tags as "Fill with AI" would add them, not as the model proposed them
     private String describe(ClassificationProposal proposal, Document document) {
         String fields = proposal.fields().stream()
                 .map(field -> field.code() + " = " + field.value())

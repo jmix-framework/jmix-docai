@@ -13,6 +13,7 @@ import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.KeyPressEvent;
 import com.vaadin.flow.component.internal.UIInternals.JavaScriptInvocation;
 import com.vaadin.flow.dom.Element;
+import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.Views;
 import io.jmix.flowui.component.textfield.TypedTextField;
@@ -60,6 +61,9 @@ class MainViewSearchTest {
 
     @Autowired
     private RecentQueries recentQueries;
+
+    @Autowired
+    private Dialogs dialogs;
 
     @BeforeEach
     void answerNothing() {
@@ -116,6 +120,33 @@ class MainViewSearchTest {
 
         assertThat(TestPalettes.isOpen()).isFalse();
         assertThat(recentQueries.load()).isEmpty();
+    }
+
+    @Test
+    void aClickRightAfterAnEscOpensTheNextPalette() {
+        SearchPaletteView cancelled = TestPalettes.open("lease");
+
+        TestPalettes.cancel();
+        TestPalettes.openAfterCancel("lease");
+
+        assertThat(TestPalettes.isOpen()).isTrue();
+        assertThat(UiTestUtils.<View<?>>getLastOpenedViewDialog()).isNotSameAs(cancelled);
+    }
+
+    // the request of the opener passes over an inert page, so the main view keeps a palette from opening over a
+    // strictly modal dialog
+    @Test
+    void noPaletteOpensOverAStrictlyModalDialog() {
+        dialogs.createMessageDialog()
+                .withText("A dialog")
+                .withModal(true)
+                .open();
+
+        // the response puts the dialog on the page, which makes it modal, before the next click comes
+        TestPalettes.sentScripts();
+        TestPalettes.open("lease");
+
+        assertThat(TestPalettes.isOpen()).isFalse();
     }
 
     @Test

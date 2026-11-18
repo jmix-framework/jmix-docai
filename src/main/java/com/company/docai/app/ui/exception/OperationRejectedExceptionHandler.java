@@ -11,8 +11,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Shows a business-rule rejection as a warning, so that views can call services without
- * catching their exceptions.
+ * Shows a business-rule rejection as a warning, so that views need not catch the exceptions of services.
  */
 @Component
 @Order(JmixOrder.HIGHEST_PRECEDENCE + 40)
@@ -29,7 +28,6 @@ public class OperationRejectedExceptionHandler extends AbstractUiExceptionHandle
 
     @Override
     protected void doHandle(String className, String message, @Nullable Throwable throwable) {
-        // a rejection by a rule is not an application error
         log.debug("Operation rejected: {}", message);
 
         notifications.create(message)

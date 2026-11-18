@@ -1,22 +1,12 @@
 import { askHeldKeys, composes, composesIn } from './typing.js';
 
-// the keys that the palette handles itself: the browser does nothing with them, so the focus never leaves the line
 const KEYS = new Set(['ArrowDown', 'ArrowUp', 'Tab', 'Enter']);
 
-// the keys that edit the line when they come after a click elsewhere in the palette
 const EDITING_KEYS = new Set(['Backspace', 'Delete']);
 
 /**
- * The query line of the search palette, the element of the server component SearchPaletteLine. The rows never take
- * the focus, so a screen reader meets the line as a combobox: the text field that the server hands the line controls
- * the list that the `list` attribute names, and the row the arrows chose is its active descendant. The arrows, Tab and
- * Enter, and Shift+Delete while a row is chosen, go to the server with the text the line shows at the press, and the
- * browser does nothing with them; an Enter held down goes once. A click on a chip, on the wand or on a cross gives the
- * line the focus back with the caret after its text at once, before the server answers the click. A click elsewhere
- * in the palette may take the focus and select text, as on any page; the next key brings the focus back to the line
- * and acts there, unless it comes with Cmd, Ctrl or Alt. The card of a document opens inside the dialog of the
- * palette, and its keys and clicks stay its own. As the palette opens, the line takes over the keys typed into the
- * header field while the palette came.
+ * The query line of the search palette, the element of SearchPaletteLine: a combobox for a screen reader that sends the
+ * keys the palette handles to the server with the text it shows.
  */
 class SearchPaletteLine extends HTMLElement {
 
@@ -24,8 +14,7 @@ class SearchPaletteLine extends HTMLElement {
     #dialog = null;
     #activeRow = '';
 
-    // the button takes the focus, and the text the opening selected stays selected: a character typed before the
-    // server answers would go to the button or replace the text
+    // a button takes the focus: a character typed before the server answers would go to it or replace the selection
     #focusAfterButton = event => {
         if (this.#inPalette(event) && event.composedPath().some(node => node.localName === 'vaadin-button')) {
             this.focusAtEnd();
@@ -39,8 +28,7 @@ class SearchPaletteLine extends HTMLElement {
         }
     };
 
-    // a key typed after a click elsewhere in the palette; it is taken on its way down, as the dialog moves the focus
-    // on Tab while the key bubbles up
+    // taken on its way down: the dialog moves the focus on Tab while the key bubbles up
     #returnKey = event => {
         if (!this.#inPalette(event) || event.composedPath().includes(this.#field) || composes(event)
                 || event.metaKey || event.ctrlKey || event.altKey) {
@@ -67,7 +55,6 @@ class SearchPaletteLine extends HTMLElement {
     }
 
     connectedCallback() {
-        // the line shows nothing itself
         this.hidden = true;
         this.#dialog = this.closest('vaadin-dialog');
         this.#listen();
@@ -78,7 +65,6 @@ class SearchPaletteLine extends HTMLElement {
         this.#dialog = null;
     }
 
-    // the server sends the field whenever the line reaches the page; the line keeps it while it is off the page
     watch(field) {
         if (field === this.#field) {
             return;
@@ -92,9 +78,7 @@ class SearchPaletteLine extends HTMLElement {
         }
     }
 
-    // the caret goes after the text also when the line has the focus already: the opening selects the whole text,
-    // which the next character would replace. A palette that closes, as when its card leaves for another page, gives
-    // the focus back to the header field instead.
+    // also when the line has the focus: the opening selects the whole text, which the next character would replace
     focusAtEnd() {
         const input = this.#field?.inputElement;
 
@@ -104,23 +88,29 @@ class SearchPaletteLine extends HTMLElement {
         }
     }
 
-    // the keys typed into the header field after the click belong to the palette, which the server opened with the
-    // text of the click: the letters replace that text, as typing into the open palette would, and the header field
-    // gets it back; an Enter that the header field held back then goes as a key of the line. A palette that an Esc
-    // cancelled on its way takes nothing, and the server closes it.
-    takeOver(headerField) {
+    // the keys typed into the header field after the click belong to the palette, a held-back Enter too; a palette that
+    // an Esc cancelled on its way takes nothing and closes in this very task, before the browser paints it
+    takeOver(headerField, opening) {
         // Flow sends null for a header field that is not on the page
         if (!headerField) {
             return;
         }
 
         // every palette that opens ends the wait of the header field, whatever comes of the keys
-        const held = askHeldKeys(headerField);
+        const held = askHeldKeys(headerField, opening);
         const input = this.#field?.inputElement;
 
-        // the person cancelled the palette or went elsewhere before it opened, or still composes a word, which a move
-        // of the text would cut
-        if (!input || held.cancel || !headerField.contains(document.activeElement) || composesIn(headerField)) {
+        if (held.cancel) {
+            // Flow removes the dialog on its closed event, which vaadin-dialog fires also for one opened in this task
+            if (this.#dialog) {
+                this.#dialog.opened = false;
+            }
+
+            return;
+        }
+
+        // gone elsewhere before the palette opened, or still composing a word, which a move of the text would cut
+        if (!input || !headerField.contains(document.activeElement) || composesIn(headerField)) {
             return;
         }
 
@@ -168,7 +158,7 @@ class SearchPaletteLine extends HTMLElement {
         }));
     }
 
-    // the field selects its whole text as it takes the focus; the line goes on as the person left it
+    // until the server turns autoselect off after the opening, the field selects its whole text as it takes the focus
     #focusAsLeft() {
         const input = this.#field.inputElement;
         const {selectionStart, selectionEnd, selectionDirection} = input;
@@ -183,8 +173,7 @@ class SearchPaletteLine extends HTMLElement {
         return dialog !== undefined && dialog === this.#dialog;
     }
 
-    // Shift+Delete removes the chosen row when it is a recent search; without a chosen row it edits the line, and with
-    // Ctrl, Alt or Cmd it is a shortcut of the browser. The repeats of an Enter held down would run the next choice.
+    // Shift+Delete removes the chosen recent search; the repeats of an Enter held down would run the next choice
     #handles(event) {
         const removes = event.key === 'Delete' && event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey
             && this.#activeRow !== '';
@@ -220,8 +209,7 @@ class SearchPaletteLine extends HTMLElement {
     }
 }
 
-// what came between the start and the end that stayed: the letters typed, or nothing when letters were only deleted.
-// The texts are compared by characters, not by their UTF-16 halves, so that no emoji is cut in two.
+// the letters typed between the start and the end that stayed, by characters, not UTF-16 halves, so no emoji is cut
 function typed(before, now) {
     const was = Array.from(before);
     const is = Array.from(now);

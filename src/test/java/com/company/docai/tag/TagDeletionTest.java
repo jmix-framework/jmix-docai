@@ -37,9 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * A tag is deleted for good and only when no document carries it, a document in the trash included: the tag service
- * refuses the rest, and the foreign key of the link table stops what goes past it. The documents keep their tags
- * through the trash and through the changes that do not touch the tags.
+ * A tag is deleted for good and only when no document carries it, a document in the trash included.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)

@@ -9,6 +9,8 @@
                          classNames="login-brand-logo"/>
                 <h1 id="brandName" text="msg://brandName" classNames="login-brand-name"/>
             </div>
+            <button id="usageHelpButton" text="msg://usageHelpButton.text" icon="QUESTION_CIRCLE"
+                    themeNames="tertiary small" classNames="login-usage-help"/>
             <loginForm id="login"
                        forgotPasswordButtonVisible="false"
                        rememberMeVisible="false">
@@ -23,7 +25,6 @@
                               username="msg://loginForm.errorUsername"
                               password="msg://loginForm.errorPassword"/>
             </loginForm>
-            <!-- the stand shows it when the language of the form differs from the one of the visitor's demo data -->
             <span id="languageWarning" text="msg://languageWarning.text" visible="false"
                   classNames="login-language-warning"/>
         </div>

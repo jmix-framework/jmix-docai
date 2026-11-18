@@ -29,8 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 /**
- * The preview of an item of the trash: the current version of a document, or what comes back together with
- * a folder. A document of the folder opens its own preview with a way back to the folder.
+ * The preview of an item of the trash: the current version of a document, or what comes back together with a folder.
  */
 @FragmentDescriptor("trash-preview-fragment.xml")
 public class TrashPreviewFragment extends Fragment<VerticalLayout> {
@@ -81,7 +80,6 @@ public class TrashPreviewFragment extends Fragment<VerticalLayout> {
                     .count();
 
             contentsDc.setItems(contents);
-            // the location says something only when the folder has subfolders
             contentsGrid.getColumnByKey("location").setVisible(contents.stream()
                     .anyMatch(content -> !content.getLocation().isEmpty()));
             contentsSummary.setText(messageBundle.formatMessage("contentsSummary", folders,

@@ -39,8 +39,7 @@ import java.util.function.Consumer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The tool that reads the comments of a document for the three assistants, called the way the model calls it: in
- * the card with the person who asks in the tool context, in the chat of the menu as the person signed in.
+ * The tool that reads the comments of a document for the three assistants, called the way the model calls it.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -183,7 +182,6 @@ class DocumentCommentsToolTest {
         assertThat(comments).contains("Fine by me.", "The penalty is waived.");
     }
 
-    // a comment written by the person the given minutes ago
     private DocumentComment comment(Document document, String author, String text, int minutesAgo) {
         DocumentComment comment = systemAuthenticator.withUser(author, () -> commentService.post(document, text));
         DocumentComment stored = dataManager.load(Id.of(comment)).one();

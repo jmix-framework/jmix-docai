@@ -38,8 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The tags of a document as the card saves them: whoever may change the document sets its tags, a new tag goes into
- * the vocabulary with the document, and only the administrator renames or deletes a tag.
+ * The tags of a document as the card saves them.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -247,7 +246,6 @@ class DocumentTagsTest {
         dataManager.save(stored);
     }
 
-    // the document as the card loads it
     private Document editable(Document document) {
         return dataManager.load(Document.class)
                 .id(document.getId())

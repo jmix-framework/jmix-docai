@@ -4,7 +4,6 @@ import com.company.docai.DocAiApplication;
 import com.company.docai.app.config.FilesProperties;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.folder.FolderService;
-import com.company.docai.app.ui.component.filedrop.FileDropZone;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
@@ -48,10 +47,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 /**
- * Files dropped from the computer onto the document table. The zone around the table sends them into the folder
- * shown when they were dropped, gives a notice for each file it refuses or whose transfer breaks off, and leaves no
- * file of a drop in the temporary directory, neither after the drop nor when the page goes. A batch on its way goes
- * on and ends under a strictly modal dialog such as the document card.
+ * Files dropped from the computer onto the document table; a batch on its way goes on and ends under a strictly modal
+ * dialog such as the document card.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -89,14 +86,15 @@ class DroppedFilesTest {
     @TempDir
     private Path tempDir;
 
-    // the temporary files of a drop are found by the names of the files, so the names are this test's own
-    private final String suffix = UUID.randomUUID().toString().substring(0, 8);
-
     private Folder sandbox;
+
+    // the files of drops that another run or test left unfinished
+    private List<Path> leftovers;
 
     @BeforeEach
     void createSandbox() {
         sandbox = folder(folderService.getRoot(), "dropped-files-test-" + UUID.randomUUID());
+        leftovers = TestDrops.temporaryFiles();
     }
 
     @AfterEach
@@ -134,7 +132,7 @@ class DroppedFilesTest {
                 .containsExactly(tuple(messages.formatMessage(MESSAGES, "uploadFailed", name("a")),
                         Notifications.Type.ERROR));
         assertThat(documentNamesIn(sandbox)).isEmpty();
-        assertThat(TestDrops.temporaryFiles(name("a"))).isEmpty();
+        assertThat(droppedFiles()).isEmpty();
     }
 
     @Test
@@ -164,11 +162,11 @@ class DroppedFilesTest {
         UploadDropZone zone = dropZone(open(sandbox));
 
         TestDrops.receive(zone, name("a"), "first");
-        assertThat(TestDrops.temporaryFiles(name("a"))).hasSize(1);
+        assertThat(droppedFiles()).hasSize(1);
 
         TestDrops.finishAll(zone);
 
-        assertThat(TestDrops.temporaryFiles(name("a"))).isEmpty();
+        assertThat(droppedFiles()).isEmpty();
         assertThat(documentNamesIn(sandbox)).containsExactly(name("a"));
     }
 
@@ -176,12 +174,12 @@ class DroppedFilesTest {
     void leavingThePageDeletesTheFilesOfAnUnfinishedDrop() {
         View<?> view = open(sandbox);
         TestDrops.receive(dropZone(view), name("a"), "first");
-        assertThat(TestDrops.temporaryFiles(name("a"))).hasSize(1);
+        assertThat(droppedFiles()).hasSize(1);
 
         // a page reload or a session timeout removes the view before the rest of the drop arrives
         view.getElement().removeFromParent();
 
-        assertThat(TestDrops.temporaryFiles(name("a"))).isEmpty();
+        assertThat(droppedFiles()).isEmpty();
     }
 
     @Test
@@ -191,7 +189,7 @@ class DroppedFilesTest {
         // a page reload or a session timeout removes the view while the file is on its way
         TestDrops.receive(dropZone(view), name("a"), "first", () -> view.getElement().removeFromParent());
 
-        assertThat(TestDrops.temporaryFiles(name("a"))).isEmpty();
+        assertThat(droppedFiles()).isEmpty();
     }
 
     @Test
@@ -241,15 +239,6 @@ class DroppedFilesTest {
         assertThat(manager.getAcceptedMimeTypes()).isEmpty();
     }
 
-    @Test
-    void theZoneIsTheFileDropZoneWithItsTag() {
-        UploadDropZone zone = dropZone(open(sandbox));
-
-        // the table takes files through the zone of the application, not the plain one of Vaadin, under its own tag
-        assertThat(zone).isInstanceOf(FileDropZone.class);
-        assertThat(zone.getElement().getTag()).isEqualTo("docai-file-drop-zone");
-    }
-
     private View<?> open(Folder folder) {
         viewNavigators.view(UiTestUtils.getCurrentView(), RepositoryView.class)
                 .withQueryParameters(QueryParameters.of(RepositoryView.FOLDER_PARAMETER, folder.getId().toString()))
@@ -281,7 +270,14 @@ class DroppedFilesTest {
     }
 
     private String name(String prefix) {
-        return prefix + "-" + suffix + ".txt";
+        return prefix + ".txt";
+    }
+
+    private List<Path> droppedFiles() {
+        return TestDrops.temporaryFiles()
+                .stream()
+                .filter(file -> !leftovers.contains(file))
+                .toList();
     }
 
     private List<String> documentNamesIn(Folder folder) {

@@ -22,12 +22,9 @@ import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 /**
- * Renderers of folders in grids, the path of a folder in one line, and the key that marks a folder or a document with
- * its own access.
- * In the name column of a folder tree the icon and the name are a label inside a span that selects
- * the folder: the tree toggle expands a folder on any click inside it except a click on a label, so
- * a click on the name selects, and only the chevron expands or collapses. A greyed folder is only
- * the way to folders and documents the user has access to.
+ * Renderers of folders in grids, the path of a folder in one line, and the key that marks an item with its own access.
+ * In a folder tree the name is a label, since the tree toggle expands a folder on any click inside it except a click on
+ * a label: a click on the name selects, and only the chevron expands.
  */
 @Component
 public class FolderRenderers {
@@ -53,8 +50,7 @@ public class FolderRenderers {
     }
 
     /**
-     * The renderer of the name column that also shows the number of documents after each name and a key
-     * at the folders with their own access that the user manages.
+     * The renderer of the name column with the number of documents and the key of an own access the user manages.
      */
     public Renderer<Folder> treeNameRenderer(TreeDataGrid<Folder> tree, Predicate<Folder> greyed,
                                              Predicate<Folder> ownAccess, ToLongFunction<Folder> documentCount) {
@@ -72,8 +68,8 @@ public class FolderRenderers {
     }
 
     /**
-     * Adds the key that marks an item with its own access to the label of the item's name. What is inside
-     * the label takes no pointer events, so the label carries the hint.
+     * Adds the key of an own access to the label of the item's name, which carries the hint as its content takes no
+     * pointer events.
      */
     public void markOwnAccess(HasComponents label) {
         String ownAccess = messages.getMessage(getClass(), "ownAccess.title");

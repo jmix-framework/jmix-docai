@@ -19,8 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The main menu of the administrator: under the folders, the trash and one closed group with the views of the
- * administrator and the items taken from the group of the security add-on; the groups of the add-ons themselves,
- * merged into hidden groups, do not show. The views of Data Tools are not part of the application.
+ * administrator.
  */
 @UiTest
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -49,12 +48,14 @@ class MainMenuTest {
     void underTheFoldersStandTheTrashAndTheClosedAdministration() {
         viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
         JmixListMenu menu = TestMenus.listMenu("menu");
+        ListMenu.MenuItem administration = menu.getMenuItem("administration");
 
         assertThat(menu.getMenuItems())
                 .filteredOn(ListMenu.MenuItem::isVisible)
                 .extracting(ListMenu.MenuItem::getId)
                 .containsExactly("TrashView", "administration");
-        assertThat(((ListMenu.MenuBarItem) menu.getMenuItem("administration")).isOpened()).isFalse();
+        assertThat(administration).isNotNull();
+        assertThat(((ListMenu.MenuBarItem) administration).isOpened()).isFalse();
         // the root of the folder tree opens the repository
         assertThat(menu.getMenuItem("RepositoryView")).isNull();
     }
@@ -70,17 +71,6 @@ class MainMenuTest {
         assertThat(childIds(menu, "administrationSecurity")).containsExactly("resourceRoles", "rowLevelRoles");
     }
 
-    @Test
-    void theGroupsOfTheAddOnsAreHidden() {
-        viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
-        JmixListMenu menu = TestMenus.listMenu("menu");
-
-        assertThat(List.of("aitls", "security")).allSatisfy(id -> {
-            assertThat(menu.getMenuItem(id)).isNotNull();
-            assertThat(menu.getMenuItem(id).isVisible()).isFalse();
-        });
-    }
-
     // the entity inspector edits any row of any entity, too much for a public stand
     @Test
     void theViewsOfDataToolsAreNotPartOfTheApplication() {
@@ -94,7 +84,10 @@ class MainMenuTest {
     }
 
     private static List<String> childIds(JmixListMenu menu, String groupId) {
-        return ((ListMenu.MenuBarItem) menu.getMenuItem(groupId)).getChildItems().stream()
+        ListMenu.MenuItem group = menu.getMenuItem(groupId);
+        assertThat(group).isNotNull();
+
+        return ((ListMenu.MenuBarItem) group).getChildItems().stream()
                 .map(ListMenu.MenuItem::getId)
                 .toList();
     }

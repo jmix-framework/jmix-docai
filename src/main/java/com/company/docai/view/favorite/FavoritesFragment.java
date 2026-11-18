@@ -27,10 +27,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 /**
- * The favorites block above the folder tree: the folders, then the documents the user has marked, each with the
- * folder it lies in. A folder opens in the tree and a document in its card; the star of a row removes the mark, and
- * the folders and the documents dropped on the block are marked. The filter of the tree narrows the block by name.
- * The repository shows the block again whenever the marks change elsewhere.
+ * The favorites block above the folder tree: the marked folders, then documents, each with the folder it lies in.
  */
 @FragmentDescriptor("favorites-fragment.xml")
 public class FavoritesFragment extends Fragment<VerticalLayout> {
@@ -68,7 +65,7 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Receives a document of the block to open in its card; the document is still there.
+     * Receives a document to open in its card, checked to be still there.
      */
     public void setDocumentOpenHandler(Consumer<Document> documentOpenHandler) {
         this.documentOpenHandler = documentOpenHandler;
@@ -82,8 +79,7 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Marks the folders and the documents brought to the block, then shows the block again; a target marked already
-     * stays as it is.
+     * Marks the folders and the documents brought to the block, then shows the block again.
      */
     public void mark(Collection<?> targets) {
         favoriteService.mark(targets);
@@ -100,15 +96,13 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Shows only the favorites whose name contains the text, ignoring case, as the tree does with the folders; an
-     * empty text shows them all.
+     * Shows only the favorites whose name contains the text, ignoring case, as the tree does.
      */
     public void setFilter(@Nullable String text) {
         filter = text == null ? "" : text.strip().toLowerCase(Locale.ROOT);
         show();
     }
 
-    // the hint is for a user without favorites, not for a filter that hides them
     private void show() {
         favoritesBox.removeAll();
 
@@ -127,7 +121,6 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
         name.addThemeVariants(ButtonVariant.TERTIARY);
         name.addClickListener(click -> open(item));
 
-        // the title is the aria label of the button as well
         JmixButton star = uiComponents.create(JmixButton.class);
         star.setIcon(FavoriteListAction.star(icons, true));
         star.setTitle(messageBundle.getMessage("unmarkButton.title"));
@@ -151,7 +144,6 @@ public class FavoritesFragment extends Fragment<VerticalLayout> {
         return row;
     }
 
-    // a document deleted or hidden from the user since the block was shown would end in the technical error dialog
     private void open(FavoriteItem item) {
         if (item.getFolder() != null) {
             folderOpenHandler.accept(item.getFolder());

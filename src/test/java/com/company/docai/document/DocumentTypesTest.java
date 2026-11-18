@@ -49,8 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Document types: the categories of the dynamic attributes add-on. A document keeps only the fields of its
- * type, and a change of the type or a field is a change of the document itself.
+ * Document types: the categories of the dynamic attributes add-on.
  */
 @SpringBootTest
 @ExtendWith(AuthenticatedAsAdmin.class)

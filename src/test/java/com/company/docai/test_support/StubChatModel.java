@@ -16,25 +16,20 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
 /**
- * A model that answers with the replies a test scheduled, one per call, and keeps the prompts it got.
- * A call without a scheduled reply fails, so a test notices a call it did not expect. A stream gives the reply
- * in one piece. A reply can also call a tool, as a real model does.
+ * A model that answers with the replies a test scheduled, one per call, and keeps the prompts it got; a call without a
+ * scheduled reply fails.
  */
 public class StubChatModel implements ChatModel {
 
     private final Deque<Supplier<AssistantMessage>> replies = new ConcurrentLinkedDeque<>();
     private final List<Prompt> prompts = new CopyOnWriteArrayList<>();
 
-    /**
-     * Schedules the content of the next reply.
-     */
     public void willReply(String content) {
         willReply(() -> content);
     }
 
     /**
-     * Schedules a reply made when the model is called, so that a test can see what the application shows while
-     * the model answers.
+     * Schedules a reply made when the model is called, so a test sees the application while the model answers.
      */
     public void willReply(Supplier<String> content) {
         replies.add(() -> new AssistantMessage(content.get()));
@@ -62,9 +57,6 @@ public class StubChatModel implements ChatModel {
         return prompts;
     }
 
-    /**
-     * Forgets the scheduled replies and the prompts.
-     */
     public void reset() {
         replies.clear();
         prompts.clear();

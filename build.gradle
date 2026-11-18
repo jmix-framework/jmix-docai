@@ -46,7 +46,7 @@ dependencies {
     implementation 'io.jmix.flowui:jmix-flowui-starter'
     implementation 'io.jmix.flowui:jmix-flowui-data-starter'
     implementation 'io.jmix.flowui:jmix-flowui-themes'
-    // the restore from the trash; the views of Data Tools stay out, since the entity inspector edits any row
+    // for the restore from the trash; its views stay out, since the entity inspector edits any row
     implementation 'io.jmix.datatools:jmix-datatools-starter'
     implementation 'io.jmix.dynattr:jmix-dynattr-starter'
     implementation 'io.jmix.dynattr:jmix-dynattr-flowui-starter'
@@ -58,18 +58,17 @@ dependencies {
     implementation 'io.jmix.aitools:jmix-aitools-flowui-starter'
     implementation 'io.jmix.aitools:jmix-aitools-flowui-data-starter'
     implementation 'io.jmix.uirecovery:jmix-uirecovery-flowui-starter'
-    // the drafts of UI Recovery are JSON of Gson, see DynAttrDraftPayloadSupport; the add-ons bring it at runtime only
+    // UI Recovery's drafts are JSON of Gson (DynAttrDraftPayloadSupport), which the add-ons bring at runtime only
     implementation 'com.google.code.gson:gson'
     implementation 'io.jmix.translations:jmix-translations-ru'
     implementation 'org.apache.tika:tika-core'
-    // the PDFs of the demo sets, in the version Tika brings, so that one PDFBox is on the classpath
+    // the version Tika brings, so that one PDFBox is on the classpath
     implementation 'org.apache.pdfbox:pdfbox:3.0.5'
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.vaadin:vaadin-dev'
 
-    // the stand reads the scripts HSQLDB writes, see TemplateScript
     implementation 'org.hsqldb:hsqldb'
     runtimeOnly 'org.apache.tika:tika-parsers-standard-package'
 
@@ -89,7 +88,7 @@ test {
     useJUnitPlatform {
         excludeTags 'search', 'ai'
     }
-    // the tests keep a Spring context for each setup of theirs, and each context holds the whole application
+    // a Spring context per setup of the tests, and each holds the whole application
     maxHeapSize = '2g'
     systemProperty 'spring.profiles.active', 'test'
     // a key in the environment (SPRING_AI_OPENAI_APIKEY) outranks the property files, so the tests clear it here
@@ -137,7 +136,6 @@ tasks.register('resetDemoData') {
     doLast {
         def environment = System.getenv()
         def url = environment.DOCAI_DB_URL ?: 'jdbc:hsqldb:file:.jmix/hsqldb/docai'
-        // the properties of HSQLDB follow the first semicolon, and ~ is the home directory
         def path = url =~ /^jdbc:hsqldb:file:([^;]+)/
         if (!path.find()) {
             throw new GradleException("Only a file database of HSQLDB is reset, and DOCAI_DB_URL is $url")

@@ -51,8 +51,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 
+import static com.company.docai.test_support.TestUi.awaitAccess;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,8 +64,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * The AI search as an employee meets it with the AI on: the mode in the header field and the search page in that
- * mode. The search by meaning and the indexer are replaced: the search answers with the documents of the test.
+ * The AI search as an employee meets it with the AI on.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class,
@@ -162,26 +161,26 @@ class AiSearchTest {
 
         View<?> current = UiTestUtils.getCurrentView();
         assertThat(current).isInstanceOf(DocumentSearchView.class);
-        assertThat(DocumentSearchView.queryOf(currentQueryParameters())).isEqualTo(QUERY);
-        assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isTrue();
+        assertThat(DocumentSearchView.queryOf(TestPalettes.currentQueryParameters())).isEqualTo(QUERY);
+        assertThat(DocumentSearchView.isAiMode(TestPalettes.currentQueryParameters())).isTrue();
         verify(semanticSearch, timeout(5_000)).search(QUERY);
     }
 
     @Test
     void aClickOnTheSearchPageOnlySwitchesTheModeAndEnterSearchesInIt() {
         enter(QUERY);
-        assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
+        assertThat(DocumentSearchView.isAiMode(TestPalettes.currentQueryParameters())).isFalse();
 
         modeButton(mainView()).click();
 
         assertThat(pressed(modeButton(mainView()))).isTrue();
-        assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
+        assertThat(DocumentSearchView.isAiMode(TestPalettes.currentQueryParameters())).isFalse();
         verify(semanticSearch, never()).search(anyString());
 
         enter(QUERY);
 
-        assertThat(DocumentSearchView.queryOf(currentQueryParameters())).isEqualTo(QUERY);
-        assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isTrue();
+        assertThat(DocumentSearchView.queryOf(TestPalettes.currentQueryParameters())).isEqualTo(QUERY);
+        assertThat(DocumentSearchView.isAiMode(TestPalettes.currentQueryParameters())).isTrue();
         verify(semanticSearch, timeout(5_000)).search(QUERY);
     }
 
@@ -213,7 +212,7 @@ class AiSearchTest {
         when(semanticSearch.search(QUERY)).thenReturn(List.of(hit(document, "the <b>Corwin 82 tractor</b> for")));
 
         DocumentSearchView view = openAiSearch();
-        waitUntil(() -> found(view).isVisible());
+        awaitAccess(() -> found(view).isVisible());
 
         assertThat(found(view).getText())
                 .isEqualTo(messages.formatMessage(DocumentSearchView.class, "foundCount", 1));
@@ -227,7 +226,7 @@ class AiSearchTest {
     @Test
     void nothingFoundOffersTheSearchByWords() {
         DocumentSearchView view = openAiSearch();
-        waitUntil(() -> searchByWords(view).isVisible());
+        awaitAccess(() -> searchByWords(view).isVisible());
 
         assertThat(message(view).getText())
                 .isEqualTo(messages.getMessage(DocumentSearchView.class, "nothingFoundByMeaning"));
@@ -235,8 +234,8 @@ class AiSearchTest {
 
         searchByWords(view).click();
 
-        assertThat(DocumentSearchView.queryOf(currentQueryParameters())).isEqualTo(QUERY);
-        assertThat(DocumentSearchView.isAiMode(currentQueryParameters())).isFalse();
+        assertThat(DocumentSearchView.queryOf(TestPalettes.currentQueryParameters())).isEqualTo(QUERY);
+        assertThat(DocumentSearchView.isAiMode(TestPalettes.currentQueryParameters())).isFalse();
         assertThat(pressed(modeButton(mainView()))).isFalse();
         verify(entitySearcher).search(any(), anyString());
     }
@@ -246,7 +245,7 @@ class AiSearchTest {
         when(semanticSearch.search(QUERY)).thenThrow(new IllegalStateException("The model did not answer"));
 
         DocumentSearchView view = openAiSearch();
-        waitUntil(() -> searchByWords(view).isVisible());
+        awaitAccess(() -> searchByWords(view).isVisible());
 
         assertThat(message(view).getText()).isEqualTo(messages.getMessage(DocumentSearchView.class, "aiSearchFailed"));
     }
@@ -257,7 +256,8 @@ class AiSearchTest {
                 .thenThrow(new SearchUnavailableException(new IllegalStateException("No index")));
 
         DocumentSearchView view = openAiSearch();
-        waitUntil(() -> message(view).getText()
+
+        awaitAccess(() -> message(view).getText()
                 .equals(messages.getMessage(DocumentSearchView.class, "searchUnavailable")));
 
         assertThat(searchByWords(view).isVisible()).isFalse();
@@ -268,7 +268,7 @@ class AiSearchTest {
         when(vectorIndexer.isBusy()).thenReturn(true);
 
         DocumentSearchView view = openAiSearch();
-        waitUntil(() -> searchByWords(view).isVisible());
+        awaitAccess(() -> searchByWords(view).isVisible());
 
         assertThat(UiTestUtils.<Span>getComponent(view, "noteText").getText())
                 .isEqualTo(messages.getMessage(DocumentSearchView.class, "indexFilling"));
@@ -289,7 +289,7 @@ class AiSearchTest {
         enter("combine");
         DocumentSearchView view = UiTestUtils.getCurrentView();
         enter(QUERY);
-        waitUntil(() -> found(view).isVisible());
+        awaitAccess(() -> found(view).isVisible());
 
         slow.countDown();
         VaadinSession session = VaadinSession.getCurrent();
@@ -314,20 +314,8 @@ class AiSearchTest {
         return UiTestUtils.getCurrentView();
     }
 
-    // the header opens the palette in its mode, and the palette searches
     private void enter(String query) {
         TestPalettes.enter(TestPalettes.open(), query);
-    }
-
-    // the answer comes back through UI.access, which a UI test runs only when asked
-    private static void waitUntil(BooleanSupplier shown) {
-        await().pollInSameThread()
-                .atMost(Duration.ofSeconds(20))
-                .pollInterval(Duration.ofMillis(50))
-                .until(() -> {
-                    runPendingAccessTasks();
-                    return shown.getAsBoolean();
-                });
     }
 
     private static void runPendingAccessTasks() {
@@ -377,10 +365,6 @@ class AiSearchTest {
 
     private static List<Component> rows(DocumentSearchView view) {
         return UiTestUtils.<VerticalLayout>getComponent(view, "hitsBox").getChildren().toList();
-    }
-
-    private static QueryParameters currentQueryParameters() {
-        return UI.getCurrent().getInternals().getActiveViewLocation().getQueryParameters();
     }
 
     private static Span match(Component row) {

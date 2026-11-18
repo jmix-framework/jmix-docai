@@ -1,5 +1,3 @@
-/* The sign-in page: the lattice of the brand covers it, and the card with the form floats over its calm left part */
-
 .login-view {
     align-items: flex-start;
     padding-inline: clamp(var(--vaadin-padding-m), 8vw, 140px);
@@ -43,7 +41,10 @@ html[theme~='dark'] .login-view {
     font-weight: 800;
 }
 
-/* The name stands above the form, so the form drops its own title and frame */
+.login-usage-help {
+    align-self: center;
+}
+
 .login-card jmix-login-form::part(form-title) {
     display: none;
 }
@@ -66,9 +67,7 @@ jmix-login-form::part(error-message-title) {
     font-weight: var(--aura-font-weight-semibold);
 }
 
-/* The stand warns the visitor in a box like the error one: a login in another language replaces their demo data */
 .login-language-warning {
-    /* as wide as the fields of the form */
     box-sizing: border-box;
     width: var(--vaadin-login-form-width, 360px);
     max-width: 100%;
@@ -82,4 +81,28 @@ jmix-login-form::part(error-message-title) {
     .login-view {
         align-items: center;
     }
+}
+
+.usage-help-content p {
+    margin: 0 0 var(--vaadin-gap-s);
+}
+
+.usage-help-content ul {
+    margin: 0 0 var(--vaadin-gap-m);
+    padding-inline-start: var(--vaadin-padding-l);
+}
+
+.usage-help-content li + li {
+    margin-top: var(--vaadin-gap-xs);
+}
+
+.usage-help-content > :last-child {
+    margin-bottom: 0;
+}
+
+.usage-help-note {
+    margin: 0;
+    padding: var(--vaadin-padding-m);
+    border-radius: var(--vaadin-radius-m);
+    background: var(--vaadin-background-container);
 }

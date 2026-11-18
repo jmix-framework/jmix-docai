@@ -41,9 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The search by meaning on the index in memory, with the stub models of vectors and of the check: the rights apply
- * before the index looks for the nearest fragments, and the model decides which candidates the page shows and the chat
- * gets with their nearest fragments.
+ * The search by meaning on the index in memory, with the stub models of vectors and of the check.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -296,7 +294,6 @@ class SemanticSearchTest {
         return new DocumentVectorIndex.Fragment(number, text, false, StubEmbeddingModel.vectorOf(text));
     }
 
-    // the decisions of the check that keeps every candidate
     private static String allFit(int candidates) {
         return IntStream.rangeClosed(1, candidates)
                 .mapToObj("{\"number\": %d, \"quote\": \"\", \"fits\": true}"::formatted)

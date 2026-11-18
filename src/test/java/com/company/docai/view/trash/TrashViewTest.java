@@ -19,7 +19,6 @@ import com.company.docai.view.favorite.FavoritesFragment;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.repository.FolderTreeFragment;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -32,7 +31,9 @@ import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.action.DialogAction;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.sidepanellayout.SidePanelLayout;
+import io.jmix.flowui.data.grid.DataGridItems;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -42,6 +43,7 @@ import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.testassist.dialog.DialogInfo;
+import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.view.ViewControllerUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,13 +54,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.company.docai.test_support.TestTrash.exists;
 import static com.company.docai.test_support.TestTrash.ids;
 import static com.company.docai.test_support.TestTrash.isDeleted;
 import static com.company.docai.test_support.TestTrash.itemOf;
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
@@ -142,8 +144,7 @@ class TrashViewTest {
         Document note = upload(sandbox, "note.txt");
         documentService.delete(List.of(note));
 
-        // the person works in Kiritimati, far from the zone of the server; the user of the test's login is loaded
-        // for this test alone
+        // Kiritimati is far from the zone of the server; the user of the test's login is loaded for this test alone
         ((User) currentAuthentication.getUser()).setTimeZoneId("Pacific/Kiritimati");
         assertThat(currentAuthentication.getTimeZone().getID()).isEqualTo("Pacific/Kiritimati");
 
@@ -171,8 +172,10 @@ class TrashViewTest {
 
         grid.select(itemOf(items(grid), note.getId()));
         restoreButton.click();
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
 
-        assertThat(UiTestUtils.getLastOpenedNotification().getText())
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
                 .isEqualTo(messages.formatMessage(TrashView.class, "restoredNotification", 1));
         assertThat(ids(items(grid))).doesNotContain(note.getId());
         assertThat(isDeleted(dataManager, Document.class, note.getId())).isFalse();
@@ -284,7 +287,6 @@ class TrashViewTest {
         TrashView view = open();
         SidePanelLayout previewLayout = UiTestUtils.getComponent(view, "previewLayout");
 
-        // a thin line, with the grip shown on hover only, as in the repository
         assertThat(previewLayout.getThemeNames()).contains("resizer-small");
     }
 
@@ -334,8 +336,10 @@ class TrashViewTest {
         grid.deselectAll();
         grid.select(itemOf(items(grid), contracts.getId()));
         DataGrid<TrashItem> contents = fragmentComponent(preview, "contentsGrid");
+        DataGridColumn<TrashItem> location = contents.getColumnByKey("location");
         assertThat(items(contents)).extracting(TrashItem::getName).containsExactly("supply.txt");
-        assertThat(contents.getColumnByKey("location").isVisible()).isFalse();
+        assertThat(location).isNotNull();
+        assertThat(location.isVisible()).isFalse();
         assertThat(this.<Span>fragmentComponent(preview, "contentsSummary").getText())
                 .isEqualTo(messages.formatMessage(TrashPreviewFragment.class, "contentsSummary", 0, 1));
 
@@ -384,7 +388,9 @@ class TrashViewTest {
     }
 
     private static List<TrashItem> items(DataGrid<TrashItem> grid) {
-        return List.copyOf(grid.getItems().getItems());
+        DataGridItems<TrashItem> items = grid.getItems();
+        assertThat(items).isNotNull();
+        return List.copyOf(items.getItems());
     }
 
     private static String nameCell(DataGrid<TrashItem> grid, TrashItem item) {
@@ -402,7 +408,6 @@ class TrashViewTest {
         return (T) FragmentUtils.getComponent(fragment, componentId);
     }
 
-    // the names of the rows of the favorites section of the menu
     private static List<String> favoriteNames(FavoritesFragment favorites) {
         VerticalLayout box = (VerticalLayout) FragmentUtils.getComponent(favorites, "favoritesBox");
 
@@ -412,16 +417,9 @@ class TrashViewTest {
     }
 
     private static String dialogText() {
-        return UiTestUtils.getLastOpenedDialog().getContent().getElement().getTextRecursively();
-    }
-
-    private static Button dialogButton(DialogAction.Type type) {
         DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-
-        return dialog.getButtons().stream()
-                .filter(button -> button.getId().equals(Optional.of(type.getId())))
-                .findFirst()
-                .orElseThrow();
+        assertThat(dialog).isNotNull();
+        return dialog.getContent().getElement().getTextRecursively();
     }
 
     private Folder folder(Folder parent, String name) {

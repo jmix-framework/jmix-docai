@@ -45,10 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * A change of the language around its failures: a refusal of the new copy deletes it, a failure before the session
- * works as the new authentication puts the old copy back into the cookie, the session and the scope and deletes the
- * new one, and once the session works as the new authentication the old copy goes in a job of the scheduler, after
- * the response. The registry and the request are real; the copies, the sign-in and the scheduler are stand-ins.
+ * A change of the language around its failures, and the old copy going in a job of the scheduler after the response.
  */
 class StandLoginSwitchTest {
 
@@ -170,7 +167,6 @@ class StandLoginSwitchTest {
     void theOldCopyGoesOnTheSchedulerOnceTheSessionWorksAsTheNewUser() {
         Copy copy = standLogin.switchLanguage(RUSSIAN);
 
-        // nothing is deleted in the request
         verify(copyFactory, never()).delete(any());
         runScheduled();
 
@@ -183,7 +179,6 @@ class StandLoginSwitchTest {
         verify(copyFactory, never()).delete(newKey);
     }
 
-    // the jobs of the deletion run as Quartz runs them, with the data of each job
     private void runScheduled() {
         for (JobDetail job : scheduled) {
             JobExecutionContext context = mock(JobExecutionContext.class);

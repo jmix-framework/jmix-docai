@@ -28,11 +28,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Keeps the favorites of the current user: marks on the folders and the documents the user comes back to often.
- * The owner of a mark is the user the person works as, the substituted one under a substitution. Every query names
- * the owner itself: the administrator is not narrowed by the row-level role and must see only own marks too.
- * A mark is shown only while its target is readable and outside the trash, so the target is read by a query of its
- * own: a reference loaded through the mark would skip both checks.
+ * Keeps the favorites of the current user. Every query names the owner, since the row-level role does not narrow the
+ * administrator, and a target is read by a query of its own, so its access rules apply.
  */
 @Service
 public class FavoriteService {
@@ -108,8 +105,7 @@ public class FavoriteService {
     }
 
     /**
-     * Returns the marked folders, then the marked documents, each in the alphabetical order of the language of the
-     * user, that the user may read and that are not in the trash.
+     * Returns the marked folders, then the marked documents, that the user may read and that are not in the trash.
      */
     public List<FavoriteItem> loadItems() {
         Collator collator = Collator.getInstance(currentAuthentication.getLocale());
@@ -148,7 +144,7 @@ public class FavoriteService {
         return items;
     }
 
-    // the marks of the user on the targets; a mark has one of the two targets, so both joins are outer
+    // a mark has one of the two targets, so both joins are outer
     private List<Favorite> ownMarks(Collection<?> targets) {
         List<UUID> ids = targets.stream()
                 .map(FavoriteService::idOf)
@@ -170,7 +166,6 @@ public class FavoriteService {
                 .list();
     }
 
-    // the ids of all the folders or all the documents the user has marked, whatever they are now
     private List<UUID> markedTargetIds(String target) {
         return dataManager.loadValues(("select f.%s.id from Favorite f where f.user.username = :username"
                         + " and f.%s is not null").formatted(target, target))
@@ -182,9 +177,7 @@ public class FavoriteService {
                 .toList();
     }
 
-    // the folders or the documents among the targets that the user may read, by their ids: the targets are read
-    // again with the rights of the user, one query for each kind, since a reference to a target deleted meanwhile
-    // would fail the save as well
+    // read again with the rights of the user; a reference to a target deleted meanwhile would fail the save
     private <T> Map<UUID, T> loadReadable(Class<T> type, Collection<?> targets) {
         List<UUID> ids = targets.stream()
                 .filter(type::isInstance)

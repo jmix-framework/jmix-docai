@@ -13,13 +13,7 @@ import com.vaadin.flow.shared.Registration;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The query line of the search palette in the browser: the element {@code docai-search-palette-line} of
- * {@code src/component/search-palette/docai-search-palette-line.js} makes the text field of the line a combobox of the
- * list of rows, names the row the arrows chose to a screen reader, gives the line the focus back with the caret after
- * its text, and hands the keys that the palette handles itself over to the server, so that the browser does nothing
- * with them. After a click elsewhere in the palette, the first key brings the focus back to the line and acts there.
- * As the palette opens, the line takes over the keys typed into the header field while the palette came. It shows
- * nothing. The palette declares it in its descriptor and names the field and the list.
+ * The query line of the search palette: a combobox of the rows that hands the palette's keys to the server.
  */
 @Tag("docai-search-palette-line")
 @JsModule("./src/component/search-palette/docai-search-palette-line.js")
@@ -29,8 +23,7 @@ public class SearchPaletteLine extends Component {
     private Component field;
 
     /**
-     * Sets the text field of the line. The browser gets the field itself whenever the line reaches the page, so the
-     * field needs no id.
+     * Sets the text field of the line, which needs no id: the browser gets the field itself.
      */
     public void setField(Component field) {
         this.field = field;
@@ -41,8 +34,7 @@ public class SearchPaletteLine extends Component {
     }
 
     /**
-     * Sets the list whose rows the line goes through; the browser names it by its id, so the list needs one. The
-     * browser reads it once, when the line reaches the page, so it must be set before the palette opens.
+     * Sets the list whose rows the line goes through, which needs an id and must be set before the palette opens.
      */
     public void setList(Component list) {
         getElement().setAttribute("list", list.getId().orElseThrow());
@@ -56,27 +48,24 @@ public class SearchPaletteLine extends Component {
     }
 
     /**
-     * Gives the line the focus with the caret after its text, also when the line has the focus already: the opening
-     * selects the whole text, which the next character would replace. A palette that is closing in the browser leaves
-     * the focus to the header field it gives it back to.
+     * Gives the line the focus with the caret after its text, also when focused: the opening selects the whole text.
      */
     public void focusAtEnd() {
         getElement().callJsFunction("focusAtEnd");
     }
 
     /**
-     * Takes over the keys typed into the header field since the palette was asked for: the letters go into the line,
-     * the header field gets its text back, and an Enter that the header field held back comes as a key of the line.
-     * After an Esc that cancelled the opening, or while an input method still composes a word there, it takes nothing.
-     * The browser reads the keys, so no text comes from the server.
+     * Takes over the keys typed into the header field since the palette was asked for; a palette whose opening an Esc
+     * cancelled takes nothing.
+     *
+     * @param opening the number the browser gave the request that opened the palette
      */
-    public void takeOver(Component headerField) {
-        getElement().callJsFunction("takeOver", headerField.getElement());
+    public void takeOver(Component headerField, int opening) {
+        getElement().callJsFunction("takeOver", headerField.getElement(), opening);
     }
 
     /**
-     * Adds a listener of the keys that the palette handles itself: the arrows up and down, Tab, Enter, once however
-     * long it is held, and Shift+Delete without other modifiers while a row is selected.
+     * Adds a listener of the palette's keys: the arrows, Tab, Enter once however long it is held, and Shift+Delete.
      */
     public Registration addKeyListener(ComponentEventListener<KeyEvent> listener) {
         return addListener(KeyEvent.class, listener);
@@ -97,8 +86,7 @@ public class SearchPaletteLine extends Component {
     }
 
     /**
-     * A key of the line that the palette handles itself, with the text the line showed at the press: the browser
-     * sends the text after a pause, so the field may not have it yet.
+     * A key the palette handles itself, with the text the line showed at the press, which the field may not have yet.
      */
     @DomEvent("docai-search-palette-key")
     public static class KeyEvent extends ComponentEvent<SearchPaletteLine> {
@@ -121,8 +109,7 @@ public class SearchPaletteLine extends Component {
         }
 
         /**
-         * Returns the key as the browser names it, such as {@code Enter}; Shift+Delete comes as {@code Delete} with
-         * Shift.
+         * Shift+Delete comes as {@code Delete} with Shift.
          */
         public String getKey() {
             return key;

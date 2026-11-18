@@ -10,11 +10,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * Takes the text of a file for the full-text search of the stand from {@link DocumentTextReader}, within its limits
- * of length and time, in place of the search add-on, which reads the whole text of a file with no limit: a zip bomb or
- * a broken PDF of a visitor leaves its document without text, found by its name. The add-on's choice by the extension
- * still decides which files have text; the reader parses them by their content, with the add-on's settings of the
- * parse, such as no headers and footers of Office documents. Elsewhere the add-on reads the files itself.
+ * Takes a file's text for the stand's full-text search from {@link DocumentTextReader}, within limits the add-on lacks.
  */
 @Primary
 @Component
@@ -29,8 +25,7 @@ public class DocumentFileProcessor extends FileProcessor {
     }
 
     /**
-     * Returns the whole text of the file, or an empty text when the file has none to read, its text is longer than
-     * {@code docai.files.max-text-length} characters or it takes longer than {@code docai.files.text-timeout} to read.
+     * Returns the whole text of the file, or an empty text when the file has none to read or exceeds the limits.
      *
      * @throws UnsupportedFileFormatException when the add-on has no parser for the extension of the file
      */

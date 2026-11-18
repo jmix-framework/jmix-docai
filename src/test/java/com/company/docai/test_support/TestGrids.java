@@ -21,14 +21,17 @@ import com.vaadin.flow.dom.DomEvent;
 import com.vaadin.flow.internal.nodefeature.ElementListenerMap;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.TreeDataGrid;
+import io.jmix.flowui.kit.action.Action;
+import io.jmix.flowui.kit.component.HasActions;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Clicks and drags that a browser would send to a grid, for UI tests that run without one.
+ * The actions of a grid, and the clicks and drags that a browser would send to it, for UI tests that run without one.
  */
 public final class TestGrids {
 
@@ -36,17 +39,18 @@ public final class TestGrids {
     }
 
     /**
-     * A click on a row as the grid reports it, with or without the Ctrl key.
+     * The action of the grid with the given id; the failure names the id when the grid has no such action.
      */
+    public static Action action(HasActions grid, String actionId) {
+        return Objects.requireNonNull(grid.getAction(actionId), actionId);
+    }
+
     public static <T> void clickRow(Grid<T> grid, T item, boolean ctrlKey) {
         String itemKey = grid.getDataCommunicator().getKeyMapper().key(item);
         ComponentUtil.fireEvent(grid, new ItemClickEvent<>(grid, true, itemKey, null,
                 0, 0, 0, 0, 1, 0, ctrlKey, false, false, false));
     }
 
-    /**
-     * A double click on a row as the grid reports it.
-     */
     public static <T> void doubleClickRow(Grid<T> grid, T item) {
         String itemKey = grid.getDataCommunicator().getKeyMapper().key(item);
         ComponentUtil.fireEvent(grid, new ItemDoubleClickEvent<>(grid, true, itemKey, null,
@@ -62,9 +66,6 @@ public final class TestGrids {
         reportContextMenuOpened(grid.getContextMenu());
     }
 
-    /**
-     * A right click on a row of a tree, as on a row of a grid.
-     */
     public static <T> void openContextMenu(TreeDataGrid<T> tree, T item) {
         requestContextMenu(tree, item);
         reportContextMenuOpened(tree.getContextMenu());
@@ -129,9 +130,6 @@ public final class TestGrids {
         dropOnRow(grid, item, GridDropLocation.ON_TOP);
     }
 
-    /**
-     * A drop on a row, above it, on top of it or below it, as the grid that takes it reports it.
-     */
     public static <T> void dropOnRow(Grid<T> grid, T item, GridDropLocation location) {
         ObjectNode target = JsonNodeFactory.instance.objectNode()
                 .put("key", grid.getDataCommunicator().getKeyMapper().key(item));
@@ -140,25 +138,16 @@ public final class TestGrids {
                 JsonNodeFactory.instance.arrayNode()));
     }
 
-    /**
-     * The end of a drag of rows, as the grid the rows were dragged from reports it.
-     */
     public static <T> void endDrag(Grid<T> grid) {
         ComponentUtil.fireEvent(grid, new GridDragEndEvent<>(grid, true));
     }
 
-    /**
-     * A click on the component that a column renders for the item, such as a folder name in a tree.
-     */
     public static <T> Component clickRendered(Grid<T> grid, String columnKey, T item) {
         Component component = render(grid, columnKey, item);
         ComponentUtil.fireEvent(component, new ClickEvent<>(component));
         return component;
     }
 
-    /**
-     * The component that a column renders for the item.
-     */
     public static <T> Component render(Grid<T> grid, String columnKey, T item) {
         Renderer<T> renderer = grid.getColumnByKey(columnKey).getRenderer();
         if (!(renderer instanceof ComponentRenderer<?, T> componentRenderer)) {
@@ -168,9 +157,6 @@ public final class TestGrids {
         return componentRenderer.createComponent(item);
     }
 
-    /**
-     * The text that a column shows for the item.
-     */
     public static <T> String text(Grid<T> grid, String columnKey, T item) {
         Renderer<T> renderer = grid.getColumnByKey(columnKey).getRenderer();
         if (!(renderer instanceof TextRenderer<T> textRenderer)) {

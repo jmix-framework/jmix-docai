@@ -29,11 +29,6 @@ import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
@@ -43,12 +38,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import static com.company.docai.test_support.TestSamples.png;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The tools of the document assistant, called the way the model calls them: in the card, with the person who asks
- * and the feed of the chat in the tool context, on a thread that runs as somebody else; in the chat of the menu, as
- * the person signed in, with the status feed of the AI Tools add-on.
+ * The tools of the document assistant, called the way the model calls them: in the card and in the chat of the menu.
  */
 @SpringBootTest(classes = {DocAiApplication.class, StubAiConfiguration.class})
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -161,8 +155,6 @@ class DocumentAssistantToolsTest {
         assertThat(dataManager.load(Id.of(invoice)).one().getCategory()).isNull();
     }
 
-    // the tags as "Fill with AI" would add them: three at most, one new at most, none longer than a tag may be, and
-    // those of the vocabulary as the vocabulary writes them
     @Test
     void aProposalNamesTheTagsAsFillingWithAiWouldAddThem() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
@@ -229,14 +221,5 @@ class DocumentAssistantToolsTest {
         return documentService.upload(sandbox, List.of(TestFiles.file(tempDir, fileName, content)))
                 .created()
                 .getFirst();
-    }
-
-    private static byte[] png() {
-        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
-            ImageIO.write(new BufferedImage(40, 20, BufferedImage.TYPE_INT_RGB), "png", bytes);
-            return bytes.toByteArray();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 }

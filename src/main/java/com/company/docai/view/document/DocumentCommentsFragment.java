@@ -31,10 +31,7 @@ import java.util.Map;
 import java.util.function.IntConsumer;
 
 /**
- * The comments tab of the document card: a field for a new comment and the comments of the document, the newest
- * first, in a virtual list that draws each comment with {@link DocumentCommentItemFragment}. The comment service saves
- * a comment at once, apart from OK of the card, so the tab works in a card the user only views. The comments are read
- * again after each own action; those of other people appear then or when the card opens again.
+ * The comments tab of the document card, which saves a comment at once and so works in a card the user only views.
  */
 @FragmentDescriptor("document-comments-fragment.xml")
 public class DocumentCommentsFragment extends Fragment<VerticalLayout> {
@@ -68,12 +65,12 @@ public class DocumentCommentsFragment extends Fragment<VerticalLayout> {
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
-        // Enter starts a new line, Ctrl+Enter or Cmd+Enter sends the comment
         postCommentButton.addClickShortcut(Key.ENTER, KeyModifier.CONTROL)
                 .listenOn(commentField);
         postCommentButton.addClickShortcut(Key.ENTER, KeyModifier.META)
                 .listenOn(commentField);
 
+        keepEscape(commentField);
         trackLength(commentField, commentLength, postCommentButton);
     }
 
@@ -91,7 +88,6 @@ public class DocumentCommentsFragment extends Fragment<VerticalLayout> {
         try {
             commentService.post(document, commentField.getValue());
             commentField.clear();
-            // the new comment comes first, and the list may be scrolled down
             commentsList.scrollToStart();
         } finally {
             reload();
@@ -99,9 +95,7 @@ public class DocumentCommentsFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Returns the user who wrote the comment, read with the comments.
-     *
-     * @return the user, or null for a user deleted since: the comment shows the username then
+     * Returns the user who wrote the comment, or null for a user deleted since.
      */
     @Nullable
     public User authorOf(DocumentComment comment) {
@@ -139,8 +133,19 @@ public class DocumentCommentsFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Shows the length of the text in the field against the limit and lets the button save only a text that fits.
-     * The field has no maximum length of its own: that would cut a pasted text without a word.
+     * Keeps Esc in the field while it holds text: Esc closes the card, which would drop a comment not saved yet.
+     */
+    public void keepEscape(JmixTextArea field) {
+        field.getElement()
+                .addEventListener("keydown", keyDown -> {
+                })
+                .setFilter("event.key === 'Escape' && !!element.value")
+                .stopPropagation();
+    }
+
+    /**
+     * Shows the length of the text against the limit and lets the button save only a text that fits; a maximum length
+     * of the field would cut a pasted text silently.
      */
     public void trackLength(JmixTextArea field, Span length, JmixButton button) {
         Runnable update = () -> {

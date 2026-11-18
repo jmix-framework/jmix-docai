@@ -7,10 +7,7 @@ import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.kit.theme.ThemeUtils;
 
 /**
- * The theme switch of the user menu with a fourth item, the mixed scheme: a dark drawer next to light content. The
- * theme stylesheet draws the scheme from the {@code theme="mixed"} attribute that the switching script of Jmix puts
- * on the page. The mixed scheme shows a half circle, so the system scheme, whose standard icon is the same glyph,
- * shows cogs.
+ * The theme switch of the user menu with the mixed scheme, which takes the half circle: the system scheme shows cogs.
  */
 @ActionType(UserMenuThemeSwitchAction.ID)
 public class UserMenuThemeSwitchAction extends io.jmix.flowui.action.usermenu.UserMenuThemeSwitchAction {

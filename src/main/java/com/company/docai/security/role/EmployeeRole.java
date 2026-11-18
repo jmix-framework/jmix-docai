@@ -28,8 +28,7 @@ import io.jmix.securityflowui.role.annotation.MenuPolicy;
 import io.jmix.securityflowui.role.annotation.ViewPolicy;
 
 /**
- * The employee persona: works with folders and documents and views their own profile.
- * Extends {@link UiMinimalRole}, so one assignment is enough to sign in.
+ * The employee persona: folders, documents and own profile; extends {@link UiMinimalRole}, so it suffices to sign in.
  */
 @ResourceRole(name = "msg://EmployeeRole.name", code = EmployeeRole.CODE,
         description = "msg://EmployeeRole.description", scope = SecurityScope.UI)
@@ -64,12 +63,10 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void folder();
 
     /**
-     * Works with the documents of every folder; the document service and listener keep
-     * the transitions of the statuses and the lock of a locked status. Every attribute is open for change:
-     * the fields of a document type are attributes named {@code +code} that the administrator adds later,
-     * so a role cannot list them. Attribute policies guard only the views; what is written is decided by
-     * the document service, edit access is checked there and by {@link AccessRowLevelRole}, and
-     * the views of an employee have no editable fields for the access set or the change stamps.
+     * Works with the documents of every folder; every attribute is open for change, since the fields of a document type
+     * are attributes named {@code +code} the administrator adds later. Attribute policies guard only the views: the
+     * document service decides what is written, edit access is checked there and by {@link AccessRowLevelRole}, and an
+     * employee's views edit neither the access set nor the change stamps.
      */
     @EntityPolicy(entityClass = Document.class, actions = {EntityPolicyAction.READ,
             EntityPolicyAction.CREATE, EntityPolicyAction.UPDATE, EntityPolicyAction.DELETE})
@@ -78,8 +75,7 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void document();
 
     /**
-     * Reads the tags and adds new ones from the document card, where the document service saves them with
-     * the document. Only the administrator renames and deletes tags.
+     * Reads the tags and adds new ones from the document card; only the administrator renames and deletes tags.
      */
     @EntityPolicy(entityClass = Tag.class, actions = {EntityPolicyAction.READ, EntityPolicyAction.CREATE})
     @EntityAttributePolicy(entityClass = Tag.class, attributes = "*", action = EntityAttributePolicyAction.MODIFY)
@@ -114,8 +110,7 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void documentRevision();
 
     /**
-     * Writes comments on the documents the user sees. {@link AccessRowLevelRole} leaves the comments of those
-     * documents and lets only the author change or delete a comment; the comment service writes them.
+     * Writes comments on visible documents; {@link AccessRowLevelRole} lets only the author change or delete a comment.
      */
     @EntityPolicy(entityClass = DocumentComment.class, actions = {EntityPolicyAction.READ,
             EntityPolicyAction.CREATE, EntityPolicyAction.UPDATE, EntityPolicyAction.DELETE})
@@ -124,8 +119,7 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void documentComment();
 
     /**
-     * Reads access sets and their entries; {@link AccessRowLevelRole} leaves the sets the user manages.
-     * Only the access service writes them.
+     * Reads access sets and their entries; only the access service writes them.
      */
     @EntityPolicy(entityClass = AccessSet.class, actions = EntityPolicyAction.READ)
     @EntityAttributePolicy(entityClass = AccessSet.class, attributes = "*", action = EntityAttributePolicyAction.VIEW)
@@ -134,8 +128,7 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void access();
 
     /**
-     * Edits the access dialog, whose drafts are never stored: the access service checks the right to manage
-     * the item and writes the access itself. Without these policies the dialog opens empty and read-only.
+     * Edits the access dialog, whose drafts are never stored; without these policies it opens empty and read-only.
      */
     @EntityPolicy(entityClass = AccessDraft.class, actions = EntityPolicyAction.ALL)
     @EntityAttributePolicy(entityClass = AccessDraft.class, attributes = "*",
@@ -169,15 +162,13 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void search();
 
     /**
-     * Opens the AI assistant from the main menu. The chat views and the own conversations come with the role
-     * of the add-on; the item of the add-on stays hidden in its own group, so this one needs a policy of its own.
+     * Opens the AI assistant from its own item of the main menu; the add-on's item stays hidden in its group.
      */
     @MenuPolicy(menuIds = "assistantChat")
     void assistantChat();
 
     /**
-     * Keeps the selections of documents of the own conversations with the assistant: {@link AccessRowLevelRole}
-     * leaves the rows of the own conversations, and the discussion service writes only those.
+     * Keeps the selections of documents of the own conversations with the assistant.
      */
     @EntityPolicy(entityClass = DiscussedDocument.class, actions = EntityPolicyAction.ALL)
     @EntityAttributePolicy(entityClass = DiscussedDocument.class, attributes = "*",
@@ -185,9 +176,7 @@ public interface EmployeeRole extends UiMinimalRole, AiToolsChatUserRole {
     void discussion();
 
     /**
-     * Marks folders and documents as own favorites and removes the marks: {@link AccessRowLevelRole} leaves the own
-     * marks, and the favorite service reads the targets with the rights of the user. The favorites block shows its
-     * rows as {@link FavoriteItem}.
+     * Marks folders and documents as own favorites and removes the marks.
      */
     @EntityPolicy(entityClass = Favorite.class, actions = {EntityPolicyAction.READ, EntityPolicyAction.CREATE,
             EntityPolicyAction.DELETE})

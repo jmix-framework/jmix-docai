@@ -61,9 +61,6 @@ public final class TestUploads {
         return fileInfo;
     }
 
-    /**
-     * Fires the event of a transfer that broke off.
-     */
     public static void fail(JmixUpload<?> upload, String fileName) {
         ComponentUtil.fireEvent(upload, new FailedEvent(upload, fileName, CONTENT_TYPE, 0,
                 new IOException("The connection was reset")));

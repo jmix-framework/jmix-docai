@@ -63,14 +63,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The scope of a visitor in the threads where the work of their browser goes on outside its requests: the background
- * and the asynchronous tasks of the views, and Reactor in the shapes the assistant subscribes in. The work takes the
- * scope of the thread that starts it, or of the session of the browser whose command the thread runs; the work of a
- * visitor without a scope still fails at the data source. The scope has a bare database of its own, so the data
- * source tells which database a thread reaches. The hooks of Reactor last as long as a context of the stand does.
+ * and the asynchronous tasks of the views, and Reactor in the shapes the assistant subscribes in. The class has the
+ * configuration of the stand tests on {@code build/test-stand-login}, such as {@link StandLoginTest}, so the five share
+ * a Spring context; its scope keeps out of the folder of the stand.
  */
 @UiTest(authenticator = AnonymousUiTestAuthenticator.class, initialView = LoginView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class, StubAiConfiguration.class},
-        properties = "docai.stand.data-dir=build/test-stand-propagation")
+        properties = "docai.stand.data-dir=build/test-stand-login")
 @ActiveProfiles({"test", "stand"})
 class StandScopePropagationTest {
 
@@ -255,6 +254,7 @@ class StandScopePropagationTest {
 
                 // Jmix keeps the visitor signed in as an override, which a clear of the holder would drop
                 assertThat(SecurityContextHelper.getAuthentication()).isSameAs(visitor);
+                assertThat(blocked).isNotNull();
 
                 return List.of(blocked, subscribed);
             });
@@ -295,8 +295,6 @@ class StandScopePropagationTest {
         }
     }
 
-    // the work of a signed-in visitor: alice signs in against the control database, as the login does, and then
-    // works in the scope of her copy
     private <T> T asTheVisitor(Supplier<T> work) {
         return systemAuthenticator.withUser(VISITOR, () -> {
             StandScopeHolder.set(scope);
@@ -309,7 +307,6 @@ class StandScopePropagationTest {
         });
     }
 
-    // a command of the visitor's browser on a thread without a scope of its own: the session of the browser keeps it
     private <T> T asACommandOfTheBrowser(Supplier<T> work) {
         HttpSession httpSession = new MockHttpSession();
         httpSession.setAttribute(StandScopeHolder.SESSION_ATTRIBUTE, scope.id());
@@ -336,7 +333,6 @@ class StandScopePropagationTest {
         return handler;
     }
 
-    // the database the thread reaches through the data source of the stand
     private String databaseUrl() {
         try (Connection connection = dataSource.getConnection()) {
             return connection.getMetaData().getURL();
@@ -357,7 +353,6 @@ class StandScopePropagationTest {
         return future.get(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
     }
 
-    // the chunks of an answer as the client of the model gives them: from a thread of its own
     private static Flux<String> fromAThreadOfTheClient() {
         return Flux.create(sink -> new Thread(() -> {
             sink.next("chunk");
@@ -365,8 +360,8 @@ class StandScopePropagationTest {
         }, "stand-test-client").start());
     }
 
-    // the client's thread hands the chunks over, they go on on the pool of the chunks, and the tool runs on its own
-    // pool, which the stand's executor gives the scope, as it gives it to the tasks of the views
+    // the client's thread hands the chunks over, they go on on a pool, and the tool runs on a pool of its own, which
+    // the stand's executor gives the scope
     private Mono<String> answerWithATool(ExecutorService client, Scheduler chunks, ExecutorService tools,
                                          Authentication person) {
         ExecutorService toolsInTheScope = new StandScopeExecutorService(tools);
@@ -397,7 +392,6 @@ class StandScopePropagationTest {
         }
     }
 
-    // what a task of nobody's finds on the thread of the pool when it runs there next
     private static String leftOn(ExecutorService pool) throws Exception {
         return pool.submit(StandScopePropagationTest::scopeAndUser)
                 .get(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
@@ -411,7 +405,6 @@ class StandScopePropagationTest {
                 + (authentication == null ? "nobody" : authentication.getName());
     }
 
-    // the session of Vaadin over the HTTP session of a browser
     private static VaadinSession browserSession(HttpSession httpSession) {
         return new VaadinSession(null) {
             @Override
@@ -436,7 +429,6 @@ class StandScopePropagationTest {
         return urls;
     }
 
-    // tells the database its thread reaches, or how the way there failed
     private class DatabaseTask extends BackgroundTask<Void, String> {
 
         private @Nullable IllegalStateException failure;
@@ -459,9 +451,7 @@ class StandScopePropagationTest {
 
     /**
      * Opens two contexts of the stand and closes them one after the other, then opens and closes one more while
-     * something else keeps automatic propagation on. After each step it tells whether Reactor propagates, whether the
-     * registry knows the scope, whether a subscription takes the scope of its thread and whether the registry knows
-     * Spring Security's context.
+     * something else keeps automatic propagation on.
      */
     public static class ContextsOfTheStand implements Callable<List<List<Boolean>>> {
 

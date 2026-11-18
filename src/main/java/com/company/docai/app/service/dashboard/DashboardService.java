@@ -41,11 +41,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Reads the blocks of the dashboard for the current user, one method for each: the nearest dates of the fields of
- * the document types, the documents without a type, what other people did lately, the own recent chats with the AI
- * assistant and the numbers of the documents by type and status. Every query runs with the rights of the user, so
- * only the documents the user may open count, and those in the trash do not. Today is the day in the time zone of
- * the user. Nothing here writes.
+ * Reads the blocks of the dashboard for the current user, one method for each, every query with the rights of the user.
  */
 @Service
 public class DashboardService {
@@ -55,7 +51,6 @@ public class DashboardService {
     private static final int ACTIVITIES = 8;
     private static final int RECENT_CHATS = 3;
 
-    // a date within a week from today stands out
     private static final int SOON_DAYS = 7;
 
     private final DataManager dataManager;
@@ -97,16 +92,13 @@ public class DashboardService {
     }
 
     /**
-     * Returns the five nearest dates from today on that the date fields of the document types hold, the nearest first
-     * and, on one day, by the name of the document. A list of dates and the date of the document itself are not
-     * among them.
+     * Returns the five nearest dates from today on that the date fields of the document types hold, the nearest first.
      */
     public List<UpcomingDate> upcomingDates() {
         LocalDate today = now().toLocalDate();
         Collator collator = Collator.getInstance(currentAuthentication.getLocale());
 
-        // a query of the documents, so that their access rule decides; its subquery reads the values of the fields,
-        // which a query of values would check against the rights of an employee and refuse
+        // documents, so that their access rule decides; a query of the values would be refused for an employee
         List<Document> documents = dataManager.load(Document.class)
                 .query("select d from Document d where exists (select v from dynat_CategoryAttributeValue v"
                         + " where v.entity.entityId = d.id and v.parent is null and v.dateWithoutTimeValue >= :today)")
@@ -150,14 +142,12 @@ public class DashboardService {
     }
 
     /**
-     * Returns the eight latest events of other people on the documents the user may open: uploads, new versions and
-     * comments, the latest first. The events of the user are left out; under a substitution, those of the user the
-     * person works as.
+     * Returns the eight latest events of other people on the documents the user may open, the latest first; under a
+     * substitution, the events left out are those of the user the person works as.
      */
     public List<Activity> activities() {
         String own = currentUserSubstitution.getEffectiveUser().getUsername();
 
-        // the versions of a document in the trash lie there with it
         List<DocumentRevision> revisions = dataManager.load(DocumentRevision.class)
                 .query("select r from DocumentRevision r where r.createdBy <> :own"
                         + " order by r.createdDate desc, r.id desc")
@@ -203,8 +193,7 @@ public class DashboardService {
     }
 
     /**
-     * Returns the three own chats with the AI assistant that had a message last, the latest first. A chat without
-     * messages, which a question given up on the way to its chat leaves, is not among them.
+     * Returns the three own chats with the AI assistant that had a message last, the latest first.
      */
     public List<RecentChat> recentChats() {
         Map<AiConversation, AiChatMessage> latest = messageService.loadLatestMessages(
@@ -213,7 +202,6 @@ public class DashboardService {
         Comparator<AiChatMessage> latestFirst = Comparator.comparing(AiChatMessage::getCreatedDate,
                 Comparator.nullsLast(Comparator.reverseOrder()));
 
-        // a conversation without messages has no latest one, so it is not among them
         return latest.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue(latestFirst))
@@ -224,8 +212,8 @@ public class DashboardService {
     }
 
     /**
-     * Returns how many documents have each type, the most first and the documents without a type last, and each
-     * status, in the order of the dictionary. A type or a status without documents has no row.
+     * Returns how many documents have each type, the most first and the documents without a type last, and each status,
+     * in the order of the dictionary; a type or a status without documents has no row.
      */
     public Summary summary() {
         // the documents without a type form the group without an id, which an inner join would lose
@@ -260,7 +248,6 @@ public class DashboardService {
         return new Summary(types, statuses);
     }
 
-    // the date fields of the own type of the document: the values of another type stay until its next save
     private List<UpcomingDate> datesOf(Document document, LocalDate today) {
         List<UpcomingDate> dates = new ArrayList<>();
 
@@ -283,15 +270,14 @@ public class DashboardService {
         return dates;
     }
 
-    // what the card checks before it offers Fill with AI; whether the AI is on is for the views to decide
     private boolean isFillable(Document document) {
         return !Boolean.TRUE.equals(document.getStatus().getLocked())
                 && document.getCurrentRevision() != null
                 && accessChecker.canEdit(document);
     }
 
-    // the selection of a discussion has rows of its own, which load for the owner of the conversation only
     private boolean isDiscussion(UUID conversationId) {
+        // the selection of a discussion has rows of its own, which load for the owner of the conversation only
         return !dataManager.load(DiscussedDocument.class)
                 .query("e.conversation.id = :conversationId")
                 .parameter("conversationId", conversationId)
@@ -300,7 +286,6 @@ public class DashboardService {
                 .isEmpty();
     }
 
-    // the numbers of the documents by the id a grouped query gives them
     private Map<UUID, Long> counts(String query) {
         Map<UUID, Long> counts = new HashMap<>();
 

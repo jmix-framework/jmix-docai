@@ -1,6 +1,5 @@
 /* Define your styles here */
 
-/* Tags: a badge inside a bare button, so that a click, Enter or Space opens the documents with the tag */
 .tag-badges {
     display: inline-flex;
     gap: var(--vaadin-gap-xs);
@@ -18,9 +17,6 @@
     text-decoration: underline;
 }
 
-/* Favorites are the first section in the frame of the folder tree, which stands in the main menu: the frame and the
-   tree take the look of the menu, the header of the section the look of a folder, and a row the look of a folder
-   a level below the root */
 .folder-tree-frame {
     overflow: hidden;
 }
@@ -34,12 +30,10 @@
     --vaadin-grid-row-selected-background-color: color-mix(in srgb, var(--aura-accent-text-color) 8%, transparent);
 }
 
-/* The root names the tree, so the header of its column is not drawn */
 .folder-tree-frame > vaadin-grid::part(header-row) {
     display: none;
 }
 
-/* The folder on screen looks as the current item of the menu does */
 .folder-tree-frame > vaadin-grid::part(selected-row-cell) {
     border-radius: var(--vaadin-radius-m);
     color: var(--aura-accent-text-color);
@@ -52,8 +46,6 @@ vaadin-details.favorites::part(content) {
     margin: 0;
 }
 
-/* The section takes the folders and the documents dropped on it and lights up while they are dragged over it, as the
-   selection of a discussion with AI does; the outline keeps inside the rounded frame */
 vaadin-details.favorites.v-drag-over-target {
     outline: 1px dashed var(--aura-accent-color);
     outline-offset: -2px;
@@ -61,9 +53,8 @@ vaadin-details.favorites.v-drag-over-target {
     background: color-mix(in oklab, var(--aura-accent-color) 10%, transparent);
 }
 
-/* The table takes the files dropped on it from the computer. The zone draws nothing itself, so while files are dragged
-   over the table it lights up as the favorites do, above the rows, and names the folder the files go to. A flex item
-   keeps the height of its rows unless allowed to shrink, so the zone shrinks to the pane and only the table scrolls */
+/* The zone draws nothing itself, so it lights up over the rows here. A flex item keeps the height of its rows unless
+   allowed to shrink, so the zone shrinks to the pane and only the table scrolls */
 docai-file-drop-zone.documents-drop-zone {
     display: flex;
     flex-direction: column;
@@ -100,14 +91,12 @@ docai-file-drop-zone.documents-drop-zone[dragover]::after {
     pointer-events: none;
 }
 
-/* The list scrolls itself after a third of the screen, so the folders stay in sight */
 .favorites-list {
     max-height: 30vh;
     overflow-y: auto;
 }
 
-/* A long name and its folder end with an ellipsis, so a row keeps to the width of the frame and its star in sight; the
-   button wraps its text otherwise */
+/* A long name and its folder end with an ellipsis, as the button wraps its text otherwise */
 .favorite-row {
     display: flex;
     align-items: center;
@@ -162,9 +151,8 @@ docai-file-drop-zone.documents-drop-zone[dragover]::after {
     border-top: 1px solid var(--vaadin-border-color-secondary);
 }
 
-/* A star is yellow, an outline before the mark and filled after it; on a disabled button or menu item it takes the
-   color of the other icons there. The font has only the filled star since Jmix 3.1, so the outline is its stroke
-   without the fill; the filled star keeps the same stroke, or it looks smaller than the outline */
+/* A star is yellow, an outline before the mark and filled after it. The font has only the filled star since Jmix
+   3.1, so the outline is its stroke without the fill; the filled star keeps the same stroke, or it looks smaller */
 .favorite-star,
 .favorite-star-unmarked {
     color: var(--aura-yellow-text);
@@ -179,7 +167,6 @@ docai-file-drop-zone.documents-drop-zone[dragover]::after {
     color: inherit;
 }
 
-/* a status as a color dot and its name, in the lists and menus that offer statuses */
 .status-option {
     display: inline-flex;
     align-items: center;
@@ -195,7 +182,6 @@ docai-file-drop-zone.documents-drop-zone[dragover]::after {
     box-shadow: inset 0 0 0 1px var(--vaadin-border-color);
 }
 
-/* the palette and the custom color of a status, all of them round swatches */
 .status-swatches {
     display: flex;
     flex-wrap: wrap;

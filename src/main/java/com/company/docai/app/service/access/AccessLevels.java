@@ -8,11 +8,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * The levels of the current user in the access sets where they have entries, read in one query so that the tree
- * and the actions do not ask for every item. A user with full access has {@link AccessLevel#MANAGE} in every set.
+ * The levels of the current user in their access sets, read in one query.
  *
  * @param bySet the highest level of the user's entries, by access set id
- * @param full  whether the user has full access
  */
 public record AccessLevels(Map<UUID, AccessLevel> bySet, boolean full) {
 

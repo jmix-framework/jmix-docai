@@ -58,9 +58,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 /**
- * The window of the repository in which a person discusses a selection of documents with the assistant: the
- * selection, which calls for the rows of the document table while the table drags them and takes the ones dropped
- * on it, and the chat, whose conversation the history of the assistant keeps from the first question on.
+ * The window of the repository in which a person discusses a selection of documents with the assistant.
  */
 @FragmentDescriptor("document-discussion-fragment.xml")
 public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
@@ -129,10 +127,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
                 .withHorizontalSize(WIDTH)
                 .withHorizontalMinSize(MIN_WIDTH)
                 .withModal(false)
-                // Aura derives the colors of the window in its own scheme, which the theme makes light in the mixed
-                // scheme, as the content around it; the theme tints the window with the accent of AI
                 .withClassName("aura-accent-color document-discussion-window")
-                // the table stays in use: a click on it selects documents and a drag brings them here
                 .withCloseOnOutsideClick(false)
                 .withOpenedChangeListener(event -> {
                     if (!event.isOpened()) {
@@ -149,7 +144,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Returns whether the window is open. A closed window takes no more documents.
+     * Returns whether the window is open; a closed window takes no more documents.
      */
     public boolean isOpened() {
         return window != null && window.isOpened();
@@ -165,7 +160,8 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Receives a click on a document of the selection, which opens the card of the document.
+     * Receives a document to open in its card: a chip clicked, or a document an answer links while the
+     * window is open.
      */
     public void setCardOpener(Consumer<Document> cardOpener) {
         this.cardOpener = cardOpener;
@@ -185,8 +181,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     }
 
     /**
-     * Tells whether the document table drags rows: meanwhile the selection calls for them and takes the ones dropped
-     * on it.
+     * Tells the window whether the document table drags rows, which its selection then takes.
      */
     public void setDocumentsDragged(boolean documentsDragged) {
         this.documentsDragged = documentsDragged;
@@ -297,7 +292,6 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
         List<Document> documents = discussion.getDocuments();
         documents.forEach(document -> selection.add(chip(document)));
 
-        // an empty selection asks for documents, and a full one too while the table drags rows
         if (documents.isEmpty() || documentsDragged) {
             selection.add(dropHint);
         }
@@ -326,8 +320,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
         return chip;
     }
 
-    // the tools run one after another, so a new step ends the one before; a step reported again with its result
-    // has already been shown
+    // the tools run one after another, so a new step ends the one before, and a step reported done was shown already
     private void showStatus(AiToolStatusUpdate update) {
         if (update.isCompleted()) {
             return;

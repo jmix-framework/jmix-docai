@@ -69,9 +69,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 /**
- * Loads the sets into a database of their own on a day the clock is set to, and compares the database with the sets
- * generated for that day, so the test names no folder or document of a set. The search indexes are replaced, so the
- * test reaches no OpenSearch.
+ * Loads the sets on a day the clock is set to and compares the database with the sets generated for that day.
  */
 @SpringBootTest(properties = "main.datasource.url=jdbc:hsqldb:mem:demo")
 @ExtendWith(AuthenticatedAsAdmin.class)
@@ -120,7 +118,6 @@ class DemoDataLoaderTest {
     @MockitoBean
     private DocumentVectorIndex vectorIndex;
 
-    // the names of the statuses that the keys of the set being checked stand for
     private Map<String, String> statusNames = Map.of();
 
     @BeforeEach
@@ -138,8 +135,7 @@ class DemoDataLoaderTest {
         assertTheDatabaseIsEmpty();
     }
 
-    // the search indexes may keep the documents of an earlier database, so a set loads only into cleared ones and
-    // otherwise waits for the next start
+    // indexes that may keep the documents of an earlier database must be cleared, or the set waits for the next start
     @Test
     @Order(2)
     void aSetIsNotLoadedWhenTheSearchIndexesCannotBeCleared() {
@@ -220,7 +216,6 @@ class DemoDataLoaderTest {
         assertStatusesAsDescribed("en", Character.UnicodeScript.LATIN);
     }
 
-    // the root, which comes with the changelog, and no document, deleted ones included
     private void assertTheDatabaseIsEmpty() {
         assertThat(count("select count(f) from Folder f")).isEqualTo(1L);
         assertThat(count("select count(d) from Document d")).isZero();
@@ -263,8 +258,7 @@ class DemoDataLoaderTest {
                 .toList());
     }
 
-    // every demo user takes the name and the address of the set, written in its script; the English set loads after
-    // the Russian one, so it gives the users their English names back
+    // the English set loads after the Russian one, so it gives the users their English names back
     private void assertUsersAsDescribed(String set, Character.UnicodeScript script) {
         List<DemoSet.User> described = read(set).users();
         assertThat(described)
@@ -286,9 +280,8 @@ class DemoDataLoaderTest {
         }
     }
 
-    // every status of the set has the name, the color, the place, the flags and the targets the set gives it, and
-    // its name is written in the script of the set; the English set loads after the Russian one, so it gives the
-    // default statuses their English names back and adds its own In review beside the Russian one
+    // the English set loads after the Russian one, so it gives the default statuses their English names back and adds
+    // its own In review beside the Russian one
     private void assertStatusesAsDescribed(String set, Character.UnicodeScript script) {
         List<DemoSet.Status> described = read(set).statuses();
         assertThat(described)
@@ -334,7 +327,6 @@ class DemoDataLoaderTest {
         }
     }
 
-    // a default status by its id, another one by its name
     private DocumentStatus statusOf(DemoSet.Status entry) {
         return switch (entry.key()) {
             case "DRAFT" -> TestStatuses.draft(dataManager);
@@ -393,7 +385,6 @@ class DemoDataLoaderTest {
         }
     }
 
-    // the names from the folder under the root down to the folder
     private String pathOf(Folder folder) {
         return folderService.getPath(folder).stream()
                 .skip(1)
@@ -452,7 +443,6 @@ class DemoDataLoaderTest {
         assertThat(deletedDate.toInstant()).isEqualTo(instantOf(deletion.at()));
     }
 
-    // the access the item has: its own one as described, or the one of its parent
     private static List<String> assertAccess(AccessDraft draft, List<DemoSet.Access> described,
                                              List<String> parentAccess) {
         if (described == null) {
@@ -531,7 +521,6 @@ class DemoDataLoaderTest {
         return document;
     }
 
-    // a comment has its author, text and times as described, also on a document in the trash
     private void assertComments(List<DemoSet.Comment> described, Document document) {
         List<DocumentComment> comments = dataManager.load(DocumentComment.class)
                 .query("select c from DocumentComment c where c.document = :document order by c.createdDate")
@@ -591,7 +580,6 @@ class DemoDataLoaderTest {
         return time.atZone(ZoneId.systemDefault()).toInstant();
     }
 
-    // a key of the set names its status by the name the set gives it, a default status by the name it has
     private Map<String, String> statusNamesOf(DemoSet set) {
         Map<String, String> names = new HashMap<>(Map.of(
                 "DRAFT", TestStatuses.draft(dataManager).getName(),
@@ -604,7 +592,6 @@ class DemoDataLoaderTest {
         return names;
     }
 
-    // the set as the loader generates it for the day of the clock
     private static DemoSet read(String set) {
         try {
             return DemoSetTemplate.read(set)
@@ -614,7 +601,6 @@ class DemoDataLoaderTest {
         }
     }
 
-    // the text of the last version of the document, which the loader makes from a text of the set
     private String textOf(String document) {
         DocumentRevision revision = dataManager.load(DocumentRevision.class)
                 .query("e.document.name = :name order by e.number desc")
@@ -629,7 +615,6 @@ class DemoDataLoaderTest {
     private record Visibility(UUID id, boolean byPeter) {
     }
 
-    // the items of the trash: deleted on their own, and deleted together with a folder
     private record Trash(List<UUID> items, List<UUID> contents) {
 
         void add(UUID id, DemoSet.@Nullable Deletion own, DemoSet.@Nullable Deletion ofParent) {

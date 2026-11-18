@@ -8,17 +8,15 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
 /**
- * The data source of the stand in place of the one of {@code main.datasource}: the control database, the templates
- * and the copies behind one router.
+ * The stand's data source instead of {@code main.datasource}: a router over the control database, templates and copies.
  */
 @Configuration(proxyBeanMethods = false)
 @Profile("stand")
 public class StandDataSourceConfiguration {
 
     /**
-     * The data source of the application, under the name Jmix looks the main one up by; at the start the changelogs
-     * build the schema of the control database through it. No database of the stand reads a file, the control one
-     * included.
+     * The data source of the application, under the name Jmix looks the main one up by. No database of the stand reads
+     * a file, the control one included.
      */
     @Bean
     @Primary

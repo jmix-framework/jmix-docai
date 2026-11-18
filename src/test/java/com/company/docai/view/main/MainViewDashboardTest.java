@@ -42,8 +42,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The dashboard in the main view of an employee: it stands at the root in place of a view and names itself in the
- * header, reads its blocks again whenever the root shows, and opens its documents in their cards over itself.
+ * The dashboard in the main view of an employee: it stands at the root in place of a view.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})

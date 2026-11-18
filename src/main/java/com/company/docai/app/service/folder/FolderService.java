@@ -35,10 +35,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Changes the folder tree: creates, renames, moves and deletes folders. The root stays as
- * the changelog created it, and names are unique among the live folders of one parent.
- * A change needs {@link AccessLevel#EDIT} on the folders it touches. The structure of the tree
- * is read past the access rules: locks, paths and taken names are the same for everyone.
+ * Changes the folder tree, reading it past the access rules so that locks, paths and taken names are the same for all.
  */
 @Service
 public class FolderService {
@@ -64,8 +61,7 @@ public class FolderService {
     }
 
     /**
-     * Returns the root folder, which the changelog creates with {@link Folder#ROOT_ID}. Every user gets it,
-     * also one without access to it.
+     * Returns the root folder, also to a user without access to it.
      */
     public Folder getRoot() {
         return unconstrainedDataManager.load(Folder.class)
@@ -74,12 +70,11 @@ public class FolderService {
     }
 
     /**
-     * Creates a folder or renames one, as the folder dialog does. The parent of an existing
-     * folder changes only through {@link #move(Folder, Folder)}. The parent row stays locked
-     * until the transaction ends, so a delete of the parent waits for this save.
+     * Creates a folder or renames one, as the folder dialog does. The parent row stays locked until the transaction
+     * ends, so a delete of the parent waits for this save.
      *
-     * @throws OperationRejectedException if the folder is the root, the parent of a new folder or the renamed
-     *                                    folder is unavailable or only viewed by the user, or the name is taken
+     * @throws OperationRejectedException if the folder is the root, the parent of a new folder or the renamed folder is
+     *                                    unavailable or only viewed by the user, or the name is taken
      */
     @Transactional
     public Folder save(Folder folder) {
@@ -109,12 +104,11 @@ public class FolderService {
     }
 
     /**
-     * Moves a folder with its subtree into another folder. A folder that inherits its access takes the access
-     * of the target, together with the folders and documents below it that inherit from it.
+     * Moves a folder with its subtree into another folder.
      *
      * @throws OperationRejectedException if the folder is the root, the folder or the target is unavailable or only
-     *                                    viewed by the user, the target is the folder itself or one of its
-     *                                    subfolders, or the target already has a folder with the same name
+     *                                    viewed by the user, the target is the folder itself or one of its subfolders,
+     *                                    or the target already has a folder with the same name
      */
     @Transactional
     public Folder move(Folder folder, Folder target) {
@@ -152,13 +146,13 @@ public class FolderService {
     }
 
     /**
-     * Soft-deletes the folder with all its subfolders, documents and their revisions. The folder
-     * row is locked first, so a document or a folder being placed into it at the same time is
-     * either deleted with it or rejected. The same holds for its subfolders only while the database
-     * locks whole tables, as HSQLDB does by default. A folder deleted already is left as it is.
+     * Soft-deletes the folder with all its subfolders, documents and their revisions; a folder deleted already is left
+     * as it is. The folder row is locked first, so a document or a folder being placed into it at the same time is
+     * either deleted with it or rejected; for its subfolders this holds only while the database locks whole tables, as
+     * HSQLDB does by default.
      *
-     * @throws OperationRejectedException if the folder is the root, is unavailable or only viewed by the user,
-     *                                    or holds something the user may not change
+     * @throws OperationRejectedException if the folder is the root, is unavailable or only viewed by the user, or holds
+     *                                    something the user may not change
      */
     @Transactional
     public void delete(Folder folder) {
@@ -181,8 +175,8 @@ public class FolderService {
     /**
      * Counts what deleting the folder takes with it, for the confirmation dialog.
      *
-     * @throws OperationRejectedException if the folder is unavailable or only viewed by the user, or holds
-     *                                    something the user may not change: the delete would be rejected
+     * @throws OperationRejectedException if the folder is unavailable or only viewed by the user, or holds something
+     *                                    the user may not change
      */
     public FolderContents countContents(Folder folder) {
         checkEditable(folder);
@@ -198,9 +192,9 @@ public class FolderService {
     }
 
     /**
-     * Returns the folders the tree shows to the current user: the folders they have access to and, greyed,
-     * the folders on the way to them and to the documents they have access to. The names on the way are shown
-     * to everyone who has access below them; that is how the user finds what was shared with them.
+     * Returns the folders the tree shows to the current user: theirs and, greyed, those on the way to them and to the
+     * documents they have access to. The names on the way show to whoever has access below them, so that the user finds
+     * what was shared with them.
      */
     public FolderTree loadTree() {
         AccessLevels levels = accessService.levels();
@@ -249,9 +243,7 @@ public class FolderService {
     }
 
     /**
-     * Counts the documents of each folder together with its subfolders, for the folder tree. A document adds to
-     * its folder and to the ancestors among the given folders only, so a folder the user does not see reveals
-     * nothing through its parent. A folder without documents gets 0.
+     * Counts the documents of each folder with its subfolders; a folder not given, such as a hidden one, adds nothing.
      */
     public Map<UUID, Long> countDocuments(Collection<Folder> folders) {
         FolderIndex index = FolderIndex.of(folders);
@@ -277,8 +269,7 @@ public class FolderService {
     }
 
     /**
-     * Returns the folders from the root down to the given one, for breadcrumbs and paths. The folders on the way
-     * are named also when the user has no access to them.
+     * Returns the folders from the root down to the given one, named also when the user has no access to them.
      */
     public List<Folder> getPath(Folder folder) {
         LinkedList<Folder> path = new LinkedList<>();
@@ -306,9 +297,9 @@ public class FolderService {
     }
 
     /**
-     * Locks the folder row until the transaction ends and returns the live folder, whether the user has access
-     * to it or not. Anything placed into a folder takes this lock, so it waits for a delete of the same branch.
-     * Call it inside a transaction: outside one, the lock ends together with the load.
+     * Locks the folder row until the transaction ends and returns the live folder, whether the user has access to it or
+     * not; anything placed into a folder takes this lock, so it waits for a delete of the same branch. Call it inside a
+     * transaction: outside one, the lock ends together with the load.
      *
      * @throws OperationRejectedException if the folder is deleted
      */
@@ -321,8 +312,7 @@ public class FolderService {
     }
 
     /**
-     * Checks that the user may change everything a delete of the folder takes with it. The message names no item:
-     * the user may not see them.
+     * The message names no item: the user may not see them.
      */
     private void checkContentEditable(Folder folder, List<UUID> subtree) {
         AccessLevels levels = accessService.levels();
@@ -340,9 +330,6 @@ public class FolderService {
         }
     }
 
-    /**
-     * Returns the ids of the folder and of its live subfolders at any depth.
-     */
     private List<UUID> subtree(Folder folder) {
         List<UUID> subtree = new ArrayList<>(List.of(folder.getId()));
         List<UUID> level = List.of(folder.getId());

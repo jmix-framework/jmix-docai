@@ -9,8 +9,7 @@ import java.time.format.TextStyle;
 import java.util.Locale;
 
 /**
- * Tells the assistants what day it is for the person who asks, so that a question such as what expires this month or
- * soon can be answered.
+ * Tells the assistants what day it is for the person who asks.
  */
 @Component
 public class AssistantToday {
@@ -24,9 +23,7 @@ public class AssistantToday {
     }
 
     /**
-     * Returns the sentences for a system prompt: today's date in the time zone of the person signed in now, with the
-     * weekday and the zone, and the rule to count relative dates from it. The text has no curly braces, so it fits a
-     * prompt template.
+     * Returns today's date in the person's time zone as sentences for a system prompt, without curly braces.
      */
     public String sentences() {
         ZonedDateTime now = timeSource.now().withZoneSameInstant(currentAuthentication.getTimeZone().toZoneId());

@@ -16,7 +16,6 @@ import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestGrids;
 import com.company.docai.view.main.MainView;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -36,7 +35,6 @@ import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.dialog.DialogInfo;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.ViewControllerUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -47,16 +45,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.company.docai.test_support.TestUi.dialogButton;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The access dialog as peter uses it on "Shared", whose own access he manages, and on "Shared/Team", which
- * inherits it: the box breaks and restores the inheritance, the entries change only on OK, and taking
- * the management from oneself asks first.
+ * The access dialog as peter uses it on "Shared", whose own access he manages, and on "Shared/Team", which inherits it.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -272,7 +268,9 @@ class AccessDetailViewTest {
 
     @SuppressWarnings("unchecked")
     private List<AccessSubject> fetch(JmixComboBox<AccessSubject> subjectField, String filter) {
-        DataProvider<AccessSubject, String> items = (DataProvider<AccessSubject, String>) subjectField.getDataProvider();
+        DataProvider<AccessSubject, String> items =
+                (DataProvider<AccessSubject, String>) subjectField.getDataProvider();
+
         return items.fetch(new Query<>(0, 50, List.of(), null, filter)).toList();
     }
 
@@ -314,15 +312,6 @@ class AccessDetailViewTest {
 
     private JmixCheckbox inheritField(AccessDetailView dialog) {
         return component(dialog, "inheritField");
-    }
-
-    private Button dialogButton(DialogAction.Type type) {
-        DialogInfo dialog = UiTestUtils.getLastOpenedDialog();
-        assertThat(dialog).isNotNull();
-        return dialog.getButtons().stream()
-                .filter(button -> button.getId().equals(Optional.of(type.getId())))
-                .findFirst()
-                .orElseThrow();
     }
 
     private String entries(AccessDetailView dialog, String containerId) {

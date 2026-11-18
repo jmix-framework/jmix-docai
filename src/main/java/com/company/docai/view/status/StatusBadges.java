@@ -7,8 +7,7 @@ import io.jmix.flowui.UiComponents;
 import org.springframework.stereotype.Component;
 
 /**
- * Shows a status in its color: as a badge in the card, the document list, the search results and the dictionary,
- * and as a color dot with the name in the lists and menus that offer statuses.
+ * Shows a status in its color: as a badge, or as a color dot with the name in the lists and menus that offer statuses.
  */
 @Component
 public class StatusBadges {

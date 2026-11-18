@@ -16,10 +16,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * What the uploads of the repository and of the document card share: the largest file their upload components
- * take, on the stand the types of files they offer, the most files a batch upload takes at a time, the notices of a
- * file an upload refuses or fails to transfer, the notices of a file the drop zone of the repository refuses, and the
- * report of a batch upload.
+ * What the uploads of the repository and of the card share: the limits of their files and the notices of refusals.
  */
 @Component
 public class DocumentUploads {
@@ -45,8 +42,7 @@ public class DocumentUploads {
     }
 
     /**
-     * Limits the files the upload takes to the largest a document file may be and, on the stand, to the types a
-     * visitor can upload there, so that its file picker offers only those.
+     * Limits the upload to the maximum document file size and, on the stand, to the file types a visitor can upload.
      */
     public void limitFiles(JmixUpload<?> upload) {
         upload.setMaxFileSize((int) filesProperties.maxFileSize().toBytes());
@@ -54,9 +50,7 @@ public class DocumentUploads {
     }
 
     /**
-     * Limits the files the upload manager of a batch upload takes: as many at a time as a batch takes, each up to the
-     * largest a document file may be and, on the stand, of the types a visitor can upload there, so that the file
-     * picker of the manager offers only those.
+     * Limits the files the upload manager of a batch upload takes, as {@link #limitFiles} does, and how many at a time.
      */
     public void limitBatch(UploadManager manager) {
         manager.setMaxFiles(MAX_BATCH_FILES);
@@ -83,8 +77,7 @@ public class DocumentUploads {
     }
 
     /**
-     * Shows the file the drop zone refused with its reason: one file too many, a file too large, on the stand a type
-     * a visitor cannot upload there, or another one.
+     * Shows the file the drop zone refused with its reason.
      */
     public void showDropRejected(UploadManager.FileRejectedEvent event) {
         String key = switch (event.getReason()) {
@@ -95,7 +88,6 @@ public class DocumentUploads {
 
         StandUploadGuard guard = uploadGuard.getIfAvailable();
 
-        // the stand names the formats it takes, as it does for a file it refuses by its bytes
         String text = event.getReason() == UploadManager.FileRejectionReason.INCORRECT_FILE_TYPE && guard != null
                 ? guard.typeRefusal(event.getFileName())
                 : messages.formatMessage(getClass(), key, event.getFileName());
@@ -106,8 +98,7 @@ public class DocumentUploads {
     }
 
     /**
-     * Shows what a batch upload did: a notice with the number of new documents when it skipped no file, otherwise
-     * a dialog that lists each skipped file with its reason on a line of its own under the summary.
+     * Shows what a batch upload did: a notice, or a dialog that lists each skipped file with its reason.
      */
     public void showReport(UploadReport report) {
         if (report.skipped().isEmpty()) {
@@ -135,8 +126,7 @@ public class DocumentUploads {
                 .open();
     }
 
-    // the extensions alone: the types the browser names files by differ between systems, and the stand checks a file
-    // by its bytes anyway
+    // extensions only: browsers name the types of files differently on each system, and the stand checks bytes anyway
     private static String[] extensionsOf(StandUploadGuard guard) {
         return guard.fileExtensions()
                 .toArray(String[]::new);

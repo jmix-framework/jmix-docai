@@ -123,7 +123,6 @@ class LiveAssistantTest {
                 .containsAnyOf("first", "beginning", "part of the", "12000", "12,000", "12 000");
     }
 
-    // the chat of the card streams the answer
     private static @Nullable String ask(ChatClient chatClient, String question) {
         return chatClient.prompt()
                 .user(question)

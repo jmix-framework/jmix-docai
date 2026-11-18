@@ -6,6 +6,7 @@ import io.jmix.flowui.Notifications;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
+import io.jmix.flowui.testassist.notification.NotificationInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,9 +23,11 @@ class OperationRejectedExceptionHandlerTest {
     @Test
     void aRejectionInsideAnotherExceptionIsShownAsAWarning() {
         boolean handled = handler.handle(new IllegalStateException(new OperationRejectedException("Name taken")));
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
 
         assertThat(handled).isTrue();
-        assertThat(UiTestUtils.getLastOpenedNotification().getText()).isEqualTo("Name taken");
-        assertThat(UiTestUtils.getLastOpenedNotification().getType()).isEqualTo(Notifications.Type.WARNING);
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText()).isEqualTo("Name taken");
+        assertThat(notification.getType()).isEqualTo(Notifications.Type.WARNING);
     }
 }

@@ -27,7 +27,6 @@
                            ariaLabel="msg://customColorInput.ariaLabel"/>
                 </div>
             </formItem>
-            <!-- the place changes in the list, by a drag or the buttons; the dialog only shows it -->
             <integerField id="positionField" property="position" readOnly="true" required="false"/>
             <!-- false is a value of these flags, not an empty field -->
             <checkbox id="initialField" property="initial" required="false"/>

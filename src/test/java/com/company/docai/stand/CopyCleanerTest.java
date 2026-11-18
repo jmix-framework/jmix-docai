@@ -22,8 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * The cleaner deletes a copy only if it is still idle as it leaves the registry: a request of its browser that comes
- * after the cleaner found the copy idle keeps it. The registry is real, the deletion is a stand-in.
+ * The cleaner deletes a copy only if it is still idle as it leaves the registry.
  */
 class CopyCleanerTest {
 

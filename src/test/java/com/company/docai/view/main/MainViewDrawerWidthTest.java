@@ -5,6 +5,7 @@ import com.company.docai.app.ui.component.drawer.DrawerHandle;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestMenus;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.dom.Element;
 import io.jmix.core.Messages;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.settings.UserSettingsService;
@@ -18,11 +19,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The edge of the main menu: the name a screen reader hears, and the width the user drags it to and finds again on the
- * next visit.
+ * The edge of the main menu: the name a screen reader hears, its role and the limits it gives its module in the
+ * browser, and the width the user drags it to and finds again on the next visit.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -30,6 +35,9 @@ class MainViewDrawerWidthTest {
 
     private static final String DRAWER_WIDTH = "--main-view-drawer-width";
     private static final String LEFT_WIDTH = "22.5";
+    private static final String MODULE = "src/main/frontend/src/component/drawer/docai-drawer-handle.js";
+    private static final String STYLES =
+            "src/main/resources/META-INF/resources/themes/jmix-docai-aura/view/main-view.css";
 
     @Autowired
     private UserSettingsService userSettingsService;
@@ -74,6 +82,33 @@ class MainViewDrawerWidthTest {
 
         assertThat(TestMenus.mainView().getElement().getStyle().get(DRAWER_WIDTH)).isEqualTo("19.0rem");
         assertThat(userSettingsService.load(DrawerHandle.DRAWER_WIDTH_SETTING)).contains("19.0");
+    }
+
+    @Test
+    void theEdgeIsAVerticalSeparatorInTheOrderOfTheKeyboardFocus() {
+        DrawerHandle handle = UiTestUtils.getComponent(TestMenus.mainView(), "drawerHandle");
+        Element edge = handle.getElement();
+
+        assertThat(edge.getTag()).isEqualTo("docai-drawer-handle");
+        assertThat(handle.getClassNames()).containsExactly("main-view-drawer-handle");
+        assertThat(edge.getAttribute("role")).isEqualTo("separator");
+        assertThat(edge.getAttribute("aria-orientation")).isEqualTo("vertical");
+        assertThat(edge.getAttribute("tabindex")).isEqualTo("0");
+    }
+
+    // the module keeps a drag and the arrow keys within the limits the edge gives it, and the styles of the main view
+    // follow the width and the mark of a drag that the module sets on the layout
+    @Test
+    void theEdgeGivesItsModuleTheLimitsOfTheWidthInRem() throws IOException {
+        DrawerHandle handle = UiTestUtils.getComponent(TestMenus.mainView(), "drawerHandle");
+        String module = Files.readString(Path.of(MODULE));
+        String styles = Files.readString(Path.of(STYLES));
+
+        assertThat(handle.getElement().getAttribute("min")).isEqualTo("16.0");
+        assertThat(handle.getElement().getAttribute("max")).isEqualTo("32.0");
+        assertThat(module).contains("getAttribute('min')", "getAttribute('max')", "'" + DRAWER_WIDTH + "'",
+                "'drawer-resizing'");
+        assertThat(styles).contains("var(" + DRAWER_WIDTH + ")", "[drawer-resizing]");
     }
 
     @Test

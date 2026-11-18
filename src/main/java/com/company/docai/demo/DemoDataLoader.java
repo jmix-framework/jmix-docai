@@ -60,24 +60,15 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
 /**
- * Loads a demo set into an empty database when the application starts: the statuses of the set, the folders under
- * the root with their own access, then the documents with their versions, types, fields, tags, access and statuses,
- * and last what lies in the trash.
- * The set is chosen by {@code docai.demo-data} ({@code en}, {@code ru} or {@code none}); its description is
- * {@code com/company/docai/demo/<set>/demo-data.json}, the files of its versions lie in {@code files} next to it and
- * the texts in {@code texts}. A set loads in one transaction, all of it or nothing.
- * The set is generated for the day of the load by {@link TimeSource}: its dates, the history included, are computed
- * from that day, and each text becomes its file with those dates: a PDF renders the text, a plain text file holds it.
- * Before a set loads into an empty database, the search indexes are cleared: they may outlive the database, as on
- * the stand, whose OpenSearch stays when the application gets a new container.
- * On the stand the start loads no set: each template of the stand loads its own set into a database of its own, and
- * the control database stays without documents.
+ * Loads the demo set of {@code docai.demo-data}, made for today, into an empty database at startup; not on the stand.
  */
 @Component
 public class DemoDataLoader {
@@ -115,7 +106,6 @@ public class DemoDataLoader {
 
     private static final Logger log = LoggerFactory.getLogger(DemoDataLoader.class);
 
-    // folders, access and statuses are created by the administrator, who manages every folder
     private static final String ADMIN = "admin";
 
     private final String chosenSet;
@@ -201,8 +191,18 @@ public class DemoDataLoader {
     }
 
     /**
-     * Loads the set when the database holds no folder but the root and no document, deleted ones included, after
-     * clearing the search indexes; when they cannot be cleared, the set does not load.
+     * Returns the language of the set that {@code docai.demo-data} names, which is the name of the set; empty for
+     * {@code none}, for a set that does not exist and on the stand, which loads no set at the start.
+     */
+    public Optional<Locale> getDemoSetLanguage() {
+        boolean loads = !environment.matchesProfiles("stand")
+                && new ClassPathResource(DemoSet.LOCATION.formatted(chosenSet) + DemoSet.DESCRIPTION).exists();
+
+        return loads ? Optional.of(Locale.forLanguageTag(chosenSet)) : Optional.empty();
+    }
+
+    /**
+     * Loads the set into an empty database after clearing the search indexes, or not at all if they cannot be.
      */
     public Outcome loadIfEmpty(String set) {
         if (NONE.equals(set)) {
@@ -260,12 +260,7 @@ public class DemoDataLoader {
     }
 
     /**
-     * Returns the problems of the description of the set for today without writing anything, as
-     * {@link DemoSetChecker#problemsOf} lists them: the dates first, then a folder or a document without a name or
-     * with the name of a neighbour, a document without versions, a missing file or text, an unknown user, role,
-     * level, status, type or field, a field value its field does not accept, a tag without a name, too long or
-     * written in another case elsewhere, a favorite of an unknown user or of an item in the trash, and an event of
-     * the history after now.
+     * Returns the problems of the description of the set for today, writing nothing.
      */
     public List<String> check(String set) {
         return check(set, timeSource.now());
@@ -277,8 +272,7 @@ public class DemoDataLoader {
     }
 
     /**
-     * Loads the set, generated for today, into the database in one transaction, without looking at what the
-     * database holds. The set must pass {@link #check}.
+     * Loads the set, made for today, in one transaction without looking at the database; it must pass {@link #check}.
      */
     public void load(String set) {
         load(set, timeSource.now().toLocalDate());
@@ -317,7 +311,6 @@ public class DemoDataLoader {
                 loaded.deleted.size(), (System.nanoTime() - started) / 1_000_000);
     }
 
-    // the changelogs create the users with English names, and the set names them in its language
     private void nameUsers(List<DemoSet.User> described) {
         for (DemoSet.User names : described) {
             User user = unconstrainedDataManager.load(User.class)
@@ -437,7 +430,6 @@ public class DemoDataLoader {
         draft.setFolder(folder);
         draft.setName(description.name());
         draft.setDocumentDate(description.date());
-        // the document service saves a new tag with the document and finds the one an earlier document brought
         draft.setTags(new ArrayList<>(description.tags().stream()
                 .map(tagService::findOrCreate)
                 .toList()));
@@ -450,7 +442,6 @@ public class DemoDataLoader {
         List<DemoSet.Version> versions = description.versions();
         DemoSet.Version first = versions.getFirst();
 
-        // every version is uploaded by its author, with the rights the author has
         Document document = systemAuthenticator.withUser(first.author(), () -> upload(set, first, description,
                 file -> documentService.create(draft, file, null)));
 
@@ -563,7 +554,6 @@ public class DemoDataLoader {
         accessService.save(draft);
     }
 
-    // the history of the set: when each version was uploaded, and who changed the document last
     private void backdate(Document document, List<DemoSet.Version> versions) {
         List<DocumentRevision> revisions = unconstrainedDataManager.load(DocumentRevision.class)
                 .query("select r from DocumentRevision r where r.document = :document order by r.number")
@@ -589,7 +579,6 @@ public class DemoDataLoader {
                 .executeUpdate();
     }
 
-    // every comment is written by its author, with the rights the author has, and dated as described
     private void writeComments(Document document, List<DemoSet.Comment> comments) {
         for (DemoSet.Comment description : comments) {
             DocumentComment comment = systemAuthenticator.withUser(description.author(),
@@ -609,7 +598,7 @@ public class DemoDataLoader {
         }
     }
 
-    // each mark is set by its owner with the owner's rights, so a mark of an item the owner may not read fails the load
+    // each mark is set with its owner's rights, so a mark of an item the owner may not read fails the load
     private void markAsDescribed(List<Marked> marks) {
         for (Marked mark : marks) {
             for (String login : mark.logins()) {

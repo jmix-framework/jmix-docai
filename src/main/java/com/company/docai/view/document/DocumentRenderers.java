@@ -26,8 +26,6 @@ import java.util.function.Predicate;
 
 /**
  * Renderers of documents and their versions in grids, and dates and times in the user's time zone.
- * A view keeps the state its cells show, such as the marks and the names of the users, and passes lookups that read
- * that state when a cell is drawn.
  */
 @SpringComponent
 public class DocumentRenderers {
@@ -53,8 +51,7 @@ public class DocumentRenderers {
     }
 
     /**
-     * The renderer of the name of a document: the icon of its file, the name, the star when the user has marked the
-     * document and the key when it has its own access.
+     * The renderer of the name of a document with the icon of its file, its star and its key of an own access.
      */
     public Renderer<Document> nameRenderer(Predicate<Document> marked, Predicate<Document> ownAccess) {
         String starLabel = messages.getMessage(FavoriteListAction.class, "markedStar.label");
@@ -67,8 +64,6 @@ public class DocumentRenderers {
             text.setText(document.getName());
             name.add(icons.get(fileIcon(document)), text);
 
-            // after the name: a long name ends with an ellipsis, and the star stays in sight; a screen reader names
-            // it, as the key of an own access
             if (marked.test(document)) {
                 Component star = FavoriteListAction.star(icons, true);
                 star.getElement().setAttribute("role", "img");
@@ -85,9 +80,8 @@ public class DocumentRenderers {
     }
 
     /**
-     * The renderer of who changed the document last and when. Who and when share one column, as in the card, in the
-     * user's time zone: the date in the cell, the time in its title; a tooltip generator of a grid column throws in
-     * the browser of Vaadin 25.3 when a tooltip has no row.
+     * The renderer of who changed the document last and when: the date in the cell, the time in its title, since a
+     * tooltip generator of a grid column throws in the browser of Vaadin 25.3 when a tooltip has no row.
      */
     public Renderer<Document> changedRenderer(Function<String, String> userName) {
         return LitRenderer.<Document>of("<span title=\"${item.time}\">${item.text}</span>")

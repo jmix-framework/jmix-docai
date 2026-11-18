@@ -48,8 +48,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The chat of the assistant in the menu on the stub model, asked by an employee: what is saved of the answers and
- * what the model is told. A UI test, since the links to the cards come from the routes of the views.
+ * The chat of the assistant in the menu on the stub model, asked by an employee: what is saved of the answers and what
+ * the model is told.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class,
@@ -270,7 +270,6 @@ class AssistantChatServiceTest {
         return messageService.createMessage(conversation, AiChatMessageType.USER, QUESTION);
     }
 
-    // the texts of the messages the model got that name the documents of the conversation
     private List<String> selectionMessages() {
         return model.prompts()
                 .getFirst()
