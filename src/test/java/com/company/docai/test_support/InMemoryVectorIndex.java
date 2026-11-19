@@ -1,6 +1,7 @@
 package com.company.docai.test_support;
 
 import com.company.docai.search.semantic.DocumentVectorIndex;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -20,6 +21,7 @@ public class InMemoryVectorIndex extends DocumentVectorIndex {
     private final Map<UUID, Entry> entries = new ConcurrentHashMap<>();
     private final List<Collection<UUID>> searchedAmong = new CopyOnWriteArrayList<>();
     private final List<UUID> replaced = new CopyOnWriteArrayList<>();
+    private final List<UUID> lookedUp = new CopyOnWriteArrayList<>();
     private volatile boolean down;
 
     private record Entry(String sourceKey, List<Fragment> fragments) {
@@ -82,6 +84,15 @@ public class InMemoryVectorIndex extends DocumentVectorIndex {
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().sourceKey()));
     }
 
+    @Override
+    public @Nullable String sourceKey(UUID documentId) {
+        failIfDown();
+        lookedUp.add(documentId);
+        Entry entry = entries.get(documentId);
+
+        return entry == null ? null : entry.sourceKey();
+    }
+
     public void put(UUID documentId, String sourceKey, List<Fragment> fragments) {
         entries.put(documentId, new Entry(sourceKey, List.copyOf(fragments)));
     }
@@ -97,6 +108,15 @@ public class InMemoryVectorIndex extends DocumentVectorIndex {
 
     public long replacements(UUID documentId) {
         return replaced.stream()
+                .filter(documentId::equals)
+                .count();
+    }
+
+    /**
+     * Returns how many times the source key of the document was read.
+     */
+    public long lookups(UUID documentId) {
+        return lookedUp.stream()
                 .filter(documentId::equals)
                 .count();
     }
@@ -119,6 +139,7 @@ public class InMemoryVectorIndex extends DocumentVectorIndex {
         entries.clear();
         searchedAmong.clear();
         replaced.clear();
+        lookedUp.clear();
         down = false;
     }
 

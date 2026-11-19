@@ -251,6 +251,14 @@ class SearchPaletteViewTest {
     }
 
     @Test
+    void theLineAsksTheBrowserNotToListItsOwnEntries() {
+        SearchPaletteView palette = TestPalettes.open();
+
+        // such a list opens under the line and takes the arrows from the rows of the palette
+        assertThat(TestPalettes.queryField(palette).getElement().getAttribute("autocomplete")).isEqualTo("off");
+    }
+
+    @Test
     void aSecondRequestWhileThePaletteIsOpenOpensNoOther() {
         SearchPaletteView palette = TestPalettes.open();
 

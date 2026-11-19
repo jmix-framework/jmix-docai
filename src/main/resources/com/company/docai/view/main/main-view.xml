@@ -14,7 +14,7 @@
                 <textField id="searchField" classNames="main-view-search"
                            placeholder="msg://searchField.placeholder"
                            ariaLabel="msg://searchField.placeholder"
-                           clearButtonVisible="true">
+                           autocomplete="OFF" clearButtonVisible="true">
                     <prefix>
                         <icon icon="SEARCH"/>
                     </prefix>

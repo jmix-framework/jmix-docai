@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -41,6 +42,15 @@ public class StandUploadGuard {
     private static final String TEXT = MediaType.TEXT_PLAIN.toString();
 
     private static final List<String> TEXT_NAMES = List.of(".txt", ".csv");
+
+    private static final Map<String, List<String>> EXTENSIONS_BY_TYPE = Map.of(
+            "application/pdf", List.of(".pdf"),
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document", List.of(".docx"),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", List.of(".xlsx"),
+            "text/plain", List.of(".txt"),
+            "text/csv", List.of(".csv"),
+            "image/png", List.of(".png"),
+            "image/jpeg", List.of(".jpg", ".jpeg"));
 
     private final StandProperties properties;
     private final CopyRegistry registry;
@@ -262,20 +272,20 @@ public class StandUploadGuard {
         return String.join(", ", formats);
     }
 
-    // a type without an extension could never be chosen in a file picker that offers only these
     private static List<String> extensionsOf(List<String> types) {
         Set<String> extensions = new LinkedHashSet<>();
 
         for (String type : types) {
-            MimeType known = registered(type);
+            // Tika knows dozens of extensions of a text, .bsh and .classpath among them, and a picker would offer all
+            List<String> named = EXTENSIONS_BY_TYPE.get(type);
 
-            if (known == null || known.getExtensions().isEmpty()) {
-                throw new IllegalStateException("docai.stand.upload-types holds a type without a file extension: "
+            // a type without an extension could never be chosen in a file picker that offers only these
+            if (named == null) {
+                throw new IllegalStateException("docai.stand.upload-types holds a type without file extensions: "
                         + type);
             }
 
-            known.getExtensions()
-                    .forEach(extension -> extensions.add(extension.toLowerCase(Locale.ROOT)));
+            extensions.addAll(named);
         }
 
         return List.copyOf(extensions);

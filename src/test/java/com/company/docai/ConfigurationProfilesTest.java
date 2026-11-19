@@ -128,6 +128,14 @@ class ConfigurationProfilesTest {
     }
 
     @Test
+    void theStandProfileKeepsTheSessionLimitOfJmix() {
+        try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
+            assertThat(context.getEnvironment().containsProperty("jmix.core.session.maximum-sessions-per-user"))
+                    .isFalse();
+        }
+    }
+
+    @Test
     void theStandProfileSetsTheCopiesOfTheStand() {
         try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
             StandProperties properties = Binder.get(context.getEnvironment())

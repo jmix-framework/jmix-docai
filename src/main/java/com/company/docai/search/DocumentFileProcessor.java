@@ -4,7 +4,6 @@ import com.company.docai.ai.DocumentTextReader;
 import io.jmix.core.FileRef;
 import io.jmix.core.FileStorageLocator;
 import io.jmix.search.exception.UnsupportedFileFormatException;
-import io.jmix.search.utils.FileProcessor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Primary
 @Component
 @Profile("stand")
-public class DocumentFileProcessor extends FileProcessor {
+public class DocumentFileProcessor extends CsvFileProcessor {
 
     private final DocumentTextReader textReader;
 
@@ -27,7 +26,7 @@ public class DocumentFileProcessor extends FileProcessor {
     /**
      * Returns the whole text of the file, or an empty text when the file has none to read or exceeds the limits.
      *
-     * @throws UnsupportedFileFormatException when the add-on has no parser for the extension of the file
+     * @throws UnsupportedFileFormatException when the search has no parser for the extension of the file
      */
     @Override
     public String extractFileContent(FileRef fileRef) throws UnsupportedFileFormatException {

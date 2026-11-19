@@ -111,7 +111,7 @@ class UploadNoticesTest {
     }
 
     @Test
-    void theReportListsEachSkippedFileOnALineOfItsOwnUnderItsSummary() {
+    void theReportNamesEachSkippedFileOnceOnALineOfItsOwnUnderItsSummary() {
         upload("a.txt");
         upload("b.txt");
         UploadDropZone zone = dropZone(open(sandbox));
@@ -129,8 +129,8 @@ class UploadNoticesTest {
         assertThat(report.getContent().getChildren().map(line -> line.getElement().getText()))
                 .containsExactly(
                         messages.formatMessage(MESSAGES, "uploadReport.summary", 1, 2),
-                        "a.txt — " + nameTaken("a.txt"),
-                        "b.txt — " + nameTaken("b.txt"));
+                        nameTaken("a.txt"),
+                        nameTaken("b.txt"));
     }
 
     @Test

@@ -1,5 +1,7 @@
 package com.company.docai.search.semantic;
 
+import com.company.docai.stand.StandScope;
+import com.company.docai.stand.StandScopeHolder;
 import com.company.docai.test_support.StubEmbeddingModel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,6 +116,44 @@ class DocumentVectorIndexTest {
         assertThat(index.clear()).isTrue();
         assertThat(index.sourceKeys()).isEmpty();
         assertThat(index.prepare()).isFalse();
+    }
+
+    @Test
+    void theSourceKeyOfADocumentIsReadFromItsFragments() {
+        UUID document = UUID.randomUUID();
+
+        assertThat(index.sourceKey(document)).isNull();
+
+        index.replace(document, "first", List.of(fragment(0, "A tractor"), fragment(1, "A combine")));
+        index.replace(UUID.randomUUID(), "another", List.of(fragment(0, "A seed drill")));
+
+        assertThat(index.sourceKey(document)).isEqualTo("first");
+        assertThat(index.sourceKey(UUID.randomUUID())).isNull();
+    }
+
+    @Test
+    void aScopeOfTheStandReadsTheSourceKeyFromItsOwnIndex() throws Exception {
+        UUID document = UUID.randomUUID();
+        StandScope copy = StandScope.copy("0123456789abcdef0123456789abcdef");
+        index.replace(document, "of the start", List.of(fragment(0, "A tractor")));
+
+        try {
+            StandScopeHolder.run(copy, () -> index.replace(document, "of the copy", List.of(fragment(0, "A combine"))));
+
+            assertThat(index.sourceKey(document)).isEqualTo("of the start");
+            assertThat(StandScopeHolder.call(copy, () -> index.sourceKey(document))).isEqualTo("of the copy");
+        } finally {
+            String copyIndex = index.getIndexName(copy);
+
+            boolean exists = client.indices()
+                    .exists(request -> request.index(copyIndex))
+                    .value();
+
+            if (exists) {
+                client.indices()
+                        .delete(request -> request.index(copyIndex));
+            }
+        }
     }
 
     @Test

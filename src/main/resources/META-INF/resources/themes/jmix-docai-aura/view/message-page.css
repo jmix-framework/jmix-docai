@@ -1,0 +1,19 @@
+.message-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 100vh;
+}
+
+.message-heading {
+    margin: var(--vaadin-gap-s) 0 0;
+    font-size: var(--aura-font-size-l);
+    text-align: center;
+}
+
+.message-text {
+    margin: 0 0 var(--vaadin-gap-s);
+    color: var(--vaadin-text-color-secondary);
+    text-align: center;
+}

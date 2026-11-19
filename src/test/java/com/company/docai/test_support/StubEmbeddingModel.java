@@ -22,6 +22,7 @@ public class StubEmbeddingModel implements EmbeddingModel {
     public static final int DIMENSIONS = 3072;
 
     private final List<String> texts = new CopyOnWriteArrayList<>();
+    private final List<List<String>> calls = new CopyOnWriteArrayList<>();
 
     public static float[] vectorOf(String text) {
         float[] vector = new float[DIMENSIONS];
@@ -54,12 +55,21 @@ public class StubEmbeddingModel implements EmbeddingModel {
         return texts;
     }
 
+    /**
+     * Returns the texts of each call of the model, in the order of the calls.
+     */
+    public List<List<String>> calls() {
+        return calls;
+    }
+
     public void reset() {
         texts.clear();
+        calls.clear();
     }
 
     @Override
     public EmbeddingResponse call(EmbeddingRequest request) {
+        calls.add(List.copyOf(request.getInstructions()));
         List<Embedding> embeddings = new ArrayList<>();
 
         for (String text : request.getInstructions()) {

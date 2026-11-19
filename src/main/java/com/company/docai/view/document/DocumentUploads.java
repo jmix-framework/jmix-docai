@@ -98,7 +98,7 @@ public class DocumentUploads {
     }
 
     /**
-     * Shows what a batch upload did: a notice, or a dialog that lists each skipped file with its reason.
+     * Shows what a batch upload did: a notice, or a dialog that lists the reason of each skipped file.
      */
     public void showReport(UploadReport report) {
         if (report.skipped().isEmpty()) {
@@ -117,7 +117,8 @@ public class DocumentUploads {
                 report.skipped().size())));
 
         for (UploadReport.SkippedFile skipped : report.skipped()) {
-            content.add(textLine(skipped.fileName() + " — " + skipped.reason()));
+            // the reasons of the services name the file themselves, as their notices do on a single upload
+            content.add(textLine(skipped.reason()));
         }
 
         dialogs.createMessageDialog()

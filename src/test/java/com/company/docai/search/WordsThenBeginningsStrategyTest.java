@@ -96,6 +96,20 @@ class WordsThenBeginningsStrategyTest {
     }
 
     @Test
+    void aBeginningLeavesOutAnEnglishPossessiveEnding() {
+        // "it" is shorter than a beginning, and the trailing apostrophe of "clients'" never joins the word
+        assertThat(strategy.beginningsOf("client's client’s CLIENT'S clients' O'Brien's O'Bri it's"))
+                .containsExactly("client", "client", "CLIENT", "clients", "O'Brien", "O'Bri");
+    }
+
+    @Test
+    void theWholeWordsKeepAPossessiveAsTyped() {
+        queryOf("client's report");
+
+        assertThat(asked).containsExactly("words: client's report", "beginnings: client report");
+    }
+
+    @Test
     void aMarkJoinsTwoLettersOrTwoDigitsAsTheIndexDoesAndEndsTheWordElsewhere() {
         assertThat(strategy.beginningsOf("a:b·c 1,5;6 3'000 and, or; end: x.y 1:2 a,b co\u00ADop"))
                 .containsExactly("a:b·c", "1,5;6", "3'000", "and", "end", "co\u00ADop");

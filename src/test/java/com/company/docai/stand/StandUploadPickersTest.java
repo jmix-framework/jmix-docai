@@ -115,7 +115,7 @@ class StandUploadPickersTest {
 
         List<String> offered = extensions.getFirst();
 
-        assertThat(offered).contains(".pdf", ".docx", ".xlsx", ".txt", ".csv", ".png", ".jpg", ".jpeg");
+        assertThat(offered).containsExactly(".pdf", ".docx", ".xlsx", ".txt", ".csv", ".png", ".jpg", ".jpeg");
         assertThat(offered).extracting(StandUploadPickersTest::typeOfAFileEndingWith)
                 .isSubsetOf(properties.uploadTypes());
         assertThat(extensions).allSatisfy(list -> assertThat(list).isEqualTo(offered));

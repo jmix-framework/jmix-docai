@@ -260,7 +260,8 @@ public class DocumentVectorIndexer {
     }
 
     /**
-     * Indexes the document now: one without text gets a fragment of its name, one that is gone leaves the index.
+     * Indexes the document now: one without text gets a fragment of its name, one that is gone leaves the index, and
+     * one already indexed from its current version and name is left as it is.
      */
     public void index(UUID documentId) {
         Optional<Document> found = dataManager.load(Document.class)
@@ -275,6 +276,13 @@ public class DocumentVectorIndexer {
         }
 
         Document document = found.get();
+        String sourceKey = sourceKeyOf(document);
+
+        // a new document is saved twice, so the queue may take it once more after its fragments are in the index
+        if (sourceKey.equals(index.sourceKey(documentId))) {
+            return;
+        }
+
         String name = document.getName();
         List<String> texts = textsOf(document.getCurrentRevision());
         boolean ofName = texts.isEmpty();
@@ -290,7 +298,7 @@ public class DocumentVectorIndexer {
                     vectors.get(number)));
         }
 
-        index.replace(documentId, sourceKeyOf(document), fragments);
+        index.replace(documentId, sourceKey, fragments);
     }
 
     /**

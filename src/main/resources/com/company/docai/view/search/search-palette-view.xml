@@ -6,7 +6,8 @@
         <textField id="queryField" classNames="search-palette-query" width="100%"
                    placeholder="msg://com.company.docai.view.main/searchField.placeholder"
                    ariaLabel="msg://com.company.docai.view.main/searchField.placeholder"
-                   autoselect="true" valueChangeMode="LAZY" valueChangeTimeout="300" trimEnabled="false">
+                   autoselect="true" autocomplete="OFF" valueChangeMode="LAZY" valueChangeTimeout="300"
+                   trimEnabled="false">
             <prefix>
                 <icon icon="SEARCH"/>
             </prefix>

@@ -1,5 +1,13 @@
 # Jmix DocAI
 
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![Jmix 3.1](https://img.shields.io/badge/Jmix-3.1-blueviolet)](https://www.jmix.io)
+[![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/projects/jdk/21/)
+[![Vaadin 25](https://img.shields.io/badge/Vaadin-25-00b4f0)](https://vaadin.com)
+[![Spring AI 2.0](https://img.shields.io/badge/Spring%20AI-2.0-6db33f)](https://spring.io/projects/spring-ai)
+
+🖥️ [Online Demo](https://demo.jmix.io/docai/)
+
 Jmix DocAI is a reference document management system with AI, built on [Jmix](https://www.jmix.io) 3.1. It shows developers how to build a document management system on Jmix and how to add AI to it: filling document cards from their files, assistants that answer from the documents, and search by meaning. You can clone it, run it locally with demo data in English or Russian, and read the code as an example.
 
 ![Jmix DocAI: the dashboard, an upload by drag and drop, Fill with AI, the assistant of a document and the search by meaning](docs/promo/jmix-docai-readme.gif)
@@ -16,6 +24,7 @@ Jmix DocAI is a reference document management system with AI, built on [Jmix](ht
 - [Application Accounts](#-application-accounts)
 - [Domain Model](#️-domain-model)
 - [Role Model](#-role-model)
+- [Related Samples](#-related-samples)
 - [More about Jmix](#ℹ️-more-about-jmix)
 - [License](#-license)
 
@@ -37,7 +46,7 @@ Employees keep documents in a folder tree in the main menu, share them with coll
 **Search**
 
 - Every search starts in the search palette: the search field in the header opens it, and so do ⌘K and Ctrl+K. Before you type, it lists your recent searches, which you can remove, your favorites and, with the AI on, two questions for the AI assistant. As you type, it finds documents, folders and tags, with chips to filter them. A document opens its card over the palette.
-- Full-text search in the names, tags and type fields of documents and in the text of their PDF, DOC, DOCX, XLS, XLSX, ODT, ODS, RTF and TXT files: whole words and their forms in English and Russian first, then word beginnings of three letters or more; a long query finds whole words only
+- Full-text search in the names, tags and type fields of documents and in the text of their PDF, DOC, DOCX, XLS, XLSX, ODT, ODS, RTF, TXT and CSV files: whole words and their forms in English and Russian first, then word beginnings of three letters or more; a long query finds whole words only
 - Search by meaning
 
 **AI**, with an OpenAI key
@@ -324,6 +333,18 @@ Access works as in SharePoint: a folder or a document inherits the access of its
 A user gets the highest level among their entries. The root gives the Employee role the Edit level, and the administrator has every level everywhere. Departments are resource roles without policies; with LDAP or Active Directory, map each department group to its role and keep the access entries on roles.
 
 > **Warning:** the `access-rl` role comes from the Jmix role assignments. If users sign in through LDAP or SSO and get their roles from a group mapper, add `access-rl` in the mapper, or they will see every folder and document.
+
+## 🧭 Related Samples
+
+| Sample | What it shows |
+|---|---|
+| [B2B CRM](https://github.com/jmix-framework/jmix-crm) | An enterprise CRM with AI: customers, orders, invoicing, finance and analytics |
+| [Bookstore](https://github.com/jmix-framework/jmix-bookstore) | An application for managing a retail bookstore |
+| [UI Samples](https://github.com/jmix-framework/jmix-ui-samples) | Examples of the UI components of Jmix, also [online](https://demo.jmix.io/ui-samples/) |
+| [Petclinic](https://github.com/jmix-framework/jmix-petclinic) | The Petclinic example application, built with Jmix |
+| [Samples](https://github.com/jmix-framework/jmix-samples-2) | Solutions to typical problems in Jmix applications |
+
+⭐ If this example helps you, star the repository: it helps others find it.
 
 ## ℹ️ More about Jmix
 

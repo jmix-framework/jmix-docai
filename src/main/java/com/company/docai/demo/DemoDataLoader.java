@@ -60,10 +60,8 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -191,14 +189,12 @@ public class DemoDataLoader {
     }
 
     /**
-     * Returns the language of the set that {@code docai.demo-data} names, which is the name of the set; empty for
-     * {@code none}, for a set that does not exist and on the stand, which loads no set at the start.
+     * Whether {@code docai.demo-data} chooses a set that exists; never for {@code none} and never on the stand, which
+     * loads no set at the start.
      */
-    public Optional<Locale> getDemoSetLanguage() {
-        boolean loads = !environment.matchesProfiles("stand")
+    public boolean isDemoSetChosen() {
+        return !environment.matchesProfiles("stand")
                 && new ClassPathResource(DemoSet.LOCATION.formatted(chosenSet) + DemoSet.DESCRIPTION).exists();
-
-        return loads ? Optional.of(Locale.forLanguageTag(chosenSet)) : Optional.empty();
     }
 
     /**

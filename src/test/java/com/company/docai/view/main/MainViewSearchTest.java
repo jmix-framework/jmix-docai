@@ -198,6 +198,12 @@ class MainViewSearchTest {
     }
 
     @Test
+    void theFieldAsksTheBrowserNotToListItsOwnEntries() {
+        // such a list opens under the field as the palette flies out of it
+        assertThat(searchField().getElement().getAttribute("autocomplete")).isEqualTo("off");
+    }
+
+    @Test
     void withoutTheKeyTheSearchIsByWordsEvenForWhoChoseTheAiSearch() {
         userSettingsService.save(MainView.SEARCH_MODE_SETTING, DocumentSearchView.AI_MODE);
 

@@ -1,5 +1,6 @@
 package com.company.docai.view.login;
 
+import com.company.docai.app.config.SessionEndedRedirect;
 import com.company.docai.demo.DemoDataLoader;
 import com.company.docai.stand.CopyNotMadeException;
 import com.company.docai.stand.StandLogin;
@@ -15,6 +16,8 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinServletRequest;
+import com.vaadin.flow.server.VaadinServletResponse;
 import com.vaadin.flow.server.VaadinSession;
 import io.jmix.core.CoreProperties;
 import io.jmix.core.MessageTools;
@@ -104,6 +107,12 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
         initDefaultCredentials();
         initUsageHelp();
         showLanguageWarning(login.getSelectedLocale());
+
+        // the browser disables the form at a submit; Vaadin syncs that state with the login only in its constructor
+        // without messages, which Jmix's form skips; setEnabled(true) would then enable it at the first refusal only
+        login.getElement()
+                .addPropertyChangeListener("disabled", "login", change -> {
+                });
     }
 
     private void initLocales() {
@@ -122,10 +131,11 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
                 : stand.formLocale(coreProperties.getAvailableLocales()));
     }
 
-    // outside the stand the scenarios tell the demo set of the database, so without one the form offers none
     private void initUsageHelp() {
         boolean stand = standLogin.getIfAvailable() != null;
-        usageHelpButton.setVisible(stand || demoDataLoader.getDemoSetLanguage().isPresent());
+
+        // outside the stand the scenarios tell the demo set of the database, so without one the form offers none
+        usageHelpButton.setVisible(stand || demoDataLoader.isDemoSetChosen());
     }
 
     private void initDefaultCredentials() {
@@ -155,6 +165,8 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
                             .withLocale(login.getSelectedLocale())
                             .withRememberMe(login.isRememberMe())
             );
+
+            SessionEndedRedirect.unmark(VaadinServletRequest.getCurrent(), VaadinServletResponse.getCurrent());
         } catch (final TemplateNotReadyException e) {
             // the form disables itself on a submit and waits for another try
             event.getSource().setEnabled(true);

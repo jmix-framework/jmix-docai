@@ -100,6 +100,16 @@ class DocumentTextLimitsTest {
         assertThat(processor.extractFileContent(file).strip()).isEqualTo(text);
     }
 
+    @Test
+    void theSearchReadsACsvFileWithinTheSameLimits(CapturedOutput output) throws Exception {
+        FileRef table = stored("Prices.csv", "item,price\nlease,12\n");
+        FileRef longTable = stored("Long.csv", "item,price\n" + "lease,12\n".repeat(200));
+
+        assertThat(processor.extractFileContent(table)).contains("lease");
+        assertThat(processor.extractFileContent(longTable)).isEmpty();
+        assertThat(output).contains("Cannot read the text of Long.csv: it is longer than 1000 characters");
+    }
+
     // a zip bomb in small: a document of a few hundred bytes whose text runs far past the limit
     @Test
     void aDocxWhoseTextRunsPastTheLimitHasNoTextForTheSearch(CapturedOutput output) throws Exception {

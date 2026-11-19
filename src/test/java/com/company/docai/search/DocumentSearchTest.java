@@ -142,6 +142,18 @@ class DocumentSearchTest {
                 sandbox.getName());
     }
 
+    @Test
+    void aWordInsideACsvFileFindsTheDocument() {
+        String word = token();
+        byte[] csv = ("item,price\n" + word + ",12\n").getBytes(StandardCharsets.UTF_8);
+        Document table = upload(sandbox, "prices.csv", csv);
+
+        index();
+
+        assertThat(hitOf(documentSearch.search(word), table).field())
+                .isEqualTo(messages.getMessage(DocumentSearch.class, "fileText"));
+    }
+
     // the samples are English, DocAiIndexSettingsTest checks the Russian stemmer
     @Test
     void otherFormsOfAWordMatch() {
@@ -637,6 +649,24 @@ class DocumentSearchTest {
         index();
 
         assertThat(ids(documentSearch.first("O'" + word.substring(0, 4), 5))).contains(document.getId());
+    }
+
+    @Test
+    void aWordWithAnEnglishPossessiveEndingFindsTheWordWithoutItToo() {
+        // a word of eight characters at most is searched in the beginnings that the index keeps
+        String word = token().substring(0, 6);
+        byte[] text = "Nothing else here.".getBytes(StandardCharsets.UTF_8);
+        Document plain = upload(sandbox, word + " report.txt", text);
+        Document plural = upload(sandbox, word + "s report.txt", text);
+        Document possessive = upload(sandbox, word + "'s report.txt", text);
+
+        index();
+
+        List<UUID> all = List.of(plain.getId(), plural.getId(), possessive.getId());
+
+        assertThat(ids(documentSearch.search(word + "'s"))).containsAll(all);
+        assertThat(ids(documentSearch.first(word + "’s", 5))).containsAll(all);
+        assertThat(ids(documentSearch.first(word + "s'", 5))).contains(plural.getId());
     }
 
     @Test

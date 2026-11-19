@@ -6,6 +6,7 @@ import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.folder.FolderService;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
+import com.company.docai.search.CsvFileProcessor;
 import com.company.docai.test_support.AuthenticatedAsAdmin;
 import com.company.docai.test_support.TestFiles;
 import io.jmix.core.DataManager;
@@ -142,7 +143,7 @@ class DocumentTextReaderTest {
     // only the stand reads the texts of files for the search within limits, see StandUploadTypesTest
     @Test
     void outsideTheStandTheSearchAddOnReadsTheTextsOfFilesItself() {
-        assertThat(fileProcessor.getClass()).isEqualTo(FileProcessor.class);
+        assertThat(fileProcessor).isExactlyInstanceOf(CsvFileProcessor.class);
     }
 
     private static byte[] leasePdf() {

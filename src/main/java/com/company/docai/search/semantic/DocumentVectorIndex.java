@@ -272,6 +272,36 @@ public class DocumentVectorIndex {
         return keys;
     }
 
+    /**
+     * Returns the source key of the fragments of the document in the index, or {@code null} when the index has none of
+     * them or is not there yet.
+     */
+    public @Nullable String sourceKey(UUID documentId) {
+        String indexName = getIndexName();
+        SearchResponse<JsonData> response;
+
+        try {
+            response = client.search(request -> request.index(indexName)
+                            .ignoreUnavailable(true)
+                            .size(1)
+                            .source(source -> source.filter(filter -> filter.includes("sourceKey")))
+                            .query(byDocuments(List.of(documentId))),
+                    JsonData.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        return response.hits()
+                .hits()
+                .stream()
+                .map(Hit::source)
+                .filter(Objects::nonNull)
+                .map(source -> source.toJson().asJsonObject())
+                .map(source -> source.getString("sourceKey", ""))
+                .findFirst()
+                .orElse(null);
+    }
+
     private boolean indexExists(String indexName) throws IOException {
         return client.indices()
                 .exists(request -> request.index(indexName))

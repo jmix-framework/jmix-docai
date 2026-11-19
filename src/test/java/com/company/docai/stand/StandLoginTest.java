@@ -25,6 +25,11 @@ import com.vaadin.flow.component.internal.UIInternals;
 import com.vaadin.flow.component.login.AbstractLogin.LoginEvent;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.internal.CurrentInstance;
+import com.vaadin.flow.internal.StateNode;
+import com.vaadin.flow.internal.change.MapPutChange;
+import com.vaadin.flow.internal.nodefeature.ElementListenerMap;
+import com.vaadin.flow.internal.nodefeature.ElementPropertyMap;
+import com.vaadin.flow.internal.nodefeature.PropertyChangeDeniedException;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinResponse;
 import com.vaadin.flow.server.VaadinService;
@@ -33,6 +38,7 @@ import com.vaadin.flow.server.VaadinServletResponse;
 import com.vaadin.flow.server.VaadinServletService;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
+import com.vaadin.flow.shared.JsonConstants;
 import io.jmix.core.DataManager;
 import io.jmix.core.Messages;
 import io.jmix.core.security.CurrentAuthentication;
@@ -210,6 +216,8 @@ class StandLoginTest {
 
     // the language Jmix's login keeps in the browser for the next login
     private @Nullable String lastLocale;
+
+    private boolean disabledInBrowser;
 
     // Quartz, in standby in the other tests, runs the jobs that delete the copies a login or a switch replaces
     @BeforeAll
@@ -1267,6 +1275,46 @@ class StandLoginTest {
     }
 
     @Test
+    void theFormTakesTheNextLoginAfterEveryRefusal() throws Exception {
+        Path template = StandScope.template("en")
+                .folder(properties.dataDir());
+
+        Path marker = template.resolve(TemplateBuilder.READY);
+        Path markerAside = marker.resolveSibling("ready.aside");
+        Path script = template.resolve(TemplateBuilder.SCRIPT);
+        Path scriptAside = script.resolveSibling("db.script.aside");
+        List<Boolean> enabledAfterRefusals = new ArrayList<>();
+        // two logins while the template is being built, as it has no ready marker then, and two while it cannot be read
+        Files.move(marker, markerAside);
+
+        try {
+            for (int refusal = 0; refusal < 2; refusal++) {
+                request(() -> submitInBrowser("alice"));
+                enabledAfterRefusals.add(!disabledInBrowser);
+            }
+        } finally {
+            Files.move(markerAside, marker);
+        }
+
+        Files.move(script, scriptAside);
+
+        try {
+            for (int refusal = 0; refusal < 2; refusal++) {
+                request(() -> submitInBrowser("alice"));
+                enabledAfterRefusals.add(!disabledInBrowser);
+            }
+        } finally {
+            Files.move(scriptAside, script);
+        }
+
+        request(() -> submitInBrowser("alice"));
+
+        assertThat(enabledAfterRefusals).containsExactly(true, true, true, true);
+        assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(MainView.class);
+        assertThat(registry.all()).extracting(Copy::key, Copy::language).containsExactly(tuple(cookie, "en"));
+    }
+
+    @Test
     void anUnknownCookieGetsNoCopy() throws Exception {
         String forged = CopyRegistry.newKey();
         AtomicReference<StandScope> scope = new AtomicReference<>(StandScope.template("en"));
@@ -1475,6 +1523,50 @@ class StandLoginTest {
     private void logIn(String username, String password) {
         JmixLoginForm form = loginForm();
         ComponentUtil.fireEvent(form, new LoginEvent(form, true, username, password));
+    }
+
+    private void submitInBrowser(String username) {
+        // the form disables itself in the browser at a submit and ignores Enter and Log in until a response enables it
+        if (disabledInBrowser) {
+            return;
+        }
+
+        JmixLoginForm form = loginForm();
+        StateNode node = form.getElement()
+                .getNode();
+
+        receiveResponse(node);
+        disabledInBrowser = true;
+
+        // the browser sends the login together with the properties the server synchronizes on it
+        boolean synchronizesDisabled = node.getFeature(ElementListenerMap.class)
+                .getExpressions("login")
+                .contains(JsonConstants.SYNCHRONIZE_PROPERTY_TOKEN + "disabled");
+
+        if (synchronizesDisabled) {
+            try {
+                node.getFeature(ElementPropertyMap.class)
+                        .deferredUpdateFromClient("disabled", true)
+                        .run();
+            } catch (PropertyChangeDeniedException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        ComponentUtil.fireEvent(form, new LoginEvent(form, true, username, username));
+        receiveResponse(node);
+    }
+
+    private void receiveResponse(StateNode form) {
+        UI.getCurrent()
+                .getInternals()
+                .getStateTree()
+                .collectChanges(change -> {
+                    if (change instanceof MapPutChange put && put.getNode() == form
+                            && put.getFeature() == ElementPropertyMap.class && put.getKey().equals("disabled")) {
+                        disabledInBrowser = (Boolean) put.getValue();
+                    }
+                });
     }
 
     // the demo users keep their passwords unencoded, and so does this change

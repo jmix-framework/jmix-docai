@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 /**
@@ -49,6 +48,8 @@ public class WordsThenBeginningsStrategy implements OpenSearchSearchStrategy {
             + "(?:[\\p{L}\\p{M}\\p{N}_\\u202F\\u00AD\\u200C\\u200D\\u2060\\uFEFF]"
             + "|(?<=\\p{L})['\\u2019\\u2018:\\u00B7](?=\\p{L})"
             + "|(?<=\\p{N})['\\u2019\\u2018.,;](?=\\p{N}))*+");
+
+    private static final Pattern POSSESSIVE = Pattern.compile("['\\u2019][sS]$");
 
     private final AnyTermAnyFieldOpenSearchSearchStrategy anyTermAnyField;
     private final StartsWithOpenSearchSearchStrategy startsWith;
@@ -104,14 +105,15 @@ public class WordsThenBeginningsStrategy implements OpenSearchSearchStrategy {
 
     /**
      * Returns the words of the text that a search by beginnings takes, split as the index splits them: "O'Brien",
-     * "file_name" and "12.03.2026" are one word each, "and/or" and "contract.pdf" two words each. The words kept have
-     * at least as many characters as the shortest beginning that the index keeps, three by default; the search palette
+     * "file_name" and "12.03.2026" are one word each, "and/or" and "contract.pdf" two words each. A word leaves out an
+     * English possessive ending, so "client's" begins "client", "clients" and "client's" alike. The words kept have at
+     * least as many characters as the shortest beginning that the index keeps, three by default; the search palette
      * leaves out the shorter words too.
      */
     public List<String> beginningsOf(String text) {
         return WORD.matcher(text)
                 .results()
-                .map(MatchResult::group)
+                .map(word -> POSSESSIVE.matcher(word.group()).replaceFirst(""))
                 .filter(word -> word.codePointCount(0, word.length()) >= searchProperties.getMinPrefixLength())
                 .toList();
     }

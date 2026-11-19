@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://sessionEndedView.title">
+    <layout classNames="login-view message-page">
+        <div classNames="login-card">
+            <div classNames="login-brand">
+                <svgIcon id="brandLogo" resource="themes/jmix-docai-aura/images/logo.svg" size="40px"
+                         classNames="login-brand-logo"/>
+                <h1 id="brandName" text="msg://com.company.docai.view.login/brandName" classNames="login-brand-name"/>
+            </div>
+            <h2 id="heading" text="msg://sessionEnded.heading" classNames="message-heading"/>
+            <p id="explanation" text="msg://sessionEnded.text" classNames="message-text"/>
+            <button id="loginButton" text="msg://loginButton.text" themeNames="primary"/>
+        </div>
+    </layout>
+</view>

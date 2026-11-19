@@ -19,6 +19,7 @@ import com.company.docai.test_support.TestTrash;
 import io.jmix.core.DataManager;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
+import io.jmix.core.event.EntityChangedEvent;
 import io.jmix.dynattr.model.Category;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import org.junit.jupiter.api.AfterEach;
@@ -30,7 +31,10 @@ import org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingProperti
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.event.TransactionalApplicationListenerAdapter;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -71,6 +75,9 @@ class DocumentVectorIndexerTest {
 
     @Autowired
     private OpenAiEmbeddingProperties embeddingProperties;
+
+    @Autowired
+    private ConfigurableApplicationContext context;
 
     @Value("${docai.semantic.dimensions}")
     private int dimensions;
@@ -129,9 +136,79 @@ class DocumentVectorIndexerTest {
     }
 
     @Test
+    void aDocumentIndexedTwiceAsksTheModelOnce() {
+        Document document = upload("contract.txt", "Supply contract 45 with Northwind for office paper.");
+        await().until(() -> !indexer.isBusy());
+        index.delete(List.of(document.getId()));
+        embeddingModel.reset();
+
+        indexer.index(document.getId());
+        indexer.index(document.getId());
+
+        assertThat(embeddingModel.calls()).hasSize(1);
+        assertThat(index.fragmentsOf(document.getId())).isNotEmpty();
+    }
+
+    @Test
+    void aRenamedDocumentAsksTheModelAgain() {
+        Document document = upload("contract.txt", "Supply contract 45 with Northwind for office paper.");
+        await().until(() -> !indexer.isBusy());
+        embeddingModel.reset();
+
+        Document renamed = editable(document);
+        renamed.setName("supply-contract-45.txt");
+        documentService.save(renamed, null, null);
+        await().until(() -> !indexer.isBusy());
+
+        assertThat(embeddingModel.calls()).singleElement()
+                .satisfies(texts -> assertThat(texts).isNotEmpty()
+                        .allSatisfy(text -> assertThat(text).startsWith("supply-contract-45.txt\n\n")));
+    }
+
+    @Test
+    void aNewDocumentAsksTheModelOnceThoughTheQueueTakesItTwice() {
+        await().until(() -> !indexer.isBusy());
+        embeddingModel.reset();
+        Document draft = dataManager.create(Document.class);
+        draft.setFolder(sandbox);
+        draft.setName("tender.txt");
+        Thread creator = Thread.currentThread();
+
+        // the commit waits after the callback of the first save until the worker has taken the document out of the
+        // queue, so the callback of the second save queues it again, as a busy machine may do
+        TransactionalApplicationListenerAdapter<ApplicationEvent> slowCommit =
+                new TransactionalApplicationListenerAdapter<>(event -> {
+                    if (Thread.currentThread() == creator && event instanceof EntityChangedEvent<?> changed
+                            && changed.getType() == EntityChangedEvent.Type.CREATED
+                            && Document.class.equals(changed.getEntityId().getEntityClass())) {
+                        await().until(() -> !embeddingModel.calls().isEmpty());
+                    }
+                });
+
+        context.addApplicationListener(slowCommit);
+        Document document;
+
+        try {
+            document = documentService.create(draft, TestFiles.file(tempDir, "tender.txt",
+                    "The tender for twelve tractors and a combine."), null);
+        } finally {
+            context.removeApplicationListener(slowCommit);
+        }
+
+        await().until(() -> !indexer.isBusy());
+
+        assertThat(index.lookups(document.getId())).isEqualTo(2);
+        assertThat(embeddingModel.calls()).hasSize(1);
+        assertThat(index.fragmentsOf(document.getId())).isNotEmpty();
+    }
+
+    @Test
     void aMoveAStatusATypeAndAccessLeaveTheIndexAlone() {
         Document document = upload("contract.txt", "Supply contract 45 with Northwind for office paper.");
-        await().untilAsserted(() -> assertThat(index.replacements(document.getId())).isEqualTo(1));
+        // the upload saves the document twice, and the queue takes it twice when its worker starts in between
+        await().until(() -> !indexer.isBusy());
+        long indexed = index.replacements(document.getId());
+        long taken = index.lookups(document.getId());
 
         // a target in the sandbox goes with it, as other classes share the Spring context
         documentService.move(List.of(editable(document)), folder(sandbox, "Target"));
@@ -145,9 +222,11 @@ class DocumentVectorIndexerTest {
 
         // the queue is one thread: a document indexed after the changes proves that they queued nothing before it
         Document later = upload("notes.txt", "Notes of the meeting.");
-        await().untilAsserted(() -> assertThat(index.fragmentsOf(later.getId())).isNotEmpty());
+        await().until(() -> !index.fragmentsOf(later.getId()).isEmpty() && !indexer.isBusy());
 
-        assertThat(index.replacements(document.getId())).isEqualTo(1);
+        assertThat(indexed).isPositive();
+        assertThat(index.replacements(document.getId())).isEqualTo(indexed);
+        assertThat(index.lookups(document.getId())).isEqualTo(taken);
     }
 
     @Test
