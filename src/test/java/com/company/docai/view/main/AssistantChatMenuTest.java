@@ -1,11 +1,11 @@
 package com.company.docai.view.main;
 
 import com.company.docai.DocAiApplication;
+import com.company.docai.ai.assistant.AssistantChatService;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.StubAiConfiguration;
 import com.company.docai.test_support.TestMenus;
 import com.vaadin.flow.dom.Element;
-import io.jmix.aitoolsflowui.service.AiChatService;
 import io.jmix.aitoolsflowui.view.chathub.AiChatHubView;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.main.JmixListMenu;
@@ -35,7 +35,7 @@ class AssistantChatMenuTest {
     private ViewNavigators viewNavigators;
 
     @Autowired
-    private AiChatService chatService;
+    private AssistantChatService chatService;
 
     @Test
     void anEmployeeOpensTheAssistantFromTheMenuAboveTheFolders() {
@@ -54,6 +54,17 @@ class AssistantChatMenuTest {
 
         assertThat(chatService.isAvailable()).isTrue();
         assertThat(opened).isInstanceOf(AiChatHubView.class);
+    }
+
+    @Test
+    void thePageOfTheAssistantCarriesTheNameOfItsMenuItem() {
+        ListMenu.MenuItem assistantChat = TestMenus.listMenu("assistantMenu").getMenuItem("assistantChat");
+
+        viewNavigators.view(UiTestUtils.getCurrentView(), AiChatHubView.class).navigate();
+        View<?> opened = UiTestUtils.getCurrentView();
+
+        assertThat(assistantChat).isNotNull();
+        assertThat(opened.getPageTitle()).isEqualTo(assistantChat.getTitle());
     }
 
     @Test

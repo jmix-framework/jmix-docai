@@ -8,7 +8,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import io.jmix.aichat.component.chat.AiChat;
 import io.jmix.aichat.component.chat.GenerationFailedEvent;
 import io.jmix.aichat.data.SimpleAiChatMessage;
-import io.jmix.flowui.Notifications;
 import io.jmix.flowui.fragment.Fragment;
 import io.jmix.flowui.fragment.FragmentDescriptor;
 import io.jmix.flowui.kit.component.button.JmixButton;
@@ -35,8 +34,6 @@ public class DocumentAssistantFragment extends Fragment<VerticalLayout> {
 
     @Autowired
     private DocumentAssistant documentAssistant;
-    @Autowired
-    private Notifications notifications;
 
     @Subscribe
     public void onReady(final ReadyEvent event) {
@@ -72,10 +69,7 @@ public class DocumentAssistantFragment extends Fragment<VerticalLayout> {
 
     @Subscribe("chat")
     public void onChatGenerationFailed(final GenerationFailedEvent<?> event) {
+        // the chat shows the failure itself, with Retry
         log.warn("The assistant did not answer: {}", event.getError().toString());
-
-        notifications.create(messageBundle.getMessage("assistantFailed"))
-                .withType(Notifications.Type.ERROR)
-                .show();
     }
 }

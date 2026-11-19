@@ -147,15 +147,16 @@ public class FolderService {
 
     /**
      * Soft-deletes the folder with all its subfolders, documents and their revisions; a folder deleted already is left
-     * as it is. The folder row is locked first, so a document or a folder being placed into it at the same time is
-     * either deleted with it or rejected; for its subfolders this holds only while the database locks whole tables, as
-     * HSQLDB does by default.
+     * as it is, and the answer says so. The folder row is locked first, so a document or a folder being placed into it
+     * at the same time is either deleted with it or rejected; for its subfolders this holds only while the database
+     * locks whole tables, as HSQLDB does by default.
      *
+     * @return whether the folder was deleted, which it was not when it had been deleted already
      * @throws OperationRejectedException if the folder is the root, is unavailable or only viewed by the user, or holds
      *                                    something the user may not change
      */
     @Transactional
-    public void delete(Folder folder) {
+    public boolean delete(Folder folder) {
         if (folder.isRoot()) {
             throw reject("rootFolderLocked");
         }
@@ -165,11 +166,15 @@ public class FolderService {
                 .lockMode(LockModeType.PESSIMISTIC_WRITE)
                 .optional();
 
-        if (locked.isPresent()) {
-            checkEditable(locked.get());
-            checkContentEditable(locked.get(), subtree(locked.get()));
-            dataManager.remove(locked.get());
+        if (locked.isEmpty()) {
+            return false;
         }
+
+        checkEditable(locked.get());
+        checkContentEditable(locked.get(), subtree(locked.get()));
+        dataManager.remove(locked.get());
+
+        return true;
     }
 
     /**

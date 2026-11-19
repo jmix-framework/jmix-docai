@@ -121,6 +121,7 @@ import java.lang.ref.Reference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -402,6 +403,86 @@ class StandLoginTest {
     }
 
     @Test
+    void theFormOpensWithAliceFilledIn() throws Exception {
+        request(this::openLoginForm);
+
+        assertThat(loginForm().getUsername()).isEqualTo("alice");
+        assertThat(loginForm().getPassword()).isEqualTo("alice");
+    }
+
+    @Test
+    void aVisitorWhoseCopyWentForIdlenessReadsWhyOnTheFormUntilTheNextLogin() throws Exception {
+        request(() -> logIn("alice"));
+
+        Copy copy = registry.find(cookie)
+                .orElseThrow();
+
+        copy.lastAccess().set(Instant.now().minus(Duration.ofHours(1)));
+
+        new CopyCleaner(properties, registry, copyFactory)
+                .deleteIdleCopies();
+
+        openTheLoginFormAsNobody();
+        boolean shown = copyExpiredNote().isVisible();
+        String note = copyExpiredNote().getText();
+        long minutes = properties.copyIdleTimeout().toMinutes();
+        request(() -> logIn("alice"));
+        logOut();
+
+        assertThat(registry.find(copy.key())).isEmpty();
+        assertThat(shown).isTrue();
+        assertThat(note)
+                .contains(String.valueOf(minutes))
+                .isEqualTo(messages.formatMessage(LoginView.class, "copyExpired.many", Locale.ENGLISH, minutes));
+        assertThat(copyExpiredNote().isVisible()).isFalse();
+    }
+
+    @Test
+    void aVisitorWhoseRussianCopyWentForIdlenessReadsTheLineInRussian() throws Exception {
+        request(() -> {
+            loginForm().setSelectedLocale(RUSSIAN);
+            logIn("alice");
+        });
+
+        Copy copy = registry.find(cookie)
+                .orElseThrow();
+
+        copy.lastAccess().set(Instant.now().minus(Duration.ofHours(1)));
+
+        new CopyCleaner(properties, registry, copyFactory)
+                .deleteIdleCopies();
+
+        openTheLoginFormAsNobody();
+
+        long minutes = properties.copyIdleTimeout().toMinutes();
+
+        assertThat(loginForm().getSelectedLocale()).isEqualTo(RUSSIAN);
+        assertThat(copyExpiredNote().isVisible()).isTrue();
+        assertThat(copyExpiredNote().getText())
+                .isEqualTo(messages.formatMessage(LoginView.class, "copyExpired.many", RUSSIAN, minutes));
+    }
+
+    @Test
+    void aLogoutAndACopyGoneForAnotherReasonSayNothingOfAnEndedSession() throws Exception {
+        request(() -> logIn("alice"));
+        logOut();
+
+        boolean afterLogout = copyExpiredNote().isVisible();
+
+        // a change of the language, or a restart, deletes a copy in use
+        copyFactory.delete(Objects.requireNonNull(cookie));
+        openTheLoginFormAsNobody();
+        boolean afterDeletion = copyExpiredNote().isVisible();
+
+        cookie = CopyRegistry.newKey();
+        openTheLoginFormAsNobody();
+
+        assertThat(afterLogout).isFalse();
+        assertThat(afterDeletion).isFalse();
+        assertThat(copyExpiredNote().isVisible()).isFalse();
+    }
+
+    @Test
     void theFormOpensInEnglishOnTheStand() throws Exception {
         VaadinSession.getCurrent().setLocale(RUSSIAN);
 
@@ -595,8 +676,8 @@ class StandLoginTest {
         assertThat(shared.getAuthentication()).isSameAs(login);
         assertThat(formLanguage).isEqualTo("en");
         assertThat(lastLocale).isEqualTo("ru");
-        assertThat(events.stream(InteractiveAuthenticationSuccessEvent.class))
-                .extracting(InteractiveAuthenticationSuccessEvent::getGeneratedBy)
+        assertThat(events.stream(InteractiveAuthenticationSuccessEvent.class)
+                .<Class<?>>map(InteractiveAuthenticationSuccessEvent::getGeneratedBy))
                 .containsExactly(StandLoginViewSupport.class);
     }
 
@@ -626,8 +707,8 @@ class StandLoginTest {
                 .containsExactlyInAnyOrder(tuple("flowui_LoginViewSupport", LoginViewSupport.class),
                         tuple(StandLoginViewSupport.NAME, StandLoginViewSupport.class));
         assertThat(applicationContext.getBean(LoginViewSupport.class)).isExactlyInstanceOf(LoginViewSupport.class);
-        assertThat(events.stream(InteractiveAuthenticationSuccessEvent.class))
-                .extracting(InteractiveAuthenticationSuccessEvent::getGeneratedBy)
+        assertThat(events.stream(InteractiveAuthenticationSuccessEvent.class)
+                .<Class<?>>map(InteractiveAuthenticationSuccessEvent::getGeneratedBy))
                 .containsExactly(LoginViewSupport.class);
     }
 
@@ -1618,6 +1699,10 @@ class StandLoginTest {
 
     private Span languageWarning() {
         return UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "languageWarning");
+    }
+
+    private Span copyExpiredNote() {
+        return UiTestUtils.getComponent(UiTestUtils.getCurrentView(), "copyExpiredNote");
     }
 
     private Button usageHelpButton() {

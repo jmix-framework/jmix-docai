@@ -11,6 +11,7 @@
             </div>
             <button id="usageHelpButton" text="msg://usageHelpButton.text" icon="QUESTION_CIRCLE"
                     themeNames="tertiary small" classNames="login-usage-help"/>
+            <span id="copyExpiredNote" visible="false" classNames="login-copy-expired"/>
             <loginForm id="login"
                        forgotPasswordButtonVisible="false"
                        rememberMeVisible="false">

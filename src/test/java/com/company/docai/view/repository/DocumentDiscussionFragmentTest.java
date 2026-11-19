@@ -12,6 +12,7 @@ import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
 import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.document.DocumentDetailView;
+import com.company.docai.view.document.FillWithAiAction;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -22,6 +23,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.aichat.component.chat.AiChat;
+import io.jmix.aichat.component.chat.AiChatI18n;
 import io.jmix.aichat.component.messagelist.GenerationState;
 import io.jmix.aichat.component.messagelist.ThinkingStatusItem;
 import io.jmix.aichat.data.SimpleAiChatMessage;
@@ -51,6 +53,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
@@ -99,6 +102,7 @@ class DocumentDiscussionFragmentTest {
     private SystemAuthenticator systemAuthenticator;
 
     @Autowired
+    @Qualifier("aitls_AiConversationDataService")
     private AiConversationService conversationService;
 
     @Autowired
@@ -422,16 +426,19 @@ class DocumentDiscussionFragmentTest {
     }
 
     @Test
-    void aModelThatFailsIsReported() {
+    void aModelThatFailsIsReportedByTheChatAloneInTheWordsOfFillWithAi() {
         DocumentDiscussionFragment discussion = discuss(upload("lease.txt"));
 
         ask(discussion);
 
-        NotificationInfo failure = openedNotifications.getLastNotification();
-        assertThat(failure).isNotNull();
-        assertThat(failure.getType()).isEqualTo(Notifications.Type.ERROR);
-        assertThat(failure.getText())
-                .isEqualTo(messages.getMessage(DocumentDiscussionFragment.class, "discussionFailed"));
+        AiChatI18n i18n = chat(discussion).getI18n();
+        String fillWithAi = messages.getMessage(FillWithAiAction.class, "fillWithAiAction.failed");
+
+        assertThat(chat(discussion).getState()).isEqualTo(GenerationState.ERROR);
+        assertThat(openedNotifications.getNotifications()).isEmpty();
+        assertThat(i18n.getMessageList()).isNotNull();
+        assertThat(i18n.getMessageList().getError()).isEqualTo(fillWithAi);
+        assertThat(i18n.getFailed()).isEqualTo(fillWithAi);
     }
 
     @Test

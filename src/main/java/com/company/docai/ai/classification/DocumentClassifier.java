@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
@@ -112,7 +113,7 @@ public class DocumentClassifier {
                 .orElse(null);
 
         if (type == null) {
-            return new ClassificationResult(null, List.of(), List.of(), tags);
+            return new ClassificationResult(null, List.of(), List.of(), tags, Set.of());
         }
 
         List<DocumentTypes.FieldValue> values = proposal.fields()
@@ -122,7 +123,8 @@ public class DocumentClassifier {
 
         DocumentTypes.Filling filling = documentTypes.fill(document, type, values, proposal.documentDate());
 
-        return new ClassificationResult(documentTypes.nameOf(type), filling.filled(), filling.skipped(), tags);
+        return new ClassificationResult(documentTypes.nameOf(type), filling.filled(), filling.skipped(), tags,
+                filling.properties());
     }
 
     private List<ClassificationResult.AddedTag> applyTags(List<String> names, Document document) {

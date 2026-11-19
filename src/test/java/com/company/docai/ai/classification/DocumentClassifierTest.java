@@ -261,6 +261,40 @@ class DocumentClassifierTest {
         assertThat(editable(document).getCategory()).isNull();
     }
 
+    // the card marks what the AI set by these properties, so a value left out is no property of the result
+    @Test
+    void theResultNamesThePropertiesTheProposalSet() {
+        String lease = "Lease " + suffix();
+        TestTags.tag(unconstrainedDataManager, lease);
+        Document document = editable(upload());
+
+        ClassificationResult result = documentClassifier.apply(new ClassificationProposal("Invoice", List.of(
+                field("supplier", "Harbour Logistics LLC"),
+                field("invoiceNumber", "1187"),
+                field("invoiceAmount", "about a million")), "2026-11-01", List.of(lease)), document);
+
+        assertThat(result.properties())
+                .containsExactlyInAnyOrder("category", "+supplier", "+invoiceNumber", "documentDate");
+    }
+
+    @Test
+    void aProposalWithoutATypeNamesNoProperty() {
+        String lease = "Lease " + suffix();
+        TestTags.tag(unconstrainedDataManager, lease);
+        Document document = editable(upload());
+
+        ClassificationResult tagged = documentClassifier.apply(new ClassificationProposal(
+                ClassificationProposal.UNKNOWN, List.of(field("supplier", "Harbour Logistics LLC")), "2026-11-01",
+                List.of(lease)), document);
+
+        ClassificationResult empty = documentClassifier.apply(new ClassificationProposal(
+                ClassificationProposal.UNKNOWN, List.of(), null, List.of()), editable(upload()));
+
+        assertThat(tagged.properties()).isEmpty();
+        assertThat(tagged.tags()).isNotEmpty();
+        assertThat(empty.properties()).isEmpty();
+    }
+
     @Test
     void anEnumerationTakesOnlyItsOwnValues() {
         Document lease = editable(upload());

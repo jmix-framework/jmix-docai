@@ -2,22 +2,25 @@ package com.company.docai.view.document;
 
 import com.company.docai.model.document.Document;
 import com.company.docai.model.folder.Folder;
+import com.vaadin.flow.server.VaadinServletRequest;
 import io.jmix.core.DataManager;
-import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.View;
+import io.jmix.flowui.view.ViewRegistry;
+import io.jmix.flowui.view.navigation.RouteSupport;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * Opens the document card in a dialog over a view.
+ * Opens the document card in a dialog over a view, and gives the route that opens the card as a page.
  */
 @Component
 public class DocumentCards {
@@ -26,13 +29,17 @@ public class DocumentCards {
     private final DataManager dataManager;
     private final Notifications notifications;
     private final Messages messages;
+    private final ViewRegistry viewRegistry;
+    private final RouteSupport routeSupport;
 
     public DocumentCards(DialogWindows dialogWindows, DataManager dataManager, Notifications notifications,
-                         Messages messages) {
+                         Messages messages, ViewRegistry viewRegistry, RouteSupport routeSupport) {
         this.dialogWindows = dialogWindows;
         this.dataManager = dataManager;
         this.notifications = notifications;
         this.messages = messages;
+        this.viewRegistry = viewRegistry;
+        this.routeSupport = routeSupport;
     }
 
     /**
@@ -89,7 +96,14 @@ public class DocumentCards {
      * Checks that the user may still read the document, giving a notice when not.
      */
     public boolean checkAvailable(Document document) {
-        if (dataManager.load(Id.of(document)).optional().isEmpty()) {
+        return checkAvailable(document.getId());
+    }
+
+    /**
+     * Checks that the user may read the document with the id, giving a notice when not or when no id is given.
+     */
+    public boolean checkAvailable(@Nullable UUID id) {
+        if (id == null || find(id).isEmpty()) {
             notifications.create(messages.getMessage(getClass(), "documentUnavailable"))
                     .withType(Notifications.Type.WARNING)
                     .show();
@@ -107,5 +121,17 @@ public class DocumentCards {
         return dataManager.load(Document.class)
                 .id(id)
                 .optional();
+    }
+
+    /**
+     * Returns the full address of the card of the document, with the host and the context path the browser uses.
+     */
+    public String addressOf(Document document) {
+        String route = viewRegistry.getRouteConfiguration()
+                .getUrl(DocumentDetailView.class, routeSupport.createRouteParameters("id", document.getId()));
+
+        return ServletUriComponentsBuilder.fromContextPath(VaadinServletRequest.getCurrent())
+                .path("/" + route)
+                .toUriString();
     }
 }

@@ -158,6 +158,13 @@ vaadin-app-layout.jmix-main-view-app-layout[has-drawer][drawer-opened]:not([over
     min-width: 0;
 }
 
+/* A long folder name ends with an ellipsis, and its number follows it after a space of its own rather than after the gap
+   that sets the icon apart */
+.folder-tree-name .folder-document-count {
+    margin-inline-start: calc(-1 * var(--vaadin-gap-s));
+    white-space: pre;
+}
+
 /* The views stand in the frame of the folders: the list menu would add its own inset to the inset of the folders */
 .jmix-main-view-navigation {
     display: flex;

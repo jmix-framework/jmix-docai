@@ -220,11 +220,8 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
 
     @Subscribe("chat")
     public void onChatGenerationFailed(final GenerationFailedEvent<SimpleAiChatMessage> event) {
+        // the chat shows the failure itself, with Retry
         log.warn("The assistant did not answer in the discussion: {}", event.getError().toString());
-
-        notifications.create(messageBundle.getMessage("discussionFailed"))
-                .withType(Notifications.Type.ERROR)
-                .show();
     }
 
     // a closed dialog leaves the page only after the browser has played the closing, and the chat stops its answer

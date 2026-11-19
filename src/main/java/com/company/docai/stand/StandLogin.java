@@ -60,11 +60,13 @@ public class StandLogin {
     }
 
     /**
-     * The language the login form opens with: the one of the browser's copy, so the next login keeps it, else English.
+     * The language the login form opens with: the one of the browser's copy, or of the copy deleted for idleness, so
+     * the next login keeps it, else English.
      */
     public Locale formLocale(List<Locale> locales) {
         String language = browserCopy()
                 .map(Copy::language)
+                .or(this::expiredLanguage)
                 .orElse(DEFAULT_LANGUAGE);
 
         return locales.stream()
@@ -80,6 +82,16 @@ public class StandLogin {
         return browserCopy()
                 .filter(copy -> !copy.language().equals(locale.getLanguage()))
                 .isPresent();
+    }
+
+    /**
+     * Whether the browser's copy was deleted because nobody used it for {@code docai.stand.copy-idle-timeout}, so the
+     * login form tells the visitor why their changes are gone; a login gives the browser a new copy.
+     */
+    public boolean isCopyExpired() {
+        VaadinRequest request = VaadinRequest.getCurrent();
+
+        return request != null && registry.isExpired(CopyCookie.keyOf(request.getCookies()));
     }
 
     /**
@@ -285,6 +297,14 @@ public class StandLogin {
             // unused from now on, the copy goes with the cleaner once it is idle
             log.warn("A replaced copy waits for the cleaner: {}", StandScope.withTags(e.toString()));
         }
+    }
+
+    private Optional<String> expiredLanguage() {
+        VaadinRequest request = VaadinRequest.getCurrent();
+
+        return request == null
+                ? Optional.empty()
+                : registry.expiredLanguage(CopyCookie.keyOf(request.getCookies()));
     }
 
     private Optional<Copy> browserCopy() {

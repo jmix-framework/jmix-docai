@@ -16,7 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * The copies of the demo data that exist now, by their keys.
+ * The copies of the demo data that exist now, by their keys, and the keys of the copies deleted for idleness during
+ * the last day.
  */
 @Component
 @Profile("stand")
@@ -24,10 +25,14 @@ public class CopyRegistry {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    private static final Duration EXPIRED_KEPT = Duration.ofDays(1);
+
     private final TimeSource timeSource;
 
     // its compute methods run atomically, which the removal of an idle copy needs
     private final ConcurrentHashMap<String, Copy> copies = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<String, Expiry> expired = new ConcurrentHashMap<>();
 
     public CopyRegistry(TimeSource timeSource) {
         this.timeSource = timeSource;
@@ -99,12 +104,14 @@ public class CopyRegistry {
 
     /**
      * Forgets the copy if it is still not used for longer than the timeout, in one step with the check: a request that
-     * marks the copy as used before keeps it.
+     * marks the copy as used before keeps it. The key of a forgotten copy counts as expired for a day, see
+     * {@link #isExpired}.
      *
      * @return the copy that was forgotten, if any; its database is the caller's to shut down
      */
     public Optional<Copy> removeIfIdleLongerThan(String key, Duration timeout) {
-        Instant limit = now().minus(timeout);
+        Instant now = now();
+        Instant limit = now.minus(timeout);
         AtomicReference<Copy> removed = new AtomicReference<>();
 
         copies.computeIfPresent(key, (name, copy) -> {
@@ -119,7 +126,37 @@ public class CopyRegistry {
             return null;
         });
 
+        if (removed.get() != null) {
+            // the browser keeps the key in its cookie, so its next login form can tell why the changes are gone
+            expired.put(key, new Expiry(removed.get().language(), now));
+
+            expired.values()
+                    .removeIf(expiry -> expiry.isOlderThan(now));
+        }
+
         return Optional.ofNullable(removed.get());
+    }
+
+    /**
+     * Whether the key is of a copy that {@link #removeIfIdleLongerThan} forgot during the last day; a copy deleted for
+     * another reason, such as a change of the language or a restart, does not count.
+     */
+    public boolean isExpired(@Nullable String key) {
+        return expiredLanguage(key).isPresent();
+    }
+
+    /**
+     * The language of the copy that {@link #removeIfIdleLongerThan} forgot during the last day, so that the visitor
+     * reads about it in the language they worked in.
+     */
+    public Optional<String> expiredLanguage(@Nullable String key) {
+        if (key == null) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(expired.get(key))
+                .filter(expiry -> !expiry.isOlderThan(now()))
+                .map(Expiry::language);
     }
 
     /**
@@ -145,5 +182,12 @@ public class CopyRegistry {
 
     private Instant now() {
         return timeSource.now().toInstant();
+    }
+
+    private record Expiry(String language, Instant at) {
+
+        private boolean isOlderThan(Instant now) {
+            return at.isBefore(now.minus(EXPIRED_KEPT));
+        }
     }
 }

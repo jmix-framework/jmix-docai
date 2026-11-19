@@ -4,8 +4,10 @@ import com.company.docai.app.config.SessionEndedRedirect;
 import com.company.docai.demo.DemoDataLoader;
 import com.company.docai.stand.CopyNotMadeException;
 import com.company.docai.stand.StandLogin;
+import com.company.docai.stand.StandProperties;
 import com.company.docai.stand.StandScope;
 import com.company.docai.stand.TemplateNotReadyException;
+import com.company.docai.view.search.SearchRenderers;
 import com.company.docai.view.usagehelp.UsageHelpView;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.UI;
@@ -80,8 +82,14 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
     @Autowired
     private ObjectProvider<StandLogin> standLogin;
 
+    @Autowired
+    private StandProperties standProperties;
+
     @ViewComponent
     private JmixLoginForm login;
+
+    @ViewComponent
+    private Span copyExpiredNote;
 
     @ViewComponent
     private Span languageWarning;
@@ -106,6 +114,7 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
         initLocales();
         initDefaultCredentials();
         initUsageHelp();
+        initCopyExpiredNote();
         showLanguageWarning(login.getSelectedLocale());
 
         // the browser disables the form at a submit; Vaadin syncs that state with the login only in its constructor
@@ -136,6 +145,11 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
 
         // outside the stand the scenarios tell the demo set of the database, so without one the form offers none
         usageHelpButton.setVisible(stand || demoDataLoader.isDemoSetChosen());
+    }
+
+    private void initCopyExpiredNote() {
+        StandLogin stand = standLogin.getIfAvailable();
+        copyExpiredNote.setVisible(stand != null && stand.isCopyExpired());
     }
 
     private void initDefaultCredentials() {
@@ -237,5 +251,12 @@ public class LoginView extends StandardView implements LocaleChangeObserver {
 
         languageWarning.setText(messageBundle.getMessage("languageWarning.text"));
         usageHelpButton.setText(messageBundle.getMessage("usageHelpButton.text"));
+
+        if (copyExpiredNote.isVisible()) {
+            long minutes = standProperties.copyIdleTimeout().toMinutes();
+            String key = "copyExpired." + SearchRenderers.pluralForm(minutes, event.getLocale());
+
+            copyExpiredNote.setText(messageBundle.formatMessage(key, minutes));
+        }
     }
 }

@@ -39,6 +39,23 @@
     color: var(--vaadin-text-color-secondary);
 }
 
+vaadin-notification-card.trash-notice {
+    --vaadin-notification-width: fit-content;
+}
+
+.trash-notice-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--vaadin-gap-s);
+}
+
+.trash-notice-actions {
+    display: flex;
+    gap: var(--vaadin-gap-xs);
+    margin-inline-start: auto;
+}
+
 .folder-greyed,
 .own-access {
     color: var(--vaadin-text-color-secondary);
@@ -133,6 +150,45 @@ docai-file-drop-zone.document-upload-zone[dragover]::after {
 
 .ai-button {
     --vaadin-button-background: color-mix(in oklab, var(--aura-accent-color) 15%, transparent);
+}
+
+/* A disabled button takes no pointer, so it could not show its tooltip, which tells why Fill with AI is off */
+.document-card-actions > vaadin-button.ai-button[disabled] {
+    pointer-events: auto;
+}
+
+.ai-filled-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vaadin-gap-xs);
+    margin-inline-start: calc(var(--vaadin-gap-xs) * 1.5);
+    color: var(--aura-accent-text-color);
+    font-size: var(--aura-font-size-s);
+    font-weight: var(--aura-font-weight-semibold);
+    --vaadin-icon-size: 1.1em;
+}
+
+.ai-filled-dot {
+    margin-inline-start: var(--vaadin-gap-xs);
+}
+
+/* A long file name ends with an ellipsis, so the badge of the current version stays in sight */
+.revision-file {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    max-width: 100%;
+}
+
+.revision-file-name {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.revision-file > vaadin-badge {
+    flex: none;
 }
 
 .document-card-form {
@@ -291,6 +347,12 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
     min-height: 0;
 }
 
+/* The actions take the rest of the toolbar's row and wrap inside it, so the view controls drop to a row of their own
+   only when not one action fits beside them */
+.document-actions {
+    flex: 1 1 0;
+}
+
 .document-preview {
     border: 1px solid var(--vaadin-border-color);
     border-radius: var(--vaadin-radius-m);
@@ -313,7 +375,6 @@ jmix-side-dialog.document-discussion-window::part(overlay) {
 .document-preview-frame {
     width: 100%;
     flex: 1;
-    min-height: 24rem;
     border: none;
 }
 

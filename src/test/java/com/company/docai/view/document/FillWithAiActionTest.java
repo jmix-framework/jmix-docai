@@ -175,6 +175,16 @@ class FillWithAiActionTest {
 
         assertThat(button.isVisible()).isTrue();
         assertThat(button.isEnabled()).isFalse();
+        assertThat(button.getTooltip().getText())
+                .isEqualTo(messages.getMessage(DocumentDetailView.class, "lockedStatus.tooltip"));
+    }
+
+    // the lock is the only reason the tooltip gives, so a document that may change shows none
+    @Test
+    void theButtonOfADocumentThatMayChangeHasNoTooltip() {
+        JmixButton button = button(openCard(upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8))));
+
+        assertThat(button.getTooltip().getText()).isNullOrEmpty();
     }
 
     @Test

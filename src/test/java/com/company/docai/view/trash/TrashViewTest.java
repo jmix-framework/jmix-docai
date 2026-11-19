@@ -139,6 +139,15 @@ class TrashViewTest {
                 .isEqualTo(messages.getMessage(TrashView.class, "trashItemsGrid.emptyStateText"));
     }
 
+    // without the minimum height of the repository's preview a long text would stretch the frame instead of scrolling
+    @Test
+    void theDocumentPreviewOfTheTrashTakesTheFrameOfThePreviewOfTheRepository() {
+        TrashPreviewFragment preview = UiTestUtils.getComponent(open(), "preview");
+        Component documentPreview = fragmentComponent(preview, "documentPreview");
+
+        assertThat(documentPreview.hasClassName("repository-preview")).isTrue();
+    }
+
     @Test
     void theTrashShowsWhenAnItemWasDeletedInThePersonsTimeZone() {
         Document note = upload(sandbox, "note.txt");

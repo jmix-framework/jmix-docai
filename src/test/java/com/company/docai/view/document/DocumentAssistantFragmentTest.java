@@ -20,6 +20,7 @@ import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.internal.nodefeature.ElementListenerMap;
 import io.jmix.aichat.component.chat.AiChat;
+import io.jmix.aichat.component.chat.AiChatI18n;
 import io.jmix.aichat.component.messagelist.GenerationState;
 import io.jmix.aichat.component.messagelist.ThinkingStatusItem;
 import io.jmix.aichat.data.SimpleAiChatMessage;
@@ -28,14 +29,12 @@ import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.security.SystemAuthenticator;
 import io.jmix.flowui.DialogWindows;
-import io.jmix.flowui.Notifications;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.fragment.FragmentUtils;
 import io.jmix.flowui.kit.component.button.JmixButton;
 import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
-import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.testassist.notification.OpenedNotifications;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.DialogWindow;
@@ -268,19 +267,24 @@ class DocumentAssistantFragmentTest {
 
         ask(card, "summaryButton");
 
-        assertThat(lastNotification().getType()).isEqualTo(Notifications.Type.ERROR);
-        assertThat(lastNotification().getText())
-                .isEqualTo(messages.getMessage(DocumentAssistantFragment.class, "assistantFailed"));
         assertThat(chat(card).getState()).isEqualTo(GenerationState.ERROR);
+        assertThat(UiTestUtils.getOpenedNotifications()).isEmpty();
     }
 
     @Test
-    void aModelThatFailsIsReported() {
+    void aModelThatFailsIsReportedByTheChatAloneInTheWordsOfFillWithAi() {
         DocumentDetailView card = openCard(upload());
 
         ask(card, "summaryButton");
 
-        assertThat(lastNotification().getType()).isEqualTo(Notifications.Type.ERROR);
+        AiChatI18n i18n = chat(card).getI18n();
+        String fillWithAi = messages.getMessage(FillWithAiAction.class, "fillWithAiAction.failed");
+
+        assertThat(chat(card).getState()).isEqualTo(GenerationState.ERROR);
+        assertThat(UiTestUtils.getOpenedNotifications()).isEmpty();
+        assertThat(i18n.getMessageList()).isNotNull();
+        assertThat(i18n.getMessageList().getError()).isEqualTo(fillWithAi);
+        assertThat(i18n.getFailed()).isEqualTo(fillWithAi);
     }
 
     // the answer comes back through UI.access, which a UI test runs only when asked
@@ -310,10 +314,6 @@ class DocumentAssistantFragmentTest {
         DocumentPreviewFragment preview = component(card, previewId);
 
         return ((Pre) FragmentUtils.getComponent(preview, "previewText")).getText();
-    }
-
-    private NotificationInfo lastNotification() {
-        return openedNotifications.getLastNotification();
     }
 
     private AiChat<SimpleAiChatMessage> chat(DocumentDetailView card) {

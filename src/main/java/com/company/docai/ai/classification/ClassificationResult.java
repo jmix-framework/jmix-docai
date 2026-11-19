@@ -3,16 +3,18 @@ package com.company.docai.ai.classification;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * What a proposal changed in a document.
  *
- * @param typeName the name of the type the document got, or null when the proposal named no type of the catalog
- * @param filled   the names of the fields that got values, the date of the document included
- * @param skipped  the fields whose values did not fit them, each with the value the model wrote
+ * @param typeName   the name of the type the document got, or null when the proposal named no type of the catalog
+ * @param filled     the names of the fields that got values, the date of the document included
+ * @param skipped    the fields whose values did not fit them, each with the value the model wrote
+ * @param properties the properties of the document the proposal set: the type, the fields and the date
  */
 public record ClassificationResult(@Nullable String typeName, List<String> filled, List<String> skipped,
-                                   List<AddedTag> tags) {
+                                   List<AddedTag> tags, Set<String> properties) {
 
     /**
      * A tag the document got.

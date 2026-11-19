@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.contextmenu.ContextMenuBase;
 import com.vaadin.flow.component.dnd.DropEvent;
+import com.vaadin.flow.component.grid.CellFocusEvent;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
@@ -29,11 +30,15 @@ import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * The actions of a grid, and the clicks and drags that a browser would send to it, for UI tests that run without one.
  */
 public final class TestGrids {
+
+    // Flow tests every modifier in a shortcut filter, with a negation for the ones the shortcut does not ask for
+    private static final Pattern REQUIRED_MODIFIER = Pattern.compile("(?<!!)event\\.getModifierState");
 
     private TestGrids() {
     }
@@ -55,6 +60,39 @@ public final class TestGrids {
         String itemKey = grid.getDataCommunicator().getKeyMapper().key(item);
         ComponentUtil.fireEvent(grid, new ItemDoubleClickEvent<>(grid, true, itemKey, null,
                 0, 0, 0, 0, 2, 0, false, false, false, false));
+    }
+
+    /**
+     * The focus moved to a cell of the row, by a click or by the arrow keys, as the grid reports it.
+     */
+    public static <T> void focusRow(Grid<T> grid, T item) {
+        String itemKey = grid.getDataCommunicator().getKeyMapper().key(item);
+        ComponentUtil.fireEvent(grid, new CellFocusEvent<>(grid, true, itemKey, null, "body"));
+    }
+
+    /**
+     * Enter pressed in the grid, as the browser reports it to the shortcut that Jmix gives every grid: the filter of
+     * the shortcut is an expression the browser evaluates, and a filter passes when it names Enter and asks for no
+     * modifier key, so a shortcut such as Ctrl+Enter does not fire. The filters are read as text, not run: the guards
+     * about where the event came from, such as that of a dialog over the grid, are not tested, and the listeners are
+     * reached through the internal {@code ElementListenerMap}.
+     */
+    public static void pressEnter(Grid<?> grid) {
+        ElementListenerMap listeners = grid.getElement()
+                .getNode()
+                .getFeature(ElementListenerMap.class);
+
+        ObjectNode eventData = JsonNodeFactory.instance.objectNode()
+                .put("event.key", "Enter")
+                .put("event.code", "Enter")
+                .put("event.location", 0);
+
+        listeners.getExpressions("keydown")
+                .stream()
+                .filter(expression -> !eventData.has(expression))
+                .forEach(expression -> eventData.put(expression, isBareEnter(expression)));
+
+        listeners.fireEvent(new DomEvent(grid.getElement(), "keydown", eventData));
     }
 
     /**
@@ -178,5 +216,9 @@ public final class TestGrids {
         }
 
         return litRenderer.getValueProviders().get(property).apply(item);
+    }
+
+    private static boolean isBareEnter(String filter) {
+        return filter.contains("'Enter'") && !REQUIRED_MODIFIER.matcher(filter).find();
     }
 }

@@ -44,6 +44,9 @@
                 <button id="downloadButton" icon="DOWNLOAD" ariaLabel="msg://downloadButton.text">
                     <tooltip text="msg://downloadButton.text"/>
                 </button>
+                <button id="copyLinkButton" icon="LINK" ariaLabel="msg://copyLinkButton.text">
+                    <tooltip text="msg://copyLinkButton.text"/>
+                </button>
                 <button id="accessButton" icon="KEY" ariaLabel="msg://accessButton.text">
                     <tooltip text="msg://accessButton.text"/>
                 </button>
@@ -106,7 +109,7 @@
                         </actions>
                         <columns>
                             <column property="number" width="5rem" flexGrow="0"/>
-                            <column property="fileName" sortable="true"/>
+                            <column property="fileName" sortable="true" flexGrow="2"/>
                             <column property="contentType"/>
                             <column property="fileSize"/>
                             <column property="createdBy"/>

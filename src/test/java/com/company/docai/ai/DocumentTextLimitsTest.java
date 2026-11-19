@@ -42,6 +42,8 @@ class DocumentTextLimitsTest {
 
     private static final int MAX_TEXT_LENGTH = 1000;
     private static final Duration TIMEOUT = Duration.ofMillis(300);
+    // a parse on a loaded machine may take longer than the timeout test's limit, and the length cases must not hit it
+    private static final Duration GENEROUS_TIMEOUT = Duration.ofSeconds(30);
 
     private final FileStorage storage = mock(FileStorage.class);
     private final FileStorageLocator fileStorageLocator = mock(FileStorageLocator.class);
@@ -58,10 +60,7 @@ class DocumentTextLimitsTest {
                 .when(fileStorageLocator)
                 .getByName("fs");
 
-        reader = new DocumentTextReader(fileStorageLocator, new AiSettings("", true, 12_000),
-                new FilesProperties(DataSize.ofMegabytes(20), MAX_TEXT_LENGTH, TIMEOUT));
-
-        processor = new DocumentFileProcessor(fileStorageLocator, reader);
+        readWithTimeout(GENEROUS_TIMEOUT);
     }
 
     @AfterEach
@@ -123,6 +122,8 @@ class DocumentTextLimitsTest {
     @Test
     @Timeout(value = 30, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     void aParseOverTheTimeLimitLeavesNoTextAndTheReaderAnswers(CapturedOutput output) throws Exception {
+        readWithTimeout(TIMEOUT);
+
         StalledStream stalled = new StalledStream();
         FileRef file = new FileRef("fs", "2026/11/17/stalled.txt", "Stalled.txt");
 
@@ -150,6 +151,17 @@ class DocumentTextLimitsTest {
         assertThatThrownBy(() -> processor.extractFileContent(picture))
                 .isInstanceOf(UnsupportedFileFormatException.class);
         assertThat(processor.extractFileContent(memo)).contains("Memo on the lease");
+    }
+
+    private void readWithTimeout(Duration timeout) {
+        if (reader != null) {
+            reader.shutdown();
+        }
+
+        reader = new DocumentTextReader(fileStorageLocator, new AiSettings("", true, 12_000),
+                new FilesProperties(DataSize.ofMegabytes(20), MAX_TEXT_LENGTH, timeout));
+
+        processor = new DocumentFileProcessor(fileStorageLocator, reader);
     }
 
     private FileRef stored(String fileName, String text) {

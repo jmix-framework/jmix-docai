@@ -19,7 +19,8 @@
             <vbox id="documentPanel" width="100%" height="100%" padding="false" visible="false"
                   expand="documentPreview">
                 <button id="backButton" text="msg://backButton.text" icon="ARROW_LEFT" themeNames="tertiary"/>
-                <fragment id="documentPreview" class="com.company.docai.view.document.DocumentPreviewFragment"/>
+                <fragment id="documentPreview" classNames="repository-preview"
+                          class="com.company.docai.view.document.DocumentPreviewFragment"/>
             </vbox>
         </vbox>
     </content>

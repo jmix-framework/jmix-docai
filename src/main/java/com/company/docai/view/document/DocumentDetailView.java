@@ -20,11 +20,13 @@ import com.company.docai.view.access.AccessDetailView;
 import com.company.docai.view.favorite.FavoriteCardAction;
 import com.company.docai.view.folder.FolderRenderers;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.repository.RepositoryView;
 import com.company.docai.view.status.StatusBadges;
 import com.company.docai.view.tag.TagBadges;
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBoxBase;
@@ -32,31 +34,39 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.upload.FailedEvent;
 import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.Route;
 import io.jmix.core.EntityStates;
 import io.jmix.core.Messages;
 import io.jmix.core.SaveContext;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Notifications;
+import io.jmix.flowui.component.UiComponentUtils;
 import io.jmix.flowui.component.datepicker.TypedDatePicker;
 import io.jmix.flowui.component.grid.DataGrid;
+import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
 import io.jmix.flowui.component.select.JmixSelect;
 import io.jmix.flowui.component.tabsheet.JmixTabSheet;
 import io.jmix.flowui.component.textfield.TypedTextField;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.component.upload.UploadSucceededEvent;
 import io.jmix.flowui.component.validation.ValidationErrors;
+import io.jmix.flowui.icon.Icons;
 import io.jmix.flowui.kit.action.ActionPerformedEvent;
 import io.jmix.flowui.kit.component.button.JmixButton;
+import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.model.CollectionContainer;
 import io.jmix.flowui.model.InstanceContainer;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.*;
+import io.jmix.flowui.view.navigation.UrlParamSerializer;
 import io.jmix.uirecoveryflowui.facet.DraftRestoreContext;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,10 +74,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
@@ -93,7 +106,11 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private JmixUpload<TemporaryStorage.FileInfo> newVersionUpload;
 
     @ViewComponent
+    private JmixButton fillWithAiButton;
+    @ViewComponent
     private JmixButton downloadButton;
+    @ViewComponent
+    private JmixButton copyLinkButton;
     @ViewComponent
     private JmixButton accessButton;
     @ViewComponent
@@ -106,6 +123,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @ViewComponent
     private JmixSelect<DocumentStatus> statusField;
     @ViewComponent
+    private JmixMultiSelectComboBox<Tag> tagsField;
+    @ViewComponent
     private TypedTextField<String> folderField;
     @ViewComponent
     private TypedTextField<String> currentVersionField;
@@ -116,6 +135,8 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     @ViewComponent
     private JmixTabSheet cardTabs;
+    @ViewComponent
+    private Tab generalTab;
     @ViewComponent
     private Tab propertiesTab;
     @ViewComponent
@@ -188,15 +209,40 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     private AiSettings aiSettings;
     @Autowired
     private DocumentCardChanges changes;
+    @Autowired
+    private AiFillMarks aiFillMarks;
+    @Autowired
+    private UrlParamSerializer urlParamSerializer;
+    @Autowired
+    private Icons icons;
 
     private Map<String, String> userNames = Map.of();
     private boolean draftFound;
+    private final Set<String> filledByAi = new HashSet<>();
+    private Component lockIcon;
 
     @Subscribe
     public void onInit(final InitEvent event) {
-        // a session timeout or a page reload removes the card without closing it
-        addDetachListener(detachEvent -> changes.clear());
+        clearChangesOnDetach();
         documentUploads.limitFiles(newVersionUpload);
+        initRevisionsGrid();
+        initLockIcon();
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        String id = event.getRouteParameters()
+                .get(getRouteParamName())
+                .orElse(NEW_ENTITY_ID);
+
+        // a link outlives its document, which the trash, the access or another copy of the stand takes away from the
+        // person, and the loader of the card fails on it
+        if (!NEW_ENTITY_ID.equals(id) && !documentCards.checkAvailable(parseId(id))) {
+            event.forwardTo(RepositoryView.class);
+            return;
+        }
+
+        super.beforeEnter(event);
     }
 
     @Subscribe
@@ -231,6 +277,11 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
         if ("tags".equals(event.getProperty())) {
             showTags();
+        }
+
+        // another type rebuilds the fields of the type, so the marks of its fields are put again
+        if (filledByAi.remove(event.getProperty()) || "category".equals(event.getProperty())) {
+            showFilledByAi();
         }
     }
 
@@ -300,6 +351,21 @@ public class DocumentDetailView extends StandardDetailView<Document> {
     @Subscribe("downloadButton")
     public void onDownloadButtonClick(final ClickEvent<JmixButton> event) {
         revisionDownloader.download(getEditedEntity().getCurrentRevision());
+    }
+
+    @Subscribe("copyLinkButton")
+    public void onCopyLinkButtonClick(final ClickEvent<JmixButton> event) {
+        String address = documentCards.addressOf(getEditedEntity());
+
+        UiComponentUtils.copyToClipboard(address)
+                .then(copied -> notifications.create(messageBundle.getMessage("linkCopied"))
+                                .withType(Notifications.Type.SUCCESS)
+                                .withPosition(Notification.Position.TOP_END)
+                                .show(),
+                        error -> notifications.create(messageBundle.formatMessage("linkNotCopied", address))
+                                .withType(Notifications.Type.WARNING)
+                                .withPosition(Notification.Position.TOP_END)
+                                .show());
     }
 
     @Subscribe("statusField")
@@ -375,6 +441,17 @@ public class DocumentDetailView extends StandardDetailView<Document> {
                 && !revision.equals(getEditedEntity().getCurrentRevision());
     }
 
+    @Supply(to = "revisionsGrid.fileName", subject = "renderer")
+    private Renderer<DocumentRevision> revisionFileRenderer() {
+        return documentRenderers.revisionFileRenderer(revision ->
+                revision.equals(getEditedEntity().getCurrentRevision()));
+    }
+
+    @Supply(to = "revisionsGrid.contentType", subject = "renderer")
+    private Renderer<DocumentRevision> revisionTypeRenderer() {
+        return documentRenderers.revisionTypeRenderer();
+    }
+
     @Supply(to = "revisionsGrid.fileSize", subject = "renderer")
     private Renderer<DocumentRevision> revisionSizeRenderer() {
         return documentRenderers.revisionSizeRenderer();
@@ -423,6 +500,22 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         fillWithAiAction.refreshState();
     }
 
+    private void clearChangesOnDetach() {
+        // a session timeout or a page reload removes the card without closing it
+        addDetachListener(detachEvent -> changes.clear());
+    }
+
+    private void initRevisionsGrid() {
+        // the column shows the short name of the format, so it sorts by that, not by the type of the media
+        Objects.requireNonNull(revisionsGrid.getColumnByKey("contentType"))
+                .setComparator(documentRenderers.revisionTypeComparator());
+    }
+
+    private void initLockIcon() {
+        lockIcon = icons.get(JmixFontIcon.LOCK);
+        lockIcon.getElement().setAttribute("aria-hidden", "true");
+    }
+
     private void initFavoriteButton() {
         // binding the action after the init event sets the title of the star, and Jmix copies a title into the aria
         // label, an empty one too
@@ -445,6 +538,16 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         updateTitle();
         StatusBadges.paint(statusBadge, getEditedEntity().getStatus());
         showTags();
+        showLock();
+    }
+
+    private void showLock() {
+        boolean locked = isLocked();
+        String tooltip = locked ? messageBundle.getMessage("lockedStatus.tooltip") : null;
+
+        statusBadge.setIcon(locked ? lockIcon : null);
+        Tooltip.forComponent(statusBadge).setText(tooltip);
+        fillWithAiButton.setTooltipText(tooltip);
     }
 
     private void showForm(boolean locked) {
@@ -471,6 +574,7 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         Document document = getEditedEntity();
 
         downloadButton.setVisible(document.getCurrentRevision() != null);
+        copyLinkButton.setVisible(!isNew());
 
         accessButton.setVisible(!isNew() && accessChecker.getLevel(document.getAccessSet()) == AccessLevel.MANAGE);
 
@@ -542,6 +646,30 @@ public class DocumentDetailView extends StandardDetailView<Document> {
         }
     }
 
+    /**
+     * Marks the type, the fields and the date that Fill with AI set, given by their properties, and the tags when it
+     * added any; a mark stays until the person changes the value or the card closes.
+     */
+    public void markFilledByAi(Collection<String> properties, boolean tagged) {
+        filledByAi.addAll(properties);
+
+        if (tagged) {
+            filledByAi.add("tags");
+        }
+
+        showFilledByAi();
+    }
+
+    private void showFilledByAi() {
+        boolean dated = filledByAi.contains("documentDate");
+        boolean tagged = filledByAi.contains("tags");
+
+        aiFillMarks.markField(documentDateField, dated);
+        aiFillMarks.markField(tagsField, tagged);
+        aiFillMarks.markTab(generalTab, dated || tagged);
+        aiFillMarks.markTab(propertiesTab, propertiesFragment.markFilledByAi(filledByAi));
+    }
+
     private void showTags() {
         documentTags.removeAll();
         documentTags.add(tagBadges.create(getEditedEntity().getTags(), this::openTag));
@@ -566,6 +694,15 @@ public class DocumentDetailView extends StandardDetailView<Document> {
 
     private boolean isNew() {
         return entityStates.isNew(getEditedEntity());
+    }
+
+    @Nullable
+    private UUID parseId(String id) {
+        try {
+            return urlParamSerializer.deserialize(UUID.class, id);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private boolean isLocked() {

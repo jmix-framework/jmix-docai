@@ -17,6 +17,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.dnd.DropEvent;
 import com.vaadin.flow.component.dnd.DropTarget;
+import com.vaadin.flow.component.grid.CellFocusEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragEndEvent;
 import com.vaadin.flow.component.grid.dnd.GridDragStartEvent;
 import com.vaadin.flow.component.grid.dnd.GridDropEvent;
@@ -34,6 +35,7 @@ import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
 import io.jmix.flowui.UiComponents;
 import io.jmix.flowui.action.DialogAction;
+import io.jmix.flowui.component.SupportsEnterPress;
 import io.jmix.flowui.component.details.JmixDetails;
 import io.jmix.flowui.component.grid.TreeDataGrid;
 import io.jmix.flowui.component.textfield.TypedTextField;
@@ -112,6 +114,8 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     private Map<UUID, Long> documentCounts = Map.of();
     @Nullable
     private Folder selectedFolder;
+    @Nullable
+    private Folder focusedFolder;
     private List<Document> draggedDocuments = List.of();
     @Nullable
     private Folder draggedFolder;
@@ -319,6 +323,19 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
     }
 
     @Subscribe("foldersTree")
+    public void onFoldersTreeCellFocus(final CellFocusEvent<Folder> event) {
+        focusedFolder = event.getItem().orElse(null);
+    }
+
+    @Install(to = "foldersTree", subject = "enterPressHandler")
+    private void foldersTreeEnterPressHandler(final SupportsEnterPress.EnterPressEvent<TreeDataGrid<Folder>> event) {
+        // the keys move only the focus, and a folder opens as it is selected, so Enter selects it as Space does
+        if (focusedFolder != null && allFolders.contains(focusedFolder.getId())) {
+            foldersTree.select(allFolders.get(focusedFolder.getId()));
+        }
+    }
+
+    @Subscribe("foldersTree")
     public void onFoldersTreeDragStart(final GridDragStartEvent<Folder> event) {
         Folder folder = event.getDraggedItems().getFirst();
 
@@ -442,10 +459,10 @@ public class FolderTreeFragment extends Fragment<VerticalLayout> {
                 .withText(messageBundle.formatMessage("deleteFolderDialog.text",
                         metadataTools.getInstanceName(folder), contents.subfolders(), contents.documents()))
                 .withActions(
-                        new DialogAction(DialogAction.Type.YES).withHandler(actionEvent -> {
-                            folderService.delete(folder);
-                            loadAndSelect(folder.getParent().getId());
-                        }),
+                        new DialogAction(DialogAction.Type.YES)
+                                .withHandler(actionEvent -> repositoryMoves.moveToTrash(folder,
+                                        () -> loadAndSelect(folder.getParent().getId()),
+                                        () -> loadAndSelect(folder.getId()))),
                         new DialogAction(DialogAction.Type.NO).withVariant(ActionVariant.PRIMARY))
                 .open();
     }

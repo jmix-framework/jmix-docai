@@ -28,11 +28,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,10 +69,11 @@ public class DocumentTypes {
     /**
      * What {@link #fill} put into a document.
      *
-     * @param filled  the names of the fields that got values, the date of the document included
-     * @param skipped the fields whose values did not fit them, each with its value
+     * @param filled     the names of the fields that got values, the date of the document included
+     * @param skipped    the fields whose values did not fit them, each with its value
+     * @param properties the properties of the document that got values: the type, the fields and the date
      */
-    public record Filling(List<String> filled, List<String> skipped) {
+    public record Filling(List<String> filled, List<String> skipped, Set<String> properties) {
     }
 
     /**
@@ -114,6 +117,7 @@ public class DocumentTypes {
 
         List<String> filled = new ArrayList<>();
         List<String> skipped = new ArrayList<>();
+        Set<String> properties = new LinkedHashSet<>(List.of("category"));
 
         for (FieldValue field : values) {
             if (isBlank(field.value())) {
@@ -132,13 +136,17 @@ public class DocumentTypes {
                 continue;
             }
 
-            EntityValues.setValue(document, DynAttrUtils.getPropertyFromAttributeCode(attribute.getCode()), value);
+            String property = DynAttrUtils.getPropertyFromAttributeCode(attribute.getCode());
+            EntityValues.setValue(document, property, value);
             filled.add(nameOf(attribute));
+            properties.add(property);
         }
 
-        applyDocumentDate(documentDate, document, filled, skipped);
+        if (applyDocumentDate(documentDate, document, filled, skipped)) {
+            properties.add("documentDate");
+        }
 
-        return new Filling(filled, skipped);
+        return new Filling(filled, skipped, properties);
     }
 
     /**
@@ -241,10 +249,10 @@ public class DocumentTypes {
         return compact.replace(',', '.');
     }
 
-    private void applyDocumentDate(@Nullable String raw, Document document, List<String> filled,
-                                   List<String> skipped) {
+    private boolean applyDocumentDate(@Nullable String raw, Document document, List<String> filled,
+                                      List<String> skipped) {
         if (isBlank(raw)) {
-            return;
+            return false;
         }
 
         String caption = messageTools.getPropertyCaption(documentClass(), "documentDate");
@@ -254,7 +262,10 @@ public class DocumentTypes {
             filled.add(caption);
         } catch (DateTimeParseException e) {
             skipped.add(caption + ": " + raw);
+            return false;
         }
+
+        return true;
     }
 
     private Collection<String> localizedNames(CategoryDefinition type) {

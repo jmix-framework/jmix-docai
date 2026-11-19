@@ -2,8 +2,6 @@ package com.company.docai;
 
 import com.company.docai.stand.StandProperties;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.Banner;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -44,12 +42,19 @@ class ConfigurationProfilesTest {
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"online", "stand"})
-    void onlyTheLocalProfilePrefillsTheLoginForm(String profile) {
-        try (ConfigurableApplicationContext context = start("--spring.profiles.active=" + profile)) {
+    @Test
+    void anotherProfileLeavesTheLoginFormEmpty() {
+        try (ConfigurableApplicationContext context = start("--spring.profiles.active=online")) {
             assertThat(context.getEnvironment().getProperty("ui.login.defaultUsername")).isNull();
             assertThat(context.getEnvironment().getProperty("ui.login.defaultPassword")).isNull();
+        }
+    }
+
+    @Test
+    void theStandProfilePrefillsTheLoginFormWithAlice() {
+        try (ConfigurableApplicationContext context = start("--spring.profiles.active=stand")) {
+            assertThat(context.getEnvironment().getProperty("ui.login.defaultUsername")).isEqualTo("alice");
+            assertThat(context.getEnvironment().getProperty("ui.login.defaultPassword")).isEqualTo("alice");
         }
     }
 

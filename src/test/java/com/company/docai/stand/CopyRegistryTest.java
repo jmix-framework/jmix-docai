@@ -90,6 +90,50 @@ class CopyRegistryTest {
     }
 
     @Test
+    void onlyACopyRemovedForIdlenessIsRememberedAsExpiredAndForADay() {
+        Copy idle = registry.register(CopyRegistry.newKey(), "en");
+        Copy replaced = registry.register(CopyRegistry.newKey(), "en");
+        clock.set(clock.get().plus(Duration.ofMinutes(31)));
+        Copy used = registry.register(CopyRegistry.newKey(), "ru");
+
+        registry.removeIfIdleLongerThan(idle.key(), Duration.ofMinutes(30));
+        registry.removeIfIdleLongerThan(used.key(), Duration.ofMinutes(30));
+        registry.remove(replaced.key());
+
+        assertThat(registry.isExpired(idle.key())).isTrue();
+        assertThat(registry.isExpired(used.key())).isFalse();
+        assertThat(registry.isExpired(replaced.key())).isFalse();
+        assertThat(registry.isExpired(CopyRegistry.newKey())).isFalse();
+        assertThat(registry.isExpired(null)).isFalse();
+
+        clock.set(clock.get().plus(Duration.ofHours(25)));
+
+        assertThat(registry.removeIfIdleLongerThan(used.key(), Duration.ofMinutes(30))).contains(used);
+        assertThat(registry.isExpired(used.key())).isTrue();
+        assertThat(registry.isExpired(idle.key())).isFalse();
+    }
+
+    @Test
+    void anExpiredKeyIsNotReportedAfterADayEvenBeforeAnotherExpiryClearsIt() {
+        Copy idle = registry.register(CopyRegistry.newKey(), "ru");
+        clock.set(clock.get().plus(Duration.ofMinutes(31)));
+
+        registry.removeIfIdleLongerThan(idle.key(), Duration.ofMinutes(30));
+
+        assertThat(registry.isExpired(idle.key())).isTrue();
+        assertThat(registry.expiredLanguage(idle.key())).contains("ru");
+
+        clock.set(clock.get().plus(Duration.ofHours(23)));
+
+        assertThat(registry.isExpired(idle.key())).isTrue();
+
+        clock.set(clock.get().plus(Duration.ofHours(2)));
+
+        assertThat(registry.isExpired(idle.key())).isFalse();
+        assertThat(registry.expiredLanguage(idle.key())).isEmpty();
+    }
+
+    @Test
     void aMalformedKeyOrLanguageIsNotRegistered() {
         assertThatThrownBy(() -> registry.register("x", "en")).isInstanceOf(IllegalArgumentException.class);
 

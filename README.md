@@ -190,9 +190,9 @@ Gradle builds the jar, and Compose puts it into an image and runs it next to Ope
 docker compose --profile app up -d --build
 ```
 
-The application answers on port 8080 of the host at `/docai`. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another. Another profile, for example `prod`, also leaves the login form empty, but keeps one database for everybody and fills it at the first start with the set of `DOCAI_DEMO_DATA`, `en` unless the variable names `ru` or `none`.
+The application answers on port 8080 of the host at `/docai`. Compose passes `DOCAI_ACTIVE_PROFILE`, `DOCAI_DEMO_DATA`, `DOCAI_AI_ENABLED` and `OPENAI_API_KEY` from the environment. The stand runs with a profile of its own, `stand`, unless `DOCAI_ACTIVE_PROFILE` names another; its login form opens with `alice` filled in. Another profile, for example `prod`, leaves the login form empty, keeps one database for everybody and fills it at the first start with the set of `DOCAI_DEMO_DATA`, `en` unless the variable names `ru` or `none`.
 
-The `stand` profile gives every visitor a copy of the demo data of their own, made from a template when they log in: what a visitor uploads, edits or deletes, other visitors never see. The language of the login form or of the user menu chooses the demo set. A logout and a new login in the same browser return to the same copy, and switching the language discards the visitor's changes. A copy is deleted after 30 minutes without requests, and a restart deletes them all. A visitor uploads PDF, DOCX, XLSX, TXT, CSV, PNG and JPEG files only, up to 5 MB each and 20 MB per copy. The settings of the profile are described in `application-stand.properties`.
+The `stand` profile gives every visitor a copy of the demo data of their own, made from a template when they log in: what a visitor uploads, edits or deletes, other visitors never see. The language of the login form or of the user menu chooses the demo set. A logout and a new login in the same browser return to the same copy, and switching the language discards the visitor's changes. A copy is deleted after 30 minutes without requests, which the login form then tells its visitor, and a restart deletes them all. A visitor uploads PDF, DOCX, XLSX, TXT, CSV, PNG and JPEG files only, up to 5 MB each and 20 MB per copy. The settings of the profile are described in `application-stand.properties`.
 
 ### Run the tests
 
@@ -208,7 +208,26 @@ Add the JDBC driver of your database to `build.gradle` and set `DOCAI_DB_URL`, `
 
 ### Develop with AI agents
 
-The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/jmix-agent-toolkit): its Jmix skills live in `.agents/skills/` for Codex and OpenCode, `.claude/skills/` links to them for Claude Code, and [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) point the agents to the `jmix` skill.
+The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/jmix-agent-toolkit), so an AI coding agent follows the Jmix patterns when it changes the code:
+
+- the Jmix skills live in `.agents/skills/` for Codex, OpenCode, Junie, Cursor, GitHub Copilot and the other agents that read [AGENTS.md](AGENTS.md);
+- `.claude/skills/` links to them for Claude Code;
+- [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) point the agents to the `jmix` skill, which routes each task to the skill of its artifact.
+
+To start, open a terminal in the project root, run your agent and describe the task in Jmix terms: entities, attributes, views, roles. For example: *Add a Project entity with list and detail views, and a project field to the document card*.
+
+The MCP servers of the agents are not part of the repository. They give the agent:
+- the inspections of a running IntelliJ IDEA;
+- the Jmix documentation;
+- a browser to check the running application.
+
+To add them, run the toolkit installer in the project root. Accept its MCP step and skip the skills and guidelines steps, which the repository already has:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jmix-framework/jmix-agent-toolkit/v3/install.sh | bash
+```
+
+On Windows, use the PowerShell command from the [installation guide of the toolkit](https://github.com/jmix-framework/jmix-agent-toolkit/tree/v3#quick-cli-installation). In IntelliJ IDEA, enable **Settings → Tools → MCP Server** and keep the project open. Claude Code asks you to approve the servers of the project. [AI Agent Setup](https://docs.jmix.io/jmix/agent-setup.html) shows how to check that the agent sees the skills and the servers.
 
 ## 🔧 Configuration
 
@@ -216,7 +235,7 @@ The repository ships the [Jmix Agent Toolkit](https://github.com/jmix-framework/
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `DOCAI_ACTIVE_PROFILE` | `local`, `stand` in Compose | Spring profile; `local` pre-fills the login form |
+| `DOCAI_ACTIVE_PROFILE` | `local`, `stand` in Compose | Spring profile; `local` pre-fills the login form with `admin`, `stand` with `alice` |
 | `DOCAI_DEMO_DATA` | `en` | Demo set an empty database gets at the start: `en`, `ru` or `none`; the `stand` profile ignores it and gives every visitor a copy of a set, see [Run on a stand](#run-on-a-stand) |
 | `DOCAI_DB_URL` | `jdbc:hsqldb:file:.jmix/hsqldb/docai` | JDBC URL of the database |
 | `DOCAI_DB_USERNAME` | `sa` | Database user |

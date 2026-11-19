@@ -238,9 +238,21 @@ public class DocumentSearchView extends StandardView {
         page.hits().forEach(hit -> hitsBox.add(createHitRow(hit)));
         showMoreButton.setVisible(page.hasMore());
 
-        if (hitsBox.getComponentCount() == 0) {
+        showFound(page);
+    }
+
+    private void showFound(DocumentSearchPage page) {
+        int shown = hitsBox.getComponentCount();
+
+        if (shown == 0) {
+            foundText.setVisible(false);
             showMessage("nothingFound");
+            return;
         }
+
+        // the index counts the documents hidden from the person too, so only the shown ones are counted
+        foundText.setText(messageBundle.formatMessage(page.hasMore() ? "foundMoreCount" : "foundCount", shown));
+        foundText.setVisible(true);
     }
 
     private void searchByMeaning(String text) {
@@ -318,6 +330,11 @@ public class DocumentSearchView extends StandardView {
 
         if (saved == null || (shownTag != null && !saved.getTags().contains(shownTag))) {
             hitsBox.remove(row);
+
+            if (lastPage != null) {
+                showFound(lastPage);
+            }
+
             return;
         }
 

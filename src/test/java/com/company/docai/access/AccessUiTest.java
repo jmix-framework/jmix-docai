@@ -21,10 +21,12 @@ import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.access.AccessDetailView;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.folder.FolderLookupView;
+import com.company.docai.view.folder.FolderRenderers;
 import com.company.docai.view.main.MainView;
 import com.company.docai.view.repository.FolderTreeFragment;
 import com.company.docai.view.repository.RepositoryView;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -57,6 +59,7 @@ import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.testassist.notification.NotificationInfo;
 import io.jmix.flowui.view.DialogWindow;
+import io.jmix.flowui.view.View;
 import io.jmix.flowui.view.ViewControllerUtils;
 import io.jmix.securityflowui.exception.AccessDeniedExceptionHandler;
 import org.junit.jupiter.api.AfterEach;
@@ -173,6 +176,14 @@ class AccessUiTest {
         // published has its own access, but peter does not manage it
         assertThat(marksOwnAccess(label(tree, published))).isFalse();
         assertThat(marksOwnAccess(label(tree, drafts))).isFalse();
+    }
+
+    @Test
+    void theHintOfAFolderWithItsOwnAccessNamesTheFolderAndTheAccess() {
+        TreeDataGrid<Folder> tree = foldersTree(open(sandbox));
+
+        assertThat(label(tree, managed).getElement().getAttribute("title"))
+                .isEqualTo(managed.getName() + "\n" + messages.getMessage(FolderRenderers.class, "ownAccess.title"));
     }
 
     @Test
@@ -310,6 +321,21 @@ class AccessUiTest {
         assertThat(documents.getItems()).containsExactly(memo);
         assertThat(UiTestUtils.<TypedTextField<String>>getComponent(openCard(memo), "folderField").getValue())
                 .endsWith(sandbox.getName() + " / Closed");
+    }
+
+    // a link outlives the access to its document, as in a chat that named the document earlier
+    @Test
+    void aLinkToADocumentTheEmployeeMayNotOpenLeadsToTheRepositoryWithANotice() {
+        Document hidden = systemAuthenticator.withUser(ADMIN, () -> upload(secret, "hidden.txt"));
+
+        UI.getCurrent().navigate("documents/" + hidden.getId());
+
+        NotificationInfo notification = UiTestUtils.getLastOpenedNotification();
+        assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(RepositoryView.class);
+        assertThat(notification).isNotNull();
+        assertThat(notification.getText())
+                .isEqualTo(messages.getMessage("com.company.docai.view.document/documentUnavailable"));
+        assertThat(notification.getType()).isEqualTo(Notifications.Type.WARNING);
     }
 
     @Test

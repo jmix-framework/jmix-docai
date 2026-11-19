@@ -5,10 +5,6 @@ import com.company.docai.app.service.document.ContentTypeDetector;
 import com.company.docai.app.service.document.UploadedFile;
 import io.jmix.core.Messages;
 import org.apache.tika.mime.MediaType;
-import org.apache.tika.mime.MimeType;
-import org.apache.tika.mime.MimeTypeException;
-import org.apache.tika.mime.MimeTypes;
-import org.jspecify.annotations.Nullable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.unit.DataSize;
@@ -21,13 +17,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * Checks the files a visitor stores in their copy: their type by their bytes, the free space on the disk and the quota
@@ -67,7 +63,12 @@ public class StandUploadGuard {
         this.registry = registry;
         this.contentTypes = contentTypes;
         this.messages = messages;
-        this.formats = formatsOf(properties.uploadTypes());
+
+        this.formats = properties.uploadTypes()
+                .stream()
+                .map(contentTypes::nameOf)
+                .collect(Collectors.joining(", "));
+
         this.extensions = extensionsOf(properties.uploadTypes());
     }
 
@@ -251,27 +252,6 @@ public class StandUploadGuard {
         return value >= 0 && value < 0x20 && value != '\t' && value != '\n' && value != '\r' || value == 0x7F;
     }
 
-    private static String formatsOf(List<String> types) {
-        List<String> formats = new ArrayList<>();
-
-        for (String type : types) {
-            MimeType known = registered(type);
-            String acronym = known == null ? "" : known.getAcronym();
-            String extension = known == null ? "" : known.getExtension();
-
-            if (!acronym.isEmpty()) {
-                formats.add(acronym);
-            } else if (!extension.isEmpty()) {
-                formats.add(extension.substring(1)
-                        .toUpperCase(Locale.ROOT));
-            } else {
-                formats.add(type);
-            }
-        }
-
-        return String.join(", ", formats);
-    }
-
     private static List<String> extensionsOf(List<String> types) {
         Set<String> extensions = new LinkedHashSet<>();
 
@@ -289,14 +269,5 @@ public class StandUploadGuard {
         }
 
         return List.copyOf(extensions);
-    }
-
-    private static @Nullable MimeType registered(String type) {
-        try {
-            return MimeTypes.getDefaultMimeTypes()
-                    .getRegisteredMimeType(type);
-        } catch (MimeTypeException e) {
-            throw new IllegalStateException("docai.stand.upload-types holds an invalid type: " + type, e);
-        }
     }
 }

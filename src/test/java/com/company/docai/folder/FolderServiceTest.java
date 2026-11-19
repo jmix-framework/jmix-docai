@@ -96,6 +96,14 @@ class FolderServiceTest {
     }
 
     @Test
+    void deletingSaysWhetherTheFolderWasDeletedOrWasInTheTrashAlready() {
+        Folder old = folder(sandbox, "Old");
+
+        assertThat(folderService.delete(old)).isTrue();
+        assertThat(folderService.delete(old)).isFalse();
+    }
+
+    @Test
     void aNameIsSavedWithoutSurroundingSpaces() {
         assertThat(folder(sandbox, "  Reports  ").getName()).isEqualTo("Reports");
     }

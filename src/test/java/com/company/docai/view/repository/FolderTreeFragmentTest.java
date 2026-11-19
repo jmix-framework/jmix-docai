@@ -10,7 +10,9 @@ import com.company.docai.test_support.TestGrids;
 import com.company.docai.test_support.TestMenus;
 import com.company.docai.view.main.MainView;
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
@@ -175,6 +177,43 @@ class FolderTreeFragmentTest {
         assertThat(TestGrids.render(tree, "name", parent).getElement().getTextRecursively()).isEqualTo("Parent (3)");
         assertThat(TestGrids.render(tree, "name", child).getElement().getTextRecursively()).isEqualTo("Child (2)");
         assertThat(TestGrids.render(tree, "name", empty).getElement().getTextRecursively()).isEqualTo("Empty (0)");
+    }
+
+    // a long name gives way to its number, and the hint names the folder in full
+    @Test
+    void theNameAndItsNumberAreApartAndTheHintNamesTheFolder() {
+        Folder invoices = folder(sandbox, "Invoices and Certificates of Completion");
+        upload(invoices, "a.txt");
+        TreeDataGrid<Folder> tree = component(open(sandbox), "foldersTree");
+
+        NativeLabel label = (NativeLabel) TestGrids.render(tree, "name", invoices)
+                .getChildren()
+                .findFirst()
+                .orElseThrow();
+
+        List<Component> parts = label.getChildren().toList();
+
+        assertThat(parts).hasSize(3);
+        assertThat(parts.get(1).hasClassName("name-text")).isTrue();
+        assertThat(parts.get(1).getElement().getText()).isEqualTo(invoices.getName());
+        assertThat(parts.get(2).hasClassName("folder-document-count")).isTrue();
+        assertThat(parts.get(2).getElement().getText()).isEqualTo(" (1)");
+        assertThat(label.getElement().getAttribute("title")).isEqualTo(invoices.getName());
+    }
+
+    // the keys move the focus and a folder opens as it is selected, so Enter selects the folder the keys moved to
+    @Test
+    void enterOpensTheFolderTheFocusIsOn() {
+        Folder contracts = folder(sandbox, "Contracts");
+        Folder invoices = folder(sandbox, "Invoices");
+        FolderTreeFragment folderTree = open(contracts);
+        TreeDataGrid<Folder> tree = component(folderTree, "foldersTree");
+
+        TestGrids.focusRow(tree, invoices);
+        TestGrids.pressEnter(tree);
+
+        assertThat(tree.getSelectedItems()).containsExactly(invoices);
+        assertThat(folderTree.getSelectedFolder()).isEqualTo(invoices);
     }
 
     @Test

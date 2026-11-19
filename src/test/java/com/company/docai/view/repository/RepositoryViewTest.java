@@ -565,6 +565,23 @@ class RepositoryViewTest {
     }
 
     @Test
+    void enterOpensTheCardOfTheDocumentInFocusAndSelectsItAlone() {
+        Document clicked = upload(sandbox, "a.txt");
+        Document focused = upload(sandbox, "b.txt");
+        RepositoryView view = open(sandbox, false);
+        DataGrid<Document> grid = fragmentComponent(view, "documentList", "documentsGrid");
+
+        TestGrids.clickRow(grid, clicked, false);
+        TestGrids.focusRow(grid, focused);
+        TestGrids.pressEnter(grid);
+
+        DocumentDetailView card = UiTestUtils.getLastOpenedViewDialog();
+        assertThat(card).isNotNull();
+        assertThat(card.getEditedEntity()).isEqualTo(focused);
+        assertThat(grid.getSelectedItems()).containsExactly(focused);
+    }
+
+    @Test
     void aDocumentDeletedSinceTheListLoadedIsSaidToBeUnavailableOnDoubleClick() {
         Document document = upload(sandbox, "a.txt");
         RepositoryView view = open(sandbox, false);
@@ -592,6 +609,22 @@ class RepositoryViewTest {
         openButton.click();
 
         assertUnavailableNotice();
+    }
+
+    // in a narrow pane the buttons of the view go to a row of their own together, and the pane never scrolls sideways
+    @Test
+    void theToolbarWrapsTheButtonsOfTheViewTogether() {
+        RepositoryView view = open(sandbox, false);
+        HorizontalLayout toolbar = fragmentComponent(view, "documentList", "documentToolbar");
+        HorizontalLayout viewControls = fragmentComponent(view, "documentList", "viewControls");
+
+        assertThat(toolbar.isWrap()).isTrue();
+        assertThat(toolbar.getChildren().toList())
+                .containsExactly(fragmentComponent(view, "documentList", "documentActions"), viewControls);
+        assertThat(viewControls.getChildren().toList())
+                .containsExactly(fragmentComponent(view, "documentList", "discussButton"),
+                        fragmentComponent(view, "documentList", "columnsButton"),
+                        fragmentComponent(view, "documentList", "previewButton"));
     }
 
     @Test

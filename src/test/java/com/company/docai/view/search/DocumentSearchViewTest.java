@@ -21,6 +21,7 @@ import com.vaadin.flow.component.badge.Badge;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBoxBase;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import io.jmix.core.DataManager;
@@ -44,6 +45,7 @@ import io.jmix.flowui.testassist.FlowuiTestAssistConfiguration;
 import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.testassist.notification.NotificationInfo;
+import io.jmix.flowui.view.StandardOutcome;
 import io.jmix.search.searching.EntitySearcher;
 import io.jmix.search.searching.FieldHit;
 import io.jmix.search.searching.SearchContext;
@@ -62,6 +64,7 @@ import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
@@ -262,6 +265,43 @@ class DocumentSearchViewTest {
     }
 
     @Test
+    void theSearchByWordsSaysHowManyItFound() {
+        answer(entry(upload("a.txt"), "<b>word</b>"), entry(upload("b.txt"), "<b>word</b>"));
+
+        DocumentSearchView view = search("word");
+
+        assertThat(found(view)).isEqualTo(messages.formatMessage(DocumentSearchView.class, "foundCount", 2));
+    }
+
+    // the index counts the documents the person may not see too, so the page counts only what it has shown
+    @Test
+    void aSearchWithMoreThanAPageSaysItFoundMoreUntilTheLastPageIsShown() {
+        answer(uploadMoreThanAPage().stream()
+                .map(document -> entry(document, "<b>word</b>"))
+                .toArray(SearchResultEntry[]::new));
+
+        DocumentSearchView view = search("word");
+
+        assertThat(found(view)).isEqualTo(messages.formatMessage(DocumentSearchView.class, "foundMoreCount",
+                DocumentSearch.PAGE_SIZE));
+
+        UiTestUtils.<JmixButton>getComponent(view, "showMoreButton").click();
+
+        assertThat(found(view)).isEqualTo(messages.formatMessage(DocumentSearchView.class, "foundCount",
+                DocumentSearch.PAGE_SIZE + 1));
+    }
+
+    @Test
+    void theRowsTakeTheWidthOfThePage() {
+        answer();
+
+        DocumentSearchView view = search("word");
+
+        assertThat(UiTestUtils.<VerticalLayout>getComponent(view, "hitsBox").getDefaultHorizontalComponentAlignment())
+                .isEqualTo(FlexComponent.Alignment.STRETCH);
+    }
+
+    @Test
     void nothingFoundIsSaid() {
         answer();
 
@@ -269,6 +309,7 @@ class DocumentSearchViewTest {
 
         assertThat(rows(view)).isEmpty();
         assertThat(message(view)).isEqualTo(messages.getMessage(DocumentSearchView.class, "nothingFound"));
+        assertThat(UiTestUtils.<Span>getComponent(view, "foundText").isVisible()).isFalse();
     }
 
     @Test
@@ -413,6 +454,27 @@ class DocumentSearchViewTest {
 
         assertThat(rows(view)).extracting(row -> this.<JmixButton>byClass(row, "document-search-name").getText())
                 .containsExactly("kept.txt");
+    }
+
+    @Test
+    void theCountFollowsADocumentThatLeavesThePageAfterASave() {
+        Document leaving = upload("leaving.txt");
+        answer(entry(leaving, "<b>word</b>"), entry(upload("staying.txt"), "<b>word</b>"));
+        DocumentSearchView view = search("word");
+
+        JmixButton leavingName = rows(view).stream()
+                .map(row -> this.<JmixButton>byClass(row, "document-search-name"))
+                .filter(name -> name.getText().equals("leaving.txt"))
+                .findFirst()
+                .orElseThrow();
+
+        leavingName.click();
+        DocumentDetailView card = Objects.requireNonNull(UiTestUtils.getLastOpenedViewDialog());
+        systemAuthenticator.runWithUser(ADMIN, () -> documentService.delete(List.of(leaving)));
+        card.close(StandardOutcome.SAVE);
+
+        assertThat(rows(view)).hasSize(1);
+        assertThat(found(view)).isEqualTo(messages.formatMessage(DocumentSearchView.class, "foundCount", 1));
     }
 
     @Test
@@ -568,6 +630,13 @@ class DocumentSearchViewTest {
                 .orElseThrow()
                 .getChildren()
                 .toList();
+    }
+
+    private static String found(DocumentSearchView view) {
+        Span found = UiTestUtils.getComponent(view, "foundText");
+        assertThat(found.isVisible()).isTrue();
+
+        return found.getText();
     }
 
     private static String message(DocumentSearchView view) {

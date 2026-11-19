@@ -194,8 +194,20 @@ public class TrashService {
      */
     @Transactional
     public int restore(Collection<TrashItem> items) {
-        List<Folder> folders = trashRows.lockDeleted(Folder.class, idsOf(items, TrashItem::getFolder));
-        List<Document> documents = trashRows.lockDeleted(Document.class, idsOf(items, TrashItem::getDocument));
+        return restore(idsOf(items, TrashItem::getFolder), idsOf(items, TrashItem::getDocument));
+    }
+
+    /**
+     * Puts the folders and documents with the ids back as {@link #restore(Collection)} does, which undoes a delete just
+     * made; an id no longer in the trash is left out.
+     *
+     * @return how many of them came back
+     * @throws OperationRejectedException as {@link #restore(Collection)} does
+     */
+    @Transactional
+    public int restore(Collection<UUID> folderIds, Collection<UUID> documentIds) {
+        List<Folder> folders = trashRows.lockDeleted(Folder.class, folderIds);
+        List<Document> documents = trashRows.lockDeleted(Document.class, documentIds);
         FolderIndex tree = trashRows.loadTree();
         Set<UUID> restored = new HashSet<>();
 

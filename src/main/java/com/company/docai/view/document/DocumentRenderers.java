@@ -1,10 +1,13 @@
 package com.company.docai.view.document;
 
+import com.company.docai.app.service.document.ContentTypeDetector;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.view.favorite.FavoriteListAction;
 import com.company.docai.view.folder.FolderRenderers;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LitRenderer;
@@ -21,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -37,10 +41,11 @@ public class DocumentRenderers {
     private final FileSizeFormatter fileSizeFormatter;
     private final DatatypeFormatter datatypeFormatter;
     private final CurrentAuthentication currentAuthentication;
+    private final ContentTypeDetector contentTypes;
 
     public DocumentRenderers(UiComponents uiComponents, Icons icons, Messages messages, FolderRenderers folderRenderers,
                              FileSizeFormatter fileSizeFormatter, DatatypeFormatter datatypeFormatter,
-                             CurrentAuthentication currentAuthentication) {
+                             CurrentAuthentication currentAuthentication, ContentTypeDetector contentTypes) {
         this.uiComponents = uiComponents;
         this.icons = icons;
         this.messages = messages;
@@ -48,6 +53,7 @@ public class DocumentRenderers {
         this.fileSizeFormatter = fileSizeFormatter;
         this.datatypeFormatter = datatypeFormatter;
         this.currentAuthentication = currentAuthentication;
+        this.contentTypes = contentTypes;
     }
 
     /**
@@ -108,6 +114,46 @@ public class DocumentRenderers {
         return new TextRenderer<>(document -> document.getCurrentRevision() == null
                 ? ""
                 : fileSizeFormatter.format(document.getCurrentRevision().getFileSize()));
+    }
+
+    /**
+     * The renderer of the file name of a version, with a badge on the current version.
+     */
+    public Renderer<DocumentRevision> revisionFileRenderer(Predicate<DocumentRevision> current) {
+        String currentText = messages.getMessage(getClass(), "currentRevision.text");
+
+        return new ComponentRenderer<>(revision -> {
+            Span name = uiComponents.create(Span.class);
+            name.addClassName("revision-file-name");
+            name.setText(revision.getFileName());
+
+            Span cell = uiComponents.create(Span.class);
+            cell.addClassName("revision-file");
+            cell.add(name);
+
+            if (current.test(revision)) {
+                Badge badge = uiComponents.create(Badge.class);
+                badge.setText(currentText);
+                badge.addThemeVariants(BadgeVariant.SUCCESS);
+                cell.add(badge);
+            }
+
+            return cell;
+        });
+    }
+
+    /**
+     * The renderer of the type of the file of a version by the short name of its format, such as PDF.
+     */
+    public Renderer<DocumentRevision> revisionTypeRenderer() {
+        return new TextRenderer<>(revision -> contentTypes.nameOf(revision.getContentType()));
+    }
+
+    /**
+     * The order of the versions by the short name of the format of their files, as the column of the types shows it.
+     */
+    public Comparator<DocumentRevision> revisionTypeComparator() {
+        return Comparator.comparing(revision -> contentTypes.nameOf(revision.getContentType()));
     }
 
     /**

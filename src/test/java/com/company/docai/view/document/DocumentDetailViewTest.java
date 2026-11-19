@@ -2,7 +2,9 @@ package com.company.docai.view.document;
 
 import com.company.docai.DocAiApplication;
 import com.company.docai.app.service.document.DocumentService;
+import com.company.docai.app.service.document.DocumentStatusService;
 import com.company.docai.app.service.folder.FolderService;
+import com.company.docai.model.access.AccessLevel;
 import com.company.docai.model.document.Document;
 import com.company.docai.model.document.DocumentRevision;
 import com.company.docai.model.document.DocumentStatus;
@@ -10,34 +12,49 @@ import com.company.docai.model.folder.Folder;
 import com.company.docai.model.tag.Tag;
 import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
+import com.company.docai.test_support.TestAccess;
+import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestGrids;
+import com.company.docai.test_support.TestPalettes;
+import com.company.docai.test_support.TestSamples;
 import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTags;
 import com.company.docai.test_support.TestUploads;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.repository.RepositoryView;
 import com.company.docai.view.search.DocumentSearchView;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.badge.Badge;
+import com.vaadin.flow.component.badge.BadgeVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBoxBase;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.internal.PendingJavaScriptInvocation;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.data.provider.SortDirection;
 import io.jmix.core.DataManager;
 import io.jmix.core.EntityStates;
 import io.jmix.core.FetchPlan;
 import io.jmix.core.Id;
 import io.jmix.core.Messages;
 import io.jmix.core.MetadataTools;
+import io.jmix.core.SaveContext;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.metamodel.datatype.DatatypeFormatter;
 import io.jmix.core.security.CurrentAuthentication;
+import io.jmix.core.security.SystemAuthenticator;
+import io.jmix.data.PersistenceHints;
 import io.jmix.flowui.DialogWindows;
+import io.jmix.flowui.Notifications;
 import io.jmix.flowui.ViewNavigators;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.multiselectcombobox.JmixMultiSelectComboBox;
@@ -53,6 +70,7 @@ import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.flowui.testassist.dialog.DialogInfo;
 import io.jmix.flowui.testassist.notification.NotificationInfo;
+import io.jmix.flowui.testassist.notification.OpenedNotifications;
 import io.jmix.flowui.upload.TemporaryStorage;
 import io.jmix.flowui.view.DialogWindow;
 import io.jmix.flowui.view.View;
@@ -62,13 +80,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import tools.jackson.databind.node.JsonNodeFactory;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -118,10 +144,21 @@ class DocumentDetailViewTest {
     @Autowired
     private DocumentRenderers documentRenderers;
 
+    @Autowired
+    private DocumentStatusService statusService;
+
+    @Autowired
+    private SystemAuthenticator systemAuthenticator;
+
+    @Autowired
+    private OpenedNotifications openedNotifications;
+
     @TempDir
     private Path tempDir;
 
     private final String suffix = UUID.randomUUID().toString().substring(0, 8);
+
+    private final List<DocumentStatus> statuses = new ArrayList<>();
 
     private Folder sandbox;
 
@@ -133,9 +170,16 @@ class DocumentDetailViewTest {
         sandbox = folderService.save(folder);
     }
 
+    // as the administrator: a test may leave the employee only the view of a document in the sandbox
     @AfterEach
     void deleteSandbox() {
-        folderService.delete(sandbox);
+        // the statuses go even when the folder stays: a seed status keeps a target to a leftover one in the shared
+        // database, and every later test would see it
+        try {
+            systemAuthenticator.runWithUser("admin", () -> folderService.delete(sandbox));
+        } finally {
+            statuses.forEach(this::deleteStatus);
+        }
     }
 
     @Test
@@ -215,11 +259,164 @@ class DocumentDetailViewTest {
     }
 
     @Test
-    void theFolderFieldShowsThePathAsTheBreadcrumbsDo() {
+    void theFolderShowsThePathAsTheBreadcrumbsDoAsPlainText() {
         DocumentDetailView card = openCard(upload("a.txt"));
 
-        assertThat(this.<TypedTextField<String>>component(card, "folderField").getValue())
+        TypedTextField<String> folder = component(card, "folderField");
+
+        assertThat(folder.getValue())
                 .isEqualTo(metadataTools.getInstanceName(folderService.getRoot()) + " / " + sandbox.getName());
+        assertThat(folder.isReadOnly()).isTrue();
+    }
+
+    @Test
+    void copyLinkPutsTheAddressOfTheCardIntoTheClipboardAndSaysSo() {
+        Document document = upload("a.txt");
+        DocumentDetailView card = openCard(document);
+        TestPalettes.sentScripts();
+        openedNotifications.closeOpenedNotifications();
+
+        this.<JmixButton>component(card, "copyLinkButton").click();
+        PendingJavaScriptInvocation copy = clipboardScript();
+        String address = copiedText(copy);
+
+        assertThat(URI.create(address).isAbsolute()).isTrue();
+        assertThat(address).endsWith("/documents/" + document.getId());
+
+        copy.complete(JsonNodeFactory.instance.nullNode());
+
+        NotificationInfo notice = UiTestUtils.getLastOpenedNotification();
+        assertThat(notice).isNotNull();
+        assertThat(notice.getText()).isEqualTo(messages.getMessage(DocumentDetailView.class, "linkCopied"));
+        assertThat(notice.getType()).isEqualTo(Notifications.Type.SUCCESS);
+        assertThat(notice.getNotification().getPosition()).isEqualTo(Notification.Position.TOP_END);
+    }
+
+    // a browser may refuse the clipboard to a page; the notice then gives the address to copy by hand
+    @Test
+    void aLinkTheBrowserDidNotCopyIsShownToCopyByHand() {
+        Document document = upload("a.txt");
+        DocumentDetailView card = openCard(document);
+        TestPalettes.sentScripts();
+
+        this.<JmixButton>component(card, "copyLinkButton").click();
+        PendingJavaScriptInvocation copy = clipboardScript();
+        String address = copiedText(copy);
+
+        copy.completeExceptionally(JsonNodeFactory.instance.stringNode("NotAllowedError"));
+
+        NotificationInfo notice = UiTestUtils.getLastOpenedNotification();
+        assertThat(notice).isNotNull();
+        assertThat(notice.getText())
+                .isEqualTo(messages.formatMessage(DocumentDetailView.class, "linkNotCopied", address));
+        assertThat(notice.getType()).isEqualTo(Notifications.Type.WARNING);
+    }
+
+    @Test
+    void aNewDocumentHasNoLinkToCopyYet() {
+        assertThat(this.<JmixButton>component(openNewCard(), "copyLinkButton").isVisible()).isFalse();
+    }
+
+    @Test
+    void aLinkToADocumentInTheTrashLeadsToTheRepositoryWithANotice() {
+        Document document = upload("a.txt");
+        documentService.delete(List.of(document));
+
+        navigate("documents/" + document.getId());
+
+        assertLedToTheRepositoryWithANotice();
+    }
+
+    @Test
+    void aLinkThatNamesNoDocumentLeadsToTheRepositoryWithTheSameNotice() {
+        navigate("documents/" + UUID.randomUUID());
+
+        assertLedToTheRepositoryWithANotice();
+
+        navigate("documents/no-document");
+
+        assertLedToTheRepositoryWithANotice();
+    }
+
+    @Test
+    void aLinkToAnAvailableDocumentOpensItsCard() {
+        Document document = upload("a.txt");
+
+        navigate("documents/" + document.getId());
+
+        DocumentDetailView card = UiTestUtils.getCurrentView();
+        assertThat(card.getEditedEntity()).isEqualTo(document);
+    }
+
+    @Test
+    void aLockedStatusShowsALockInItsBadgeWithATooltip() {
+        Document document = upload("a.txt");
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
+
+        DocumentDetailView card = openCard(reload(document));
+        Badge badge = component(card, "statusBadge");
+
+        assertThat(badge.getIcon()).isNotNull();
+        assertThat(Tooltip.forComponent(badge).getText()).isEqualTo(lockedTooltip());
+        assertThat(this.<JmixButton>component(card, "fillWithAiButton").getTooltip().getText())
+                .isEqualTo(lockedTooltip());
+    }
+
+    // the flag locks a status, the name Archived does not
+    @Test
+    void anyLockedStatusShowsTheLockNotOnlyArchived() {
+        DocumentStatus signed = TestStatuses.create(unconstrainedDataManager, "Signed", true, List.of());
+        statuses.add(signed);
+        // Active leads to the new status until the status is deleted, which takes it out of the targets
+        DocumentStatus active = TestStatuses.active(dataManager);
+        active.getTargets().add(signed);
+        unconstrainedDataManager.save(active);
+        Document document = upload("a.txt");
+        documentService.changeStatus(List.of(document), active);
+        documentService.changeStatus(List.of(document), signed);
+
+        Badge badge = component(openCard(reload(document)), "statusBadge");
+
+        assertThat(badge.getIcon()).isNotNull();
+        assertThat(Tooltip.forComponent(badge).getText()).isEqualTo(lockedTooltip());
+    }
+
+    @Test
+    void aStatusThatMayChangeShowsNoLock() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        Badge badge = component(card, "statusBadge");
+
+        assertThat(badge.getIcon()).isNull();
+        assertThat(Tooltip.forComponent(badge).getText()).isNullOrEmpty();
+        assertThat(this.<JmixButton>component(card, "fillWithAiButton").getTooltip().getText()).isNullOrEmpty();
+    }
+
+    // the lock explains, it does not advise, so the person who may not change the status sees it too
+    @Test
+    void aViewerOfALockedDocumentSeesTheLock() {
+        Document document = upload("a.txt");
+        documentService.changeStatus(List.of(document), TestStatuses.active(dataManager));
+        documentService.changeStatus(List.of(document), TestStatuses.archived(dataManager));
+
+        systemAuthenticator.runWithUser("admin", () -> TestAccess.giveOwnAccess(dataManager, document,
+                Grant.user(EmployeeUiTestAuthenticator.USERNAME, AccessLevel.VIEW)));
+
+        DocumentDetailView card = openCard(reload(document));
+        Badge badge = component(card, "statusBadge");
+
+        assertThat(card.isReadOnly()).isTrue();
+        assertThat(badge.getIcon()).isNotNull();
+        assertThat(Tooltip.forComponent(badge).getText()).isEqualTo(lockedTooltip());
+    }
+
+    @Test
+    void theLockTooltipIsInBothLanguages() {
+        String english = messages.getMessage(DocumentDetailView.class, "lockedStatus.tooltip", Locale.ENGLISH);
+        String russian = messages.getMessage(DocumentDetailView.class, "lockedStatus.tooltip", Locale.of("ru"));
+
+        assertThat(english).isEqualTo("Documents in this status can't be changed");
+        assertThat(russian).isNotBlank().doesNotContainPattern("[A-Za-z]");
     }
 
     @Test
@@ -414,15 +611,15 @@ class DocumentDetailViewTest {
 
         assertThat(this.<Component>component(card, "headerActions").getChildren()
                 .map(action -> action.getId().orElseThrow()))
-                .containsExactly("fillWithAiButton", "newVersionUpload", "downloadButton", "accessButton",
-                        "favoriteButton");
+                .containsExactly("fillWithAiButton", "newVersionUpload", "downloadButton", "copyLinkButton",
+                        "accessButton", "favoriteButton");
     }
 
     @Test
-    void theIconsOfDownloadAndAccessKeepTheirNamesInTooltips() {
+    void theIconsOfDownloadCopyLinkAndAccessKeepTheirNamesInTooltips() {
         DocumentDetailView card = openCard(upload("a.txt"));
 
-        assertThat(List.of("downloadButton", "accessButton")).allSatisfy(id -> {
+        assertThat(List.of("downloadButton", "copyLinkButton", "accessButton")).allSatisfy(id -> {
             JmixButton button = component(card, id);
             String name = messages.getMessage(DocumentDetailView.class, id + ".text");
 
@@ -467,6 +664,56 @@ class DocumentDetailViewTest {
         DocumentRevision current = reload(document).getCurrentRevision();
         assertThat(current.getNumber()).isEqualTo(3);
         assertThat(current.getFile()).isEqualTo(first.getFile());
+    }
+
+    @Test
+    void theVersionsNameTheTypesOfTheirFilesAsPeopleKnowThem() {
+        Document document = upload("a.txt");
+        documentService.uploadRevision(document, TestFiles.file(tempDir, "b.pdf", TestSamples.pdf("second")));
+        DataGrid<DocumentRevision> revisionsGrid = component(openCard(reload(document)), "revisionsGrid");
+
+        assertThat(versions(revisionsGrid).stream()
+                .collect(Collectors.toMap(DocumentRevision::getNumber,
+                        revision -> TestGrids.text(revisionsGrid, "contentType", revision))))
+                .containsExactlyInAnyOrderEntriesOf(Map.of(1, "TXT", 2, "PDF"));
+    }
+
+    // the column shows PDF and DOCX, while the media types order them the other way round
+    @Test
+    void theTypeColumnSortsByTheNameItShows() {
+        DocumentDetailView card = openCard(upload("a.txt"));
+        DataGrid<DocumentRevision> revisionsGrid = component(card, "revisionsGrid");
+        DocumentRevision pdf = revisionOf("application/pdf");
+        DocumentRevision docx = revisionOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+        Comparator<DocumentRevision> byType = Objects.requireNonNull(revisionsGrid.getColumnByKey("contentType"))
+                .getComparator(SortDirection.ASCENDING);
+
+        assertThat(byType.compare(docx, pdf)).isNegative();
+        assertThat(byType.compare(pdf, docx)).isPositive();
+    }
+
+    @Test
+    void onlyTheCurrentVersionIsMarkedAsCurrent() {
+        Document document = upload("a.txt");
+        documentService.uploadRevision(document, TestFiles.file(tempDir, "a-v2.txt", "second"));
+        DataGrid<DocumentRevision> revisionsGrid = component(openCard(reload(document)), "revisionsGrid");
+        String current = messages.getMessage(DocumentDetailView.class, "currentRevision.text");
+
+        Map<Integer, Component> cells = versions(revisionsGrid).stream()
+                .collect(Collectors.toMap(DocumentRevision::getNumber,
+                        revision -> TestGrids.render(revisionsGrid, "fileName", revision)));
+
+        assertThat(badges(cells.get(1))).isEmpty();
+        assertThat(badges(cells.get(2))).containsExactly(current);
+        assertThat(cells.get(2).getChildren()
+                .filter(Badge.class::isInstance)
+                .allMatch(badge -> badge.getElement().getThemeList().contains(BadgeVariant.SUCCESS.getVariantName())))
+                .isTrue();
+        assertThat(cells.get(2).getChildren()
+                .noneMatch(child -> child.getElement().getClassList().contains("v-success"))).isTrue();
+        assertThat(cells.get(1).getElement().getTextRecursively()).isEqualTo("a.txt");
+        assertThat(cells.get(2).getElement().getTextRecursively()).startsWith("a-v2.txt");
     }
 
     @Test
@@ -769,6 +1016,86 @@ class DocumentDetailViewTest {
         assertThat(dialog.isOpened()).isTrue();
         assertThat(question).isNotNull();
         assertThat(question.getDialog().getHeaderTitle()).isEqualTo(messages.getMessage("dialogs.closeUnsaved.title"));
+    }
+
+    private static List<DocumentRevision> versions(DataGrid<DocumentRevision> revisionsGrid) {
+        DataGridItems<DocumentRevision> items = revisionsGrid.getItems();
+        assertThat(items).isNotNull();
+
+        return List.copyOf(items.getItems());
+    }
+
+    private static List<String> badges(Component cell) {
+        return cell.getChildren()
+                .filter(Badge.class::isInstance)
+                .map(badge -> ((Badge) badge).getText())
+                .toList();
+    }
+
+    private void navigate(String address) {
+        openedNotifications.closeOpenedNotifications();
+        UI.getCurrent().navigate(address);
+    }
+
+    private void assertLedToTheRepositoryWithANotice() {
+        NotificationInfo notice = UiTestUtils.getLastOpenedNotification();
+
+        assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(RepositoryView.class);
+        assertThat(UI.getCurrent().getInternals().getActiveViewLocation().getPath()).isEqualTo("repository");
+        assertThat(notice).isNotNull();
+        assertThat(notice.getText()).isEqualTo(messages.getMessage(DocumentDetailView.class, "documentUnavailable"));
+        assertThat(notice.getType()).isEqualTo(Notifications.Type.WARNING);
+    }
+
+    // the script of UiComponentUtils.copyToClipboard, which the browser gets with the next response
+    private static PendingJavaScriptInvocation clipboardScript() {
+        return TestPalettes.sentScripts()
+                .stream()
+                .filter(script -> script.getInvocation()
+                        .getExpression()
+                        .contains("navigator.clipboard.writeText"))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static String copiedText(PendingJavaScriptInvocation copy) {
+        return copy.getInvocation()
+                .getParameters()
+                .stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private String lockedTooltip() {
+        return messages.getMessage(DocumentDetailView.class, "lockedStatus.tooltip");
+    }
+
+    private DocumentRevision revisionOf(String contentType) {
+        DocumentRevision revision = dataManager.create(DocumentRevision.class);
+        revision.setContentType(contentType);
+        return revision;
+    }
+
+    // the documents of a status made by a test, those in the trash included, go back to Draft so that it can go
+    private void deleteStatus(DocumentStatus status) {
+        systemAuthenticator.runWithUser("admin", () -> {
+            DocumentStatus draft = TestStatuses.draft(dataManager);
+            List<Document> documents = unconstrainedDataManager.load(Document.class)
+                    .query("select d from Document d where d.status = :status")
+                    .parameter("status", status)
+                    .hint(PersistenceHints.SOFT_DELETION, false)
+                    .list();
+
+            documents.forEach(document -> document.setStatus(draft));
+
+            unconstrainedDataManager.save(new SaveContext()
+                    .saving(documents)
+                    .setHint(PersistenceHints.SOFT_DELETION, false));
+
+            statusService.delete(status);
+        });
     }
 
     private static void type(JmixMultiSelectComboBox<Tag> field, String text) {

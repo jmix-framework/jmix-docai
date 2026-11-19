@@ -67,14 +67,22 @@ jmix-login-form::part(error-message-title) {
     font-weight: var(--aura-font-weight-semibold);
 }
 
-.login-language-warning {
+.login-language-warning,
+.login-copy-expired {
     box-sizing: border-box;
     width: var(--vaadin-login-form-width, 360px);
     max-width: 100%;
     padding: var(--vaadin-padding-m);
     border-radius: var(--vaadin-radius-m);
-    background: color-mix(in srgb, var(--aura-orange) 10%, transparent);
     font-size: var(--aura-font-size-s);
+}
+
+.login-language-warning {
+    background: color-mix(in srgb, var(--aura-orange) 10%, transparent);
+}
+
+.login-copy-expired {
+    background: var(--vaadin-background-container);
 }
 
 @media (max-width: 900px) {

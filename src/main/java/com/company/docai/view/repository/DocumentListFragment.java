@@ -23,6 +23,7 @@ import com.company.docai.view.tag.TagBadges;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.CellFocusEvent;
 import com.vaadin.flow.component.grid.ColumnResizeEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
@@ -41,11 +42,13 @@ import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Fragments;
 import io.jmix.flowui.action.DialogAction;
+import io.jmix.flowui.component.SupportsEnterPress;
 import io.jmix.flowui.component.grid.DataGrid;
 import io.jmix.flowui.component.grid.DataGridColumn;
 import io.jmix.flowui.component.gridcolumnvisibility.JmixGridColumnVisibility;
 import io.jmix.flowui.component.upload.JmixUpload;
 import io.jmix.flowui.component.upload.UploadSucceededEvent;
+import io.jmix.flowui.data.grid.DataGridItems;
 import io.jmix.flowui.facet.FragmentSettingsFacet;
 import io.jmix.flowui.facet.SettingsFacet;
 import io.jmix.flowui.facet.settings.FragmentSettings;
@@ -147,6 +150,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private Folder folder;
     @Nullable
     private Document focusedDocument;
+    @Nullable
+    private Document cellFocusDocument;
     @Nullable
     private Folder dropFolder;
     @Nullable
@@ -358,6 +363,24 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         openCard(event.getItem());
     }
 
+    @Subscribe("documentsGrid")
+    public void onDocumentsGridCellFocus(final CellFocusEvent<Document> event) {
+        cellFocusDocument = event.getItem().orElse(null);
+    }
+
+    @Install(to = "documentsGrid", subject = "enterPressHandler")
+    private void documentsGridEnterPressHandler(final SupportsEnterPress.EnterPressEvent<DataGrid<Document>> event) {
+        DataGridItems<Document> items = documentsGrid.getItems();
+
+        // the keys move only the focus, so Enter opens the document in focus and leaves it the only one selected
+        if (cellFocusDocument != null && items != null && items.containsItem(cellFocusDocument)) {
+            Document document = items.getItem(cellFocusDocument.getId());
+            documentsGrid.deselectAll();
+            documentsGrid.select(document);
+            openCard(document);
+        }
+    }
+
     @Subscribe(id = "documentsDc", target = Target.DATA_CONTAINER)
     public void onDocumentsDcCollectionChange(final CollectionContainer.CollectionChangeEvent<Document> event) {
         markedIds = favoriteService.markedIds(event.getSource().getItems());
@@ -468,10 +491,9 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 .withHeader(messageBundle.getMessage("deleteDocumentsDialog.header"))
                 .withText(messageBundle.formatMessage("deleteDocumentsDialog.text", names))
                 .withActions(
-                        new DialogAction(DialogAction.Type.YES).withHandler(actionEvent -> {
-                            documentService.delete(documents);
-                            contentsChanged();
-                        }),
+                        new DialogAction(DialogAction.Type.YES)
+                                .withHandler(actionEvent ->
+                                        repositoryMoves.moveToTrash(documents, this::contentsChanged)),
                         new DialogAction(DialogAction.Type.NO).withVariant(ActionVariant.PRIMARY))
                 .open();
     }

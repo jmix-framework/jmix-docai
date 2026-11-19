@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -32,13 +35,68 @@ class MessageBundleParityTest {
         }
     }
 
-    private Set<String> keysOf(Resource bundle) throws IOException {
+    @Test
+    void aTextOfJmixTheApplicationRewordsReadsDifferentlyInEveryLanguage() {
+        Map<String, String> bundlesOfJmix = Map.of(
+                "en", "classpath*:io/jmix/**/messages.properties",
+                "ru", "classpath*:io/jmix/**/messages_ru.properties");
+
+        bundlesOfJmix.forEach((language, pattern) -> {
+            Map<String, Set<String>> jmix = textsOf(pattern);
+            Properties application = propertiesOf(new ClassPathResource(
+                    "com/company/docai/messages_" + language + ".properties"));
+
+            for (String key : application.stringPropertyNames()) {
+                String text = application.getProperty(key);
+
+                assertThat(jmix.getOrDefault(key, Set.of()))
+                        .as("%s in %s", key, language)
+                        .doesNotContain(text);
+
+                if (jmix.containsKey(key) && "ru".equals(language)) {
+                    assertThat(text)
+                            .as("%s in %s", key, language)
+                            .containsPattern("\\p{IsCyrillic}");
+                }
+            }
+        });
+    }
+
+    private static Set<String> keysOf(Resource bundle) {
+        return propertiesOf(bundle).stringPropertyNames();
+    }
+
+    private static Map<String, Set<String>> textsOf(String pattern) {
+        Map<String, Set<String>> texts = new HashMap<>();
+
+        try {
+            for (Resource bundle : new PathMatchingResourcePatternResolver().getResources(pattern)) {
+                Properties properties = propertiesOf(bundle);
+
+                properties.stringPropertyNames()
+                        .forEach(key -> texts.computeIfAbsent(key, ignored -> new HashSet<>())
+                                .add(properties.getProperty(key)));
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+
+        assertThat(texts)
+                .as(pattern)
+                .isNotEmpty();
+
+        return texts;
+    }
+
+    private static Properties propertiesOf(Resource bundle) {
         Properties properties = new Properties();
 
         try (Reader reader = new InputStreamReader(bundle.getInputStream(), StandardCharsets.UTF_8)) {
             properties.load(reader);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
 
-        return properties.stringPropertyNames();
+        return properties;
     }
 }

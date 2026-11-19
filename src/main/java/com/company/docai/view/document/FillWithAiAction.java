@@ -140,6 +140,8 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
     }
 
     private void showResult(ClassificationResult result) {
+        target.markFilledByAi(result.properties(), !result.tags().isEmpty());
+
         String typeName = result.typeName();
         String tags = result.tags().stream()
                 .map(tag -> tag.newTag()
