@@ -373,7 +373,7 @@ A user gets the highest level among their entries. The root gives the Employee r
 | 📚 Documentation | https://docs.jmix.io |
 | 💬 Forum | https://forum.jmix.io |
 | 💻 GitHub | https://github.com/jmix-framework/jmix |
-| 🎥 YouTube | https://www.youtube.com/@jmixframework |
+| 🎥 YouTube | https://www.youtube.com/@JmixPlatform|
 | 💼 LinkedIn | https://www.linkedin.com/company/jmix-framework |
 
 ## 📄 License
