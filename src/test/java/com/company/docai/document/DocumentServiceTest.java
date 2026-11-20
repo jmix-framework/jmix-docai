@@ -315,6 +315,57 @@ class DocumentServiceTest {
     }
 
     @Test
+    void aFreeNameIsTheNameItself() {
+        upload("Invoice 1610.pdf");
+
+        assertThat(documentService.freeName(sandbox, "Invoice 2231.pdf")).isEqualTo("Invoice 2231.pdf");
+        assertThat(documentService.freeName(folder("Other"), "Invoice 1610.pdf")).isEqualTo("Invoice 1610.pdf");
+    }
+
+    @Test
+    void aTakenNameGetsTheFirstFreeNumberBeforeItsExtension() {
+        upload("Invoice 1610.pdf");
+
+        assertThat(documentService.freeName(sandbox, "Invoice 1610.pdf")).isEqualTo("Invoice 1610 (2).pdf");
+
+        upload("Invoice 1610 (2).pdf");
+
+        assertThat(documentService.freeName(sandbox, "Invoice 1610.pdf")).isEqualTo("Invoice 1610 (3).pdf");
+    }
+
+    @Test
+    void aTakenNameWithoutAnExtensionGetsItsNumberAtTheEnd() {
+        upload("Invoice");
+        upload(".profile");
+
+        assertThat(documentService.freeName(sandbox, "Invoice")).isEqualTo("Invoice (2)");
+        assertThat(documentService.freeName(sandbox, ".profile")).isEqualTo(".profile (2)");
+    }
+
+    @Test
+    void aNameCountsWithoutItsSurroundingSpaces() {
+        upload("Invoice 1610.pdf");
+
+        assertThat(documentService.freeName(sandbox, " Invoice 1610.pdf ")).isEqualTo("Invoice 1610 (2).pdf");
+        assertThat(documentService.freeName(sandbox, " Invoice 2231.pdf ")).isEqualTo("Invoice 2231.pdf");
+    }
+
+    @Test
+    void aDeletedDocumentHoldsNoNameForAFreeOne() {
+        documentService.delete(List.of(upload("Invoice 1610.pdf")));
+
+        assertThat(documentService.freeName(sandbox, "Invoice 1610.pdf")).isEqualTo("Invoice 1610.pdf");
+    }
+
+    @Test
+    void aFreeNameCanBeUploadedAtOnce() {
+        upload("Invoice 1610.pdf");
+
+        assertThat(upload(documentService.freeName(sandbox, "Invoice 1610.pdf")).getName())
+                .isEqualTo("Invoice 1610 (2).pdf");
+    }
+
+    @Test
     void aFailedCreateRemovesTheStoredFile() throws IOException {
         Folder gone = folder("Gone");
         folderService.delete(gone);

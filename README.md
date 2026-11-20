@@ -60,6 +60,7 @@ Employees keep documents in a folder tree in the main menu, share them with coll
 
 - The Aura theme of Vaadin with the DocAI branding, in light, dark and mixed schemes
 - English and Russian
+- A tour with Doc, the guide: five chapters on the upload, Fill with AI, search by meaning and the two assistants; it greets at the first sign-in in a browser and starts again from the user menu
 
 ## 🤖 AI Features
 

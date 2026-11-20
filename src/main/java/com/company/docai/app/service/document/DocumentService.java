@@ -261,13 +261,7 @@ public class DocumentService {
     public void move(Collection<Document> documents, Folder target) {
         Folder destination = folderService.lockLive(target);
         folderService.checkEditable(destination);
-        Set<String> takenNames = new HashSet<>(unconstrainedDataManager.loadValues(
-                        "select d.nameKey from Document d where d.folder = :folder")
-                .properties("name")
-                .parameter("folder", destination)
-                .list().stream()
-                .map(value -> value.<String>getValue("name"))
-                .toList());
+        Set<String> takenNames = takenNames(destination);
 
         List<Document> moved = new ArrayList<>();
         List<String> clashes = new ArrayList<>();
@@ -312,6 +306,37 @@ public class DocumentService {
                 .forEach(saveContext::removing);
 
         dataManager.save(saveContext);
+    }
+
+    /**
+     * Returns the name itself when the folder has no document with it, otherwise the first free numbered one, such as
+     * {@code Invoice (2).pdf}; the names count as {@link #create} checks them.
+     */
+    public String freeName(Folder folder, String name) {
+        String stripped = name.strip();
+        Set<String> takenNames = takenNames(folder);
+        int dot = stripped.lastIndexOf('.');
+
+        String stem = dot > 0 ? stripped.substring(0, dot) : stripped;
+        String extension = dot > 0 ? stripped.substring(dot) : "";
+        String free = stripped;
+
+        for (int number = 2; takenNames.contains(free); number++) {
+            free = "%s (%d)%s".formatted(stem, number, extension);
+        }
+
+        return free;
+    }
+
+    private Set<String> takenNames(Folder folder) {
+        return new HashSet<>(unconstrainedDataManager.loadValues(
+                        "select d.nameKey from Document d where d.folder = :folder")
+                .properties("name")
+                .parameter("folder", folder)
+                .list()
+                .stream()
+                .map(value -> value.<String>getValue("name"))
+                .toList());
     }
 
     private Document loadEditable(Document document) {

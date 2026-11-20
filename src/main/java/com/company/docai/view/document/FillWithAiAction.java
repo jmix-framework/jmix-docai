@@ -7,6 +7,8 @@ import com.company.docai.ai.classification.ClassificationResult;
 import com.company.docai.ai.classification.DocumentClassifier;
 import com.company.docai.app.service.document.NewVersion;
 import com.company.docai.model.document.Document;
+import com.company.docai.view.tour.Tour;
+import com.company.docai.view.tour.TourChapter;
 import io.jmix.core.Messages;
 import io.jmix.flowui.Dialogs;
 import io.jmix.flowui.Notifications;
@@ -47,6 +49,7 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
     private Dialogs dialogs;
     private Notifications notifications;
     private Messages messages;
+    private Tour tour;
 
     public FillWithAiAction() {
         this(ID);
@@ -70,6 +73,11 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
     @Autowired
     protected void setAiSettings(AiSettings aiSettings) {
         this.aiSettings = aiSettings;
+    }
+
+    @Autowired
+    protected void setTour(Tour tour) {
+        this.tour = tour;
     }
 
     @Autowired
@@ -177,6 +185,8 @@ public class FillWithAiAction extends ViewAction<FillWithAiAction, DocumentDetai
                     .withType(Notifications.Type.WARNING)
                     .show();
         }
+
+        tour.done(TourChapter.FILL_WITH_AI);
     }
 
     private void showNotification(String key, Notifications.Type type) {

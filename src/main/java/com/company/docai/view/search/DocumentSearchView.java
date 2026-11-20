@@ -11,6 +11,8 @@ import com.company.docai.search.SearchUnavailableException;
 import com.company.docai.search.semantic.DocumentVectorIndexer;
 import com.company.docai.search.semantic.SemanticSearch;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.tour.Tour;
+import com.company.docai.view.tour.TourChapter;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
@@ -99,6 +101,8 @@ public class DocumentSearchView extends StandardView {
     private ViewNavigators viewNavigators;
     @Autowired
     private Fragments fragments;
+    @Autowired
+    private Tour tour;
 
     @Nullable
     private DocumentSearchPage lastPage;
@@ -283,6 +287,7 @@ public class DocumentSearchView extends StandardView {
             foundText.setText(messageBundle.formatMessage("foundCount", hits.size()));
             foundText.setVisible(true);
             hits.forEach(hit -> hitsBox.add(createHitRow(hit)));
+            tour.done(TourChapter.SEARCH_BY_MEANING);
         }
 
         if (vectorIndexer.isBusy()) {

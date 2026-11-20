@@ -5,6 +5,7 @@ import com.company.docai.model.document.Document;
 import com.company.docai.view.assistant.AssistantNavigation;
 import com.company.docai.view.document.DocumentCards;
 import com.company.docai.view.document.DocumentDetailView;
+import com.company.docai.view.tour.Tour;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -99,6 +100,8 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
     private Icons icons;
     @Autowired
     private AssistantNavigation assistantNavigation;
+    @Autowired
+    private Tour tour;
 
     @Nullable
     private SideDialog window;
@@ -141,6 +144,7 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
         // a link of an answer leads to the card page, and the window does not stay over another view: while it is
         // open, the card opens over it, as from a chip
         cardLinks = UI.getCurrent().addBeforeLeaveListener(this::openLinkedCard);
+        tour.discussionOpened(true);
     }
 
     /**
@@ -233,6 +237,8 @@ public class DocumentDiscussionFragment extends Fragment<VerticalLayout> {
             cardLinks.remove();
             cardLinks = null;
         }
+
+        tour.discussionOpened(false);
     }
 
     private void openLinkedCard(BeforeLeaveEvent event) {

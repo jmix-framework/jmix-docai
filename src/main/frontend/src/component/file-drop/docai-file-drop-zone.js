@@ -7,7 +7,8 @@ const SILENCE = 700;
  * drag: this one passes on only the drags of files and refuses them while the manager holds a batch on its way, which
  * they would join. Vaadin's zone forgets the files only on a dragleave of its own, which never comes while its content
  * covers it, so this one dispatches it when the files leave or the drag stops without a drop: the browser repeats
- * dragover while they are over the zone.
+ * dragover while they are over the zone. While the server makes the element a drop target of Flow (its __active
+ * property), a drag without files goes on to the listeners of Flow, and the upload still gets none of it.
  */
 class FileDropZone extends UploadDropZone {
 
@@ -27,6 +28,13 @@ class FileDropZone extends UploadDropZone {
 
         this.addEventListener('drop', event => this.#refuseWhileBusy(event));
         this.addEventListener('dragleave', event => this.#forgetOnLeaving(event));
+
+        // a popover at the table takes a Tab from it, but the grid would still pull the focus back to its cell
+        this.addEventListener('keydown', event => {
+            if (event.key === 'Tab' && event.defaultPrevented && !this.contains(document.activeElement)) {
+                event.stopPropagation();
+            }
+        }, true);
     }
 
     disconnectedCallback() {
@@ -39,9 +47,26 @@ class FileDropZone extends UploadDropZone {
         return Boolean(this.manager) && this.manager.files.length > 0;
     }
 
+    __onDragover(event) {
+        // the upload answers only files: this listener and __onDrop are those of Vaadin's zone, which it finds by
+        // their names
+        if (carriesFiles(event)) {
+            super.__onDragover(event);
+        }
+    }
+
+    __onDrop(event) {
+        return carriesFiles(event) ? super.__onDrop(event) : undefined;
+    }
+
     #sort(event) {
         if (!carriesFiles(event)) {
-            event.stopImmediatePropagation();
+            if (!this.__active) {
+                event.stopImmediatePropagation();
+            } else if (event.type === 'dragover' && !this.hasAttribute('disabled')) {
+                // Flow lights a target on a dragenter only, and the server may activate this one later
+                this.classList.add('v-drag-over-target');
+            }
         } else if (this.#busy) {
             event.stopImmediatePropagation();
             event.preventDefault();
@@ -53,14 +78,14 @@ class FileDropZone extends UploadDropZone {
     }
 
     #refuseWhileBusy(event) {
-        if (this.#busy) {
+        if (carriesFiles(event) && this.#busy) {
             event.stopImmediatePropagation();
             event.preventDefault();
         }
     }
 
     #forgetOnLeaving(event) {
-        if (event.target !== this && !this.contains(event.relatedTarget)) {
+        if (carriesFiles(event) && event.target !== this && !this.contains(event.relatedTarget)) {
             this.#forget();
         }
     }

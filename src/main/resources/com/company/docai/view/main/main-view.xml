@@ -43,6 +43,9 @@
                                     themeNames="non-checkable">
                             <action id="substituteUserAction" type="sec_userMenuSubstituteUser"/>
                         </actionItem>
+                        <actionItem id="tourMenuItem" themeNames="non-checkable">
+                            <action id="tourAction" text="msg://tourAction.text" icon="COMPASS"/>
+                        </actionItem>
                         <separator/>
                         <actionItem id="logoutMenuItem" ref="logoutAction"
                                     themeNames="non-checkable"/>

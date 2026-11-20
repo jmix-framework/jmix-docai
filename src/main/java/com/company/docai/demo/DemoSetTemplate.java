@@ -31,8 +31,10 @@ import java.util.stream.Collectors;
 public record DemoSetTemplate(@Nullable String locale, Map<String, String> formats, List<DemoSet.User> users,
                               List<DemoSet.Status> statuses, List<Folder> folders) {
 
-    // a misspelt property of the description is a problem, not a value silently left out
-    private static final JsonMapper JSON = JsonMapper.builder()
+    /**
+     * The reader of the files that describe a set: a misspelt property is a problem, not a value silently left out.
+     */
+    public static final JsonMapper JSON = JsonMapper.builder()
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .build();
 

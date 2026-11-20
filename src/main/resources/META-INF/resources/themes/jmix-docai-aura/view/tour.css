@@ -1,0 +1,594 @@
+/* Typed, so that docai-tour.js reads it in pixels */
+@property --tour-edge {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+}
+
+/* On the page itself, so the header and the menu do not clip him; Vaadin's overlays live in the top layer above him */
+docai-tour.tour {
+    /* Inside the content, clear of the frame Aura draws around it */
+    --tour-edge: calc(var(--aura-app-layout-inset) + 24px);
+    --tour-doc-size: 64px;
+    /* docai-tour.js sets it to the height of the header a narrow layout moves to the bottom */
+    --tour-bottom-bar: 0px;
+
+    position: fixed;
+    z-index: 1000;
+    right: var(--tour-edge);
+    bottom: calc(var(--tour-edge) + var(--tour-bottom-bar));
+    display: block;
+    width: var(--tour-doc-size);
+    height: var(--tour-doc-size);
+    color: var(--vaadin-text-color);
+    font-size: var(--aura-font-size-s);
+}
+
+docai-tour.tour[spot='right-raised'] {
+    bottom: calc(var(--aura-app-layout-inset) + 100px + var(--tour-bottom-bar));
+}
+
+docai-tour.tour[spot='left'] {
+    right: auto;
+    left: var(--tour-edge);
+}
+
+/* Over the open menu Doc stands above its Trash item */
+html:has(vaadin-app-layout[drawer-opened]:not([overlay])) docai-tour.tour[spot='left'] {
+    bottom: 64px;
+}
+
+docai-tour.tour[hidden],
+docai-tour.tour[gone],
+docai-tour.tour [hidden] {
+    display: none !important;
+}
+
+/* On the dark body of the mixed scheme aura-accent-color makes Aura derive the light colors, as on the header */
+html[theme~='mixed'] .tour,
+html[theme~='mixed'] .tour-popover {
+    color-scheme: light;
+}
+
+.tour-live,
+.tour-row-done {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.tour-doc-image {
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex: none;
+    line-height: 0;
+    color: var(--aura-accent-color);
+}
+
+.tour-doc-image > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.tour-doc {
+    position: relative;
+    display: block;
+    width: var(--tour-doc-size);
+    height: var(--tour-doc-size);
+    padding: 0;
+    border: 0;
+    border-radius: var(--vaadin-radius-l);
+    background: none;
+    cursor: pointer;
+}
+
+.tour-doc:focus-visible {
+    outline: 2px solid var(--vaadin-focus-ring-color);
+    outline-offset: 2px;
+}
+
+.tour-doc > .tour-doc-image {
+    width: var(--tour-doc-size);
+    height: var(--tour-doc-size);
+}
+
+.tour-doc-badge {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--aura-surface-color-solid);
+    box-shadow: var(--aura-shadow-s);
+    color: var(--aura-accent-text-color);
+    font-size: var(--aura-font-size-xs);
+    font-weight: var(--aura-font-weight-semibold);
+    line-height: 1.6;
+}
+
+docai-tour.tour[spot='left'] .tour-doc-badge {
+    right: -6px;
+    left: auto;
+}
+
+.tour-bubble,
+.tour-panel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + var(--vaadin-gap-s));
+    box-sizing: border-box;
+    padding: var(--vaadin-padding-m);
+    border-radius: var(--vaadin-radius-l);
+    background: var(--aura-surface-color);
+    backdrop-filter: var(--aura-overlay-backdrop-filter);
+    box-shadow: var(--aura-overlay-outline-shadow), var(--aura-overlay-shadow);
+    color: var(--vaadin-text-color);
+}
+
+docai-tour.tour[spot='left'] .tour-bubble,
+docai-tour.tour[spot='left'] .tour-panel {
+    right: auto;
+    left: 0;
+}
+
+.tour-bubble {
+    bottom: calc(100% + 14px);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: var(--vaadin-gap-s);
+    width: max-content;
+    max-width: min(22rem, calc(100vw - 2 * var(--tour-edge)));
+    background: var(--aura-surface-color-solid);
+    backdrop-filter: none;
+}
+
+/* The tail covers the bubble's outline where they meet */
+.tour-bubble::after {
+    content: '';
+    position: absolute;
+    right: calc(var(--tour-doc-size) / 2 - 8px);
+    bottom: -8px;
+    width: 14px;
+    height: 14px;
+    border-right: 1px solid var(--aura-overlay-outline-color);
+    border-bottom: 1px solid var(--aura-overlay-outline-color);
+    background: var(--aura-surface-color-solid);
+    transform: rotate(45deg);
+}
+
+docai-tour.tour[spot='left'] .tour-bubble::after {
+    right: auto;
+    left: calc(var(--tour-doc-size) / 2 - 8px);
+}
+
+.tour-bubble-text {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.tour-bubble-actions {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1;
+    gap: var(--vaadin-gap-s);
+}
+
+.tour-bubble-close {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.tour-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-s);
+    width: 22rem;
+    max-width: calc(100vw - 2 * var(--tour-edge));
+    max-height: calc(100dvh - var(--aura-app-layout-inset) - var(--tour-bottom-bar) - 120px);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.12);
+    transform-origin: calc(100% - var(--tour-doc-size) / 2) calc(100% + var(--vaadin-gap-s) + var(--tour-doc-size) / 2);
+}
+
+docai-tour.tour[spot='right-raised'] .tour-panel {
+    max-height: calc(100dvh - var(--aura-app-layout-inset) - var(--tour-bottom-bar) - 196px);
+}
+
+html:has(vaadin-app-layout[drawer-opened]:not([overlay])) docai-tour.tour[spot='left'] .tour-panel {
+    max-height: calc(100dvh - 160px);
+}
+
+docai-tour.tour[spot='left'] .tour-panel {
+    transform-origin: calc(var(--tour-doc-size) / 2) calc(100% + var(--vaadin-gap-s) + var(--tour-doc-size) / 2);
+}
+
+docai-tour.tour[expanded]:not([moving]) .tour-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+docai-tour.tour[moving] .tour-bubble {
+    visibility: hidden;
+}
+
+docai-tour.tour[motion='leave'] .tour-bubble {
+    visibility: hidden;
+}
+
+.tour-panel-header {
+    display: flex;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+}
+
+.tour-panel-heading {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.tour-panel-title {
+    font-weight: var(--aura-font-weight-semibold);
+}
+
+.tour-panel-progress {
+    color: var(--vaadin-text-color-secondary);
+    font-size: var(--aura-font-size-xs);
+}
+
+.tour-line {
+    display: flex;
+    flex-direction: column;
+}
+
+.tour-line > :first-child:not(:only-child) {
+    font-weight: var(--aura-font-weight-semibold);
+}
+
+.tour-chapters {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vaadin-gap-xs);
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.tour-row {
+    display: grid;
+    grid-template-columns: 1.25rem 1fr auto;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    padding: var(--vaadin-padding-s);
+    border-radius: var(--vaadin-radius-m);
+}
+
+.tour-row[state='next'] {
+    color: var(--aura-accent-text-color);
+}
+
+.tour-row[state='unavailable'] {
+    color: var(--vaadin-text-color-disabled);
+}
+
+.tour-row-mark::before {
+    content: '\25CB';
+}
+
+.tour-row[state='done'] .tour-row-mark::before {
+    content: '\2713';
+    color: var(--aura-green-text);
+}
+
+.tour-row-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.tour-row-reason {
+    font-size: var(--aura-font-size-xs);
+}
+
+.tour-panel-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--vaadin-padding-s);
+    border-top: 1px solid var(--vaadin-border-color-secondary);
+}
+
+docai-tour.tour[mood='pointing'] .doc-pupil {
+    transform: translate(-0.35px, -0.35px);
+}
+
+docai-tour.tour[spot='left'][mood='pointing'] .doc-pupil {
+    transform: translate(0.35px, -0.35px);
+}
+
+docai-tour.tour[mood='listening'] .doc-pupil {
+    transform: translateY(-0.5px);
+}
+
+docai-tour.tour[motion='glad'] .doc-eyes {
+    visibility: hidden;
+}
+
+docai-tour.tour[motion='glad'] .doc-eyes-glad {
+    visibility: visible;
+}
+
+.tour-popover-content {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: var(--vaadin-gap-s);
+    max-width: calc(100vw - 2rem);
+}
+
+.tour-popover-content > .tour-doc-image {
+    width: 24px;
+    height: 24px;
+}
+
+.tour-popover-content > p {
+    margin: 0;
+}
+
+.tour-popover-actions {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 2;
+    gap: var(--vaadin-gap-s);
+}
+
+.tour-sample {
+    display: flex;
+    grid-column: 2;
+    align-items: center;
+    gap: var(--vaadin-gap-s);
+    width: fit-content;
+    max-width: 100%;
+    padding: var(--vaadin-padding-xs) var(--vaadin-padding-s);
+    border: 1px dashed var(--aura-accent-color);
+    border-radius: var(--vaadin-radius-m);
+    background: var(--aura-accent-surface);
+    font-weight: var(--aura-font-weight-medium);
+    overflow-wrap: anywhere;
+    cursor: grab;
+    user-select: none;
+}
+
+/* A sample dropped on the favorites would stay where it was, so its drag passes them by */
+html:has(.tour-sample.v-dragged) vaadin-details.favorites {
+    pointer-events: none;
+}
+
+/* A hint in a window that still opens waits unseen until the window stands (revealHint in docai-tour.js) */
+.tour-popover[waiting]::part(overlay) {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .tour-panel {
+        transition: transform 280ms cubic-bezier(0.4, 0, 1, 1), opacity 100ms 180ms, visibility 0s 280ms;
+    }
+
+    docai-tour.tour[expanded]:not([moving]) .tour-panel {
+        transition: transform 280ms cubic-bezier(0, 0, 0.2, 1), opacity 100ms, visibility 0s;
+    }
+
+    .tour-bubble:not([hidden]) {
+        animation: tour-rise 200ms ease-out;
+    }
+
+    .tour-popover:not([waiting])::part(overlay) {
+        transition: opacity 120ms ease-out;
+    }
+
+    docai-tour.tour[motion='roll-in'] .tour-doc {
+        animation: tour-roll-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1), tour-settle 160ms 700ms ease-out;
+    }
+
+    docai-tour.tour[spot='left'][motion='roll-in'] .tour-doc {
+        animation-name: tour-roll-in-left, tour-settle;
+    }
+
+    docai-tour.tour[mood='calm']:not([motion]) .doc-eye {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: tour-blink 6s infinite;
+    }
+
+    docai-tour.tour[mood='calm']:not([motion]) .tour-doc {
+        transform-origin: 50% 100%;
+        animation: tour-idle-sway 9s ease-in-out infinite;
+    }
+
+    docai-tour.tour[motion='glad'] .tour-doc {
+        animation: tour-jump 600ms ease-out;
+    }
+
+    docai-tour.tour[mood='pointing']:not([motion]) .tour-doc {
+        rotate: -6deg;
+        transition: rotate 200ms;
+    }
+
+    docai-tour.tour[spot='left'][mood='pointing']:not([motion]) .tour-doc {
+        rotate: 6deg;
+    }
+
+    docai-tour.tour[mood='listening']:not([motion]) .tour-doc {
+        animation: tour-sway 3s ease-in-out infinite;
+    }
+
+    docai-tour.tour[motion='leave'] .tour-doc {
+        transform-origin: 50% 100%;
+        animation: tour-wave 900ms ease-in-out, tour-leave 600ms 900ms ease-in forwards;
+    }
+
+    docai-tour.tour[spot='left'][motion='leave'] .tour-doc {
+        animation-name: tour-wave, tour-leave-left;
+    }
+
+    docai-tour.tour .doc-pupil {
+        transition: transform 200ms;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    docai-tour.tour[motion='roll-in'] .tour-doc {
+        animation: tour-fade-in 150ms ease-out;
+    }
+
+    docai-tour.tour[motion='leave'] .tour-doc {
+        animation: tour-fade-out 150ms ease-in forwards;
+    }
+}
+
+@media (max-width: 599px) {
+    docai-tour.tour {
+        --tour-doc-size: 56px;
+    }
+
+    docai-tour.tour .tour-panel {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: auto;
+        max-width: none;
+        max-height: 70vh;
+        border-radius: var(--vaadin-radius-l) var(--vaadin-radius-l) 0 0;
+        transform: translateY(100%);
+    }
+
+    /* The open panel has Doc in its header, and Doc in the corner would cover End tour */
+    docai-tour.tour[expanded] .tour-doc {
+        visibility: hidden;
+    }
+}
+
+@keyframes tour-roll-in {
+    from {
+        transform: translateX(calc(100% + var(--tour-edge) + 8px)) rotate(1turn);
+    }
+}
+
+@keyframes tour-roll-in-left {
+    from {
+        transform: translateX(calc(-100% - var(--tour-edge) - 8px)) rotate(-1turn);
+    }
+}
+
+@keyframes tour-settle {
+    50% {
+        transform: translateY(4px);
+    }
+}
+
+@keyframes tour-blink {
+    0%, 97%, 100% {
+        transform: scaleY(1);
+    }
+
+    98.5% {
+        transform: scaleY(0.1);
+    }
+}
+
+@keyframes tour-jump {
+    25% {
+        transform: translateY(-8px);
+    }
+
+    50% {
+        transform: none;
+    }
+
+    75% {
+        transform: translateY(-4px);
+    }
+}
+
+@keyframes tour-idle-sway {
+    0%, 82%, 100% {
+        rotate: 0deg;
+    }
+
+    86% {
+        rotate: -6deg;
+    }
+
+    91% {
+        rotate: 6deg;
+    }
+
+    95% {
+        rotate: -3deg;
+    }
+}
+
+@keyframes tour-sway {
+    0%, 100% {
+        rotate: -3deg;
+    }
+
+    50% {
+        rotate: 3deg;
+    }
+}
+
+@keyframes tour-wave {
+    0%, 50%, 100% {
+        rotate: 0deg;
+    }
+
+    25%, 75% {
+        rotate: 12deg;
+    }
+
+    12.5%, 62.5% {
+        rotate: -12deg;
+    }
+}
+
+@keyframes tour-leave {
+    to {
+        transform: translateX(calc(100% + var(--tour-edge) + 8px)) rotate(1turn);
+    }
+}
+
+@keyframes tour-leave-left {
+    to {
+        transform: translateX(calc(-100% - var(--tour-edge) - 8px)) rotate(-1turn);
+    }
+}
+
+@keyframes tour-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes tour-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes tour-rise {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}

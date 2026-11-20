@@ -53,8 +53,8 @@ vaadin-details.favorites.v-drag-over-target {
     background: color-mix(in oklab, var(--aura-accent-color) 10%, transparent);
 }
 
-/* The zone draws nothing itself, so it lights up over the rows here. A flex item keeps the height of its rows unless
-   allowed to shrink, so the zone shrinks to the pane and only the table scrolls */
+/* The zone draws nothing itself, so it lights up over the rows here, for files (dragover) and page drags
+   (v-drag-over-target); min-height 0 lets it shrink to the pane, so only the table scrolls */
 docai-file-drop-zone.documents-drop-zone {
     display: flex;
     flex-direction: column;
@@ -62,7 +62,8 @@ docai-file-drop-zone.documents-drop-zone {
     min-height: 0;
 }
 
-docai-file-drop-zone.documents-drop-zone[dragover]::before {
+docai-file-drop-zone.documents-drop-zone[dragover]::before,
+docai-file-drop-zone.documents-drop-zone.v-drag-over-target::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -74,7 +75,8 @@ docai-file-drop-zone.documents-drop-zone[dragover]::before {
     pointer-events: none;
 }
 
-docai-file-drop-zone.documents-drop-zone[dragover]::after {
+docai-file-drop-zone.documents-drop-zone[dragover]::after,
+docai-file-drop-zone.documents-drop-zone.v-drag-over-target::after {
     content: attr(data-hint);
     position: absolute;
     inset: auto 0 1.5em;

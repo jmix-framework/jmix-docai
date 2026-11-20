@@ -8,8 +8,10 @@ import com.company.docai.model.folder.Folder;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestDrops;
 import com.company.docai.test_support.TestMenus;
+import com.company.docai.test_support.TestTours;
 import com.company.docai.view.document.FileSizeFormatter;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.tour.TourChapter;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -167,6 +169,17 @@ class UploadDialogTest {
         assertThat(notification).isNotNull();
         assertThat(notification.getText()).isEqualTo(messages.formatMessage(NOTICES, "uploadDone", 2));
         assertThat(notification.getType()).isEqualTo(Notifications.Type.SUCCESS);
+    }
+
+    @Test
+    void aFileFromTheDialogMarksTheFirstChapterOfTheTour() {
+        View<?> view = open(sandbox);
+        UploadDropZone zone = dropZone(openDialog(view));
+
+        TestDrops.receive(zone, "a.txt", "first");
+        TestDrops.finishAll(tableZone(view));
+
+        assertThat(TestTours.state().isDone(TourChapter.UPLOAD)).isTrue();
     }
 
     @Test

@@ -10,8 +10,10 @@ import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.TestDrops;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestMenus;
+import com.company.docai.test_support.TestTours;
 import com.company.docai.view.document.DocumentDetailView;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.tour.TourChapter;
 import com.vaadin.flow.component.upload.UploadDropZone;
 import com.vaadin.flow.component.upload.UploadManager;
 import com.vaadin.flow.component.upload.UploadManager.FileRejectionReason;
@@ -155,6 +157,33 @@ class DroppedFilesTest {
                                 Notifications.Type.WARNING),
                         tuple(messages.formatMessage(MESSAGES, "dropRejected.other", "c.txt"),
                                 Notifications.Type.WARNING));
+    }
+
+    @Test
+    void aDroppedFileMarksTheFirstChapterOfTheTourWhichRemembersItsDocument() {
+        UploadDropZone zone = dropZone(open(sandbox));
+
+        TestDrops.receive(zone, name("a"), "first");
+        TestDrops.receive(zone, name("b"), "second");
+        TestDrops.finishAll(zone);
+
+        Document first = dataManager.load(Document.class)
+                .query("select d from Document d where d.folder = :folder and d.name = :name")
+                .parameter("folder", sandbox)
+                .parameter("name", name("a"))
+                .one();
+
+        assertThat(TestTours.state().isDone(TourChapter.UPLOAD)).isTrue();
+        assertThat(TestTours.state().getUploadedDocumentId()).contains(first.getId());
+    }
+
+    @Test
+    void onlyRefusedFilesLeaveTheFirstChapterOpen() {
+        UploadDropZone zone = dropZone(open(sandbox));
+
+        TestDrops.reject(zone, "a.txt", FileRejectionReason.FILE_TOO_LARGE);
+
+        assertThat(TestTours.state().isDone(TourChapter.UPLOAD)).isFalse();
     }
 
     @Test

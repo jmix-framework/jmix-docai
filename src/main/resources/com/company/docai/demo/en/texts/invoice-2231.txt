@@ -1,0 +1,14 @@
+Mid-South Equipment Sales LLC
+139 Tucker Street, Memphis, TN 38104
+EIN 62-1681239
+
+# INVOICE No. 2231
+## dated {issued:long}
+Bill to: Meadowbrook LLC, 12 Garden Street, Suite 312, Springfield, IL 62701
+Contract: Supply Agreement No. 52/{year:contract} dated {contract:long}
+
+1. Thornbury 785 combine with a 25-ft grain header, 1 at $172,000.00	$172,000.00
+Total	$172,000.00
+
+Pay by {due:long}.
+Payment by ACH to Larkspur National Bank, routing No. 071925999, account No. 9000058823. Please include the invoice number with your payment.

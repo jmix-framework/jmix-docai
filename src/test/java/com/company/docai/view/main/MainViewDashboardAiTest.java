@@ -12,8 +12,10 @@ import com.company.docai.test_support.TestDashboards;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestMenus;
 import com.company.docai.test_support.TestStatuses;
+import com.company.docai.test_support.TestTours;
 import com.company.docai.view.dashboard.DashboardFragment;
 import com.company.docai.view.document.DocumentDetailView;
+import com.company.docai.view.tour.TourChapter;
 import io.jmix.aitoolsflowui.model.AiChatMessage;
 import io.jmix.aitoolsflowui.model.AiChatMessageType;
 import io.jmix.aitoolsflowui.model.AiConversation;
@@ -135,6 +137,18 @@ class MainViewDashboardAiTest {
 
         assertThat(UiTestUtils.<View<?>>getCurrentView()).isInstanceOf(AiChatView.class);
         assertThat(firstQuestions(before)).containsExactly(QUESTION);
+    }
+
+    @Test
+    void anAnswerOfTheAssistantInTheMenuMarksTheFifthChapterOfTheTour() {
+        DashboardFragment dashboard = dashboard();
+        model.willReply("Two invoices are due this week.");
+
+        TestDashboards.<TypedTextField<String>>component(dashboard, "questionField").setValue(QUESTION);
+        TestDashboards.<JmixButton>component(dashboard, "askButton").click();
+        awaitAnswer(UiTestUtils.getCurrentView());
+
+        assertThat(TestTours.state().isDone(TourChapter.AI_ASSISTANT)).isTrue();
     }
 
     @Test

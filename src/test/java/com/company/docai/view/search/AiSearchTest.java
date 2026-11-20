@@ -14,7 +14,9 @@ import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.test_support.StubAiConfiguration;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestPalettes;
+import com.company.docai.test_support.TestTours;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.tour.TourChapter;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Span;
@@ -238,6 +240,25 @@ class AiSearchTest {
         assertThat(DocumentSearchView.isAiMode(TestPalettes.currentQueryParameters())).isFalse();
         assertThat(pressed(modeButton(mainView()))).isFalse();
         verify(entitySearcher).search(any(), anyString());
+    }
+
+    @Test
+    void documentsFoundByMeaningMarkTheThirdChapterOfTheTour() {
+        Document document = upload();
+        when(semanticSearch.search(QUERY)).thenReturn(List.of(hit(document, "the <b>Corwin 82 tractor</b> for")));
+
+        DocumentSearchView view = openAiSearch();
+        awaitAccess(() -> found(view).isVisible());
+
+        assertThat(TestTours.state().isDone(TourChapter.SEARCH_BY_MEANING)).isTrue();
+    }
+
+    @Test
+    void nothingFoundByMeaningLeavesTheThirdChapterOpen() {
+        DocumentSearchView view = openAiSearch();
+        awaitAccess(() -> searchByWords(view).isVisible());
+
+        assertThat(TestTours.state().isDone(TourChapter.SEARCH_BY_MEANING)).isFalse();
     }
 
     @Test

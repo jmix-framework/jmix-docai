@@ -13,8 +13,10 @@ import com.company.docai.test_support.TestAccess;
 import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestStatuses;
+import com.company.docai.test_support.TestTours;
 import com.company.docai.test_support.TestUploads;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.tour.TourChapter;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.tabs.Tab;
@@ -187,6 +189,25 @@ class DocumentAssistantFragmentTest {
                         ANSWER);
         assertThat(model.prompts().getFirst().getSystemMessage().getText())
                 .contains(card.getEditedEntity().getId().toString());
+    }
+
+    @Test
+    void anAnswerInTheCardMarksTheFourthChapterOfTheTour() {
+        DocumentDetailView card = openCard(upload());
+        model.willReply(ANSWER);
+
+        ask(card, "summaryButton");
+
+        assertThat(TestTours.state().isDone(TourChapter.DOCUMENT_ASSISTANT)).isTrue();
+    }
+
+    @Test
+    void aModelThatFailsLeavesTheFourthChapterOpen() {
+        DocumentDetailView card = openCard(upload());
+
+        ask(card, "summaryButton");
+
+        assertThat(TestTours.state().isDone(TourChapter.DOCUMENT_ASSISTANT)).isFalse();
     }
 
     @Test

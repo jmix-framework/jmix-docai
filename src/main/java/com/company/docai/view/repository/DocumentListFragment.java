@@ -1,9 +1,11 @@
 package com.company.docai.view.repository;
 
+import com.company.docai.app.service.OperationRejectedException;
 import com.company.docai.app.service.access.AccessLevels;
 import com.company.docai.app.service.access.AccessService;
 import com.company.docai.app.service.document.DocumentService;
 import com.company.docai.app.service.document.DocumentStatusService;
+import com.company.docai.app.service.document.UploadReport;
 import com.company.docai.app.service.document.UploadedFile;
 import com.company.docai.app.service.favorite.FavoriteService;
 import com.company.docai.app.service.user.UserService;
@@ -20,9 +22,11 @@ import com.company.docai.view.document.RevisionDownloader;
 import com.company.docai.view.favorite.FavoriteListAction;
 import com.company.docai.view.status.StatusBadges;
 import com.company.docai.view.tag.TagBadges;
+import com.company.docai.view.tour.Tour;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.grid.CellFocusEvent;
 import com.vaadin.flow.component.grid.ColumnResizeEvent;
 import com.vaadin.flow.component.grid.ItemClickEvent;
@@ -37,6 +41,7 @@ import com.vaadin.flow.component.upload.StartedEvent;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.selection.SelectionEvent;
+import com.vaadin.flow.shared.Registration;
 import io.jmix.core.MetadataTools;
 import io.jmix.flowui.DialogWindows;
 import io.jmix.flowui.Dialogs;
@@ -122,6 +127,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     @Autowired
     private DocumentUploads documentUploads;
     @Autowired
+    private Tour tour;
+    @Autowired
     private Dialogs dialogs;
     @Autowired
     private DialogWindows dialogWindows;
@@ -160,6 +167,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     private DocumentDiscussionFragment discussion;
     @Nullable
     private DialogWindow<DocumentUploadView> uploadDialog;
+    @Nullable
+    private Registration pageDropListener;
 
     private AccessLevels levels = new AccessLevels(Map.of(), false);
     private Map<String, String> userNames = Map.of();
@@ -306,6 +315,14 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
     public void setFolder(Folder folder) {
         this.folder = folder;
         reload();
+    }
+
+    /**
+     * Returns the folder whose documents the list shows, null before the first one.
+     */
+    @Nullable
+    public Folder getFolder() {
+        return folder;
     }
 
     @Nullable
@@ -563,6 +580,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
                 })
                 .withAfterCloseListener(closeEvent -> uploadDialog = null)
                 .open();
+
+        tour.uploadStarted();
     }
 
     // the first file starts at the drop or the pick, so the batch keeps the folder shown then, the one the dialog names
@@ -575,6 +594,8 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
         if (uploadDialog != null) {
             uploadDialog.close();
         }
+
+        tour.uploadStarted();
     }
 
     private void onDroppedFilesFinished(List<UploadedFile> files) {
@@ -586,10 +607,45 @@ public class DocumentListFragment extends Fragment<VerticalLayout> {
             return;
         }
 
+        upload(target, files);
+    }
+
+    /**
+     * Uploads files ready on the server into the folder shown, as a drop does; the caller deletes the files afterwards.
+     *
+     * @throws OperationRejectedException if the folder is unavailable or only viewed by the user
+     */
+    public void upload(List<UploadedFile> files) {
+        if (folder != null && !files.isEmpty()) {
+            upload(folder, files);
+        }
+    }
+
+    private void upload(Folder target, List<UploadedFile> files) {
         try {
-            documentUploads.showReport(documentService.upload(target, files));
+            UploadReport report = documentService.upload(target, files);
+            documentUploads.showReport(report);
+            tour.uploaded(report.created());
         } finally {
             contentsChanged();
+        }
+    }
+
+    /**
+     * Lets the table take a drag from the page itself, such as the tour's sample, while that drag goes on: an active
+     * target would answer the table's own row drags too.
+     */
+    public void setPageDragged(boolean dragged) {
+        DropTarget<DocumentsDropZone> target = DropTarget.configure(documentsDropZone, dragged && folderEditable());
+
+        if (pageDropListener != null) {
+            pageDropListener.remove();
+            pageDropListener = null;
+        }
+
+        if (target.isActive()) {
+            pageDropListener = target.addDropListener(drop -> drop.getDragSourceComponent()
+                    .ifPresent(tour::dropped));
         }
     }
 

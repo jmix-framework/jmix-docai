@@ -16,8 +16,10 @@ import com.company.docai.test_support.TestAccess.Grant;
 import com.company.docai.test_support.TestFiles;
 import com.company.docai.test_support.TestStatuses;
 import com.company.docai.test_support.TestTags;
+import com.company.docai.test_support.TestTours;
 import com.company.docai.test_support.TestUploads;
 import com.company.docai.view.main.MainView;
+import com.company.docai.view.tour.TourChapter;
 import com.vaadin.flow.server.VaadinSession;
 import io.jmix.core.DataManager;
 import io.jmix.core.Id;
@@ -312,6 +314,26 @@ class FillWithAiActionTest {
         assertThat(lastNotification().getText())
                 .isEqualTo(messages.getMessage(FillWithAiAction.class, "fillWithAiAction.unknownType"));
         assertThat(card.getEditedEntity().getCategory()).isNull();
+    }
+
+    @Test
+    void aFilledCardMarksTheSecondChapterOfTheTour() {
+        DocumentDetailView card = openCard(upload("invoice.txt", INVOICE.getBytes(StandardCharsets.UTF_8)));
+        model.willReply(INVOICE_PROPOSAL);
+
+        fill(card);
+
+        assertThat(TestTours.state().isDone(TourChapter.FILL_WITH_AI)).isTrue();
+    }
+
+    @Test
+    void aTypeTheAiCannotTellLeavesTheSecondChapterOpen() {
+        DocumentDetailView card = openCard(upload("note.txt", "Call me back".getBytes(StandardCharsets.UTF_8)));
+        model.willReply("{\"type\": \"UNKNOWN\", \"fields\": [], \"documentDate\": null}");
+
+        fill(card);
+
+        assertThat(TestTours.state().isDone(TourChapter.FILL_WITH_AI)).isFalse();
     }
 
     @Test

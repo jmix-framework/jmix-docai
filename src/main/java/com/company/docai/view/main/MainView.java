@@ -15,6 +15,7 @@ import com.company.docai.view.repository.RepositoryView;
 import com.company.docai.view.search.DocumentSearchView;
 import com.company.docai.view.search.SearchNavigation;
 import com.company.docai.view.search.SearchPaletteView;
+import com.company.docai.view.tour.Tour;
 import com.company.docai.view.user.UserRenderers;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
@@ -114,6 +115,8 @@ public class MainView extends StandardMainView {
     private CurrentUserSubstitution currentUserSubstitution;
     @Autowired
     private UserRenderers userRenderers;
+    @Autowired
+    private Tour tour;
 
     private boolean aiSearch;
     @Nullable
@@ -125,6 +128,7 @@ public class MainView extends StandardMainView {
         initFolderTree();
         initSearch();
         initDashboard();
+        tour.attach(this);
     }
 
     @Override
@@ -134,6 +138,7 @@ public class MainView extends StandardMainView {
         showSearchOf(event);
         restoreFolderTree(event);
         refreshDashboard();
+        tour.afterNavigation(event);
     }
 
     @Override
@@ -166,6 +171,11 @@ public class MainView extends StandardMainView {
                 .withViewClass(ProfileReadView.class)
                 .readEntity((User) currentUserSubstitution.getEffectiveUser())
                 .open();
+    }
+
+    @Subscribe("userMenu.tourMenuItem.tourAction")
+    public void onUserMenuTourMenuItemTourAction(final ActionPerformedEvent event) {
+        tour.restart();
     }
 
     @Install(to = "userMenu", subject = "buttonRenderer")
