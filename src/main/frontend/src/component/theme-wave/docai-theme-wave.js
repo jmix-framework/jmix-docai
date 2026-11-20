@@ -31,6 +31,7 @@ window.docaiThemeWave = {
         if (point && waveFits(theme)) {
             spread(point);
         } else {
+            running?.skipTransition();
             window.applyTheme();
         }
     }

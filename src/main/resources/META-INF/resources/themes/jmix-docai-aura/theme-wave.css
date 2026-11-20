@@ -1,5 +1,11 @@
 /* The wave of a new color scheme: docai-theme-wave.js puts the class and the circle on html for the time of the view
    transition, and the new page opens in that circle over a still picture of the old one */
+:root {
+    --docai-theme-wave-x: 50%;
+    --docai-theme-wave-y: 50%;
+    --docai-theme-wave-radius: 0px;
+}
+
 :root.docai-theme-wave::view-transition-old(root) {
     animation: none;
 }

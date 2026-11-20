@@ -68,11 +68,13 @@ public class UserMenuThemeSwitchAction extends io.jmix.flowui.action.usermenu.Us
      */
     public void switchTo(@Nullable String theme) {
         UserMenuItem item = menuItems.get(theme == null ? SYSTEM_THEME : theme);
+        // without an item of the scheme there is no point to spread from, and the scheme changes at once
+        String itemId = item == null ? null : item.getId();
 
         // not ThemeUtils.applyTheme: docai-theme-wave.js stores the scheme as it does and calls the same function
         UI.getCurrent()
                 .getPage()
-                .executeJs(APPLY_WAVE, ThemeUtils.THEME_STORAGE_KEY, theme, item.getId());
+                .executeJs(APPLY_WAVE, ThemeUtils.THEME_STORAGE_KEY, theme, itemId);
 
         updateState(theme);
     }

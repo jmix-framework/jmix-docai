@@ -197,11 +197,16 @@ class MainViewUserMenuTest {
     })
     void aClickOnASchemeSendsOneWaveOfItInsteadOfTheSwitchOfJmixAndChecksItsItem(String itemId, String theme) {
         MenuItem menuItem = themeMenuItem(itemId);
-        UI.getCurrent().getInternals().dumpPendingJavaScriptInvocations();
+        UI.getCurrent()
+                .getInternals()
+                .dumpPendingJavaScriptInvocations();
 
         ComponentUtil.fireEvent(menuItem, new ClickEvent<>(menuItem));
 
-        List<PendingJavaScriptInvocation> sent = UI.getCurrent().getInternals().dumpPendingJavaScriptInvocations();
+        List<PendingJavaScriptInvocation> sent = UI.getCurrent()
+                .getInternals()
+                .dumpPendingJavaScriptInvocations();
+
         assertThat(sent)
                 .filteredOn(invocation -> invocation.getInvocation().getExpression().contains("docaiThemeWave.apply"))
                 .singleElement()
@@ -230,7 +235,8 @@ class MainViewUserMenuTest {
         assertThat(script).contains(
                 "window.applyTheme = ",
                 "localStorage.getItem(\"%s\")".formatted(ThemeUtils.THEME_STORAGE_KEY),
-                "window.matchMedia(\"(prefers-color-scheme: dark)\")");
+                "window.matchMedia(\"(prefers-color-scheme: dark)\")",
+                "document.documentElement.setAttribute(\"theme\", theme)");
     }
 
     @Test
@@ -278,9 +284,10 @@ class MainViewUserMenuTest {
                 .findFirst()
                 .orElseThrow();
 
-        MenuItem themeItem = subItem(bar.getItems().getFirst(), "themeMenuItem");
+        MenuItem button = bar.getItems()
+                .getFirst();
 
-        return subItem(themeItem, itemId);
+        return subItem(subItem(button, "themeMenuItem"), itemId);
     }
 
     private static MenuItem subItem(MenuItem parent, String id) {
