@@ -33,6 +33,7 @@ import javax.sql.DataSource;
 @StyleSheet("themes/jmix-docai-aura/styles.css")
 @ColorScheme(ColorScheme.Value.LIGHT_DARK)
 @JsModule("./src/theme/color-scheme-switching-support.js")
+@JsModule("./src/component/theme-wave/docai-theme-wave.js")
 @PWA(name = "Jmix DocAI", shortName = "Jmix DocAI", offline = false)
 @SpringBootApplication
 @EnableConfigurationProperties({FilesProperties.class, StandProperties.class})

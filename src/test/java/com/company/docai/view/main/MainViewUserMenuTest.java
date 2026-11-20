@@ -7,11 +7,14 @@ import com.company.docai.model.user.User;
 import com.company.docai.test_support.EmployeeUiTestAuthenticator;
 import com.company.docai.view.profile.ProfileReadView;
 import com.company.docai.view.user.UserRenderers;
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.icon.FontIcon;
+import com.vaadin.flow.component.internal.PendingJavaScriptInvocation;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.server.VaadinSession;
 import io.jmix.core.security.ClientDetails;
@@ -27,12 +30,18 @@ import io.jmix.flowui.testassist.UiTest;
 import io.jmix.flowui.testassist.UiTestUtils;
 import io.jmix.security.model.SecurityScope;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Stream;
 
@@ -167,7 +176,7 @@ class MainViewUserMenuTest {
         UserMenuThemeSwitchAction action = themeAction();
         UI.getCurrent().getInternals().dumpPendingJavaScriptInvocations();
 
-        action.applyMixedTheme();
+        action.switchTo(UserMenuThemeSwitchAction.MIXED_THEME);
 
         assertThat(UI.getCurrent().getInternals().dumpPendingJavaScriptInvocations())
                 .anySatisfy(invocation -> assertThat(invocation.getInvocation().getParameters())
@@ -177,6 +186,51 @@ class MainViewUserMenuTest {
                 .filteredOn(UserMenuItem::isChecked)
                 .extracting(UserMenuItem::getId)
                 .containsExactly("userMenu_themeSwitch_mixedUserMenuItem");
+    }
+
+    @ParameterizedTest
+    @CsvSource(nullValues = "-", value = {
+            "userMenu_themeSwitch_systemUserMenuItem, -",
+            "userMenu_themeSwitch_lightUserMenuItem, light",
+            "userMenu_themeSwitch_darkUserMenuItem, dark",
+            "userMenu_themeSwitch_mixedUserMenuItem, mixed"
+    })
+    void aClickOnASchemeSendsOneWaveOfItInsteadOfTheSwitchOfJmixAndChecksItsItem(String itemId, String theme) {
+        MenuItem menuItem = themeMenuItem(itemId);
+        UI.getCurrent().getInternals().dumpPendingJavaScriptInvocations();
+
+        ComponentUtil.fireEvent(menuItem, new ClickEvent<>(menuItem));
+
+        List<PendingJavaScriptInvocation> sent = UI.getCurrent().getInternals().dumpPendingJavaScriptInvocations();
+        assertThat(sent)
+                .filteredOn(invocation -> invocation.getInvocation().getExpression().contains("docaiThemeWave.apply"))
+                .singleElement()
+                .satisfies(invocation -> assertThat(invocation.getInvocation().getParameters())
+                        .containsExactly(ThemeUtils.THEME_STORAGE_KEY, theme, itemId));
+        // ThemeUtils.applyTheme would store the scheme and switch the page a second time, without the wave
+        assertThat(sent)
+                .extracting(invocation -> invocation.getInvocation().getExpression())
+                .noneMatch(expression -> expression.contains("setItem")
+                        || expression.contains("removeItem")
+                        || expression.equals(ThemeUtils.APPLY_THEME_FUNCTION));
+        UserMenuItem.HasSubMenu item = (UserMenuItem.HasSubMenu) userMenu().getItem("themeMenuItem");
+        assertThat(item.getSubMenu().getItems())
+                .filteredOn(UserMenuItem::isChecked)
+                .extracting(UserMenuItem::getId)
+                .containsExactly(itemId);
+    }
+
+    @Test
+    void theSchemeScriptOfJmixStillWorksTheWayTheWaveRepeatsIt() throws IOException {
+        String script = new ClassPathResource("META-INF/frontend/src/theme/color-scheme-switching-support.js")
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        // docai-theme-wave.js calls this function, which reads the key it stores, and repeats its choice of a scheme
+        assertThat(ThemeUtils.APPLY_THEME_FUNCTION).isEqualTo("window.applyTheme()");
+        assertThat(script).contains(
+                "window.applyTheme = ",
+                "localStorage.getItem(\"%s\")".formatted(ThemeUtils.THEME_STORAGE_KEY),
+                "window.matchMedia(\"(prefers-color-scheme: dark)\")");
     }
 
     @Test
@@ -217,6 +271,25 @@ class MainViewUserMenuTest {
                 .filter(Avatar.class::isInstance)
                 .map(Avatar.class::cast)
                 .toList();
+    }
+
+    private MenuItem themeMenuItem(String itemId) {
+        MenuBar bar = (MenuBar) userMenu().getChildren()
+                .findFirst()
+                .orElseThrow();
+
+        MenuItem themeItem = subItem(bar.getItems().getFirst(), "themeMenuItem");
+
+        return subItem(themeItem, itemId);
+    }
+
+    private static MenuItem subItem(MenuItem parent, String id) {
+        return parent.getSubMenu()
+                .getItems()
+                .stream()
+                .filter(item -> Optional.of(id).equals(item.getId()))
+                .findFirst()
+                .orElseThrow();
     }
 
     private static Stream<Component> withDescendants(Component component) {
