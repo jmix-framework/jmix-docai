@@ -1,0 +1,14 @@
+# CONTRATO DE INSTALACIÓN N.º 22/{year:signed}
+## Pívot de riego
+
+Este contrato de instalación se celebra en Valladolid el {signed:long} entre Riegos Aguaclara, S.L., con CIF B99915302 y domicilio en calle de la Fábrica, 15, 47320 Tudela de Duero (Valladolid) (el «Contratista»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+1. El Contratista instala un pívot de riego Aguaviva 7 con su grupo de bombeo en la parcela 7 de la finca del Cliente (64 ha) para regar maíz forrajero y praderas, lo conecta a la toma de agua y al suministro eléctrico y lo pone en marcha. El Cliente aporta el equipo.
+2. Un pívot es una máquina de riego autopropulsada: sus torres sobre ruedas, movidas por motores eléctricos, giran alrededor de un punto fijo y riegan los cultivos mediante aspersores durante toda la campaña de riego, de mayo a septiembre.
+3. Los trabajos se realizan del {workStart:monthDay} al {workEnd:long}. Una prueba de funcionamiento en la parcela y el acta de recepción confirman que el pívot está listo para regar.
+4. El precio de los trabajos es de 26.400,00 €, más IVA. El Cliente paga un anticipo del 50 %, 13.200,00 €, en los 5 días hábiles siguientes a la firma del contrato, y el resto tras la firma del acta de recepción.
+5. Garantía de los trabajos: 12 meses.
+
+RIEGOS AGUACLARA, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Andrés Tello Marín, administrador	Pablo Herrero Gil, director general

@@ -1,0 +1,13 @@
+# ORDINE DI SERVIZIO AUTOGRU N. 212
+
+Data: {issued:long}
+Fornitore: Autogru Reno S.r.l.
+Committente: Campoverde S.r.l.
+Contratto: contratto di servizi n. 28 stipulato in data {contract:long}
+
+Si richiede un'autogru da 30 t con braccio da 28 m per il giorno {service:long}, dalle 8:00 alle 17:00, per il sollevamento delle unità di ventilazione sul tetto del magazzino di Via del Commercio 36, capannone 2, 40138 Bologna.
+L'unità più pesante pesa 3.200 kg; lo sbraccio necessario è fino a 18 m. La tariffa è di € 62,00 l'ora oltre IVA, con un minimo di 4 ore. Il Committente garantisce l'accesso al cantiere e un piano d'appoggio livellato per gli stabilizzatori.
+Referente in cantiere: Davide Orlandi, Responsabile di magazzino, tel. 051 555 0112.
+
+Ordinato da: ______________ Stefano Bassi, Responsabile Servizi Generali, Campoverde S.r.l.
+Accettato da: ______________ Nicola Belli, Responsabile operativo, Autogru Reno S.r.l.

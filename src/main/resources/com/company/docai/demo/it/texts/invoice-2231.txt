@@ -1,0 +1,17 @@
+Centro Sud Attrezzature S.r.l.
+Via Napoli 139, 71122 Foggia (FG)
+P.IVA e C.F. 05755133719
+
+# FATTURA N. 2231
+## Data: {issued:long}
+Cliente: Campoverde S.r.l., Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712
+Rif.: contratto di fornitura n. 52/{year:contract} stipulato in data {contract:long}
+
+1. Mietitrebbia Pievesi 785 con testata da grano da 7,6 m, 1 pz	€ 172.000,00
+Imponibile	€ 172.000,00
+IVA 22%	€ 37.840,00
+Totale fattura	€ 209.840,00
+
+Scadenza: {due:long}
+Pagamento con bonifico bancario su DemoBanca S.p.A., IBAN IT00 X099 9902 4000 0900 0058 823. Indicare il numero della fattura nella causale.
+Copia di cortesia: la fattura elettronica è stata trasmessa tramite il Sistema di Interscambio (SdI).

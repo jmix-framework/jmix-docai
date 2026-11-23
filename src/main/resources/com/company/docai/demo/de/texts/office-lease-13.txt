@@ -1,0 +1,14 @@
+# BÜROMIETVERTRAG NR. 13
+## Gartenstraße 12, 3. OG
+
+Dieser Büromietvertrag wird am {signed:long} zwischen der Gartenstraße Grundbesitz GmbH & Co. KG, Gartenstraße 12, 30159 Hannover (nachfolgend „Vermieter“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover (nachfolgend „Mieter“), geschlossen.
+
+1. Der Vermieter vermietet dem Mieter die Büroetage im 3. OG des Gebäudes Gartenstraße 12, 30159 Hannover, mit 240 m² Bürofläche.
+2. Mietzeit: vom {start:long} bis {validUntil:long}.
+3. Miete: 6.930,00 € monatlich einschließlich Betriebskosten und Bewachung des Gebäudes, fällig bis zum 5. eines jeden Monats. Die Miete ist umsatzsteuerfrei.
+4. Der Mieter zahlt innerhalb von 3 Arbeitstagen nach Unterzeichnung dieses Vertrags eine Kaution in Höhe einer Monatsmiete, 6.930,00 €.
+5. Bauliche Veränderungen der Mieträume bedürfen der schriftlichen Zustimmung des Vermieters.
+
+Gartenstraße Grundbesitz GmbH & Co. KG	Wiesengrund GmbH
+______________	______________
+Wilhelm Gossmann, Geschäftsführer	Paul Schmidt, Geschäftsführer

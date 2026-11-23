@@ -1,0 +1,12 @@
+# CONTRATO DE LICENCIA DE SOFTWARE N.º 44
+
+Este contrato de licencia se celebra en Valladolid el {signed:long} entre Contasoft Soluciones, S.A., con CIF A99220417 y domicilio en avenida de Gijón, 22, 47009 Valladolid (el «Licenciante»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Licenciatario»).
+
+1. El Licenciante concede al Licenciatario una licencia no exclusiva para usar Contasoft Contabilidad en 10 puestos de trabajo durante 12 meses, del {start:long} al {validUntil:long}.
+2. El precio de la licencia es de 3.070,00 € (307,00 € por puesto), más IVA, pagadero en los 5 días hábiles siguientes a la firma del contrato.
+3. En los 2 días hábiles siguientes al pago, el Licenciante envía por correo electrónico al Licenciatario el paquete de instalación y las claves de licencia. El Licenciante presta soporte técnico los días laborables de 9:00 a 18:00.
+4. El Licenciatario no puede ceder las claves de licencia a terceros ni usar el software en más puestos de los licenciados.
+
+CONTASOFT SOLUCIONES, S.A.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Bruno Aguado Pérez, consejero delegado	Pablo Herrero Gil, director general

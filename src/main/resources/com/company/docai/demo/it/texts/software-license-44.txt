@@ -1,0 +1,12 @@
+# CONTRATTO DI LICENZA SOFTWARE N. 44
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Libromastro Software S.p.A., con sede in Via della Beverara 22, 40131 Bologna, P.IVA 07215903715, di seguito «Licenziante», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Licenziatario», si conviene quanto segue.
+
+1. Il Licenziante concede al Licenziatario una licenza d'uso non esclusiva del software Libromastro Contabilità su 10 postazioni per 12 mesi, dal {start:long} al {validUntil:long}.
+2. Il corrispettivo della licenza è di € 3.070,00 (€ 307,00 per postazione) oltre IVA, da pagare entro 5 giorni lavorativi dalla firma del contratto.
+3. Entro 2 giorni lavorativi dal pagamento, il Licenziante invia al Licenziatario per e-mail il pacchetto di installazione e i codici di licenza. Il Licenziante presta assistenza tecnica nei giorni lavorativi dalle 9:00 alle 18:00.
+4. Il Licenziatario non può cedere i codici di licenza a terzi né utilizzare il software su più postazioni di quelle concesse in licenza.
+
+Libromastro Software S.p.A.	Campoverde S.r.l.
+______________	______________
+Bruno Aste, Amministratore Delegato	Paolo Ferri, Amministratore Delegato

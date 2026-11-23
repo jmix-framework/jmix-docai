@@ -1,0 +1,20 @@
+# CONTRATO DE SERVICIOS DE SELECCIÓN DE PERSONAL N.º 33/{year:signed}
+
+Este contrato de servicios de selección de personal se celebra en Valladolid el {signed:long} entre Puente Talento Selección, S.L., con CIF B99583012 y domicilio en calle de Montero Calvo, 58, oficina 304, 47001 Valladolid (la «Agencia»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+1. A petición del Cliente, la Agencia busca y preselecciona candidatos para sus puestos vacantes.
+2. Cada solicitud indica el puesto, los requisitos del candidato, las funciones, las condiciones de trabajo y la banda salarial. La Agencia confirma la solicitud en 2 días hábiles.
+3. La Agencia busca candidatos, realiza las primeras entrevistas y comprueba las referencias, y en los 10 días hábiles siguientes a la confirmación de la solicitud envía al Cliente los currículos de al menos tres candidatos. El Cliente toma todas las decisiones de contratación.
+4. El Cliente comunica a la Agencia su decisión sobre cada candidato en los 5 días hábiles siguientes a la entrevista.
+5. Los honorarios de la Agencia son el 15 % del salario bruto del primer año del candidato contratado. Solo se devengan por un candidato que se incorpore al Cliente.
+6. El presupuesto estimado del contrato es de 20.000,00 €, más IVA.
+7. La Agencia factura sus honorarios cuando el candidato se incorpora, y el Cliente paga la factura en 10 días hábiles.
+8. Si el candidato contratado causa baja voluntaria o es despedido en los 3 meses siguientes a su incorporación, la Agencia busca un sustituto sin coste. No hay sustitución gratuita si el puesto se suprime o el Cliente cambia las condiciones de trabajo.
+9. Protección de datos. La Agencia trata los datos personales de los candidatos conforme al Reglamento (UE) 2016/679 y a la Ley Orgánica 3/2018, obtiene el consentimiento de cada candidato antes de enviar sus datos al Cliente y no los comunica a nadie más. El Cliente utiliza los datos personales que recibe solo para tomar decisiones de contratación y los conserva de forma segura.
+10. Cada parte mantiene la confidencialidad de las condiciones del contrato y de la información sobre la otra parte que reciba en virtud de él.
+11. Durante la vigencia del contrato y los 12 meses siguientes a su terminación, la Agencia no ofrecerá a los empleados que haya colocado en el Cliente puestos en otros clientes suyos.
+12. El contrato entra en vigor en la fecha de su firma y estará vigente hasta el {validUntil:long}.
+
+PUENTE TALENTO SELECCIÓN, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Natalia Collado Vera, administradora	Pablo Herrero Gil, director general

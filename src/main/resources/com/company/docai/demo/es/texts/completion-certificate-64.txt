@@ -1,0 +1,19 @@
+# ACTA DE CONFORMIDAD N.º 64
+## Mantenimiento de la instalación de calefacción, {issued:monthYear}
+
+Fecha: {issued:long}
+Prestador: Térmicas Castilla Mantenimiento, S.L.
+Cliente: Vega Verde, S.L.
+Contrato: contrato de mantenimiento n.º 42/{year:contract}, de fecha {contract:long}
+Ubicación: sala de calderas del almacén, avenida del Comercio, 36, nave 2, 47012 Valladolid
+
+El Prestador declara que desde el primer día del mes hasta el {issued:long} prestó los siguientes servicios; la firma del Cliente confirma su conformidad:
+1. Mantenimiento de la instalación de calefacción y de la sala de calderas	520,00 €
+Total (IVA no incluido)	520,00 €
+
+Servicios prestados: puesta en marcha de temporada de las calderas y de la instalación de calefacción; revisiones semanales de calderas y quemadores; pruebas de los dispositivos de seguridad; limpieza de filtros; comprobación de la presión y la temperatura del agua de la instalación; revisión de radiadores, montantes y llaves de corte; ajuste de las bombas de circulación; anotaciones en el libro de mantenimiento.
+Todos los servicios del periodo se completaron a {issued:long}.
+
+TÉRMICAS CASTILLA MANTENIMIENTO, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Vicente Elías Mora, administrador	Sergio Sanz Molina, jefe de servicios generales

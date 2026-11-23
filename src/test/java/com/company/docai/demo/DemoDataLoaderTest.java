@@ -39,6 +39,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -202,8 +204,23 @@ class DemoDataLoaderTest {
         assertStatusesAsDescribed("ru", Character.UnicodeScript.CYRILLIC);
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"de", "es", "it"})
     @Order(5)
+    void theGermanSpanishAndItalianSetsLoadAsTheirDescriptionsSay(String set) {
+        assertThat(loader.check(set)).isEmpty();
+
+        loader.load(set);
+
+        assertLoadedAsDescribed(set);
+        assertFavoritesAsDescribed(set);
+        assertUsersAsDescribed(set, Character.UnicodeScript.LATIN);
+        assertStatusesAsDescribed(set, Character.UnicodeScript.LATIN);
+    }
+
+    // the English set loads last, as the database keeps it for the tests after this class
+    @Test
+    @Order(6)
     void theEnglishSetLoadsAsItsDescriptionSays() {
         assertThat(loader.check("en")).isEmpty();
 
@@ -483,12 +500,17 @@ class DemoDataLoaderTest {
         assertThat(document.getCategory() == null ? null : document.getCategory().getName())
                 .isEqualTo(description.type());
         assertFields(description, document);
+        // the sets of this class load one after another into one database, and a set takes a tag of an earlier one
+        // that differs in case only, as TagService finds a tag whatever its case: the English "transport" is the
+        // German "Transport"
         assertThat(dataManager.load(Document.class)
                 .id(document.getId())
                 .fetchPlan(fetchPlan -> fetchPlan.add("tags", FetchPlan.BASE))
                 .hint(PersistenceHints.SOFT_DELETION, false)
                 .one()
-                .getTags()).extracting(Tag::getName).containsExactlyInAnyOrderElementsOf(description.tags());
+                .getTags()).extracting(Tag::getName)
+                .usingElementComparator(String.CASE_INSENSITIVE_ORDER)
+                .containsExactlyInAnyOrderElementsOf(description.tags());
 
         List<DemoSet.Version> versions = description.versions();
         List<DocumentRevision> revisions = dataManager.load(DocumentRevision.class)

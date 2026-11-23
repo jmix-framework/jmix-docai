@@ -1,0 +1,19 @@
+Coperture Emiliane S.r.l.
+Via dell'Industria 37, 40138 Bologna
+P.IVA e C.F. 00913903798
+
+# FATTURA N. 1610
+## Data: {issued:long}
+Cliente: Campoverde S.r.l., Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712
+Rif.: contratto d'appalto n. 15/{year:contract} stipulato in data {contract:long}
+Cantiere: rifacimento della copertura del magazzino, Via dei Magazzini 4, 40011 Anzola dell'Emilia (BO)
+
+1. Rifacimento della copertura del magazzino, saldo (70%)	€ 9.660,00
+Imponibile	€ 9.660,00
+IVA 22%	€ 2.125,20
+Totale fattura	€ 11.785,20
+
+I lavori sono stati ultimati e accettati in data {completed:long}. L'importo contrattuale è di € 13.800,00 oltre IVA e l'acconto del 30% è stato di € 4.140,00; la presente fattura riguarda il restante 70%.
+Scadenza: {due:long}
+Pagamento con bonifico bancario su DemoBanca S.p.A., IBAN IT00 X099 9902 4000 0900 0214 367. Indicare il numero della fattura nella causale.
+Copia di cortesia: la fattura elettronica è stata trasmessa tramite il Sistema di Interscambio (SdI).

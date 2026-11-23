@@ -1,0 +1,19 @@
+# ANLAGE 2
+## zum Liefervertrag Nr. 31/{year:contract} vom {contract:long}
+
+Datum: {issued:long}
+Lieferant: Mittelland Agrarhandel GmbH
+Käufer: Wiesengrund GmbH
+
+Der Lieferant liefert und der Käufer nimmt ab und bezahlt Folgendes:
+1. Direktsämaschine, 6 m Arbeitsbreite, 1 × 38.300,00 €	38.300,00 €
+2. Ersatz-Dosiergeräte, 2 Sätze × 470,00 €	940,00 €
+3. Spuranreißer, 1 Satz × 760,00 €	760,00 €
+Summe netto	40.000,00 €
+
+Die Maschine sät Getreide. Ausstattung: Rahmen mit Saatgutbehälter, 40 Säschare mit Dosiergeräten, hydraulischer Aushub. Im Lieferumfang: Betriebsanleitung und Ersatzteilsatz.
+Lieferung bis {delivery:long} auf Kosten des Lieferanten. Zahlung innerhalb von 5 Arbeitstagen nach Lieferung. Alle Preise verstehen sich zzgl. 19 % USt.
+
+Mittelland Agrarhandel GmbH	Wiesengrund GmbH
+______________	______________
+Robert Krause, Geschäftsführer	Paul Schmidt, Geschäftsführer

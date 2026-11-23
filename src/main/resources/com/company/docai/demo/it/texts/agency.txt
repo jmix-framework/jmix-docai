@@ -1,0 +1,20 @@
+# CONTRATTO DI RICERCA E SELEZIONE DEL PERSONALE N. 33/{year:signed}
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Ponte Talenti S.r.l., agenzia per il lavoro autorizzata dal Ministero del Lavoro e delle Politiche Sociali, con sede in Via Marsala 58, 40126 Bologna, P.IVA 08219933757, di seguito «Agenzia», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Cliente», si conviene quanto segue.
+
+1. Su richiesta del Cliente, l'Agenzia ricerca e seleziona i candidati per le posizioni aperte del Cliente.
+2. Ogni richiesta indica la posizione, i requisiti del candidato, le mansioni, le condizioni di lavoro e la fascia retributiva. L'Agenzia conferma la richiesta entro 2 giorni lavorativi.
+3. L'Agenzia individua i candidati, svolge i primi colloqui e verifica le referenze e, entro 10 giorni lavorativi dalla conferma della richiesta, invia al Cliente i curriculum di almeno tre candidati. Ogni decisione sull'assunzione spetta al Cliente.
+4. Il Cliente comunica all'Agenzia la propria decisione su ciascun candidato entro 5 giorni lavorativi dal colloquio.
+5. Il compenso dell'Agenzia è pari al 15% della retribuzione annua lorda del primo anno del candidato assunto ed è dovuto solo per il candidato che prende servizio presso il Cliente.
+6. Il valore stimato del presente contratto è di € 20.000,00 oltre IVA.
+7. L'Agenzia fattura il compenso alla presa di servizio del candidato e il Cliente paga la fattura entro 10 giorni lavorativi.
+8. Se il candidato assunto si dimette o viene licenziato entro 3 mesi dalla presa di servizio, l'Agenzia trova un sostituto senza costi aggiuntivi. La sostituzione gratuita non spetta se la posizione viene soppressa o se il Cliente modifica le condizioni di lavoro.
+9. Protezione dei dati personali. L'Agenzia tratta i dati personali dei candidati nel rispetto del Regolamento (UE) 2016/679 e del D.Lgs. 196/2003, acquisisce il consenso di ciascun candidato prima di trasmetterne i dati al Cliente e non li comunica a terzi. Il Cliente utilizza i dati ricevuti al solo fine di decidere sull'assunzione e ne garantisce la sicurezza.
+10. Ciascuna parte mantiene riservati i termini del presente contratto e le informazioni sull'altra parte ricevute in forza di esso.
+11. Per la durata del contratto e nei 12 mesi successivi alla sua cessazione, l'Agenzia non propone ad altri clienti i dipendenti che ha inserito presso il Cliente.
+12. Il contratto entra in vigore alla data della sottoscrizione e resta valido fino al {validUntil:long}.
+
+Ponte Talenti S.r.l.	Campoverde S.r.l.
+______________	______________
+Natalia Colli, Amministratrice unica	Paolo Ferri, Amministratore Delegato

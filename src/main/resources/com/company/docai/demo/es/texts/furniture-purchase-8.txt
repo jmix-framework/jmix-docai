@@ -1,0 +1,16 @@
+# CONTRATO DE COMPRAVENTA DE MOBILIARIO N.º 8
+## Mobiliario para la sala de reuniones
+
+Este contrato de compraventa se celebra en Valladolid el {signed:long} entre Mobiliario de Oficina Alén, S.L., con CIF B99370455 y domicilio en camino Viejo de Simancas, 37, 47008 Valladolid (el «Proveedor»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Comprador»).
+
+1. El Proveedor vende, y el Comprador compra, el siguiente mobiliario:
+a) mesa de reuniones de 360 × 120 cm: 1 a 1.640,00 €;
+b) sillas de oficina: 12 a 195,00 €, 2.340,00 €;
+c) archivadores: 2 a 510,00 €, 1.020,00 €.
+2. El precio total es de 5.000,00 €, más IVA. El Comprador paga el 50 % en los 3 días hábiles siguientes a la firma del contrato y el 50 % tras la firma del albarán de entrega.
+3. El Proveedor entrega el mobiliario en el interior de la oficina y lo monta en la sala de reuniones de calle del Jardín, 12, oficina 312, 47001 Valladolid, como muy tarde el {delivery:long}.
+4. Garantía: 24 meses.
+
+MOBILIARIO DE OFICINA ALÉN, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Enrique Soto Alonso, administrador	Pablo Herrero Gil, director general

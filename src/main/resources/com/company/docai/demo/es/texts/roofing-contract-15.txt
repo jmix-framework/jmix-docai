@@ -1,0 +1,22 @@
+# CONTRATO DE OBRA N.º 15/{year:signed}
+## Reparación de la cubierta del almacén
+
+Este contrato de obra se celebra en Valladolid el {signed:long} entre Cubiertas Cumbre, S.L., con CIF B99183402 y domicilio en polígono San Cristóbal, calle del Cobre, 37, nave 2, 47012 Valladolid (el «Contratista»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+1. El Contratista repara la cubierta del almacén del Cliente situado en camino del Almacén, 4, 47195 Arroyo de la Encomienda (Valladolid).
+2. La obra comprende la retirada de la cubierta antigua, la reparación e imprimación del soporte, la sustitución de 420 m² de cubierta plana por una lámina bicapa de betún modificado soldada con soplete, la sustitución de canalones y bajantes y la retirada de escombros.
+3. El Contratista aporta todos los materiales, nuevos y conformes a las especificaciones del fabricante. Al terminar, entrega al Cliente la garantía del fabricante de la cubierta y las fichas técnicas de los productos.
+4. Plazo: la obra empieza el {workStart:long} y termina el {workEnd:long}. El almacén sigue funcionando durante la obra: el Contratista vallará la zona de trabajo y protegerá el edificio frente a filtraciones.
+5. El precio de la obra es de 13.800,00 €, más IVA. Es un precio cerrado e incluye materiales, medios auxiliares, transporte y retirada de escombros.
+6. El Cliente paga un anticipo del 30 %, 4.140,00 € más IVA, en los 5 días hábiles siguientes a la firma del contrato, contra factura del Contratista.
+7. El Cliente paga el 70 % restante, 9.660,00 € más IVA, en los 10 días hábiles siguientes a la factura que el Contratista emita tras la firma del acta de recepción.
+8. El Contratista comunica por escrito al Cliente la terminación de la obra. En un plazo de 3 días hábiles, el Cliente revisa la obra y firma el acta de recepción o envía por escrito una lista de defectos.
+9. El Contratista garantiza la obra durante 24 meses desde la fecha del acta de recepción y corrige a su cargo los defectos detectados en ese periodo en los 10 días hábiles siguientes al aviso del Cliente.
+10. Si la obra se termina con retraso, el Contratista abona una penalización del 0,1 % del precio por cada día de retraso, hasta un máximo del 10 % del precio. Si el Cliente se retrasa en un pago, abona un interés de demora del 0,1 % de la cantidad vencida por cada día de retraso.
+11. El Contratista cumple la Ley 31/1995, de Prevención de Riesgos Laborales, incluidas las medidas contra caídas en altura, y la normativa de protección contra incendios, y responde de su personal en la obra.
+12. El contrato entra en vigor en la fecha de su firma y estará vigente hasta el {validUntil:long}.
+13. El contrato se rige por la legislación española. Las partes se someten a los Juzgados y Tribunales de Valladolid.
+
+CUBIERTAS CUMBRE, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Tomás Torres Vidal, administrador	Pablo Herrero Gil, director general

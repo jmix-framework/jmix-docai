@@ -1,0 +1,1223 @@
+{
+  "locale": "it",
+  "formats": {
+    "long": "d MMMM yyyy",
+    "monthDay": "d MMMM",
+    "monthYear": "MMMM yyyy"
+  },
+  "users": [
+    {
+      "login": "peter",
+      "firstName": "Pietro",
+      "lastName": "Galli",
+      "email": "p.galli@example.com"
+    },
+    {
+      "login": "alice",
+      "firstName": "Alice",
+      "lastName": "Moretti",
+      "email": "a.moretti@example.com"
+    },
+    {
+      "login": "helen",
+      "firstName": "Elena",
+      "lastName": "Conti",
+      "email": "e.conti@example.com"
+    },
+    {
+      "login": "maria",
+      "firstName": "Maria",
+      "lastName": "Lombardi",
+      "email": "m.lombardi@example.com"
+    },
+    {
+      "login": "john",
+      "firstName": "Giovanni",
+      "lastName": "Ricci",
+      "email": "g.ricci@example.com"
+    }
+  ],
+  "statuses": [
+    {"key": "DRAFT", "name": "Bozza", "anyTarget": false, "targets": ["IN_REVIEW", "ACTIVE"]},
+    {"key": "IN_REVIEW", "name": "In revisione", "color": "#3266e4", "position": 2, "anyTarget": true},
+    {"key": "ACTIVE", "name": "Attivo", "position": 3},
+    {"key": "ARCHIVED", "name": "Archiviato", "position": 4}
+  ],
+  "folders": [
+    {
+      "name": "In arrivo",
+      "favoriteOf": [
+        "alice"
+      ],
+      "documents": [
+        {
+          "name": "Scansione 0457.pdf",
+          "dates": {"issued": "-1d", "contract": "-67d", "completed": "-8d", "due": "+13d"},
+          "versions": [
+            {
+              "text": "invoice-1610.pdf",
+              "author": "alice",
+              "uploaded": "issued 09:42"
+            }
+          ]
+        },
+        {
+          "name": "Scansione 0458.pdf",
+          "dates": {"issued": "-7d", "contract": "-301d"},
+          "versions": [
+            {
+              "text": "completion-certificate-64.pdf",
+              "author": "alice",
+              "uploaded": "-5d 10:15"
+            }
+          ]
+        },
+        {
+          "name": "Scansione 0459.pdf",
+          "dates": {"signed": "-2d", "validUntil": "year-end+1"},
+          "versions": [
+            {
+              "text": "supply-61-draft.pdf",
+              "author": "alice",
+              "uploaded": "signed 15:20"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contratti",
+      "favoriteOf": [
+        "admin",
+        "john"
+      ],
+      "documents": [
+        {
+          "name": "Contratto di locazione n. 112",
+          "favoriteOf": [
+            "admin",
+            "john"
+          ],
+          "dates": {"signed": "-253d", "edition1": "-270d", "edition2": "-262d", "start": "month-start+1@signed", "validUntil": "month-end+11@start", "pay1": "month-start@start+4d", "pay2": "month-start+1@start+4d", "pay3": "month-start+2@start+4d", "pay4": "month-start+3@start+4d", "pay5": "month-start+4@start+4d", "pay6": "month-start+5@start+4d", "pay7": "month-start+6@start+4d", "pay8": "month-start+7@start+4d", "pay9": "month-start+8@start+4d", "pay10": "month-start+9@start+4d", "pay11": "month-start+10@start+4d", "pay12": "month-start+11@start+4d", "firstPayment": "pay1+10d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "112",
+            "contractKind": "lease",
+            "counterparty": "Ponente Immobiliare S.r.l.",
+            "contractAmount": "51600.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "locazione"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "lease-112-v1.pdf",
+              "author": "john",
+              "uploaded": "edition1 10:15"
+            },
+            {
+              "text": "lease-112-v2.pdf",
+              "author": "maria",
+              "uploaded": "edition2 14:30"
+            },
+            {
+              "text": "lease-112-v3.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:40"
+            }
+          ],
+          "comments": [
+            {
+              "author": "alice",
+              "at": "-268d 11:20",
+              "text": "Controllate l'art. 5.1: la penale è dello 0,5% al giorno, di solito concordiamo lo 0,1%. Così com'è non lo approvo."
+            },
+            {
+              "author": "john",
+              "at": "-263d 16:05",
+              "text": "Il locatore accetta lo 0,2% al giorno. Lo inserisco nella prossima bozza."
+            },
+            {
+              "author": "maria",
+              "at": "edition2 14:45",
+              "text": "Ho caricato la nuova bozza, con la penale allo 0,2%.\nIl primo pagamento slitta al {firstPayment:monthDay}: concordato con Ponente Immobiliare.",
+              "edited": "edition2 15:10"
+            },
+            {
+              "author": "alice",
+              "at": "signed 16:50",
+              "text": "Ho caricato la copia firmata: il contratto è in vigore."
+            }
+          ]
+        },
+        {
+          "name": "Contratto di servizi n. 7",
+          "dates": {"signed": "-299d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "7",
+            "contractKind": "services",
+            "counterparty": "Igiene Ambientale Padana S.r.l.",
+            "contractAmount": "2520.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "manutenzione"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "services-7.pdf",
+              "author": "john",
+              "uploaded": "signed 11:20"
+            }
+          ]
+        },
+        {
+          "name": "Contratto d'appalto n. 15/{year:signed}",
+          "dates": {"signed": "-67d", "workStart": "-61d", "workEnd": "-8d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "15/{year:signed}",
+            "contractKind": "work",
+            "counterparty": "Coperture Emiliane S.r.l.",
+            "contractAmount": "13800.00",
+            "validUntil": "validUntil"
+          },
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "roofing-contract-15.pdf",
+              "author": "john",
+              "uploaded": "signed 12:05"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di fornitura n. 45",
+          "dates": {"signed": "-296d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "45",
+            "contractKind": "supply",
+            "counterparty": "Cartiera Tramontana S.p.A.",
+            "contractAmount": "10700.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "fornitura",
+            "ufficio"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "supply-45.pdf",
+              "author": "john",
+              "uploaded": "signed 15:30"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di locazione n. 98",
+          "dates": {"signed": "-859d", "validUntil": "month-end+11@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "98",
+            "contractKind": "lease",
+            "counterparty": "Immobiliare Lungoreno S.r.l.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "locazione"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "lease-98.pdf",
+              "author": "john",
+              "uploaded": "validUntil+1d 10:30"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di ricerca e selezione del personale",
+          "dates": {"signed": "-250d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "33/{year:signed}",
+            "contractKind": "services",
+            "counterparty": "Ponte Talenti S.r.l.",
+            "contractAmount": "20000.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "personale"
+          ],
+          "status": "ACTIVE",
+          "access": [
+            {
+              "user": "helen",
+              "level": "MANAGE"
+            }
+          ],
+          "versions": [
+            {
+              "text": "agency.pdf",
+              "author": "helen",
+              "uploaded": "signed 13:45"
+            }
+          ]
+        },
+        {
+          "name": "Procedura di approvazione dei contratti.txt",
+          "dates": {"approved": "-299d"},
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "procedure-contracts.txt",
+              "author": "john",
+              "uploaded": "approved 16:00"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di locazione n. 112 — bozza 1",
+          "dates": {"edition1": "-270d", "signed": "-253d", "start": "month-start+1@signed", "validUntil": "month-end+11@start"},
+          "date": "edition1",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "112",
+            "contractKind": "lease",
+            "counterparty": "Ponente Immobiliare S.r.l."
+          },
+          "tags": [
+            "locazione"
+          ],
+          "status": "ACTIVE",
+          "deleted": {
+            "by": "john",
+            "at": "-2d 12:10"
+          },
+          "versions": [
+            {
+              "text": "lease-112-v1.pdf",
+              "author": "john",
+              "uploaded": "edition1 10:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Fatture e verbali",
+      "favoriteOf": [
+        "maria"
+      ],
+      "documents": [
+        {
+          "name": "Fattura n. 2045",
+          "favoriteOf": [
+            "maria"
+          ],
+          "dates": {"issued": "-5d", "contract": "-296d", "delivery": "issued+8d", "due": "month-end"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2045",
+            "supplier": "Cartiera Tramontana S.p.A.",
+            "invoiceAmount": "1146.80",
+            "dueDate": "due"
+          },
+          "tags": [
+            "fornitura",
+            "ufficio"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "invoice-2045.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:10"
+            }
+          ]
+        },
+        {
+          "name": "Fattura n. 3318",
+          "dates": {"issued": "-56d", "request": "-60d", "due": "-42d", "paid": "-44d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "3318",
+            "supplier": "Cargo Rapido S.r.l.",
+            "invoiceAmount": "780.80",
+            "dueDate": "due"
+          },
+          "tags": [
+            "trasporti"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "invoice-3318.pdf",
+              "author": "maria",
+              "uploaded": "issued 14:25"
+            }
+          ]
+        },
+        {
+          "name": "Verbale di fine lavori n. 58",
+          "dates": {"issued": "-8d", "contract": "-67d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Coperture Emiliane S.r.l.",
+            "certificateAmount": "13800.00",
+            "workCompletedOn": "issued",
+            "basisContract": "15/{year:contract}"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "completion-certificate-58.pdf",
+              "author": "maria",
+              "uploaded": "issued 17:05"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Acquisti",
+      "favoriteOf": [
+        "admin",
+        "peter"
+      ],
+      "documents": [
+        {
+          "name": "Contratto di noleggio n. 14 — trattore Ardena 82",
+          "dates": {"signed": "-268d", "start": "month-start+2@signed", "validUntil": "month-end+3@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "14",
+            "contractKind": "lease",
+            "counterparty": "Noleggi Porta Nord S.r.l.",
+            "contractAmount": "4800.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "locazione"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "tractor-lease-14.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di compravendita n. 37/{year:signed} — mietitrebbia",
+          "dates": {"signed": "-249d", "delivery": "-145d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "37/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Emiliana Trattori S.p.A.",
+            "contractAmount": "182000.00"
+          },
+          "tags": [
+            "fornitura"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "combine-purchase-37.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Allegato 2 al contratto di fornitura n. 31/{year:contract}",
+          "dates": {"issued": "-232d", "contract": "-247d", "delivery": "-211d"},
+          "date": "issued",
+          "tags": [
+            "fornitura"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "seed-drill-schedule-2.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Verbale di consegna — irroratrice semovente",
+          "dates": {"issued": "-151d", "contract": "-173d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Crocevia Attrezzature S.r.l.",
+            "certificateAmount": "143000.00",
+            "workCompletedOn": "issued",
+            "basisContract": "24/{year:contract}"
+          },
+          "tags": [
+            "fornitura"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "sprayer-delivery-receipt.pdf",
+              "author": "maria",
+              "uploaded": "issued 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di installazione n. 22/{year:signed} — impianto di irrigazione a pivot",
+          "dates": {"signed": "-206d", "workStart": "month-start+1@signed+3d", "workEnd": "month-end+1@signed-1d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "22/{year:signed}",
+            "contractKind": "work",
+            "counterparty": "Acquachiara Irrigazione S.r.l.",
+            "contractAmount": "26400.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "center-pivot-installation-22.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di compravendita n. 11/{year:signed} — trattore cingolato",
+          "dates": {"signed": "-283d", "delivery": "-253d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "11/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Trattori Porta Romana S.r.l.",
+            "contractAmount": "48700.00"
+          },
+          "tags": [
+            "fornitura"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "crawler-tractor-purchase-11.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Fattura n. 405",
+          "dates": {"issued": "-219d", "contract": "-228d", "due": "-212d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "405",
+            "supplier": "Orione Attrezzi S.r.l.",
+            "invoiceAmount": "7161.40",
+            "dueDate": "due"
+          },
+          "tags": [
+            "fornitura"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "plow-cultivator-invoice.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Nota interna n. 18",
+          "dates": {"issued": "-172d", "hayCut": "-150d", "orderBy": "-165d"},
+          "date": "issued",
+          "tags": [
+            "manutenzione"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "baler-memo.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Accordo quadro di fornitura n. 3/{year:signed}",
+          "dates": {"signed": "-296d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "3/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Rurale Forniture S.r.l.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "fornitura"
+          ],
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "master-supply-3.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di noleggio n. 27 — escavatore cingolato",
+          "dates": {"signed": "-255d", "start": "month-start+1@signed+9d", "validUntil": "month-end+1@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "27",
+            "contractKind": "lease",
+            "counterparty": "Noleggi Ferropesante S.r.l.",
+            "contractAmount": "2800.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "locazione"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "excavator-rental-27.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Verbale di regolare esecuzione n. 87 — livellamento del piazzale",
+          "dates": {"issued": "-185d", "contract": "-193d", "completed": "-186d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Scavi Savena S.r.l.",
+            "certificateAmount": "1220.00",
+            "workCompletedOn": "completed",
+            "basisContract": "34"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "site-grading-confirmation-87.pdf",
+              "author": "maria",
+              "uploaded": "issued 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Ordine di servizio autogru n. 212",
+          "dates": {"issued": "-235d", "contract": "-299d", "service": "-228d"},
+          "date": "issued",
+          "tags": [
+            "trasporti"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "crane-service-order-212.pdf",
+              "author": "alice",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Verbale di consegna n. 5 — spazzaneve",
+          "dates": {"issued": "-297d", "contract": "-299d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Motogarden Emilia S.r.l.",
+            "certificateAmount": "1640.00",
+            "workCompletedOn": "issued",
+            "basisContract": "2/{year:contract}"
+          },
+          "tags": [
+            "fornitura"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "snow-blower-receipt-5.pdf",
+              "author": "maria",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Richiesta di acquisto n. 29",
+          "dates": {"issued": "year-start-1+110d", "neededBy": "month-end@issued"},
+          "date": "issued",
+          "tags": [
+            "manutenzione"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "lawn-mowers-request-29.pdf",
+              "author": "alice",
+              "uploaded": "issued 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di manutenzione n. 49 — carrello elevatore",
+          "dates": {"signed": "-277d", "validUntil": "month-end+11@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "49",
+            "contractKind": "services",
+            "counterparty": "Sollevamenti Service S.r.l.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "manutenzione"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "forklift-maintenance-49.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di fornitura n. 63 — stampanti multifunzione",
+          "dates": {"signed": "-242d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "63",
+            "contractKind": "supply",
+            "counterparty": "Sistemi Ufficio Borgonuovo S.r.l.",
+            "contractAmount": "4580.00"
+          },
+          "tags": [
+            "fornitura",
+            "IT",
+            "ufficio"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "printers-supply-63.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Fattura n. 2209 — notebook",
+          "dates": {"issued": "-142d", "request": "-145d", "due": "-135d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2209",
+            "supplier": "Calzolari Informatica S.r.l.",
+            "invoiceAmount": "7246.80",
+            "dueDate": "due"
+          },
+          "tags": [
+            "IT"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "laptops-invoice-2209.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Nota interna n. 41 — auto aziendali",
+          "dates": {"issued": "year-start-1+146d", "quotesBy": "issued+14d"},
+          "date": "issued",
+          "tags": [
+            "trasporti"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "company-cars-memo-41.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di servizi di pulizia n. 56",
+          "dates": {"signed": "-291d", "start": "month-start+1@signed", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "56",
+            "contractKind": "services",
+            "counterparty": "Splendor Pulizie S.r.l.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "ufficio",
+            "manutenzione"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "janitorial-services-56.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di locazione n. 13 — uffici",
+          "favoriteOf": [
+            "peter"
+          ],
+          "dates": {"signed": "-302d", "start": "month-start+1@signed", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "13",
+            "contractKind": "lease",
+            "counterparty": "Immobiliare Giardini S.r.l.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "locazione",
+            "ufficio"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "office-lease-13.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di fornitura n. 8 — arredi",
+          "dates": {"signed": "-263d", "delivery": "-239d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "8",
+            "contractKind": "supply",
+            "counterparty": "Arredo Ufficio Allegri S.r.l.",
+            "contractAmount": "5000.00"
+          },
+          "tags": [
+            "fornitura",
+            "ufficio"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "furniture-purchase-8.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di licenza software n. 44",
+          "dates": {"signed": "-221d", "start": "month-start+1@signed", "validUntil": "month-end+11@start"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "44",
+            "contractKind": "services",
+            "counterparty": "Libromastro Software S.p.A.",
+            "contractAmount": "3070.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "IT"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "software-license-44.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di vigilanza n. 12",
+          "dates": {"signed": "-281d", "start": "month-start+1@signed", "validUntil": "month-end+11@start"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "12",
+            "contractKind": "services",
+            "counterparty": "Scudo Vigilanza S.r.l.",
+            "validUntil": "validUntil"
+          },
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "security-12.pdf",
+              "author": "alice",
+              "uploaded": "signed 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di installazione n. 30 — climatizzatori",
+          "dates": {"signed": "-193d", "workStart": "month-start+1@signed+11d", "workEnd": "month-start+1@signed+22d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "30",
+            "contractKind": "work",
+            "counterparty": "Clima Comfort Impianti S.r.l.",
+            "contractAmount": "1640.00"
+          },
+          "tags": [
+            "ufficio"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "air-conditioners-30.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di fornitura n. 19 — gruppo elettrogeno",
+          "dates": {"signed": "-177d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "19",
+            "contractKind": "supply",
+            "counterparty": "Riserva Energia S.r.l.",
+            "contractAmount": "20800.00"
+          },
+          "tags": [
+            "fornitura"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "generator-19.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di servizi di corriere n. 25",
+          "dates": {"signed": "-271d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "25",
+            "contractKind": "services",
+            "counterparty": "Corrieri Felsinei S.r.l."
+          },
+          "tags": [
+            "trasporti"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "courier-25.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di fornitura n. 21 — abbigliamento da lavoro",
+          "dates": {"signed": "-158d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "21",
+            "contractKind": "supply",
+            "counterparty": "Tessile Via del Mulino S.r.l.",
+            "contractAmount": "2040.00"
+          },
+          "tags": [
+            "fornitura"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "workwear-21.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Archivio {year:-1}",
+      "favoriteOf": [
+        "alice"
+      ],
+      "access": [
+        {
+          "role": "legal-department",
+          "level": "VIEW"
+        },
+        {
+          "role": "accounting",
+          "level": "VIEW"
+        },
+        {
+          "user": "alice",
+          "level": "EDIT"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Fattura n. 1187",
+          "dates": {"issued": "year-start-1+225d", "contract": "year-start-1+152d", "due": "issued+7d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "1187",
+            "supplier": "Ricambi Sud S.r.l.",
+            "invoiceAmount": "980.88",
+            "dueDate": "due"
+          },
+          "tags": [
+            "manutenzione"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "combine-parts-invoice-1187.pdf",
+              "author": "alice",
+              "uploaded": "issued 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di leasing n. L-17/{year:signed}",
+          "dates": {"signed": "year-start-1+69d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "L-17/{year:signed}",
+            "contractKind": "leasing",
+            "counterparty": "Nordpunto Leasing S.p.A.",
+            "contractAmount": "164000.00"
+          },
+          "tags": [
+            "locazione"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "tractor-finance-lease-17.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Accordo quadro di assistenza n. 9/{year:signed} — trinciacaricatrice",
+          "dates": {"signed": "year-start-1+50d", "validUntil": "year-end-1"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "9/{year:signed}",
+            "contractKind": "services",
+            "counterparty": "Officina Persicetana S.r.l.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "manutenzione"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "master-service-9.pdf",
+              "author": "alice",
+              "uploaded": "signed 13:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Personale",
+      "favoriteOf": [
+        "helen"
+      ],
+      "access": [
+        {
+          "role": "hr-department",
+          "level": "MANAGE"
+        }
+      ],
+      "folders": [
+        {
+          "name": "Ferie",
+          "access": [
+            {
+              "role": "hr-department",
+              "level": "MANAGE"
+            },
+            {
+              "role": "employee",
+              "level": "VIEW"
+            }
+          ],
+          "documents": [
+            {
+              "name": "Piano ferie {year:+1}",
+              "favoriteOf": [
+                "helen"
+              ],
+              "dates": {"drafted": "-4d", "approveBy": "year-end-14d"},
+              "tags": [
+                "personale"
+              ],
+              "versions": [
+                {
+                  "text": "vacation-schedule.pdf",
+                  "author": "helen",
+                  "uploaded": "-18d 15:00"
+                }
+              ],
+              "comments": [
+                {
+                  "author": "peter",
+                  "at": "-16d 12:30",
+                  "text": "Potete spostare le mie ferie da luglio ad agosto? A luglio abbiamo la consegna del progetto."
+                },
+                {
+                  "author": "helen",
+                  "at": "-15d 09:15",
+                  "text": "Fatto, aggiorno il piano nei prossimi giorni."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "name": "Lettera di assunzione — Giulia Fontana",
+          "dates": {"issued": "-71d", "hired": "-67d"},
+          "date": "issued",
+          "type": "HR document",
+          "fields": {
+            "employee": "Giulia Fontana",
+            "department": "Ufficio acquisti",
+            "hireDate": "hired"
+          },
+          "tags": [
+            "personale"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "offer-letter.pdf",
+              "author": "helen",
+              "uploaded": "issued 10:40"
+            }
+          ]
+        },
+        {
+          "name": "Contratto di lavoro — Giulia Fontana",
+          "dates": {"issued": "-71d", "hired": "-67d"},
+          "date": "issued",
+          "type": "HR document",
+          "fields": {
+            "employee": "Giulia Fontana",
+            "department": "Ufficio acquisti",
+            "hireDate": "hired"
+          },
+          "tags": [
+            "personale"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "employment-agreement.pdf",
+              "author": "helen",
+              "uploaded": "issued 11:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bozze",
+      "deleted": {
+        "by": "alice",
+        "at": "-4d 16:20"
+      },
+      "documents": [
+        {
+          "name": "Contratto di fornitura n. 61 — bozza",
+          "dates": {"signed": "-2d", "validUntil": "year-end+1"},
+          "tags": [
+            "fornitura"
+          ],
+          "versions": [
+            {
+              "text": "supply-61-draft.pdf",
+              "author": "alice",
+              "uploaded": "-32d 10:20"
+            }
+          ]
+        },
+        {
+          "name": "Fattura n. 1610 — bozza",
+          "dates": {"issued": "-1d", "contract": "-67d", "completed": "-8d", "due": "+13d"},
+          "versions": [
+            {
+              "text": "invoice-1610.pdf",
+              "author": "maria",
+              "uploaded": "-25d 15:05"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

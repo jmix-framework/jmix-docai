@@ -1,0 +1,24 @@
+# ACTA DE RECEPCIÓN N.º 58
+## Reparación de la cubierta del almacén
+
+Fecha: {issued:long}
+Contratista: Cubiertas Cumbre, S.L., polígono San Cristóbal, calle del Cobre, 37, nave 2, 47012 Valladolid
+Cliente: Vega Verde, S.L., calle del Jardín, 12, oficina 312, 47001 Valladolid
+Contrato: contrato de obra n.º 15/{year:contract}, de fecha {contract:long}
+Obra: cubierta del almacén, camino del Almacén, 4, 47195 Arroyo de la Encomienda (Valladolid)
+
+El Contratista declara, y el Cliente confirma, que el {issued:long} se terminaron los siguientes trabajos:
+1. Retirada de la cubierta antigua, 420 m²	1.400,00 €
+2. Reparación e imprimación del soporte, 420 m²	1.900,00 €
+3. Lámina bicapa de betún modificado soldada con soplete, 420 m²	7.900,00 €
+4. Sustitución de canalones y bajantes	2.100,00 €
+5. Retirada y gestión de escombros	500,00 €
+Precio total de la obra (IVA no incluido)	13.800,00 €
+Anticipo pagado	4.140,00 €
+Pendiente de pago	9.660,00 €
+
+La obra se terminó dentro del plazo del contrato. La inspección y la prueba de estanqueidad de la cubierta no detectaron filtraciones. La garantía de 24 meses de la obra empieza en la fecha de esta acta. El Contratista ha entregado al Cliente la garantía del fabricante de la cubierta y las fichas técnicas de los productos.
+
+CUBIERTAS CUMBRE, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Tomás Torres Vidal, administrador	Pablo Herrero Gil, director general

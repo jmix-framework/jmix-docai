@@ -1,0 +1,14 @@
+# CONTRATO DE ARRENDAMIENTO DE OFICINA N.º 13
+## Oficina 312, calle del Jardín, 12
+
+Este contrato de arrendamiento para uso distinto del de vivienda se celebra en Valladolid el {signed:long} entre Patrimonial Calle Jardín, S.L., con CIF B99120318 y domicilio en calle del Jardín, 12, 47001 Valladolid (el «Arrendador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Arrendatario»).
+
+1. El Arrendador arrienda al Arrendatario la oficina 312, de 240 m², en la 3.ª planta del edificio de calle del Jardín, 12, 47001 Valladolid.
+2. Duración: del {start:long} al {validUntil:long}.
+3. Renta: 6.930,00 € al mes, más IVA, que incluye los gastos de comunidad y la seguridad del edificio; se paga antes del día 5 de cada mes.
+4. El Arrendatario entrega una fianza de dos mensualidades de renta, 13.860,00 €, en los 3 días hábiles siguientes a la firma del contrato.
+5. El Arrendatario no puede hacer obras en el local sin el consentimiento escrito del Arrendador.
+
+PATRIMONIAL CALLE JARDÍN, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Guillermo Gozalo Ruiz, administrador	Pablo Herrero Gil, director general

@@ -1,0 +1,13 @@
+# CONTRATO DE INSTALACIÓN N.º 30
+## Aire acondicionado para la oficina
+
+Este contrato de instalación se celebra en Valladolid el {signed:long} entre Climatización Confort, S.L., con CIF B99570381 y domicilio en calle de Labradores, 57, 47004 Valladolid (el «Contratista»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+1. El Contratista instala seis equipos de aire acondicionado split de pared aportados por el Cliente en su oficina de calle del Jardín, 12, oficina 312, 47001 Valladolid: cinco equipos de 3,5 kW y uno de 7 kW.
+2. La mano de obra de la instalación cuesta 1.180,00 € (5 × 182,00 € + 270,00 €), y los materiales (líneas frigoríficas de cobre, cableado y desagües de condensados), 460,00 €. El total es de 1.640,00 €, más IVA.
+3. Los trabajos se realizan del {workStart:monthDay} al {workEnd:long}. El Cliente paga el 50 % por anticipado y el resto tras la firma del acta de recepción.
+4. Garantía de la instalación: 24 meses.
+
+CLIMATIZACIÓN CONFORT, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Nicolás Bravo Ortiz, administrador	Pablo Herrero Gil, director general

@@ -1,0 +1,15 @@
+# VERBALE DI CONSEGNA
+## Irroratrice semovente
+
+Data: {issued:long}
+Venditore: Crocevia Attrezzature S.r.l.
+Acquirente: Campoverde S.r.l.
+Contratto: contratto di compravendita n. 24/{year:contract} stipulato in data {contract:long}
+
+L'Acquirente dichiara di aver ricevuto un'irroratrice semovente per i trattamenti delle colture: barra da 27 m, serbatoio da 3.800 litri, motore diesel, n. di telaio 2606-0417, anno modello {year:issued}, 11 ore motore.
+In dotazione: terminale in cabina con guida satellitare GPS, un set di 56 ugelli, il certificato di conformità del costruttore, il manuale d'uso e manutenzione e due mazzi di chiavi.
+L'irroratrice è stata provata alla consegna e non sono stati riscontrati danni né difetti. Garanzia: 12 mesi dalla data del presente verbale.
+Prezzo di acquisto: € 143.000,00 oltre IVA.
+
+Consegnato da: ______________ Vittorio Zaccaria, Crocevia Attrezzature S.r.l.
+Ricevuto da: ______________ Ivano Neri, Responsabile parco mezzi, Campoverde S.r.l.

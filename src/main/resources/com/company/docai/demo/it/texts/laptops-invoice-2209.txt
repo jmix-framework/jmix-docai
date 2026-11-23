@@ -1,0 +1,18 @@
+Calzolari Informatica S.r.l.
+Via dell'Indipendenza 21, 40121 Bologna
+P.IVA e C.F. 02440263787
+
+# FATTURA N. 2209
+## Data: {issued:long}
+Cliente: Campoverde S.r.l., Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712
+Rif.: vostro ordine di acquisto n. 314, data ordine {request:long}
+
+1. Notebook 15,6", 16 GB RAM, SSD 512 GB, 6 pz × € 970,00	€ 5.820,00
+2. Borsa per notebook, 6 pz × € 20,00	€ 120,00
+Imponibile	€ 5.940,00
+IVA 22%	€ 1.306,80
+Totale fattura	€ 7.246,80
+
+Scadenza: {due:long}
+Pagamento con bonifico bancario su DemoBanca S.p.A., IBAN IT00 X099 9902 4000 0900 0093 340. Indicare il numero della fattura nella causale.
+Copia di cortesia: la fattura elettronica è stata trasmessa tramite il Sistema di Interscambio (SdI).

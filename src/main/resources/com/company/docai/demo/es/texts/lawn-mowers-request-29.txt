@@ -1,0 +1,17 @@
+# SOLICITUD DE SERVICIOS GENERALES N.º 29
+## Compra de equipos para el césped
+
+Fecha: {issued:long}
+Para: Elisa Carrasco Vidal, directora de Compras
+De: Sergio Sanz Molina, jefe de servicios generales
+Partida presupuestaria: mantenimiento de exteriores
+
+Ruego que se compre lo siguiente para el césped del almacén de avenida del Comercio, 36, nave 2, 47012 Valladolid (unos 600 m²):
+1. Cortacésped autopropulsado de gasolina, corte de 51 cm, 2 a 432,00 €	864,00 €
+2. Manguera de jardín reforzada de 25 m, 6 a 27,00 €	162,00 €
+3. Aspersor de césped con conectores, 6 juegos a 9,00 €	54,00 €
+Total (IVA no incluido)	1.080,00 €
+
+El riego empieza a principios de mayo, así que los artículos deben llegar como muy tarde el {neededBy:long}.
+
+Solicitado por: ______________ Sergio Sanz Molina

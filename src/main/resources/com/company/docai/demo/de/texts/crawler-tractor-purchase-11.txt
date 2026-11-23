@@ -1,0 +1,13 @@
+# KAUFVERTRAG NR. 11/{year:signed}
+## Raupentraktor
+
+Zwischen der Weserland Traktorenhandel GmbH, Uferstraße 41, 32423 Minden, vertreten durch den Geschäftsführer Sebastian Moll (nachfolgend „Verkäufer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Käufer“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Verkäufer verkauft und der Käufer kauft einen neuen Raupentraktor Brandauer C75 für die Grundbodenbearbeitung mit Dieselmotor, Modelljahr {year:signed-1}, Seriennummer 7500931, in Standardausstattung ab Werk.
+2. Preis: 48.700,00 € zzgl. 19 % USt. Der Käufer zahlt 50 % innerhalb von 3 Arbeitstagen nach Unterzeichnung dieses Vertrags und 50 % vor dem Versand.
+3. Der Verkäufer liefert den Traktor auf eigene Kosten per Tieflader bis spätestens {delivery:long} an den vom Käufer benannten Ort, mit der Übereinstimmungsbescheinigung des Herstellers, der Betriebsanleitung und zwei Schlüsselsätzen.
+4. Gewährleistung: 12 Monate oder 1.500 Motorstunden, je nachdem, was zuerst eintritt.
+
+Weserland Traktorenhandel GmbH	Wiesengrund GmbH
+______________	______________
+Sebastian Moll, Geschäftsführer	Paul Schmidt, Geschäftsführer

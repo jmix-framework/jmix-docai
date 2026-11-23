@@ -1,0 +1,19 @@
+Orione Attrezzi S.r.l.
+Via dei Trasporti 18, 40054 Budrio (BO)
+P.IVA e C.F. 05597973710
+
+# FATTURA N. 405
+## Data: {issued:long}
+Cliente: Campoverde S.r.l., Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712
+Rif.: contratto di fornitura n. 18/{year:contract} stipulato in data {contract:long}
+
+1. Aratro portato quadrivomere Colombari MP4, 1 pz	€ 2.070,00
+2. Coltivatore Colombari FC13, larghezza di lavoro 4 m, 1 pz	€ 3.800,00
+Imponibile	€ 5.870,00
+IVA 22%	€ 1.291,40
+Totale fattura	€ 7.161,40
+
+L'MP4 è un aratro portato per la lavorazione principale dei terreni; l'FC13 è un coltivatore per la preparazione del letto di semina su tutta la larghezza di lavoro.
+Scadenza: {due:long}
+Pagamento con bonifico bancario su DemoBanca S.p.A., IBAN IT00 X099 9902 4000 0900 0045 671. Indicare il numero della fattura nella causale.
+Copia di cortesia: la fattura elettronica è stata trasmessa tramite il Sistema di Interscambio (SdI).

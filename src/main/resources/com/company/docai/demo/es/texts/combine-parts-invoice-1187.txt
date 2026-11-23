@@ -1,0 +1,19 @@
+Recambios del Sur, S.L.
+CIF B99518734
+Calle Ribera del Río, 22, 41001 Sevilla
+
+# FACTURA N.º 1187
+## Fecha: {issued:long}
+Cliente: Vega Verde, S.L., CIF B99471205, calle del Jardín, 12, oficina 312, 47001 Valladolid
+Contrato: contrato de suministro n.º 29/{year:contract}, de fecha {contract:long}
+
+Recambios para la cosechadora Tormes 1500:
+1. Correa de accionamiento del cabezal, 6 a 42,00 €	252,00 €
+2. Sección de cuchilla del cabezal, 120 a 3,20 €	384,00 €
+3. Rodamiento de bolas 6310-2RS, 12 a 14,00 €	168,00 €
+Base imponible	804,00 €
+IVA 21 %	168,84 €
+Total factura	972,84 €
+
+Vencimiento: {due:long}.
+Forma de pago: transferencia a la cuenta IBAN ES00 9999 0000 0000 0007 1234 de Banco Demo. Indique el número de factura en el concepto.

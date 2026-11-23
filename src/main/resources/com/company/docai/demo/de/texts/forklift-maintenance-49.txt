@@ -1,0 +1,13 @@
+# WARTUNGSVERTRAG NR. 49
+## Gabelstapler
+
+Zwischen der Hubwerk Staplerservice GmbH, Am Güterbahnhof 75, 30179 Hannover, vertreten durch den Geschäftsführer Dirk Kallweit (nachfolgend „Auftragnehmer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Auftragnehmer wartet und repariert den 2,5-t-Gabelstapler des Auftraggebers (Inventarnummer 114), der in der Lagerhalle Industriestraße 36, Halle 2, 30179 Hannover eingesetzt wird.
+2. Die planmäßige Wartung erfolgt alle 250 Betriebsstunden laut Betriebsstundenzähler zum Preis von 205,00 € je Wartung.
+3. Außerplanmäßige Reparaturen führt der Auftragnehmer innerhalb von 2 Arbeitstagen nach Anforderung durch den Auftraggeber zu 78,00 € je Arbeitsstunde aus. Ersatzteile werden gesondert nach einem vom Auftraggeber vorab freigegebenen Kostenvoranschlag berechnet. Alle Preise verstehen sich zzgl. USt.
+4. Dieser Vertrag gilt vom {signed:long} bis {validUntil:long}.
+
+Hubwerk Staplerservice GmbH	Wiesengrund GmbH
+______________	______________
+Dirk Kallweit, Geschäftsführer	Paul Schmidt, Geschäftsführer

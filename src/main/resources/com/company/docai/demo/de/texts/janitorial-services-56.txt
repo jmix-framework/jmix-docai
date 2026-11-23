@@ -1,0 +1,13 @@
+# REINIGUNGSVERTRAG NR. 56
+## Tägliche Büroreinigung
+
+Zwischen der Glanzweg Gebäudereinigung GmbH, Lister Meile 52, 30161 Hannover, vertreten durch die Geschäftsführerin Tanja Ehrich (nachfolgend „Auftragnehmer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Auftragnehmer reinigt an jedem Arbeitstag von 18:00 bis 21:00 Uhr das Büro des Auftraggebers mit 240 m² in der Gartenstraße 12, 3. OG, 30159 Hannover: Böden wischen, Staub wischen, Sanitärräume reinigen und Abfall entsorgen.
+2. Der Auftragnehmer stellt Reinigungsgeräte und Reinigungsmittel; Papierhandtücher und Handseife für die Sanitärräume beschafft der Auftraggeber.
+3. Die Vergütung beträgt 1.450,00 € monatlich zzgl. USt. Der Auftragnehmer stellt monatlich Rechnung, und der Auftraggeber zahlt jede Rechnung bis zum 10. des Folgemonats.
+4. Dieser Vertrag gilt vom {start:long} bis {validUntil:long}.
+
+Glanzweg Gebäudereinigung GmbH	Wiesengrund GmbH
+______________	______________
+Tanja Ehrich, Geschäftsführerin	Paul Schmidt, Geschäftsführer

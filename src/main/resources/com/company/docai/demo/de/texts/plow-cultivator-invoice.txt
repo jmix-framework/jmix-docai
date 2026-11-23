@@ -1,0 +1,18 @@
+Orion Gerätebau GmbH
+Speditionsstraße 18, 31137 Hildesheim
+USt-IdNr. DE999009721 · Amtsgericht Hildesheim HRB 30097
+
+# RECHNUNG NR. 405
+## vom {issued:long}
+Rechnungsempfänger: Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover
+Vertrag: Liefervertrag Nr. 18/{year:contract} vom {contract:long}
+
+1. Anbaupflug Kellermann MP4, vierscharig, 1 × 2.070,00 €	2.070,00 €
+2. Grubber Kellermann FC13, 4 m Arbeitsbreite, 1 × 3.800,00 €	3.800,00 €
+Summe netto	5.870,00 €
+zzgl. 19 % USt.	1.115,30 €
+Rechnungsbetrag	6.985,30 €
+
+Der MP4 ist ein Anbaupflug für die Grundbodenbearbeitung der Felder; der FC13 ist ein Grubber für die ganzflächige Saatbettbereitung.
+Zahlbar bis {due:long} ohne Abzug.
+Bankverbindung: Demobank AG, IBAN DE00 0000 0000 9000 0456 71, BIC DEMODEXXXXX. Bitte geben Sie die Rechnungsnummer als Verwendungszweck an.

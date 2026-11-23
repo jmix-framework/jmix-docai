@@ -1,0 +1,20 @@
+Papelera del Norte, S.A.
+CIF A99259406
+Calle de la Industria, 157, nave 6, 47012 Valladolid
+
+# FACTURA N.º 2045
+## Fecha: {issued:long}
+Cliente: Vega Verde, S.L., CIF B99471205, calle del Jardín, 12, oficina 312, 47001 Valladolid
+Entrega: en la misma dirección el {delivery:long}, incluida en el precio
+Contrato: contrato de suministro n.º 45, de fecha {contract:long}
+
+1. Papel para fotocopiadora A4, 80 g/m², 120 paquetes a 5,30 €	636,00 €
+2. Sobres C4 de 229 × 324 mm, autoadhesivos, 500 a 0,26 €	130,00 €
+3. Archivadores de anillas de 75 mm, 60 a 2,90 €	174,00 €
+Base imponible	940,00 €
+IVA 21 %	197,40 €
+Total factura	1.137,40 €
+
+Papel: blancura 92 %, 500 hojas por paquete, 5 paquetes por caja. Sobres: blancos. Archivadores: de cartón forrado, 4 anillas.
+Vencimiento: {due:long}.
+Forma de pago: transferencia a la cuenta IBAN ES00 9999 0000 0000 0010 5882 de Banco Demo. Indique el número de factura en el concepto.

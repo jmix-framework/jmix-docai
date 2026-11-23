@@ -1,0 +1,13 @@
+# CONTRATO DE ALQUILER N.º 27
+## Excavadora de cadenas con operador
+
+Este contrato de alquiler se celebra en Valladolid el {signed:long} entre Alquileres Hierro Pesado, S.L., con CIF B99100273 y domicilio en calle de la Forja, 100, 47008 Valladolid (el «Arrendador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Arrendatario»).
+
+1. El Arrendador alquila al Arrendatario una excavadora de cadenas de 21 t con un cazo de 1,15 m³ y su operador, para excavar la cimentación de un almacén en calle de la Industria, 7, 47270 Cigales (Valladolid).
+2. Periodo de alquiler: del {start:monthDay} al {validUntil:long}. Precio: 35,00 € por hora de motor, con un mínimo de 2.800,00 € por el periodo (80 horas de motor), más IVA.
+3. Transporte de la excavadora en góndola: 270,00 € por trayecto. El Arrendatario paga el combustible consumido.
+4. Las horas de motor se toman del cuentahoras de la excavadora y se confirman con un parte diario firmado por ambas partes.
+
+ALQUILERES HIERRO PESADO, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Joaquín Rivas Leal, administrador	Pablo Herrero Gil, director general

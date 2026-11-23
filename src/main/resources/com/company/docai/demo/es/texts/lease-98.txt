@@ -1,0 +1,29 @@
+# CONTRATO DE ARRENDAMIENTO DE OFICINA N.º 98
+
+Este contrato de arrendamiento para uso distinto del de vivienda (el «Contrato») se celebra en Valladolid el {signed:long} entre Plaza Ribera Patrimonial, S.L., con CIF B99730551 y domicilio en plaza de la Ribera, 3, local 101, 47003 Valladolid (el «Arrendador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Arrendatario»).
+
+1. El Arrendador arrienda al Arrendatario una oficina de 160 m² en la 2.ª planta del edificio de plaza de la Ribera, 3, 47003 Valladolid (la «Oficina»), para el personal administrativo del Arrendatario.
+2. El Arrendador entrega la Oficina en la fecha del Contrato, junto con el mobiliario y los equipos relacionados en el acta de entrega firmada por ambas partes.
+3. El Contrato estará vigente del {signed:long} al {validUntil:long}.
+4. La renta es de 3.200,00 € al mes, 38.400,00 € para todo el periodo, más IVA.
+5. La renta se paga mensualmente, como muy tarde el día 10 de cada mes. Incluye los suministros, la limpieza de las zonas comunes, la seguridad del edificio y dos plazas de aparcamiento. El Arrendatario paga aparte su teléfono e internet.
+6. El Arrendatario usa la Oficina solo como oficina, la mantiene en buen estado y cumple la normativa de protección contra incendios y las normas del edificio.
+7. El Arrendador garantiza a los empleados del Arrendatario el acceso a la Oficina las 24 horas del día y mantiene en buen estado los ascensores, la calefacción y el aire acondicionado.
+8. Si el Arrendatario se retrasa en el pago de la renta, abona una penalización del 0,1 % de la cantidad vencida por cada día de retraso.
+9. Las partes pueden resolver el Contrato anticipadamente por acuerdo escrito. Al terminar el Contrato, el Arrendatario devuelve la Oficina en el estado en que la recibió, salvo el desgaste por el uso normal.
+
+PLAZA RIBERA PATRIMONIAL, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Simón Gómez Ríos, administrador	Pablo Herrero Gil, director general
+
+## Acuerdo de resolución del contrato de arrendamiento
+
+Este acuerdo se firma el {validUntil:long} entre Plaza Ribera Patrimonial, S.L. y Vega Verde, S.L., que resuelven el contrato de arrendamiento de oficina n.º 98, de fecha {signed:long}, con efectos a {validUntil:long}.
+1. El Arrendatario devolvió la Oficina al Arrendador el {validUntil:long} en buen estado, salvo el desgaste por el uso normal, como consta en el acta de devolución.
+2. El Arrendatario ha pagado íntegramente la renta de todo el periodo y no adeuda nada más en virtud del Contrato.
+3. Cada parte libera a la otra de cualquier reclamación derivada del Contrato.
+4. Este acuerdo de resolución entra en vigor en la fecha de su firma.
+
+PLAZA RIBERA PATRIMONIAL, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Simón Gómez Ríos, administrador	Pablo Herrero Gil, director general

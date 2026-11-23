@@ -1,0 +1,16 @@
+Südost Maschinenhandel GmbH
+Prager Straße 139, 04317 Leipzig
+USt-IdNr. DE999681239 · Amtsgericht Leipzig HRB 21231
+
+# RECHNUNG NR. 2231
+## vom {issued:long}
+Rechnungsempfänger: Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover
+Vertrag: Liefervertrag Nr. 52/{year:contract} vom {contract:long}
+
+1. Mähdrescher Feldmeister 785, Schneidwerk 7,6 m, 1 Stück	172.000,00 €
+Summe netto	172.000,00 €
+zzgl. 19 % USt.	32.680,00 €
+Rechnungsbetrag	204.680,00 €
+
+Zahlbar bis {due:long} ohne Abzug.
+Bankverbindung: Demobank AG, IBAN DE00 0000 0000 9000 0588 23, BIC DEMODEXXXXX. Bitte geben Sie die Rechnungsnummer als Verwendungszweck an.

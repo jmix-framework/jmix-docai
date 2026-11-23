@@ -1,0 +1,13 @@
+Vega Verde, S.L.
+# NOTA INTERNA N.º 18
+
+Fecha: {issued:long}
+Para: Pablo Herrero Gil, director general
+De: Iván Nieto Prieto, responsable de flota
+Asunto: compra de una rotoempacadora
+
+Solicito autorización para comprar una rotoempacadora para nuestra cosecha de heno.
+
+El primer corte de heno está previsto para el {hayCut:monthDay}, y calculamos unas 600 pacas redondas de 1,5 m de diámetro. Nuestra empacadora actual, de 2009, se averió dos veces la campaña pasada, y sus reparaciones costaron 2.380 €. La nueva empacadora funciona con nuestros tractores Duero 82.
+
+Compras tiene dos ofertas: 14.200 € con entrega en 14 días y 13.200 € con entrega en 6 semanas. La segunda no llegaría antes del primer corte, así que recomiendo la primera. Ruego que Compras haga el pedido antes del {orderBy:monthDay}.

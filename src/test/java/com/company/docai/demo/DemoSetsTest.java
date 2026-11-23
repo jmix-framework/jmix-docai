@@ -1,6 +1,5 @@
 package com.company.docai.demo;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -29,12 +28,13 @@ class DemoSetsTest {
 
     private static final LocalDate WRITTEN_FOR = LocalDate.of(2026, 11, 7);
 
-    // two dates joined by a word of two letters: "from April 1 to May 31" in English, and so in Russian
-    private static final Pattern RANGE = Pattern.compile("\\{(?!year:)(\\w+):(\\w+)},? \\p{L}{2} \\{(\\w+):");
+    // two dates joined by a word of two letters: "from April 1 to May 31" in English, and so in Russian, Spanish and
+    // Italian; German joins them by "bis"
+    private static final Pattern RANGE = Pattern.compile("\\{(?!year:)(\\w+):(\\w+)},? (?:\\p{L}{2}|bis) \\{(\\w+):");
 
     // the check of a set before the load looks at the other problems once, and at its history on every day
     @ParameterizedTest
-    @ValueSource(strings = {"en", "ru"})
+    @ValueSource(strings = {"en", "ru", "de", "es", "it"})
     void everyDayOfTwoYearsGivesAHistoryInThePastADateAheadAndAContractEndingInTheQuarter(String set)
             throws IOException {
         DemoSetTemplate template = DemoSetTemplate.read(set);
@@ -75,7 +75,7 @@ class DemoSetsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"en", "ru"})
+    @ValueSource(strings = {"en", "ru", "de", "es", "it"})
     void aRangeOfATextKeepsItsOrderAndARangeOfDaysItsMonthOnEveryDayOfTwoYears(String set) throws IOException {
         DemoSetTemplate template = DemoSetTemplate.read(set);
         Map<DemoSetTemplate.Document, List<String>> ranges = new LinkedHashMap<>();
@@ -110,9 +110,10 @@ class DemoSetsTest {
         }
     }
 
-    @Test
-    void theEnglishAndTheRussianSetDeclareTheSameDatesForTheSameDocuments() throws IOException {
-        assertThat(datesOf(DemoSetTemplate.read("ru").folders(), ""))
+    @ParameterizedTest
+    @ValueSource(strings = {"ru", "de", "es", "it"})
+    void everySetDeclaresTheSameDatesForTheSameDocumentsAsTheEnglishOne(String set) throws IOException {
+        assertThat(datesOf(DemoSetTemplate.read(set).folders(), ""))
                 .isEqualTo(datesOf(DemoSetTemplate.read("en").folders(), ""));
     }
 

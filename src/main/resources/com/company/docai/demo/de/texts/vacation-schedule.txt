@@ -1,0 +1,23 @@
+ENTWURF
+# URLAUBSPLAN {year:+1}
+## Wiesengrund GmbH
+Erstellt am {drafted:long}
+
+Jeder Mitarbeiter hat Anspruch auf 30 Urlaubstage im Jahr. Bitte planen Sie mindestens vier Wochen davon in höchstens zwei Blöcken, damit wir die Vertretung regeln können. Gesetzliche Feiertage im Urlaub zählen nicht als Urlaubstage.
+
+Name und Funktion	Urlaub
+Paul Schmidt, Geschäftsführer	12.–25. Juli, 13.–26. Dezember
+Maria Lehmann, Controllerin	16.–29. August, 15.–28. November
+Rebecca Sander, Buchhalterin	15.–28. März, 2.–15. August
+Jens Kupfer, Justiziar	21. Juni – 4. Juli, 6.–19. September
+Ellen Krüger, Leiterin Einkauf	26. Juli – 15. August, 22.–28. November
+Lena Fischer, Einkäuferin	5.–18. Juli, 4.–17. Oktober
+Stefan Schwan, Leiter Gebäudemanagement	17.–30. Mai, 11.–24. Oktober
+Daniel Ott, Lagerleiter	28. Juni – 11. Juli, 20. September – 3. Oktober
+Jan Neumann, Leiter Maschinenpark	12.–25. April, 23. August – 5. September
+Doris Peters, Personalleiterin	19. Juli – 1. August, 6.–19. Dezember
+
+Bitte senden Sie Änderungen bis zum {approveBy:long} an die Personalabteilung; danach zeichnet der Geschäftsführer den Plan ab. Stimmen Sie Ihren Urlaub spätestens zwei Wochen vor Beginn mit Ihrer Führungskraft ab.
+
+Erstellt: Doris Peters, Personalleiterin ______________
+Genehmigt: Paul Schmidt, Geschäftsführer ______________

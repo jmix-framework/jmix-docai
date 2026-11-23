@@ -1,0 +1,23 @@
+BORRADOR
+# CALENDARIO DE VACACIONES {year:+1}
+## Vega Verde, S.L.
+Preparado el {drafted:long}
+
+Cada empleado tiene 30 días naturales de vacaciones retribuidas al año. Repártalas en dos periodos como máximo para que podamos organizar las sustituciones. Los festivos que caigan dentro de las vacaciones no se cuentan como días de vacaciones.
+
+Nombre y puesto	Periodos de vacaciones
+Pablo Herrero Gil, director general	12–26 de julio, 13–27 de diciembre
+María Romero Sáez, controller	16–30 de agosto, 15–29 de noviembre
+Raquel Santos Gil, contable	15–29 de marzo, 2–16 de agosto
+Jaime Cobo Rey, asesor jurídico	21 de junio – 5 de julio, 6–20 de septiembre
+Elisa Carrasco Vidal, directora de Compras	26 de julio – 15 de agosto, 22–30 de noviembre
+Lucía Martín Ruiz, técnica de compras	5–19 de julio, 4–18 de octubre
+Sergio Sanz Molina, jefe de servicios generales	17–31 de mayo, 11–25 de octubre
+Daniel Ortiz Mena, jefe de almacén	28 de junio – 12 de julio, 20 de septiembre – 4 de octubre
+Iván Nieto Prieto, responsable de flota	12–26 de abril, 23 de agosto – 6 de septiembre
+Diana Puerta Lozano, técnica de RR. HH.	19 de julio – 2 de agosto, 6–20 de diciembre
+
+Envíe cualquier cambio a Recursos Humanos antes del {approveBy:long}, fecha en que el director general aprobará el calendario. Confirme sus fechas con su responsable al menos dos semanas antes de irse.
+
+Preparado por: Diana Puerta Lozano, técnica de RR. HH. ______________
+Aprobado por: Pablo Herrero Gil, director general ______________

@@ -1,0 +1,13 @@
+# CONTRATTO DI SERVIZI DI PULIZIA N. 56
+## Pulizia giornaliera degli uffici
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Splendor Pulizie S.r.l., con sede in Via Enrico Mattei 52, 40138 Bologna, P.IVA 05995283795, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Committente», si conviene quanto segue.
+
+1. Ogni giorno lavorativo, dalle 18:00 alle 21:00, il Fornitore pulisce gli uffici del Committente di 240 m² in Via dei Giardini 12, 40121 Bologna: lavaggio dei pavimenti, spolveratura, pulizia dei servizi igienici e svuotamento dei cestini.
+2. Il Fornitore mette a disposizione le attrezzature e i prodotti per la pulizia; il Committente acquista gli asciugamani di carta e il sapone per i servizi igienici.
+3. Il canone è di € 870,00 al mese oltre IVA. Il Fornitore fattura mensilmente e il Committente paga ciascuna fattura entro il giorno 10 del mese successivo.
+4. Il presente contratto è valido dal {start:long} al {validUntil:long}.
+
+Splendor Pulizie S.r.l.	Campoverde S.r.l.
+______________	______________
+Tiziana Ercolani, Amministratrice unica	Paolo Ferri, Amministratore Delegato

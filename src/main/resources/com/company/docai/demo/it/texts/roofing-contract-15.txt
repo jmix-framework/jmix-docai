@@ -1,0 +1,22 @@
+# CONTRATTO D'APPALTO N. 15/{year:signed}
+## Rifacimento della copertura del magazzino
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Coperture Emiliane S.r.l., con sede in Via dell'Industria 37, 40138 Bologna, P.IVA 00913903798, di seguito «Appaltatore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Committente», si conviene quanto segue.
+
+1. L'Appaltatore esegue il rifacimento della copertura del magazzino del Committente in Via dei Magazzini 4, 40011 Anzola dell'Emilia (BO).
+2. I lavori comprendono la rimozione del vecchio manto, il ripristino e la primerizzazione del piano di posa, la posa di 420 m² di nuovo manto in doppia membrana bituminosa applicata a fiamma, la sostituzione di grondaie e pluviali e lo smaltimento dei materiali di risulta.
+3. L'Appaltatore fornisce tutti i materiali, nuovi e conformi alle specifiche del produttore. A fine lavori consegna al Committente la garanzia del produttore della membrana e le schede tecniche dei prodotti.
+4. Tempi di esecuzione: inizio dei lavori in data {workStart:long}, ultimazione in data {workEnd:long}. Il magazzino resta operativo durante i lavori: l'Appaltatore delimita l'area di cantiere e protegge l'edificio dalle infiltrazioni.
+5. Il corrispettivo dell'appalto è di € 13.800,00 oltre IVA. Il prezzo è fisso e comprende materiali, attrezzature, trasporto e smaltimento.
+6. Il Committente versa un acconto del 30%, pari a € 4.140,00, entro 5 giorni lavorativi dalla firma del contratto, a fronte della fattura dell'Appaltatore.
+7. Il Committente paga il restante 70%, pari a € 9.660,00, entro 10 giorni lavorativi dalla fattura emessa dall'Appaltatore dopo la firma del verbale di fine lavori.
+8. L'Appaltatore comunica per iscritto al Committente l'ultimazione dei lavori. Entro 3 giorni lavorativi il Committente verifica i lavori e firma il verbale di fine lavori oppure invia per iscritto l'elenco dei difetti.
+9. L'Appaltatore garantisce i lavori per 24 mesi dalla data del verbale di fine lavori ed elimina a proprie spese i difetti riscontrati in tale periodo entro 10 giorni lavorativi dalla segnalazione del Committente.
+10. In caso di ritardo nell'ultimazione dei lavori, l'Appaltatore corrisponde una penale dello 0,1% del corrispettivo per ogni giorno di ritardo, fino al 10% del corrispettivo. In caso di ritardato pagamento, il Committente corrisponde una penale dello 0,1% dell'importo scaduto per ogni giorno di ritardo.
+11. L'Appaltatore rispetta la normativa sulla sicurezza nei cantieri (D.Lgs. 81/2008), comprese le misure contro le cadute dall'alto, e la normativa antincendio, e risponde del proprio personale in cantiere.
+12. Il contratto entra in vigore alla data della sottoscrizione e resta valido fino al {validUntil:long}.
+13. Il contratto è regolato dalla legge italiana. Per ogni controversia è competente il Foro di Bologna.
+
+Coperture Emiliane S.r.l.	Campoverde S.r.l.
+______________	______________
+Tommaso Tornatore, Amministratore unico	Paolo Ferri, Amministratore Delegato

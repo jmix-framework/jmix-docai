@@ -1,0 +1,22 @@
+BOZZA
+# CONTRATTO DI FORNITURA N. 61/{year:signed}
+## Articoli di cancelleria
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Forniture Ufficio Mercato S.r.l., con sede in Via Ugo Bassi 23, 40121 Bologna, P.IVA 00047433795, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Acquirente», si conviene quanto segue.
+
+1. Il Fornitore vende all'Acquirente articoli di cancelleria (di seguito «Merce») in base agli ordini dell'Acquirente.
+2. La Merce comprende penne, matite, evidenziatori, blocchi note, cartelline, graffette, cucitrici, perforatori, foglietti adesivi, vaschette portacorrispondenza e organizer da scrivania.
+3. L'Acquirente invia gli ordini per e-mail, indicando gli articoli, le quantità e la data di consegna richiesta. Il Fornitore conferma ciascun ordine ed emette fattura entro 1 giorno lavorativo.
+4. I prezzi sono quelli del listino del Fornitore in vigore alla data dell'ordine. Il Fornitore può modificare il listino non più di una volta per trimestre, con un preavviso di almeno 30 giorni all'Acquirente.
+5. Il valore stimato del contratto è di € 2.700,00 all'anno oltre IVA.
+6. Il Fornitore consegna la Merce all'ufficio dell'Acquirente in Via dei Giardini 12, 40121 Bologna, entro 2 giorni lavorativi dalla conferma dell'ordine; la consegna al piano è gratuita.
+7. L'Acquirente paga ciascun ordine entro 10 giorni lavorativi dalla consegna, a fronte della fattura e del documento di trasporto firmato.
+8. L'Acquirente controlla quantità e articoli alla consegna e annota sul documento di trasporto eventuali ammanchi o danni; il Fornitore consegna la Merce mancante o sostituisce quella difettosa a proprie spese entro 3 giorni lavorativi.
+9. La Merce è nuova, nella confezione originale del produttore. Cucitrici, perforatori e organizer da scrivania sono garantiti per 12 mesi dalla consegna.
+10. La proprietà della Merce passa all'Acquirente alla firma del documento di trasporto.
+11. In caso di ritardo nella consegna, il Fornitore corrisponde una penale dello 0,1% del valore della Merce non consegnata per ogni giorno di ritardo; in caso di ritardato pagamento, l'Acquirente corrisponde una penale dello 0,1% dell'importo scaduto per ogni giorno di ritardo.
+12. Il contratto entra in vigore alla data della sottoscrizione e resta valido fino al {validUntil:long}.
+13. Il contratto è regolato dalla legge italiana. Per ogni controversia è competente il Foro di Bologna.
+
+Forniture Ufficio Mercato S.r.l.	Campoverde S.r.l.
+______________	______________

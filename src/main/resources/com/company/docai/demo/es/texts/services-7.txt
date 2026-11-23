@@ -1,0 +1,21 @@
+# CONTRATO DE SERVICIOS N.º 7
+## Control de plagas
+
+Este contrato de servicios se celebra en Valladolid el {signed:long} entre Control de Plagas Meseta, S.L., con CIF B99604117 y domicilio en avenida del Parque, 31, local 12, 47006 Valladolid (el «Prestador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+1. El Prestador realiza cada mes el control de plagas del almacén y de la oficina del Cliente, que incluye la desinsectación general, la desinfección de superficies y, cuando sea necesaria, la desratización.
+2. Los servicios abarcan el almacén situado en avenida del Comercio, 36, nave 2, 47012 Valladolid, y la oficina de calle del Jardín, 12, oficina 312, 47001 Valladolid.
+3. Los tratamientos se realizan una vez al mes, en una fecha acordada con el Cliente con al menos 3 días hábiles de antelación: en la oficina, fuera del horario laboral; en el almacén, sin interrumpir su actividad.
+4. El Prestador utiliza sus propios equipos y solo biocidas inscritos en el registro oficial. En el perímetro del almacén instala portacebos de seguridad, mantiene un plano de su ubicación y los revisa cada mes.
+5. Los trabajos los realizan técnicos del Prestador con la cualificación exigida para la aplicación de biocidas y formados en su manejo seguro.
+6. El Cliente facilita a los técnicos el acceso a todas las zonas que deban tratarse y retira los alimentos de las zonas de descanso durante el tratamiento.
+7. Tras cada tratamiento, el Prestador anota los datos en el registro de control de plagas que se guarda en las instalaciones del Cliente y emite un certificado mensual del servicio. El registro recoge la fecha, las zonas tratadas, los productos empleados y las recomendaciones al Cliente.
+8. Si el Cliente detecta actividad de plagas entre dos tratamientos programados, el Prestador realiza una visita adicional en un plazo de 2 días hábiles sin coste añadido.
+9. El precio es de 210,00 € al mes, 2.520,00 € para todo {year:signed}, más IVA.
+10. El Cliente paga cada mes, en los 10 días hábiles siguientes a la recepción del certificado mensual y de la factura.
+11. El Prestador aplica los productos de forma segura para las personas y las mercancías del Cliente y le indemnizará por cualquier daño que causen sus servicios.
+12. El contrato entra en vigor en la fecha de su firma y estará vigente hasta el {validUntil:long}. Cualquiera de las partes puede resolverlo con un preaviso por escrito de al menos 30 días.
+
+CONTROL DE PLAGAS MESETA, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Rogelio Lago Pardo, administrador	Pablo Herrero Gil, director general

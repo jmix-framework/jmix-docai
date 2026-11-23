@@ -1,0 +1,15 @@
+Campoverde S.r.l.
+# NOTA INTERNA N. 41
+
+Data: {issued:long}
+A: Paolo Ferri, Amministratore Delegato
+Da: Stefano Bassi, Responsabile Servizi Generali
+Oggetto: sostituzione di due auto aziendali
+
+Chiedo l'approvazione per sostituire due auto aziendali.
+
+Le auto sono state immatricolate nel 2014 e nel 2015 e hanno percorso 238.000 e 214.000 km. I costi di riparazione e manutenzione sono stati di € 4.290 nel {year:issued-1} e nei primi quattro mesi del {year:issued} hanno già raggiunto € 1.580. La compagnia assicurativa ha aumentato il premio per entrambe le auto.
+
+Propongo di acquistare due nuove auto compatte, a non più di € 32.200 ciascuna, e di vendere quelle vecchie, da cui contiamo di ricavare circa € 7.220 in tutto. La consegna delle nuove auto non dovrebbe richiedere più di 30 giorni.
+
+Chiedo di incaricare l'ufficio acquisti di raccogliere i preventivi di almeno tre concessionari entro il giorno {quotesBy:monthDay}.

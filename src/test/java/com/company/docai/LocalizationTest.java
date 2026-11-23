@@ -46,6 +46,23 @@ class LocalizationTest {
                 .containsPattern("\\p{IsCyrillic}");
     }
 
+    // a language without the translation pack of the framework gets its English captions
+    @Test
+    void theCaptionsOfTheApplicationAndTheFrameworkAreTranslatedInEveryLanguage() {
+        List<String> keys = List.of("com.company.docai.view.login/loginForm.submit",
+                "com.company.docai.model.user/User", "actions.logout.text", "actions.Cancel");
+
+        for (Locale locale : coreProperties.getAvailableLocales()) {
+            if (locale.getLanguage().equals(Locale.ENGLISH.getLanguage())) {
+                continue;
+            }
+
+            assertThat(keys).allSatisfy(key -> assertThat(messages.getMessage(key, locale))
+                    .as("%s in %s", key, locale)
+                    .isNotEqualTo(messages.getMessage(key, Locale.ENGLISH)));
+        }
+    }
+
     @Test
     void theNameKeysHaveCaptionsInEveryLanguage() {
         for (Class<?> entityClass : List.of(Folder.class, Document.class, Tag.class)) {

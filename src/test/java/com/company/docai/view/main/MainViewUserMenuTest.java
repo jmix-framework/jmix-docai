@@ -112,7 +112,10 @@ class MainViewUserMenuTest {
                 .extracting(UserMenuItem::getId, UserMenuItem::isChecked)
                 .containsExactly(
                         tuple("userMenu_languageSwitch_enUserMenuItem", true),
-                        tuple("userMenu_languageSwitch_ruUserMenuItem", false));
+                        tuple("userMenu_languageSwitch_ruUserMenuItem", false),
+                        tuple("userMenu_languageSwitch_deUserMenuItem", false),
+                        tuple("userMenu_languageSwitch_esUserMenuItem", false),
+                        tuple("userMenu_languageSwitch_itUserMenuItem", false));
     }
 
     @Test

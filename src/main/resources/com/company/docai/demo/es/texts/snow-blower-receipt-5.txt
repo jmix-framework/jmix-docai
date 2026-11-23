@@ -1,0 +1,14 @@
+# ACTA DE ENTREGA N.º 5
+## Quitanieves
+
+Fecha: {issued:long}
+Vendedor: Motores y Equipos Valdés, S.L.
+Comprador: Vega Verde, S.L.
+Contrato: contrato de suministro n.º 2/{year:contract}, de fecha {contract:long}
+
+El Comprador declara haber recibido una quitanieves autopropulsada de dos etapas: anchura de trabajo de 76 cm, motor de gasolina de 9 CV, arranque eléctrico, n.º de serie 26-0114. La quitanieves limpiará el patio y el muelle de carga del almacén de avenida del Comercio, 36, nave 2, 47012 Valladolid.
+Incluye: 4 pasadores de seguridad de repuesto, una cuchilla rascadora, el manual de usuario y la tarjeta de garantía.
+La quitanieves se probó en la entrega; no se detectaron defectos. Precio: 1.640,00 €, más IVA. Garantía: 12 meses desde la fecha de esta acta.
+
+Entregado por: ______________ Esteban Marcos Gil, Motores y Equipos Valdés, S.L.
+Recibido por: ______________ Sergio Sanz Molina, jefe de servicios generales, Vega Verde, S.L.

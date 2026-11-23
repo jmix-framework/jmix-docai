@@ -1,0 +1,22 @@
+# WERKVERTRAG NR. 15/{year:signed}
+## Sanierung des Lagerhallendachs
+
+Zwischen der Firstwerk Bedachungen GmbH, Gewerbestraße 37, 30179 Hannover, vertreten durch den Geschäftsführer Thomas Dreher (nachfolgend „Auftragnehmer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Auftragnehmer saniert das Dach der Lagerhalle des Auftraggebers in der Lagerstraße 4, 30880 Laatzen.
+2. Die Leistung umfasst den Rückbau der alten Dachabdichtung, die Instandsetzung und den Voranstrich des Dachuntergrunds, die Erneuerung von 420 m² Flachdachabdichtung mit zweilagigen, geflämmten Polymerbitumenbahnen, die Erneuerung der Dachrinnen und Fallrohre sowie die Entsorgung des Bauschutts.
+3. Der Auftragnehmer verwendet ausschließlich neue Materialien gemäß den Vorgaben der Hersteller. Nach Fertigstellung übergibt er dem Auftraggeber die Herstellergarantie für die Dachabdichtung und die Produktdatenblätter.
+4. Ausführungszeit: Beginn am {workStart:long}, Fertigstellung am {workEnd:long}. Die Lagerhalle bleibt während der Arbeiten in Betrieb: Der Auftragnehmer sperrt den Arbeitsbereich ab und schützt das Gebäude vor eindringendem Wasser.
+5. Der Werklohn beträgt 13.800,00 € zzgl. 19 % USt. Er ist ein Pauschalpreis und umfasst Material, Geräte, Anlieferung und Entsorgung.
+6. Der Auftraggeber leistet innerhalb von 5 Arbeitstagen nach Unterzeichnung dieses Vertrags gegen Rechnung des Auftragnehmers eine Anzahlung von 30 %, 4.140,00 € zzgl. USt.
+7. Die restlichen 70 % des Werklohns, 9.660,00 € zzgl. USt., zahlt der Auftraggeber innerhalb von 10 Arbeitstagen nach Erhalt der Schlussrechnung, die nach Unterzeichnung des Abnahmeprotokolls gestellt wird.
+8. Der Auftragnehmer zeigt dem Auftraggeber die Fertigstellung schriftlich an. Innerhalb von 3 Arbeitstagen prüft der Auftraggeber die Arbeiten und unterzeichnet das Abnahmeprotokoll oder übermittelt eine schriftliche Mängelliste.
+9. Die Gewährleistungsfrist beträgt 24 Monate ab dem Datum des Abnahmeprotokolls; in dieser Frist festgestellte Mängel beseitigt der Auftragnehmer auf eigene Kosten innerhalb von 10 Arbeitstagen nach Anzeige durch den Auftraggeber.
+10. Überschreitet der Auftragnehmer die Ausführungszeit, zahlt er eine Vertragsstrafe von 0,1 % des Werklohns pro Tag, höchstens 5 % des Werklohns. Bei Zahlungsverzug zahlt der Auftraggeber 0,1 % des rückständigen Betrags pro Tag.
+11. Der Auftragnehmer beachtet die Unfallverhütungsvorschriften der Berufsgenossenschaft, insbesondere zur Absturzsicherung, sowie die Brandschutzvorschriften und ist für seine Mitarbeiter auf der Baustelle verantwortlich.
+12. Dieser Vertrag tritt mit Unterzeichnung in Kraft und gilt bis zum {validUntil:long}.
+13. Es gilt deutsches Recht. Gerichtsstand ist Hannover.
+
+Firstwerk Bedachungen GmbH	Wiesengrund GmbH
+______________	______________
+Thomas Dreher, Geschäftsführer	Paul Schmidt, Geschäftsführer

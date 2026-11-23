@@ -1,0 +1,18 @@
+Cubiertas Cumbre, S.L.
+CIF B99183402
+Polígono San Cristóbal, calle del Cobre, 37, nave 2, 47012 Valladolid
+
+# FACTURA N.º 1610
+## Fecha: {issued:long}
+Cliente: Vega Verde, S.L., CIF B99471205, calle del Jardín, 12, oficina 312, 47001 Valladolid
+Contrato: contrato de obra n.º 15/{year:contract}, de fecha {contract:long}
+Obra: reparación de la cubierta del almacén, camino del Almacén, 4, 47195 Arroyo de la Encomienda (Valladolid)
+
+1. Reparación de la cubierta del almacén, pago final (70 %)	9.660,00 €
+Base imponible	9.660,00 €
+IVA 21 %	2.028,60 €
+Total factura	11.688,60 €
+
+La obra se terminó y se recibió el {completed:long}. El precio del contrato es de 13.800,00 € más IVA, y el anticipo del 30 % fue de 4.140,00 € más IVA; esta factura corresponde al 70 % restante.
+Vencimiento: {due:long}.
+Forma de pago: transferencia a la cuenta IBAN ES00 9999 0000 0000 0021 4367 de Banco Demo. Indique el número de factura en el concepto.

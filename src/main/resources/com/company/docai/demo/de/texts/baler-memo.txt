@@ -1,0 +1,13 @@
+Wiesengrund GmbH
+# INTERNE MITTEILUNG NR. 18
+
+Datum: {issued:long}
+An: Paul Schmidt, Geschäftsführer
+Von: Jan Neumann, Leiter Maschinenpark
+Betreff: Kauf einer Rundballenpresse
+
+Ich bitte um Freigabe für den Kauf einer Rundballenpresse für unsere Heuernte.
+
+Der erste Schnitt ist für den {hayCut:monthDay} geplant; wir rechnen mit etwa 600 Rundballen mit 1,5 m Durchmesser. Unsere jetzige Presse, Baujahr 2009, ist in der letzten Saison zweimal ausgefallen, und ihre Reparaturen kosteten 2.380 €. Die neue Presse passt zu unseren Traktoren Brandauer 82.
+
+Der Einkauf hat zwei Angebote eingeholt: 14.200 € netto mit Lieferung in 14 Tagen und 13.200 € netto mit Lieferung in 6 Wochen. Die zweite Presse käme erst nach dem ersten Schnitt, daher empfehle ich das erste Angebot. Bitte beauftragen Sie den Einkauf, die Bestellung bis zum {orderBy:monthDay} aufzugeben.

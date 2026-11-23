@@ -1,0 +1,13 @@
+# CONTRATO DE COMPRAVENTA N.º 37/{year:signed}
+## Cosechadora
+
+Este contrato de compraventa se celebra en Valladolid el {signed:long} entre Comercial Tierra de Campos, S.A., con CIF A99371408 y domicilio en carretera de León, 71, 47009 Valladolid (el «Vendedor»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Comprador»).
+
+1. El Vendedor vende, y el Comprador compra, una cosechadora nueva Tormes 595 con una plataforma de corte de cereal de 7,6 m y un carro para su transporte.
+2. El precio es de 182.000,00 €, más IVA. El Comprador paga una entrada del 30 %, 54.600,00 €, en los 5 días hábiles siguientes a la firma del contrato, y el resto, 127.400,00 €, en los 3 días hábiles siguientes a la firma del acta de entrega.
+3. El Vendedor entrega la cosechadora en el lugar que indique el Comprador como muy tarde el {delivery:long}.
+4. Garantía: 24 meses o 2.000 horas de motor, lo que antes se cumpla. El Vendedor realiza las reparaciones en garantía en los 14 días siguientes a la reclamación.
+
+COMERCIAL TIERRA DE CAMPOS, S.A.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Óscar Villalba Ruiz, consejero delegado	Pablo Herrero Gil, director general

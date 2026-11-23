@@ -1,0 +1,19 @@
+# ANEXO 2
+## al contrato de suministro n.º 31/{year:contract}, de fecha {contract:long}
+
+Fecha: {issued:long}
+Proveedor: Suministros Meseta Central, S.L.
+Comprador: Vega Verde, S.L.
+
+El Proveedor entrega, y el Comprador recibe y paga, lo siguiente:
+1. Sembradora de siembra directa de 6 m de anchura de trabajo, 1 a 38.300,00 €	38.300,00 €
+2. Dosificadores de semilla de repuesto, 2 juegos a 470,00 €	940,00 €
+3. Kit de marcadores de surco, 1 juego a 760,00 €	760,00 €
+Total (IVA no incluido)	40.000,00 €
+
+La sembradora siembra cereales de grano pequeño. Configuración: bastidor con tolva de semilla, 40 brazos sembradores con dosificadores, elevación hidráulica. Incluye: manual de instrucciones y kit de repuestos.
+Entrega como muy tarde el {delivery:long}, a cargo del Proveedor. Pago en los 5 días hábiles siguientes a la entrega.
+
+SUMINISTROS MESETA CENTRAL, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Raúl Crespo Lara, administrador	Pablo Herrero Gil, director general

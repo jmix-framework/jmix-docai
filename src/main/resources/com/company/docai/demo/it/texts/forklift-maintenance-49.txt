@@ -1,0 +1,13 @@
+# CONTRATTO DI MANUTENZIONE N. 49
+## Carrello elevatore
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Sollevamenti Service S.r.l., con sede in Via Ferrarese 75, 40128 Bologna, P.IVA 04656323719, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Committente», si conviene quanto segue.
+
+1. Il Fornitore esegue la manutenzione e le riparazioni del carrello elevatore del Committente con portata di 2.700 kg (cespite n. 114), in uso presso il magazzino di Via del Commercio 36, capannone 2, 40138 Bologna.
+2. La manutenzione programmata si esegue ogni 250 ore di funzionamento indicate dal contaore, al costo di € 205,00 per intervento.
+3. Il Fornitore esegue le riparazioni straordinarie entro 2 giorni lavorativi dalla richiesta del Committente, al costo di € 27,00 per ora di manodopera. I ricambi sono fatturati a parte, in base a un preventivo approvato in anticipo dal Committente.
+4. Il presente contratto è valido dal giorno {signed:long} al {validUntil:long}. Tutti i prezzi si intendono IVA esclusa.
+
+Sollevamenti Service S.r.l.	Campoverde S.r.l.
+______________	______________
+Dario Calanchi, Amministratore unico	Paolo Ferri, Amministratore Delegato

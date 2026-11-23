@@ -1,0 +1,19 @@
+# LEISTUNGSNACHWEIS NR. 87
+## Planierung einer Fläche
+
+Datum: {issued:long}
+Auftragnehmer: Erdbau Fuhse GmbH
+Auftraggeber: Wiesengrund GmbH
+Vertrag: Dienstleistungsvertrag Nr. 34 vom {contract:long}
+Ort: Industriestraße 36, Halle 2, 30179 Hannover
+
+Der Auftragnehmer bestätigt und der Auftraggeber nimmt folgende Leistungen ab:
+1. Planierung Parkplatz, 40 Stellplätze, Planierraupe, 24 Std. × 42,50 €	1.020,00 €
+2. Transport der Planierraupe per Tieflader, 2 Fahrten × 100,00 €	200,00 €
+Summe netto	1.220,00 €
+
+Die Fläche wurde auf die Planhöhen mit 1,5 % Quergefälle planiert. Alle Leistungen wurden am {completed:long} abgeschlossen.
+
+Erdbau Fuhse GmbH	Wiesengrund GmbH
+______________	______________
+Adam Herzog, Geschäftsführer	Stefan Schwan, Leiter Gebäudemanagement

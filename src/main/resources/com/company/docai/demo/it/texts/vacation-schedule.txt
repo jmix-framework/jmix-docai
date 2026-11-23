@@ -1,0 +1,23 @@
+BOZZA
+# PIANO FERIE {year:+1}
+## Campoverde S.r.l.
+Redatto in data {drafted:long}
+
+Ogni dipendente ha diritto a quattro settimane di ferie retribuite all'anno. Pianificatele in non più di due periodi, così da organizzare le sostituzioni. Le festività che cadono durante le ferie non si contano come giorni di ferie.
+
+Nome e qualifica	Periodi di ferie
+Paolo Ferri, Amministratore Delegato	12–25 luglio, 13–26 dicembre
+Maria Lombardi, Controller	16–29 agosto, 15–28 novembre
+Roberta Santi, Contabile	15–28 marzo, 2–15 agosto
+Jacopo Cortesi, Ufficio legale	21 giugno – 4 luglio, 6–19 settembre
+Laura Marchetti, Responsabile Acquisti	26 luglio – 15 agosto, 22–28 novembre
+Giulia Fontana, Addetta agli acquisti	5–18 luglio, 4–17 ottobre
+Stefano Bassi, Resp. Servizi Generali	17–30 maggio, 11–24 ottobre
+Davide Orlandi, Resp. di magazzino	28 giugno – 11 luglio, 20 settembre – 3 ottobre
+Ivano Neri, Resp. parco mezzi	12–25 aprile, 23 agosto – 5 settembre
+Daniela Porta, Resp. del personale	19 luglio – 1 agosto, 6–19 dicembre
+
+Inviate eventuali modifiche all'ufficio del personale entro il {approveBy:long}, data in cui l'Amministratore Delegato approva il piano. Concordate le date con il vostro responsabile almeno due settimane prima della partenza.
+
+Redatto da: Daniela Porta, Responsabile del personale ______________
+Approvato da: Paolo Ferri, Amministratore Delegato ______________

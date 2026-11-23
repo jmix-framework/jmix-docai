@@ -1,0 +1,29 @@
+# CONTRATTO INDIVIDUALE DI LAVORO
+## a tempo pieno e indeterminato
+
+Con la presente scrittura privata, stipulata a Bologna in data {issued:long}, tra Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Società», e Giulia Fontana, residente in Via Mascarella 84, 40126 Bologna, di seguito «Lavoratrice», si conviene quanto segue.
+
+## 1. Mansioni e inquadramento
+1.1 La Società assume la Lavoratrice a tempo pieno e indeterminato con la qualifica di impiegata e la mansione di addetta agli acquisti presso l'Ufficio acquisti, con inquadramento al 3° livello del CCNL Terziario, Distribuzione e Servizi, che si applica al rapporto per quanto non previsto dal presente contratto. La Lavoratrice risponde alla Responsabile Acquisti.
+1.2 La Lavoratrice ricerca e qualifica i fornitori, predispone le richieste di acquisto e i contratti di fornitura, controlla le scadenze di consegna e di pagamento e archivia la documentazione degli acquisti nel sistema di gestione documentale della Società.
+1.3 La sede di lavoro è l'ufficio della Società in Via dei Giardini 12, Bologna.
+## 2. Decorrenza e periodo di prova
+2.1 Data di inizio del rapporto di lavoro: {hired:long}. Il periodo di prova è di 60 giorni di lavoro effettivo, come previsto dal CCNL per il livello di inquadramento.
+2.2 Durante il periodo di prova ciascuna parte può recedere dal contratto senza preavviso né indennità. Superato il periodo di prova, il recesso è regolato dalla legge e dal CCNL.
+## 3. Retribuzione
+3.1 La retribuzione annua lorda è di € 32.200,00, corrisposta in 14 mensilità da € 2.300,00 lordi mediante bonifico bancario, al netto delle ritenute di legge.
+3.2 La Lavoratrice può maturare premi secondo il sistema premiante della Società.
+## 4. Orario di lavoro e ferie
+4.1 L'orario normale è di 40 ore settimanali, dal lunedì al venerdì, dalle 9:00 alle 18:00, con un'ora di pausa pranzo.
+4.2 La Lavoratrice ha diritto a quattro settimane di ferie retribuite all'anno.
+## 5. Obblighi e riservatezza
+5.1 La Lavoratrice osserva il regolamento aziendale e le norme di sicurezza sul lavoro (D.Lgs. 81/2008) e mantiene riservati i segreti aziendali durante il rapporto di lavoro e dopo la sua cessazione.
+5.2 La Società fornisce gli strumenti di lavoro necessari alla mansione.
+## 6. Disposizioni finali
+6.1 Il presente contratto può essere modificato solo per iscritto, con la firma di entrambe le parti.
+6.2 Il contratto è regolato dalla legge italiana e dal CCNL applicato.
+6.3 La Lavoratrice dichiara di aver ricevuto il regolamento aziendale e l'informativa sul trattamento dei dati personali.
+
+Campoverde S.r.l.	La Lavoratrice
+______________	______________
+Paolo Ferri, Amministratore Delegato	Giulia Fontana

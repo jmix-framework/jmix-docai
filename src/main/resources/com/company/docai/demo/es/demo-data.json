@@ -1,0 +1,1243 @@
+{
+  "locale": "es",
+  "formats": {"long": "d 'de' MMMM 'de' yyyy", "monthDay": "d 'de' MMMM", "monthYear": "MMMM 'de' yyyy"},
+  "users": [
+    {
+      "login": "peter",
+      "firstName": "Pedro",
+      "lastName": "Navarro",
+      "email": "pedro.navarro@example.com"
+    },
+    {
+      "login": "alice",
+      "firstName": "Alicia",
+      "lastName": "Moreno",
+      "email": "alicia.moreno@example.com"
+    },
+    {
+      "login": "helen",
+      "firstName": "Elena",
+      "lastName": "Castro",
+      "email": "elena.castro@example.com"
+    },
+    {
+      "login": "maria",
+      "firstName": "María",
+      "lastName": "Romero",
+      "email": "maria.romero@example.com"
+    },
+    {
+      "login": "john",
+      "firstName": "Juan",
+      "lastName": "Ortega",
+      "email": "juan.ortega@example.com"
+    }
+  ],
+  "statuses": [
+    {"key": "DRAFT", "name": "Borrador", "anyTarget": false, "targets": ["IN_REVIEW", "ACTIVE"]},
+    {"key": "IN_REVIEW", "name": "En revisión", "color": "#3266e4", "position": 2, "anyTarget": true},
+    {"key": "ACTIVE", "name": "Vigente", "position": 3},
+    {"key": "ARCHIVED", "name": "Archivado", "position": 4}
+  ],
+  "folders": [
+    {
+      "name": "Bandeja de entrada",
+      "favoriteOf": [
+        "alice"
+      ],
+      "documents": [
+        {
+          "name": "Escaneo 0457.pdf",
+          "dates": {"issued": "-1d", "contract": "-67d", "completed": "-8d", "due": "+13d"},
+          "versions": [
+            {
+              "text": "invoice-1610.pdf",
+              "author": "alice",
+              "uploaded": "issued 09:42"
+            }
+          ]
+        },
+        {
+          "name": "Escaneo 0458.pdf",
+          "dates": {"issued": "-7d", "contract": "-301d"},
+          "versions": [
+            {
+              "text": "completion-certificate-64.pdf",
+              "author": "alice",
+              "uploaded": "-5d 10:15"
+            }
+          ]
+        },
+        {
+          "name": "Escaneo 0459.pdf",
+          "dates": {"signed": "-2d", "validUntil": "year-end+1"},
+          "versions": [
+            {
+              "text": "supply-61-draft.pdf",
+              "author": "alice",
+              "uploaded": "signed 15:20"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contratos",
+      "favoriteOf": [
+        "admin",
+        "john"
+      ],
+      "documents": [
+        {
+          "name": "Contrato de arrendamiento n.º 112",
+          "favoriteOf": [
+            "admin",
+            "john"
+          ],
+          "dates": {
+            "signed": "-253d",
+            "edition1": "-270d",
+            "edition2": "-262d",
+            "start": "month-start+1@signed",
+            "validUntil": "month-end+11@start",
+            "pay1": "month-start@start+4d",
+            "pay2": "month-start+1@start+4d",
+            "pay3": "month-start+2@start+4d",
+            "pay4": "month-start+3@start+4d",
+            "pay5": "month-start+4@start+4d",
+            "pay6": "month-start+5@start+4d",
+            "pay7": "month-start+6@start+4d",
+            "pay8": "month-start+7@start+4d",
+            "pay9": "month-start+8@start+4d",
+            "pay10": "month-start+9@start+4d",
+            "pay11": "month-start+10@start+4d",
+            "pay12": "month-start+11@start+4d",
+            "firstPayment": "pay1+10d"
+          },
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "112",
+            "contractKind": "lease",
+            "counterparty": "Inmobiliaria Poniente, S.L.",
+            "contractAmount": "51600.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "arrendamiento"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "lease-112-v1.pdf",
+              "author": "john",
+              "uploaded": "edition1 10:15"
+            },
+            {
+              "text": "lease-112-v2.pdf",
+              "author": "maria",
+              "uploaded": "edition2 14:30"
+            },
+            {
+              "text": "lease-112-v3.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:40"
+            }
+          ],
+          "comments": [
+            {
+              "author": "alice",
+              "at": "-268d 11:20",
+              "text": "Revisad la cláusula 5.1: la penalización es del 0,5 % diario, y normalmente aceptamos el 0,1 %. Tal como está, no lo apruebo."
+            },
+            {
+              "author": "john",
+              "at": "-263d 16:05",
+              "text": "El arrendador acepta el 0,2 % diario. Lo incluyo en el próximo borrador."
+            },
+            {
+              "author": "maria",
+              "at": "edition2 14:45",
+              "text": "He subido el borrador revisado; la penalización es del 0,2 %.\nEl primer pago pasa al {firstPayment:monthDay}: acordado con Inmobiliaria Poniente.",
+              "edited": "edition2 15:10"
+            },
+            {
+              "author": "alice",
+              "at": "signed 16:50",
+              "text": "He subido el ejemplar firmado; el contrato de arrendamiento está en vigor."
+            }
+          ]
+        },
+        {
+          "name": "Contrato de servicios n.º 7",
+          "dates": {"signed": "-299d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "7",
+            "contractKind": "services",
+            "counterparty": "Control de Plagas Meseta, S.L.",
+            "contractAmount": "2520.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "mantenimiento"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "services-7.pdf",
+              "author": "john",
+              "uploaded": "signed 11:20"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de obra n.º 15/{year:signed}",
+          "dates": {"signed": "-67d", "workStart": "-61d", "workEnd": "-8d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "15/{year:signed}",
+            "contractKind": "work",
+            "counterparty": "Cubiertas Cumbre, S.L.",
+            "contractAmount": "13800.00",
+            "validUntil": "validUntil"
+          },
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "roofing-contract-15.pdf",
+              "author": "john",
+              "uploaded": "signed 12:05"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de suministro n.º 45",
+          "dates": {"signed": "-296d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "45",
+            "contractKind": "supply",
+            "counterparty": "Papelera del Norte, S.A.",
+            "contractAmount": "10700.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "suministro",
+            "oficina"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "supply-45.pdf",
+              "author": "john",
+              "uploaded": "signed 15:30"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de arrendamiento n.º 98",
+          "dates": {"signed": "-859d", "validUntil": "month-end+11@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "98",
+            "contractKind": "lease",
+            "counterparty": "Plaza Ribera Patrimonial, S.L.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "arrendamiento"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "lease-98.pdf",
+              "author": "john",
+              "uploaded": "validUntil+1d 10:30"
+            }
+          ]
+        },
+        {
+          "name": "Contrato con la agencia de selección",
+          "dates": {"signed": "-250d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "33/{year:signed}",
+            "contractKind": "services",
+            "counterparty": "Puente Talento Selección, S.L.",
+            "contractAmount": "20000.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "RR. HH."
+          ],
+          "status": "ACTIVE",
+          "access": [
+            {
+              "user": "helen",
+              "level": "MANAGE"
+            }
+          ],
+          "versions": [
+            {
+              "text": "agency.pdf",
+              "author": "helen",
+              "uploaded": "signed 13:45"
+            }
+          ]
+        },
+        {
+          "name": "Procedimiento de aprobación de contratos.txt",
+          "dates": {"approved": "-299d"},
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "procedure-contracts.txt",
+              "author": "john",
+              "uploaded": "approved 16:00"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de arrendamiento n.º 112 — borrador 1",
+          "dates": {
+            "edition1": "-270d",
+            "signed": "-253d",
+            "start": "month-start+1@signed",
+            "validUntil": "month-end+11@start"
+          },
+          "date": "edition1",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "112",
+            "contractKind": "lease",
+            "counterparty": "Inmobiliaria Poniente, S.L."
+          },
+          "tags": [
+            "arrendamiento"
+          ],
+          "status": "ACTIVE",
+          "deleted": {
+            "by": "john",
+            "at": "-2d 12:10"
+          },
+          "versions": [
+            {
+              "text": "lease-112-v1.pdf",
+              "author": "john",
+              "uploaded": "edition1 10:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Facturas y actas",
+      "favoriteOf": [
+        "maria"
+      ],
+      "documents": [
+        {
+          "name": "Factura n.º 2045",
+          "favoriteOf": [
+            "maria"
+          ],
+          "dates": {"issued": "-5d", "contract": "-296d", "delivery": "issued+8d", "due": "month-end"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2045",
+            "supplier": "Papelera del Norte, S.A.",
+            "invoiceAmount": "1137.40",
+            "dueDate": "due"
+          },
+          "tags": [
+            "suministro",
+            "oficina"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "invoice-2045.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:10"
+            }
+          ]
+        },
+        {
+          "name": "Factura n.º 3318",
+          "dates": {"issued": "-56d", "request": "-60d", "due": "-42d", "paid": "-44d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "3318",
+            "supplier": "Transportes Rápidos Esla, S.L.",
+            "invoiceAmount": "774.40",
+            "dueDate": "due"
+          },
+          "tags": [
+            "transporte"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "invoice-3318.pdf",
+              "author": "maria",
+              "uploaded": "issued 14:25"
+            }
+          ]
+        },
+        {
+          "name": "Acta de recepción n.º 58",
+          "dates": {"issued": "-8d", "contract": "-67d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Cubiertas Cumbre, S.L.",
+            "certificateAmount": "13800.00",
+            "workCompletedOn": "issued",
+            "basisContract": "15/{year:contract}"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "completion-certificate-58.pdf",
+              "author": "maria",
+              "uploaded": "issued 17:05"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Compras",
+      "favoriteOf": [
+        "admin",
+        "peter"
+      ],
+      "documents": [
+        {
+          "name": "Contrato de alquiler n.º 14 — tractor Duero 82",
+          "dates": {"signed": "-268d", "start": "month-start+2@signed", "validUntil": "month-end+3@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "14",
+            "contractKind": "lease",
+            "counterparty": "Alquileres Puerta Norte, S.L.",
+            "contractAmount": "4800.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "arrendamiento"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "tractor-lease-14.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de compraventa n.º 37/{year:signed} — cosechadora",
+          "dates": {"signed": "-249d", "delivery": "-145d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "37/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Comercial Tierra de Campos, S.A.",
+            "contractAmount": "182000.00"
+          },
+          "tags": [
+            "suministro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "combine-purchase-37.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Anexo 2 al contrato de suministro n.º 31/{year:contract}",
+          "dates": {"issued": "-232d", "contract": "-247d", "delivery": "-211d"},
+          "date": "issued",
+          "tags": [
+            "suministro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "seed-drill-schedule-2.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Acta de entrega — pulverizador autopropulsado",
+          "dates": {"issued": "-151d", "contract": "-173d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Equipos Cruce de Caminos, S.L.",
+            "certificateAmount": "143000.00",
+            "workCompletedOn": "issued",
+            "basisContract": "24/{year:contract}"
+          },
+          "tags": [
+            "suministro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "sprayer-delivery-receipt.pdf",
+              "author": "maria",
+              "uploaded": "issued 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de instalación n.º 22/{year:signed} — pívot de riego",
+          "dates": {"signed": "-206d", "workStart": "month-start+1@signed+3d", "workEnd": "month-end+1@signed-1d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "22/{year:signed}",
+            "contractKind": "work",
+            "counterparty": "Riegos Aguaclara, S.L.",
+            "contractAmount": "26400.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "center-pivot-installation-22.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de compraventa n.º 11/{year:signed} — tractor de cadenas",
+          "dates": {"signed": "-283d", "delivery": "-253d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "11/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Tractores Portillo, S.L.",
+            "contractAmount": "48700.00"
+          },
+          "tags": [
+            "suministro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "crawler-tractor-purchase-11.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Factura n.º 405",
+          "dates": {"issued": "-219d", "contract": "-228d", "due": "-212d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "405",
+            "supplier": "Aperos Orión, S.L.",
+            "invoiceAmount": "7102.70",
+            "dueDate": "due"
+          },
+          "tags": [
+            "suministro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "plow-cultivator-invoice.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Nota interna n.º 18",
+          "dates": {"issued": "-172d", "hayCut": "-150d", "orderBy": "-165d"},
+          "date": "issued",
+          "tags": [
+            "mantenimiento"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "baler-memo.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Contrato marco de suministro n.º 3/{year:signed}",
+          "dates": {"signed": "-296d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "3/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Suministros Robledal, S.L.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "suministro"
+          ],
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "master-supply-3.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de alquiler n.º 27 — excavadora de cadenas",
+          "dates": {"signed": "-255d", "start": "month-start+1@signed+9d", "validUntil": "month-end+1@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "27",
+            "contractKind": "lease",
+            "counterparty": "Alquileres Hierro Pesado, S.L.",
+            "contractAmount": "2800.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "arrendamiento"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "excavator-rental-27.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Acta de conformidad n.º 87 — explanación de parcela",
+          "dates": {"issued": "-185d", "contract": "-193d", "completed": "-186d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Excavaciones Cigales, S.L.",
+            "certificateAmount": "1220.00",
+            "workCompletedOn": "completed",
+            "basisContract": "34"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "site-grading-confirmation-87.pdf",
+              "author": "maria",
+              "uploaded": "issued 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Orden de servicio de grúa n.º 212",
+          "dates": {"issued": "-235d", "contract": "-299d", "service": "-228d"},
+          "date": "issued",
+          "tags": [
+            "transporte"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "crane-service-order-212.pdf",
+              "author": "alice",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Acta de entrega n.º 5 — quitanieves",
+          "dates": {"issued": "-297d", "contract": "-299d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Motores y Equipos Valdés, S.L.",
+            "certificateAmount": "1640.00",
+            "workCompletedOn": "issued",
+            "basisContract": "2/{year:contract}"
+          },
+          "tags": [
+            "suministro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "snow-blower-receipt-5.pdf",
+              "author": "maria",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Solicitud de servicios generales n.º 29",
+          "dates": {"issued": "year-start-1+110d", "neededBy": "month-end@issued"},
+          "date": "issued",
+          "tags": [
+            "mantenimiento"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "lawn-mowers-request-29.pdf",
+              "author": "alice",
+              "uploaded": "issued 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de mantenimiento de carretilla elevadora n.º 49",
+          "dates": {"signed": "-277d", "validUntil": "month-end+11@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "49",
+            "contractKind": "services",
+            "counterparty": "Carretillas Elevo Servicio, S.L.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "mantenimiento"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "forklift-maintenance-49.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de suministro n.º 63 — impresoras multifunción",
+          "dates": {"signed": "-242d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "63",
+            "contractKind": "supply",
+            "counterparty": "Ofisistemas Castilla, S.L.",
+            "contractAmount": "4580.00"
+          },
+          "tags": [
+            "suministro",
+            "informática",
+            "oficina"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "printers-supply-63.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Factura n.º 2209 — portátiles",
+          "dates": {"issued": "-142d", "request": "-145d", "due": "-135d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2209",
+            "supplier": "Informática Calderón, S.L.",
+            "invoiceAmount": "7187.40",
+            "dueDate": "due"
+          },
+          "tags": [
+            "informática"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "laptops-invoice-2209.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Nota interna n.º 41 — vehículos de empresa",
+          "dates": {"issued": "year-start-1+146d", "quotesBy": "issued+14d"},
+          "date": "issued",
+          "tags": [
+            "transporte"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "company-cars-memo-41.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de limpieza n.º 56",
+          "dates": {"signed": "-291d", "start": "month-start+1@signed", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "56",
+            "contractKind": "services",
+            "counterparty": "Limpiezas Brillo, S.L.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "oficina",
+            "mantenimiento"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "janitorial-services-56.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de arrendamiento de oficina n.º 13",
+          "favoriteOf": [
+            "peter"
+          ],
+          "dates": {"signed": "-302d", "start": "month-start+1@signed", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "13",
+            "contractKind": "lease",
+            "counterparty": "Patrimonial Calle Jardín, S.L.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "arrendamiento",
+            "oficina"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "office-lease-13.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de compraventa de mobiliario n.º 8",
+          "dates": {"signed": "-263d", "delivery": "-239d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "8",
+            "contractKind": "supply",
+            "counterparty": "Mobiliario de Oficina Alén, S.L.",
+            "contractAmount": "5000.00"
+          },
+          "tags": [
+            "suministro",
+            "oficina"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "furniture-purchase-8.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de licencia de software n.º 44",
+          "dates": {"signed": "-221d", "start": "month-start+1@signed", "validUntil": "month-end+11@start"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "44",
+            "contractKind": "services",
+            "counterparty": "Contasoft Soluciones, S.A.",
+            "contractAmount": "3070.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "informática"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "software-license-44.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de servicios de seguridad n.º 12",
+          "dates": {"signed": "-281d", "start": "month-start+1@signed", "validUntil": "month-end+11@start"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "12",
+            "contractKind": "services",
+            "counterparty": "Seguridad Escudo, S.A.",
+            "validUntil": "validUntil"
+          },
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "security-12.pdf",
+              "author": "alice",
+              "uploaded": "signed 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de instalación n.º 30 — aire acondicionado",
+          "dates": {"signed": "-193d", "workStart": "month-start+1@signed+11d", "workEnd": "month-start+1@signed+22d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "30",
+            "contractKind": "work",
+            "counterparty": "Climatización Confort, S.L.",
+            "contractAmount": "1640.00"
+          },
+          "tags": [
+            "oficina"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "air-conditioners-30.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de suministro de grupo electrógeno n.º 19",
+          "dates": {"signed": "-177d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "19",
+            "contractKind": "supply",
+            "counterparty": "Energía de Reserva, S.L.",
+            "contractAmount": "20800.00"
+          },
+          "tags": [
+            "suministro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "generator-19.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de mensajería n.º 25",
+          "dates": {"signed": "-271d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "25",
+            "contractKind": "services",
+            "counterparty": "Mensajería Pucela Exprés, S.L."
+          },
+          "tags": [
+            "transporte"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "courier-25.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de suministro de ropa de trabajo n.º 21",
+          "dates": {"signed": "-158d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "21",
+            "contractKind": "supply",
+            "counterparty": "Vestuario Laboral Molino, S.L.",
+            "contractAmount": "2040.00"
+          },
+          "tags": [
+            "suministro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "workwear-21.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Archivo {year:-1}",
+      "favoriteOf": [
+        "alice"
+      ],
+      "access": [
+        {
+          "role": "legal-department",
+          "level": "VIEW"
+        },
+        {
+          "role": "accounting",
+          "level": "VIEW"
+        },
+        {
+          "user": "alice",
+          "level": "EDIT"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Factura n.º 1187",
+          "dates": {"issued": "year-start-1+225d", "contract": "year-start-1+152d", "due": "issued+7d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "1187",
+            "supplier": "Recambios del Sur, S.L.",
+            "invoiceAmount": "972.84",
+            "dueDate": "due"
+          },
+          "tags": [
+            "mantenimiento"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "combine-parts-invoice-1187.pdf",
+              "author": "alice",
+              "uploaded": "issued 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de leasing n.º L-17/{year:signed}",
+          "dates": {"signed": "year-start-1+69d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "L-17/{year:signed}",
+            "contractKind": "leasing",
+            "counterparty": "Norte Arrendamientos Financieros, S.A.",
+            "contractAmount": "164000.00"
+          },
+          "tags": [
+            "arrendamiento"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "tractor-finance-lease-17.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Contrato marco de mantenimiento n.º 9/{year:signed} — picadora de forraje",
+          "dates": {"signed": "year-start-1+50d", "validUntil": "year-end-1"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "9/{year:signed}",
+            "contractKind": "services",
+            "counterparty": "Talleres Arévalo, S.L.",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "mantenimiento"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "master-service-9.pdf",
+              "author": "alice",
+              "uploaded": "signed 13:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Recursos Humanos",
+      "favoriteOf": [
+        "helen"
+      ],
+      "access": [
+        {
+          "role": "hr-department",
+          "level": "MANAGE"
+        }
+      ],
+      "folders": [
+        {
+          "name": "Vacaciones",
+          "access": [
+            {
+              "role": "hr-department",
+              "level": "MANAGE"
+            },
+            {
+              "role": "employee",
+              "level": "VIEW"
+            }
+          ],
+          "documents": [
+            {
+              "name": "Calendario de vacaciones {year:+1}",
+              "favoriteOf": [
+                "helen"
+              ],
+              "dates": {"drafted": "-4d", "approveBy": "year-end-14d"},
+              "tags": [
+                "RR. HH."
+              ],
+              "versions": [
+                {
+                  "text": "vacation-schedule.pdf",
+                  "author": "helen",
+                  "uploaded": "-18d 15:00"
+                }
+              ],
+              "comments": [
+                {
+                  "author": "peter",
+                  "at": "-16d 12:30",
+                  "text": "Por favor, pasad mis vacaciones de julio a agosto: en julio entregamos el proyecto."
+                },
+                {
+                  "author": "helen",
+                  "at": "-15d 09:15",
+                  "text": "Hecho, actualizo el calendario en los próximos días."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "name": "Carta de oferta — Lucía Martín Ruiz",
+          "dates": {"issued": "-71d", "hired": "-67d"},
+          "date": "issued",
+          "type": "HR document",
+          "fields": {
+            "employee": "Lucía Martín Ruiz",
+            "department": "Departamento de Compras",
+            "hireDate": "hired"
+          },
+          "tags": [
+            "RR. HH."
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "offer-letter.pdf",
+              "author": "helen",
+              "uploaded": "issued 10:40"
+            }
+          ]
+        },
+        {
+          "name": "Contrato de trabajo — Lucía Martín Ruiz",
+          "dates": {"issued": "-71d", "hired": "-67d"},
+          "date": "issued",
+          "type": "HR document",
+          "fields": {
+            "employee": "Lucía Martín Ruiz",
+            "department": "Departamento de Compras",
+            "hireDate": "hired"
+          },
+          "tags": [
+            "RR. HH."
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "employment-agreement.pdf",
+              "author": "helen",
+              "uploaded": "issued 11:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Borradores",
+      "deleted": {
+        "by": "alice",
+        "at": "-4d 16:20"
+      },
+      "documents": [
+        {
+          "name": "Contrato de suministro n.º 61 — borrador",
+          "dates": {"signed": "-2d", "validUntil": "year-end+1"},
+          "tags": [
+            "suministro"
+          ],
+          "versions": [
+            {
+              "text": "supply-61-draft.pdf",
+              "author": "alice",
+              "uploaded": "-32d 10:20"
+            }
+          ]
+        },
+        {
+          "name": "Factura n.º 1610 — borrador",
+          "dates": {"issued": "-1d", "contract": "-67d", "completed": "-8d", "due": "+13d"},
+          "versions": [
+            {
+              "text": "invoice-1610.pdf",
+              "author": "maria",
+              "uploaded": "-25d 15:05"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

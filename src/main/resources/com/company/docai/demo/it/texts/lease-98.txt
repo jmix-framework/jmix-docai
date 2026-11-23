@@ -1,0 +1,30 @@
+# CONTRATTO DI LOCAZIONE N. 98
+## Immobile a uso ufficio
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Immobiliare Lungoreno S.r.l., con sede in Via Riva di Reno 3, 40122 Bologna, P.IVA 04628193745, di seguito «Locatore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Conduttore», si conviene quanto segue.
+
+1. Il Locatore concede in locazione al Conduttore un ufficio di 158 m² al 2° piano dell'edificio di Via Riva di Reno 3, 40122 Bologna (di seguito «Ufficio»), destinato al personale amministrativo del Conduttore.
+2. Il Locatore consegna l'Ufficio alla data del presente contratto, insieme agli arredi e alle attrezzature elencati nel verbale di consegna firmato da entrambe le parti.
+3. La locazione ha durata dal giorno {signed:long} al {validUntil:long} e ha natura transitoria ai sensi dell'art. 27, comma 5, della Legge 392/1978.
+4. Il canone è di € 3.200,00 al mese, € 38.400,00 per l'intera durata, oltre IVA.
+5. Il canone si paga mensilmente entro il giorno 10 di ciascun mese. Comprende le spese condominiali, la pulizia delle parti comuni, la vigilanza dell'edificio e due posti auto. Il Conduttore paga a parte telefono e connessione internet.
+6. Il Conduttore utilizza l'Ufficio solo come ufficio, lo mantiene in buono stato e rispetta la normativa antincendio e il regolamento condominiale.
+7. Il Locatore garantisce ai dipendenti del Conduttore l'accesso all'Ufficio 24 ore su 24 e mantiene in efficienza ascensori, riscaldamento e climatizzazione.
+8. In caso di ritardo nel pagamento del canone, il Conduttore corrisponde una penale pari allo 0,1% dell'importo scaduto per ogni giorno di ritardo.
+9. Le parti possono risolvere anticipatamente il contratto per accordo scritto. Alla cessazione della locazione il Conduttore riconsegna l'Ufficio nello stato in cui l'ha ricevuto, salvo il normale deterioramento d'uso.
+
+Immobiliare Lungoreno S.r.l.	Campoverde S.r.l.
+______________	______________
+Simone Galletti, Amministratore unico	Paolo Ferri, Amministratore Delegato
+
+## Accordo di risoluzione consensuale
+
+Con il presente accordo, sottoscritto in data {validUntil:long}, Immobiliare Lungoreno S.r.l. e Campoverde S.r.l. risolvono il contratto di locazione n. 98 stipulato in data {signed:long}, con effetto dal {validUntil:long}.
+1. Il Conduttore ha riconsegnato l'Ufficio al Locatore in data {validUntil:long} in buono stato, salvo il normale deterioramento d'uso, come risulta dal verbale di riconsegna.
+2. Il Conduttore ha pagato per intero il canone dell'intera durata della locazione e non deve altro in forza del contratto.
+3. Ciascuna parte rinuncia nei confronti dell'altra a ogni pretesa derivante dal contratto di locazione.
+4. Il presente accordo entra in vigore alla data della sottoscrizione.
+
+Immobiliare Lungoreno S.r.l.	Campoverde S.r.l.
+______________	______________
+Simone Galletti, Amministratore unico	Paolo Ferri, Amministratore Delegato

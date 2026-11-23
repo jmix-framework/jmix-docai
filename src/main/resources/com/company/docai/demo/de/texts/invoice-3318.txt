@@ -1,0 +1,21 @@
+Schnellfracht GmbH
+Nussbaumweg 26, 31535 Neustadt am Rübenberge
+USt-IdNr. DE999918764 · Amtsgericht Hannover HRB 231876
+
+# RECHNUNG NR. 3318
+## vom {issued:long}
+Rechnungsempfänger: Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover
+Ihr Auftrag vom {request:long}
+
+Umzugsleistungen am {issued:long}, Büromöbel und Ausstattung (Umzug des Lagers):
+1. Lkw 7,5 t mit Kofferaufbau, 2 Fahrten × 215,00 €	430,00 €
+2. Be- und Entladen, 14 Arbeitsstunden × 38,00 €	532,00 €
+Summe netto	962,00 €
+zzgl. 19 % USt.	182,78 €
+Rechnungsbetrag	1.144,78 €
+
+Im Preis enthalten sind das Einwickeln der Büroausstattung in Stretchfolie, die Ladungssicherung und die Transportversicherung. Be- und Entladen übernahm ein Team aus vier Umzugshelfern.
+Zahlbar bis {due:long} ohne Abzug.
+Bankverbindung: Demobank AG, IBAN DE00 0000 0000 9000 0312 74, BIC DEMODEXXXXX. Bitte geben Sie die Rechnungsnummer als Verwendungszweck an.
+
+Bezahlt am {paid:long} per Überweisung.

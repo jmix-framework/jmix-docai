@@ -1,0 +1,13 @@
+# CONTRATTO DI NOLEGGIO N. 14
+## Trattore, noleggio a freddo (senza operatore)
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Noleggi Porta Nord S.r.l., con sede in Via dell'Arcoveggio 125, 40129 Bologna, P.IVA 07865793770, di seguito «Noleggiante», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Cliente», si conviene quanto segue.
+
+1. Il Noleggiante concede a noleggio al Cliente un trattore Ardena 82 (n. di telaio 80512347) con motore diesel, insieme alle attrezzature portate per i lavori primaverili in campo, dal {start:monthDay} al {validUntil:long}.
+2. Corrispettivo: € 16,00 per ora di funzionamento, con un minimo di € 4.800,00 per l'intero periodo (300 ore), oltre IVA.
+3. Il Cliente paga mensilmente, in base alle letture del contaore, entro 5 giorni lavorativi dalla firma del rapporto mensile di utilizzo da parte di entrambe le parti.
+4. Il Noleggiante esegue a proprie spese la manutenzione del trattore ogni 250 ore di funzionamento. Carburante e lubrificanti sono a carico del Cliente.
+
+Noleggi Porta Nord S.r.l.	Campoverde S.r.l.
+______________	______________
+Marco Lupi, Amministratore unico	Paolo Ferri, Amministratore Delegato

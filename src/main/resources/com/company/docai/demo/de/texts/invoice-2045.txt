@@ -1,0 +1,20 @@
+Nordwind Papier GmbH
+Nordring 157, 30179 Hannover
+USt-IdNr. DE999594061 · Amtsgericht Hannover HRB 225940
+
+# RECHNUNG NR. 2045
+## vom {issued:long}
+Rechnungsempfänger: Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover
+Lieferanschrift: wie oben; Lieferung am {delivery:long}, im Preis enthalten
+Vertrag: Liefervertrag Nr. 45 vom {contract:long}
+
+1. Kopierpapier A4, 80 g/m², 120 Pakete × 5,30 €	636,00 €
+2. Versandtaschen C4, haftklebend, 500 × 0,26 €	130,00 €
+3. Ordner A4, 8 cm Rückenbreite, 60 × 2,90 €	174,00 €
+Summe netto	940,00 €
+zzgl. 19 % USt.	178,60 €
+Rechnungsbetrag	1.118,60 €
+
+Papier: Weiße CIE 161, 500 Blatt je Paket, 5 Pakete je Karton. Versandtaschen: weiß. Ordner: Kunststoff, mit Hebelmechanik.
+Zahlbar bis {due:long} ohne Abzug.
+Bankverbindung: Demobank AG, IBAN DE00 0000 0000 9000 1058 82, BIC DEMODEXXXXX. Bitte geben Sie die Rechnungsnummer als Verwendungszweck an.

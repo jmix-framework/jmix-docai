@@ -1,0 +1,1243 @@
+{
+  "locale": "de",
+  "formats": {"long": "d.\u00a0MMMM yyyy", "monthDay": "d.\u00a0MMMM", "monthYear": "MMMM yyyy"},
+  "users": [
+    {
+      "login": "peter",
+      "firstName": "Peter",
+      "lastName": "Wagner",
+      "email": "peter.wagner@example.com"
+    },
+    {
+      "login": "alice",
+      "firstName": "Alina",
+      "lastName": "Hoffmann",
+      "email": "alina.hoffmann@example.com"
+    },
+    {
+      "login": "helen",
+      "firstName": "Helene",
+      "lastName": "Vogel",
+      "email": "helene.vogel@example.com"
+    },
+    {
+      "login": "maria",
+      "firstName": "Maria",
+      "lastName": "Lehmann",
+      "email": "maria.lehmann@example.com"
+    },
+    {
+      "login": "john",
+      "firstName": "Johannes",
+      "lastName": "Müller",
+      "email": "johannes.mueller@example.com"
+    }
+  ],
+  "statuses": [
+    {"key": "DRAFT", "name": "Entwurf", "anyTarget": false, "targets": ["IN_REVIEW", "ACTIVE"]},
+    {"key": "IN_REVIEW", "name": "In Prüfung", "color": "#3266e4", "position": 2, "anyTarget": true},
+    {"key": "ACTIVE", "name": "Aktiv", "position": 3},
+    {"key": "ARCHIVED", "name": "Archiviert", "position": 4}
+  ],
+  "folders": [
+    {
+      "name": "Posteingang",
+      "favoriteOf": [
+        "alice"
+      ],
+      "documents": [
+        {
+          "name": "Scan 0457.pdf",
+          "dates": {"issued": "-1d", "contract": "-67d", "completed": "-8d", "due": "+13d"},
+          "versions": [
+            {
+              "text": "invoice-1610.pdf",
+              "author": "alice",
+              "uploaded": "issued 09:42"
+            }
+          ]
+        },
+        {
+          "name": "Scan 0458.pdf",
+          "dates": {"issued": "-7d", "contract": "-301d"},
+          "versions": [
+            {
+              "text": "completion-certificate-64.pdf",
+              "author": "alice",
+              "uploaded": "-5d 10:15"
+            }
+          ]
+        },
+        {
+          "name": "Scan 0459.pdf",
+          "dates": {"signed": "-2d", "validUntil": "year-end+1"},
+          "versions": [
+            {
+              "text": "supply-61-draft.pdf",
+              "author": "alice",
+              "uploaded": "signed 15:20"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Verträge",
+      "favoriteOf": [
+        "admin",
+        "john"
+      ],
+      "documents": [
+        {
+          "name": "Mietvertrag Nr. 112",
+          "favoriteOf": [
+            "admin",
+            "john"
+          ],
+          "dates": {
+            "signed": "-253d",
+            "edition1": "-270d",
+            "edition2": "-262d",
+            "start": "month-start+1@signed",
+            "validUntil": "month-end+11@start",
+            "pay1": "month-start@start+4d",
+            "pay2": "month-start+1@start+4d",
+            "pay3": "month-start+2@start+4d",
+            "pay4": "month-start+3@start+4d",
+            "pay5": "month-start+4@start+4d",
+            "pay6": "month-start+5@start+4d",
+            "pay7": "month-start+6@start+4d",
+            "pay8": "month-start+7@start+4d",
+            "pay9": "month-start+8@start+4d",
+            "pay10": "month-start+9@start+4d",
+            "pay11": "month-start+10@start+4d",
+            "pay12": "month-start+11@start+4d",
+            "firstPayment": "pay1+10d"
+          },
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "112",
+            "contractKind": "lease",
+            "counterparty": "Westwind Immobilien GmbH",
+            "contractAmount": "51600.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Miete"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "lease-112-v1.pdf",
+              "author": "john",
+              "uploaded": "edition1 10:15"
+            },
+            {
+              "text": "lease-112-v2.pdf",
+              "author": "maria",
+              "uploaded": "edition2 14:30"
+            },
+            {
+              "text": "lease-112-v3.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:40"
+            }
+          ],
+          "comments": [
+            {
+              "author": "alice",
+              "at": "-268d 11:20",
+              "text": "Bitte Ziffer 5.1 prüfen: Die Vertragsstrafe beträgt 0,5 % pro Tag, üblich sind bei uns 0,1 %. So gebe ich den Vertrag nicht frei."
+            },
+            {
+              "author": "john",
+              "at": "-263d 16:05",
+              "text": "Der Vermieter ist mit 0,2 % pro Tag einverstanden. Ich nehme das in den nächsten Entwurf auf."
+            },
+            {
+              "author": "maria",
+              "at": "edition2 14:45",
+              "text": "Der überarbeitete Entwurf ist hochgeladen, die Vertragsstrafe beträgt darin 0,2 %.\nDie erste Zahlung verschiebt sich auf den {firstPayment:monthDay}: mit Westwind Immobilien abgestimmt.",
+              "edited": "edition2 15:10"
+            },
+            {
+              "author": "alice",
+              "at": "signed 16:50",
+              "text": "Das unterschriebene Exemplar ist hochgeladen, der Mietvertrag ist in Kraft."
+            }
+          ]
+        },
+        {
+          "name": "Dienstleistungsvertrag Nr. 7",
+          "dates": {"signed": "-299d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "7",
+            "contractKind": "services",
+            "counterparty": "Prätorius Hygieneservice GmbH",
+            "contractAmount": "2520.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Wartung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "services-7.pdf",
+              "author": "john",
+              "uploaded": "signed 11:20"
+            }
+          ]
+        },
+        {
+          "name": "Werkvertrag Nr. 15/{year:signed} — Dachsanierung",
+          "dates": {"signed": "-67d", "workStart": "-61d", "workEnd": "-8d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "15/{year:signed}",
+            "contractKind": "work",
+            "counterparty": "Firstwerk Bedachungen GmbH",
+            "contractAmount": "13800.00",
+            "validUntil": "validUntil"
+          },
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "roofing-contract-15.pdf",
+              "author": "john",
+              "uploaded": "signed 12:05"
+            }
+          ]
+        },
+        {
+          "name": "Liefervertrag Nr. 45",
+          "dates": {"signed": "-296d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "45",
+            "contractKind": "supply",
+            "counterparty": "Nordwind Papier GmbH",
+            "contractAmount": "10700.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Lieferung",
+            "Büro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "supply-45.pdf",
+              "author": "john",
+              "uploaded": "signed 15:30"
+            }
+          ]
+        },
+        {
+          "name": "Mietvertrag Nr. 98",
+          "dates": {"signed": "-859d", "validUntil": "month-end+11@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "98",
+            "contractKind": "lease",
+            "counterparty": "Leineufer Immobilien GmbH & Co. KG",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Miete"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "lease-98.pdf",
+              "author": "john",
+              "uploaded": "validUntil+1d 10:30"
+            }
+          ]
+        },
+        {
+          "name": "Personalvermittlungsvertrag",
+          "dates": {"signed": "-250d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "33/{year:signed}",
+            "contractKind": "services",
+            "counterparty": "Talentbrücke Personalberatung GmbH",
+            "contractAmount": "20000.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Personal"
+          ],
+          "status": "ACTIVE",
+          "access": [
+            {
+              "user": "helen",
+              "level": "MANAGE"
+            }
+          ],
+          "versions": [
+            {
+              "text": "agency.pdf",
+              "author": "helen",
+              "uploaded": "signed 13:45"
+            }
+          ]
+        },
+        {
+          "name": "Freigabeverfahren für Verträge.txt",
+          "dates": {"approved": "-299d"},
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "procedure-contracts.txt",
+              "author": "john",
+              "uploaded": "approved 16:00"
+            }
+          ]
+        },
+        {
+          "name": "Mietvertrag Nr. 112 — Entwurf 1",
+          "dates": {
+            "edition1": "-270d",
+            "signed": "-253d",
+            "start": "month-start+1@signed",
+            "validUntil": "month-end+11@start"
+          },
+          "date": "edition1",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "112",
+            "contractKind": "lease",
+            "counterparty": "Westwind Immobilien GmbH"
+          },
+          "tags": [
+            "Miete"
+          ],
+          "status": "ACTIVE",
+          "deleted": {
+            "by": "john",
+            "at": "-2d 12:10"
+          },
+          "versions": [
+            {
+              "text": "lease-112-v1.pdf",
+              "author": "john",
+              "uploaded": "edition1 10:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Rechnungen und Abnahmen",
+      "favoriteOf": [
+        "maria"
+      ],
+      "documents": [
+        {
+          "name": "Rechnung Nr. 2045",
+          "favoriteOf": [
+            "maria"
+          ],
+          "dates": {"issued": "-5d", "contract": "-296d", "delivery": "issued+8d", "due": "month-end"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2045",
+            "supplier": "Nordwind Papier GmbH",
+            "invoiceAmount": "1118.60",
+            "dueDate": "due"
+          },
+          "tags": [
+            "Lieferung",
+            "Büro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "invoice-2045.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:10"
+            }
+          ]
+        },
+        {
+          "name": "Rechnung Nr. 3318",
+          "dates": {"issued": "-56d", "request": "-60d", "due": "-42d", "paid": "-44d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "3318",
+            "supplier": "Schnellfracht GmbH",
+            "invoiceAmount": "1144.78",
+            "dueDate": "due"
+          },
+          "tags": [
+            "Transport"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "invoice-3318.pdf",
+              "author": "maria",
+              "uploaded": "issued 14:25"
+            }
+          ]
+        },
+        {
+          "name": "Abnahmeprotokoll Nr. 58",
+          "dates": {"issued": "-8d", "contract": "-67d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Firstwerk Bedachungen GmbH",
+            "certificateAmount": "13800.00",
+            "workCompletedOn": "issued",
+            "basisContract": "15/{year:contract}"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "completion-certificate-58.pdf",
+              "author": "maria",
+              "uploaded": "issued 17:05"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Einkauf",
+      "favoriteOf": [
+        "admin",
+        "peter"
+      ],
+      "documents": [
+        {
+          "name": "Maschinenmietvertrag Nr. 14 — Traktor Brandauer 82",
+          "dates": {"signed": "-268d", "start": "month-start+2@signed", "validUntil": "month-end+3@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "14",
+            "contractKind": "lease",
+            "counterparty": "Nordtor Maschinenvermietung GmbH",
+            "contractAmount": "4800.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Miete"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "tractor-lease-14.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Kaufvertrag Nr. 37/{year:signed} — Mähdrescher",
+          "dates": {"signed": "-249d", "delivery": "-145d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "37/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Leinetal Maschinenhandel GmbH",
+            "contractAmount": "182000.00"
+          },
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "combine-purchase-37.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Anlage 2 zum Liefervertrag Nr. 31/{year:contract}",
+          "dates": {"issued": "-232d", "contract": "-247d", "delivery": "-211d"},
+          "date": "issued",
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "seed-drill-schedule-2.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Übergabeprotokoll — selbstfahrende Pflanzenschutzspritze",
+          "dates": {"issued": "-151d", "contract": "-173d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Kreuzweg Maschinenhandel GmbH",
+            "certificateAmount": "143000.00",
+            "workCompletedOn": "issued",
+            "basisContract": "24/{year:contract}"
+          },
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "sprayer-delivery-receipt.pdf",
+              "author": "maria",
+              "uploaded": "issued 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Werkvertrag Nr. 22/{year:signed} — Montage einer Kreisberegnungsmaschine",
+          "dates": {"signed": "-206d", "workStart": "month-start+1@signed+3d", "workEnd": "month-end+1@signed-1d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "22/{year:signed}",
+            "contractKind": "work",
+            "counterparty": "Klarwasser Beregnungstechnik GmbH",
+            "contractAmount": "26400.00"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "center-pivot-installation-22.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Kaufvertrag Nr. 11/{year:signed} — Raupentraktor",
+          "dates": {"signed": "-283d", "delivery": "-253d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "11/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Weserland Traktorenhandel GmbH",
+            "contractAmount": "48700.00"
+          },
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "crawler-tractor-purchase-11.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Rechnung Nr. 405",
+          "dates": {"issued": "-219d", "contract": "-228d", "due": "-212d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "405",
+            "supplier": "Orion Gerätebau GmbH",
+            "invoiceAmount": "6985.30",
+            "dueDate": "due"
+          },
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "plow-cultivator-invoice.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Interne Mitteilung Nr. 18",
+          "dates": {"issued": "-172d", "hayCut": "-150d", "orderBy": "-165d"},
+          "date": "issued",
+          "tags": [
+            "Wartung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "baler-memo.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Rahmenliefervertrag Nr. 3/{year:signed}",
+          "dates": {"signed": "-296d", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "3/{year:signed}",
+            "contractKind": "supply",
+            "counterparty": "Kirchwald Agrarbedarf GmbH",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "master-supply-3.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Maschinenmietvertrag Nr. 27 — Kettenbagger",
+          "dates": {"signed": "-255d", "start": "month-start+1@signed+9d", "validUntil": "month-end+1@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "27",
+            "contractKind": "lease",
+            "counterparty": "Eisenmann Baumaschinenvermietung GmbH",
+            "contractAmount": "6800.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Miete"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "excavator-rental-27.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Leistungsnachweis Nr. 87 — Planierung",
+          "dates": {"issued": "-185d", "contract": "-193d", "completed": "-186d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Erdbau Fuhse GmbH",
+            "certificateAmount": "1220.00",
+            "workCompletedOn": "completed",
+            "basisContract": "34"
+          },
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "site-grading-confirmation-87.pdf",
+              "author": "maria",
+              "uploaded": "issued 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Kranauftrag Nr. 212",
+          "dates": {"issued": "-235d", "contract": "-299d", "service": "-228d"},
+          "date": "issued",
+          "tags": [
+            "Transport"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "crane-service-order-212.pdf",
+              "author": "alice",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Übergabeprotokoll Nr. 5 — Schneefräse",
+          "dates": {"issued": "-297d", "contract": "-299d"},
+          "date": "issued",
+          "type": "Completion certificate",
+          "fields": {
+            "contractor": "Gartenland Motorgeräte GmbH",
+            "certificateAmount": "1640.00",
+            "workCompletedOn": "issued",
+            "basisContract": "2/{year:contract}"
+          },
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "snow-blower-receipt-5.pdf",
+              "author": "maria",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Bedarfsanforderung Nr. 29",
+          "dates": {"issued": "year-start-1+110d", "neededBy": "month-end@issued"},
+          "date": "issued",
+          "tags": [
+            "Wartung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "lawn-mowers-request-29.pdf",
+              "author": "alice",
+              "uploaded": "issued 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Wartungsvertrag Nr. 49 — Gabelstapler",
+          "dates": {"signed": "-277d", "validUntil": "month-end+11@signed"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "49",
+            "contractKind": "services",
+            "counterparty": "Hubwerk Staplerservice GmbH",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Wartung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "forklift-maintenance-49.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Liefervertrag Nr. 63 — Multifunktionsdrucker für das Büro",
+          "dates": {"signed": "-242d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "63",
+            "contractKind": "supply",
+            "counterparty": "Brückstraße Bürosysteme GmbH",
+            "contractAmount": "4580.00"
+          },
+          "tags": [
+            "Lieferung",
+            "IT",
+            "Büro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "printers-supply-63.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Rechnung Nr. 2209 — Notebooks",
+          "dates": {"issued": "-142d", "request": "-145d", "due": "-135d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "2209",
+            "supplier": "Kalkhorst Computerhandel GmbH",
+            "invoiceAmount": "7068.60",
+            "dueDate": "due"
+          },
+          "tags": [
+            "IT"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "laptops-invoice-2209.pdf",
+              "author": "maria",
+              "uploaded": "issued 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Interne Mitteilung Nr. 41 — Dienstwagen",
+          "dates": {"issued": "year-start-1+146d", "quotesBy": "issued+14d"},
+          "date": "issued",
+          "tags": [
+            "Transport"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "company-cars-memo-41.pdf",
+              "author": "alice",
+              "uploaded": "issued 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Reinigungsvertrag Nr. 56",
+          "dates": {"signed": "-291d", "start": "month-start+1@signed", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "56",
+            "contractKind": "services",
+            "counterparty": "Glanzweg Gebäudereinigung GmbH",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Büro",
+            "Wartung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "janitorial-services-56.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Büromietvertrag Nr. 13",
+          "favoriteOf": [
+            "peter"
+          ],
+          "dates": {"signed": "-302d", "start": "month-start+1@signed", "validUntil": "quarter-end"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "13",
+            "contractKind": "lease",
+            "counterparty": "Gartenstraße Grundbesitz GmbH & Co. KG",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Miete",
+            "Büro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "office-lease-13.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Kaufvertrag Nr. 8 — Büromöbel",
+          "dates": {"signed": "-263d", "delivery": "-239d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "8",
+            "contractKind": "supply",
+            "counterparty": "Allee Büromöbel GmbH",
+            "contractAmount": "5000.00"
+          },
+          "tags": [
+            "Lieferung",
+            "Büro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "furniture-purchase-8.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Softwarelizenzvertrag Nr. 44",
+          "dates": {"signed": "-221d", "start": "month-start+1@signed", "validUntil": "month-end+11@start"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "44",
+            "contractKind": "services",
+            "counterparty": "Buchwald Software AG",
+            "contractAmount": "3070.00",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "IT"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "software-license-44.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Bewachungsvertrag Nr. 12",
+          "dates": {"signed": "-281d", "start": "month-start+1@signed", "validUntil": "month-end+11@start"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "12",
+            "contractKind": "services",
+            "counterparty": "Schild Sicherheitsdienst GmbH",
+            "validUntil": "validUntil"
+          },
+          "status": "IN_REVIEW",
+          "versions": [
+            {
+              "text": "security-12.pdf",
+              "author": "alice",
+              "uploaded": "signed 13:15"
+            }
+          ]
+        },
+        {
+          "name": "Werkvertrag Nr. 30 — Klimageräte",
+          "dates": {"signed": "-193d", "workStart": "month-start+1@signed+11d", "workEnd": "month-start+1@signed+22d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "30",
+            "contractKind": "work",
+            "counterparty": "Komfortklima Anlagenbau GmbH",
+            "contractAmount": "1640.00"
+          },
+          "tags": [
+            "Büro"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "air-conditioners-30.pdf",
+              "author": "alice",
+              "uploaded": "signed 14:50"
+            }
+          ]
+        },
+        {
+          "name": "Liefervertrag Nr. 19 — Notstromaggregat",
+          "dates": {"signed": "-177d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "19",
+            "contractKind": "supply",
+            "counterparty": "Reserva Stromsysteme GmbH",
+            "contractAmount": "20800.00"
+          },
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "generator-19.pdf",
+              "author": "alice",
+              "uploaded": "signed 16:20"
+            }
+          ]
+        },
+        {
+          "name": "Kurierdienstvertrag Nr. 25",
+          "dates": {"signed": "-271d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "25",
+            "contractKind": "services",
+            "counterparty": "Stadtkurier Hannover GmbH"
+          },
+          "tags": [
+            "Transport"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "courier-25.pdf",
+              "author": "alice",
+              "uploaded": "signed 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Liefervertrag Nr. 21 — Arbeitskleidung",
+          "dates": {"signed": "-158d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "21",
+            "contractKind": "supply",
+            "counterparty": "Mühlenstraße Berufskleidung GmbH",
+            "contractAmount": "2040.00"
+          },
+          "tags": [
+            "Lieferung"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "workwear-21.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Archiv {year:-1}",
+      "favoriteOf": [
+        "alice"
+      ],
+      "access": [
+        {
+          "role": "legal-department",
+          "level": "VIEW"
+        },
+        {
+          "role": "accounting",
+          "level": "VIEW"
+        },
+        {
+          "user": "alice",
+          "level": "EDIT"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Rechnung Nr. 1187",
+          "dates": {"issued": "year-start-1+225d", "contract": "year-start-1+152d", "due": "issued+7d"},
+          "date": "issued",
+          "type": "Invoice",
+          "fields": {
+            "invoiceNumber": "1187",
+            "supplier": "Ersatzteile Süd GmbH",
+            "invoiceAmount": "956.76",
+            "dueDate": "due"
+          },
+          "tags": [
+            "Wartung"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "combine-parts-invoice-1187.pdf",
+              "author": "alice",
+              "uploaded": "issued 10:05"
+            }
+          ]
+        },
+        {
+          "name": "Leasingvertrag Nr. L-17/{year:signed}",
+          "dates": {"signed": "year-start-1+69d"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "L-17/{year:signed}",
+            "contractKind": "leasing",
+            "counterparty": "Nordpunkt Leasing GmbH",
+            "contractAmount": "164000.00"
+          },
+          "tags": [
+            "Miete"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "tractor-finance-lease-17.pdf",
+              "author": "alice",
+              "uploaded": "signed 11:40"
+            }
+          ]
+        },
+        {
+          "name": "Rahmenwartungsvertrag Nr. 9/{year:signed} — Feldhäcksler",
+          "dates": {"signed": "year-start-1+50d", "validUntil": "year-end-1"},
+          "date": "signed",
+          "type": "Contract",
+          "fields": {
+            "contractNumber": "9/{year:signed}",
+            "contractKind": "services",
+            "counterparty": "Schermann Maschinenservice GmbH",
+            "validUntil": "validUntil"
+          },
+          "tags": [
+            "Wartung"
+          ],
+          "status": "ARCHIVED",
+          "versions": [
+            {
+              "text": "master-service-9.pdf",
+              "author": "alice",
+              "uploaded": "signed 13:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Personal",
+      "favoriteOf": [
+        "helen"
+      ],
+      "access": [
+        {
+          "role": "hr-department",
+          "level": "MANAGE"
+        }
+      ],
+      "folders": [
+        {
+          "name": "Urlaub",
+          "access": [
+            {
+              "role": "hr-department",
+              "level": "MANAGE"
+            },
+            {
+              "role": "employee",
+              "level": "VIEW"
+            }
+          ],
+          "documents": [
+            {
+              "name": "Urlaubsplan {year:+1}",
+              "favoriteOf": [
+                "helen"
+              ],
+              "dates": {"drafted": "-4d", "approveBy": "year-end-14d"},
+              "tags": [
+                "Personal"
+              ],
+              "versions": [
+                {
+                  "text": "vacation-schedule.pdf",
+                  "author": "helen",
+                  "uploaded": "-18d 15:00"
+                }
+              ],
+              "comments": [
+                {
+                  "author": "peter",
+                  "at": "-16d 12:30",
+                  "text": "Bitte verschieben Sie meinen Urlaub von Juli auf August: Im Juli geben wir unser Projekt ab."
+                },
+                {
+                  "author": "helen",
+                  "at": "-15d 09:15",
+                  "text": "Ist verschoben, ich aktualisiere den Plan in den nächsten Tagen."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "documents": [
+        {
+          "name": "Einstellungszusage — Lena Fischer",
+          "dates": {"issued": "-71d", "hired": "-67d"},
+          "date": "issued",
+          "type": "HR document",
+          "fields": {
+            "employee": "Lena Fischer",
+            "department": "Abteilung Einkauf",
+            "hireDate": "hired"
+          },
+          "tags": [
+            "Personal"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "offer-letter.pdf",
+              "author": "helen",
+              "uploaded": "issued 10:40"
+            }
+          ]
+        },
+        {
+          "name": "Arbeitsvertrag — Lena Fischer",
+          "dates": {"issued": "-71d", "hired": "-67d"},
+          "date": "issued",
+          "type": "HR document",
+          "fields": {
+            "employee": "Lena Fischer",
+            "department": "Abteilung Einkauf",
+            "hireDate": "hired"
+          },
+          "tags": [
+            "Personal"
+          ],
+          "status": "ACTIVE",
+          "versions": [
+            {
+              "text": "employment-agreement.pdf",
+              "author": "helen",
+              "uploaded": "issued 11:15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Entwürfe",
+      "deleted": {
+        "by": "alice",
+        "at": "-4d 16:20"
+      },
+      "documents": [
+        {
+          "name": "Liefervertrag Nr. 61 — Entwurf",
+          "dates": {"signed": "-2d", "validUntil": "year-end+1"},
+          "tags": [
+            "Lieferung"
+          ],
+          "versions": [
+            {
+              "text": "supply-61-draft.pdf",
+              "author": "alice",
+              "uploaded": "-32d 10:20"
+            }
+          ]
+        },
+        {
+          "name": "Rechnung Nr. 1610 — Entwurf",
+          "dates": {"issued": "-1d", "contract": "-67d", "completed": "-8d", "due": "+13d"},
+          "versions": [
+            {
+              "text": "invoice-1610.pdf",
+              "author": "maria",
+              "uploaded": "-25d 15:05"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+BORRADOR
+# CONTRATO DE SUMINISTRO N.º 61/{year:signed}
+## Material de oficina
+
+Este contrato de suministro se celebra en Valladolid el {signed:long} entre Suministros de Oficina Plaza Mayor, S.L., con CIF B99230412 y domicilio en calle del Mercado, 23, local 3, 47002 Valladolid (el «Proveedor»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Comprador»).
+
+1. El Proveedor vende al Comprador material de oficina (los «Productos») según los pedidos del Comprador.
+2. Los Productos incluyen bolígrafos, lápices, rotuladores, blocs de notas, carpetas, clips, grapadoras, taladradoras, notas adhesivas, bandejas portadocumentos y organizadores de escritorio.
+3. El Comprador hace los pedidos por correo electrónico e indica los artículos, las cantidades y la fecha de entrega deseada. El Proveedor confirma cada pedido y emite la factura en 1 día hábil.
+4. Los precios son los de la tarifa del Proveedor vigente en la fecha del pedido. El Proveedor puede cambiar su tarifa como máximo una vez por trimestre, avisando al Comprador con al menos 30 días de antelación.
+5. El importe estimado del contrato es de 2.700,00 € al año, más IVA.
+6. El Proveedor entrega los Productos en la oficina del Comprador, calle del Jardín, 12, oficina 312, 47001 Valladolid, en los 2 días hábiles siguientes a la confirmación del pedido, con entrega en el interior sin coste.
+7. El Comprador paga cada pedido en los 10 días hábiles siguientes a la entrega, contra factura y albarán firmado.
+8. El Comprador comprueba la cantidad y los artículos al recibirlos y anota en el albarán cualquier falta o daño; el Proveedor entrega los Productos que falten o sustituye los defectuosos a su cargo en un plazo de 3 días hábiles.
+9. Los Productos son nuevos y se entregan en el embalaje original del fabricante. Las grapadoras, las taladradoras y los organizadores de escritorio tienen una garantía de 12 meses desde la entrega.
+10. La propiedad de los Productos se transmite al Comprador cuando este firma el albarán.
+11. Si una entrega se retrasa, el Proveedor abona una penalización del 0,1 % del valor de los Productos no entregados por cada día de retraso; si un pago se retrasa, el Comprador abona un interés de demora del 0,1 % de la cantidad vencida por cada día de retraso.
+12. El contrato entra en vigor en la fecha de su firma y estará vigente hasta el {validUntil:long}.
+13. El contrato se rige por la legislación española. Las partes se someten a los Juzgados y Tribunales de Valladolid.
+
+SUMINISTROS DE OFICINA PLAZA MAYOR, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________

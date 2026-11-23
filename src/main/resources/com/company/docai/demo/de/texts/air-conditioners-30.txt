@@ -1,0 +1,13 @@
+# WERKVERTRAG NR. 30
+## Montage von Klimageräten im Büro
+
+Zwischen der Komfortklima Anlagenbau GmbH, Vahrenwalder Straße 57, 30165 Hannover, vertreten durch den Geschäftsführer Niels Burmeister (nachfolgend „Auftragnehmer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Auftragnehmer montiert sechs vom Auftraggeber beigestellte Split-Klimageräte zur Wandmontage im Büro des Auftraggebers, Gartenstraße 12, 3. OG, 30159 Hannover: fünf Geräte mit 3,5 kW und ein Gerät mit 7,0 kW Kühlleistung.
+2. Die Montageleistung kostet 1.180,00 € (5 × 182,00 € + 270,00 €), das Montagematerial (Kältemittelleitungen aus Kupfer, Elektroleitungen, Kondensatableitungen) 460,00 €. Der Gesamtpreis beträgt 1.640,00 € zzgl. 19 % USt.
+3. Die Arbeiten werden vom {workStart:monthDay} bis {workEnd:long} ausgeführt. Der Auftraggeber zahlt 50 % im Voraus und den Rest nach Unterzeichnung des Abnahmeprotokolls.
+4. Gewährleistung auf die Montage: 24 Monate.
+
+Komfortklima Anlagenbau GmbH	Wiesengrund GmbH
+______________	______________
+Niels Burmeister, Geschäftsführer	Paul Schmidt, Geschäftsführer

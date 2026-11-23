@@ -1,0 +1,17 @@
+# RICHIESTA DI ACQUISTO N. 29
+## Attrezzature per la manutenzione del verde
+
+Data: {issued:long}
+A: Laura Marchetti, Responsabile Acquisti
+Da: Stefano Bassi, Responsabile Servizi Generali
+Centro di costo: manutenzione aree verdi
+
+Si chiede l'acquisto dei seguenti articoli per il prato del magazzino di Via del Commercio 36, capannone 2, 40138 Bologna (circa 600 m²):
+1. Rasaerba semovente a scoppio, taglio 51 cm, 2 pz × € 432,00	€ 864,00
+2. Tubo da giardino rinforzato, 25 m, 6 pz × € 27,00	€ 162,00
+3. Irrigatore da prato con raccordi, 6 kit × € 9,00	€ 54,00
+Totale (IVA esclusa)	€ 1.080,00
+
+L'irrigazione inizia ai primi di maggio, quindi gli articoli devono arrivare entro il {neededBy:long}.
+
+Richiedente: ______________ Stefano Bassi

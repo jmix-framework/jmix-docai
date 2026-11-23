@@ -1,0 +1,13 @@
+# CONTRATTO DI FORNITURA N. 19
+## Gruppo elettrogeno diesel di emergenza con installazione
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Riserva Energia S.r.l., con sede in Via della Cooperazione 31, 40129 Bologna, P.IVA 05957113774, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Acquirente», si conviene quanto segue.
+
+1. Il Fornitore vende e installa e l'Acquirente acquista un gruppo elettrogeno diesel di emergenza da 60 kW (75 kVA) in cofanatura insonorizzata, con quadro di commutazione automatica che lo avvia quando manca la tensione di rete. Il gruppo alimenta il magazzino di Via del Commercio 36, capannone 2, 40138 Bologna.
+2. Prezzo: € 20.800,00 oltre IVA. L'Acquirente versa un acconto del 50%, pari a € 10.400,00, entro 3 giorni lavorativi dalla firma del contratto e paga il saldo dopo la firma del verbale di fine lavori.
+3. Il Fornitore consegna il gruppo elettrogeno, lo installa su un basamento in calcestruzzo e lo collega entro 30 giorni lavorativi dal pagamento dell'acconto.
+4. Garanzia: 12 mesi o 1.000 ore di funzionamento, al primo dei due termini raggiunto.
+
+Riserva Energia S.r.l.	Campoverde S.r.l.
+______________	______________
+Gregorio Piatti, Amministratore unico	Paolo Ferri, Amministratore Delegato

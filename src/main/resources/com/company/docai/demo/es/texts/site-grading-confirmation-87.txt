@@ -1,0 +1,19 @@
+# ACTA DE CONFORMIDAD N.º 87
+## Explanación de parcela
+
+Fecha: {issued:long}
+Prestador: Excavaciones Cigales, S.L.
+Cliente: Vega Verde, S.L.
+Contrato: contrato de servicios n.º 34, de fecha {contract:long}
+Lugar: avenida del Comercio, 36, nave 2, 47012 Valladolid
+
+El Prestador declara, y el Cliente acepta, los siguientes servicios:
+1. Explanación con bulldozer, aparcamiento de 40 plazas, 24 horas a 42,50 €	1.020,00 €
+2. Transporte del bulldozer en góndola, 2 viajes a 100,00 €	200,00 €
+Total (IVA no incluido)	1.220,00 €
+
+La parcela se niveló a las cotas del proyecto con una pendiente transversal del 1,5 %. Todos los servicios se terminaron el {completed:long}.
+
+EXCAVACIONES CIGALES, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Adán Duque Serna, administrador	Sergio Sanz Molina, jefe de servicios generales

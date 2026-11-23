@@ -1,0 +1,13 @@
+Campoverde S.r.l.
+# NOTA INTERNA N. 18
+
+Data: {issued:long}
+A: Paolo Ferri, Amministratore Delegato
+Da: Ivano Neri, Responsabile parco mezzi
+Oggetto: acquisto di una rotopressa
+
+Chiedo l'approvazione per l'acquisto di una rotopressa per la fienagione.
+
+Il primo sfalcio è in calendario per il giorno {hayCut:monthDay} e prevediamo circa 600 rotoballe da 150 cm di diametro. La rotopressa che usiamo oggi, del 2009, si è guastata due volte nella scorsa stagione e le riparazioni sono costate € 2.380. La nuova rotopressa è compatibile con i nostri trattori Ardena 82.
+
+L'ufficio acquisti ha raccolto due preventivi: € 14.200 con consegna in 14 giorni ed € 13.200 con consegna in 6 settimane, IVA esclusa. La seconda rotopressa non arriverebbe prima del primo sfalcio, quindi consiglio il primo preventivo. Chiedo di incaricare l'ufficio acquisti di emettere l'ordine entro il giorno {orderBy:monthDay}.

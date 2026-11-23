@@ -149,7 +149,7 @@ class ConfigurationProfilesTest {
 
             assertThat(properties.copyIdleTimeout()).isEqualTo(Duration.ofMinutes(30));
             assertThat(properties.copyUploadQuota()).isEqualTo(DataSize.ofMegabytes(20));
-            assertThat(properties.templateLanguages()).containsExactly("en", "ru");
+            assertThat(properties.templateLanguages()).containsExactly("en", "ru", "de", "es", "it");
             assertThat(properties.uploadTypes()).containsExactly(
                     "application/pdf",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

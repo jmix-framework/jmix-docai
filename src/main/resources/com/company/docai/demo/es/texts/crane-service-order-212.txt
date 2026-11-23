@@ -1,0 +1,13 @@
+# ORDEN DE SERVICIO DE GRÚA N.º 212
+
+Fecha: {issued:long}
+Empresa de grúas: Grúas Ribera, S.L.
+Cliente: Vega Verde, S.L.
+Contrato: contrato de servicios n.º 28, de fecha {contract:long}
+
+Se solicita una grúa autopropulsada de 30 t con pluma de 28 m el {service:long}, de 8:00 a 17:00, para subir equipos de ventilación a la cubierta del almacén de avenida del Comercio, 36, nave 2, 47012 Valladolid.
+El equipo más pesado pesa 3,2 t; el alcance de pluma necesario es de hasta 18 m. La tarifa es de 62,00 € por hora, más IVA, con un mínimo de 4 horas. El Cliente facilita el acceso a la obra y una superficie nivelada para los estabilizadores.
+Persona de contacto en el lugar: Daniel Ortiz Mena, jefe de almacén, 600 000 112.
+
+Solicitado por: ______________ Sergio Sanz Molina, jefe de servicios generales, Vega Verde, S.L.
+Aceptado por: ______________ Nicolás Bello Ramos, jefe de tráfico, Grúas Ribera, S.L.

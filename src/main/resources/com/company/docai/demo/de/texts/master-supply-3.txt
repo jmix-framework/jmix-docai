@@ -1,0 +1,43 @@
+# RAHMENLIEFERVERTRAG NR. 3/{year:signed}
+
+Zwischen der Kirchwald Agrarbedarf GmbH, Kirchweg 14, 31275 Lehrte, vertreten durch den Geschäftsführer Kai Andresen (nachfolgend „Lieferant“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Käufer“), wird am {signed:long} folgender Rahmenvertrag geschlossen:
+
+## 1. Gegenstand
+1.1 Der Lieferant verkauft dem Käufer die in Anlage A aufgeführten Waren aufgrund von Bestellungen, die der Käufer nach Bedarf aufgibt.
+1.2 Menge, Preis und Liefertermin jeder Bestellung werden in der Bestellung des Käufers und der Auftragsbestätigung des Lieferanten vereinbart; beide werden Bestandteil dieses Vertrags.
+## 2. Bestellung und Lieferung
+2.1 Der Käufer bestellt per E-Mail. Der Lieferant bestätigt eine Bestellung innerhalb von 2 Arbeitstagen oder teilt dem Käufer mit, dass er sie nicht ausführen kann.
+2.2 Sofern die Auftragsbestätigung nichts anderes vorsieht, liefert der Lieferant die Waren mit eigenen Fahrzeugen an das Lager des Käufers, Industriestraße 36, Halle 2, 30179 Hannover. Die Lieferung ist im Preis enthalten.
+2.3 Eigentum und Gefahr gehen mit Unterzeichnung des Lieferscheins durch den Käufer auf ihn über. Der Käufer prüft die Menge am Liefertag und die Qualität innerhalb von 10 Arbeitstagen.
+## 3. Preise und Zahlung
+3.1 Die Preise werden in der Auftragsbestätigung angegeben und schließen Verpackung und Lieferung ein; sie verstehen sich zzgl. USt. Den Preis einer bestätigten Bestellung darf der Lieferant nicht ändern.
+3.2 Sofern die Auftragsbestätigung keine Vorauszahlung vorsieht, zahlt der Käufer jede Bestellung innerhalb von 10 Arbeitstagen nach Unterzeichnung des Lieferscheins.
+## 4. Qualität und Gewährleistung
+4.1 Die Waren müssen neu sein, den Spezifikationen des Herstellers entsprechen und mit Herstellergarantie und Betriebsanleitung geliefert werden.
+4.2 Die Gewährleistungsfrist beträgt 12 Monate ab dem Datum des Lieferscheins. In dieser Frist festgestellte Mängel beseitigt der Lieferant auf eigene Kosten innerhalb von 14 Tagen nach Anzeige.
+## 5. Haftung, höhere Gewalt und Streitigkeiten
+5.1 Bei Lieferverzug zahlt der Lieferant eine Vertragsstrafe, bei Zahlungsverzug zahlt der Käufer einen Verzugszuschlag, jeweils 0,1 % des rückständigen Betrags pro Tag, höchstens 5 % dieses Betrags.
+5.2 Keine Partei haftet für die Nichterfüllung ihrer Pflichten infolge höherer Gewalt, wenn sie die andere Partei innerhalb von 5 Arbeitstagen benachrichtigt.
+5.3 Streitigkeiten versuchen die Parteien zunächst gütlich beizulegen; eine Partei, die eine schriftliche Streitmitteilung erhält, antwortet innerhalb von 10 Arbeitstagen. Ist ein Streit 30 Tage nach der Mitteilung nicht beigelegt, ist Gerichtsstand Hannover.
+## 6. Laufzeit
+6.1 Dieser Vertrag gilt vom {signed:long} bis {validUntil:long} und verlängert sich um den gleichen Zeitraum, wenn ihn keine Partei spätestens 30 Tage vor Ablauf kündigt.
+
+Kirchwald Agrarbedarf GmbH	Wiesengrund GmbH
+______________	______________
+Kai Andresen, Geschäftsführer	Paul Schmidt, Geschäftsführer
+
+
+
+
+## Anlage A
+## zum Rahmenliefervertrag Nr. 3/{year:signed} vom {signed:long}
+Waren, die der Käufer nach diesem Vertrag bestellen kann:
+1. Ersatz- und Verschleißteile für Traktoren und Mähdrescher (Filter, Riemen, Lager, Schneidteile) laut Katalog des Lieferanten.
+2. Anhänge-Düngerstreuer Kellermann TS8, 8 t Behältervolumen, laut Auftragsbestätigung.
+3. Starterbatterien 12 V, 225 Ah, für schwere Nutzfahrzeuge, laut Auftragsbestätigung.
+4. Motor- und Getriebeöle in 20-l-Kanistern und 200-l-Fässern, laut Auftragsbestätigung.
+Preise und Liefertermine werden in der Auftragsbestätigung zu jeder Bestellung festgelegt.
+
+Kirchwald Agrarbedarf GmbH	Wiesengrund GmbH
+______________	______________
+Kai Andresen, Geschäftsführer	Paul Schmidt, Geschäftsführer

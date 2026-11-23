@@ -1,0 +1,14 @@
+# WERKVERTRAG NR. 22/{year:signed}
+## Montage einer Kreisberegnungsmaschine
+
+Zwischen der Klarwasser Beregnungstechnik GmbH, Fabrikstraße 15, 31535 Neustadt am Rübenberge, vertreten durch den Geschäftsführer Andreas Tillmann (nachfolgend „Auftragnehmer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Auftragnehmer montiert eine Kreisberegnungsmaschine Regenfeld 7 mit Pumpstation auf Schlag 7 des Betriebs des Auftraggebers (64 ha) zur Beregnung von Silomais und Ackergras, schließt die Maschine an die Wasserentnahme und die Stromversorgung an und nimmt sie in Betrieb. Die Maschine stellt der Auftraggeber bei.
+2. Eine Kreisberegnungsmaschine ist eine selbstfahrende landwirtschaftliche Maschine: Ihre fahrbaren Türme, angetrieben von Elektromotoren, bewegen sich um einen festen Mittelpunkt und bewässern die Kulturen während der gesamten Beregnungssaison von Mai bis September über Düsen.
+3. Die Arbeiten werden vom {workStart:monthDay} bis {workEnd:long} ausgeführt. Ein Probelauf auf dem Feld und ein Abnahmeprotokoll bestätigen die Betriebsbereitschaft der Maschine.
+4. Der Werklohn beträgt 26.400,00 € zzgl. 19 % USt. Der Auftraggeber leistet innerhalb von 5 Arbeitstagen nach Unterzeichnung dieses Vertrags eine Anzahlung von 50 %, 13.200,00 € zzgl. USt., und zahlt den Rest nach Unterzeichnung des Abnahmeprotokolls.
+5. Gewährleistung auf die Arbeiten: 12 Monate.
+
+Klarwasser Beregnungstechnik GmbH	Wiesengrund GmbH
+______________	______________
+Andreas Tillmann, Geschäftsführer	Paul Schmidt, Geschäftsführer
