@@ -1,0 +1,14 @@
+# CONTRATTO DI INSTALLAZIONE N. 30
+## Climatizzazione degli uffici
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Clima Comfort Impianti S.r.l., con sede in Via Ferruccio Parri 57, 40128 Bologna, P.IVA 00139623741, di seguito «Installatore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Committente», si conviene quanto segue.
+
+1. L'Installatore installa negli uffici del Committente in Via dei Giardini 12, 40121 Bologna, sei climatizzatori split a parete forniti dal Committente: cinque unità da 3,5 kW e una da 7 kW.
+2. La manodopera per l'installazione costa € 1.180,00 (5 × € 182,00 + € 270,00) e i materiali (linee frigorifere in rame, collegamenti elettrici, scarichi della condensa) € 460,00. Il totale è di € 1.640,00 oltre IVA.
+3. I lavori si svolgono dal {workStart:monthDay} al {workEnd:long}. Il Committente versa un acconto del 50% e paga il saldo alla firma del verbale di fine lavori.
+4. A fine lavori l'Installatore rilascia la dichiarazione di conformità dell'impianto ai sensi del D.M. 37/2008. Il personale dell'Installatore è in possesso della certificazione F-gas.
+5. Garanzia sull'installazione: 24 mesi.
+
+Clima Comfort Impianti S.r.l.	Campoverde S.r.l.
+______________	______________
+Nello Borrelli, Amministratore unico	Paolo Ferri, Amministratore Delegato

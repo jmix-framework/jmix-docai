@@ -1,0 +1,19 @@
+# VERBALE DI REGOLARE ESECUZIONE N. 87
+## Livellamento del piazzale
+
+Data: {issued:long}
+Fornitore: Scavi Savena S.r.l.
+Committente: Campoverde S.r.l.
+Contratto: contratto di servizi n. 34 stipulato in data {contract:long}
+Luogo: Via del Commercio 36, capannone 2, 40138 Bologna
+
+Il Fornitore dichiara e il Committente accetta l'esecuzione dei seguenti servizi:
+1. Livellamento con apripista del parcheggio da 40 posti, 24 h × € 42,50	€ 1.020,00
+2. Trasporto dell'apripista su carrellone, 2 viaggi × € 100,00	€ 200,00
+Totale (IVA esclusa)	€ 1.220,00
+
+Il piazzale è stato livellato alle quote di progetto, con pendenza trasversale dell'1,5%. Tutti i servizi sono stati completati in data {completed:long}.
+
+Scavi Savena S.r.l.	Campoverde S.r.l.
+______________	______________
+Adamo Duca, Amministratore unico	Stefano Bassi, Responsabile Servizi Generali

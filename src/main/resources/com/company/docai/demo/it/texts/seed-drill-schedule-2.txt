@@ -1,0 +1,19 @@
+# ALLEGATO N. 2
+## al contratto di fornitura n. 31/{year:contract} stipulato in data {contract:long}
+
+Data: {issued:long}
+Fornitore: Padana Attrezzature S.r.l.
+Acquirente: Campoverde S.r.l.
+
+Il Fornitore consegna e l'Acquirente accetta e paga quanto segue:
+1. Seminatrice da sodo, larghezza di lavoro 6 m, 1 pz × € 38.300,00	€ 38.300,00
+2. Distributori di ricambio, 2 kit × € 470,00	€ 940,00
+3. Kit tracciafile, 1 kit × € 760,00	€ 760,00
+Totale (IVA esclusa)	€ 40.000,00
+
+La seminatrice è destinata alla semina dei cereali a paglia. Configurazione: telaio con tramoggia, 40 elementi di semina con distributori, sollevamento idraulico. In dotazione: manuale d'uso e kit di ricambi.
+Consegna entro il giorno {delivery:long}, a spese del Fornitore. Pagamento entro 5 giorni lavorativi dalla consegna.
+
+Padana Attrezzature S.r.l.	Campoverde S.r.l.
+______________	______________
+Renato Crovi, Amministratore unico	Paolo Ferri, Amministratore Delegato

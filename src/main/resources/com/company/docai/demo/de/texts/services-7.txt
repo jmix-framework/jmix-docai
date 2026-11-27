@@ -1,0 +1,21 @@
+# DIENSTLEISTUNGSVERTRAG NR. 7
+## Schädlingsbekämpfung
+
+Zwischen der Prätorius Hygieneservice GmbH, Parkallee 31, 30175 Hannover, vertreten durch den Geschäftsführer Rüdiger Lange (nachfolgend „Auftragnehmer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Auftragnehmer übernimmt monatlich die Schädlingsbekämpfung im Lager und im Büro des Auftraggebers, einschließlich der Bekämpfung von Insekten und Nagetieren und bei Bedarf einer Begasung.
+2. Die Leistungen umfassen die Lagerhalle Industriestraße 36, Halle 2, 30179 Hannover, und das Büro Gartenstraße 12, 3. OG, 30159 Hannover.
+3. Die Behandlungen finden einmal im Monat zu einem Termin statt, der mit dem Auftraggeber mindestens 3 Arbeitstage im Voraus vereinbart wird: im Büro außerhalb der Geschäftszeiten, im Lager ohne Unterbrechung des Betriebs.
+4. Der Auftragnehmer arbeitet mit eigener Ausrüstung und verwendet nur in Deutschland zugelassene Biozidprodukte. Entlang der Außenwände des Lagers stellt er manipulationssichere Köderstationen auf, führt einen Lageplan dazu und kontrolliert sie monatlich.
+5. Die Arbeiten führen sachkundige Mitarbeiter des Auftragnehmers aus, die im sicheren Umgang mit den verwendeten Mitteln geschult sind.
+6. Der Auftraggeber gewährt den Mitarbeitern des Auftragnehmers Zugang zu allen zu behandelnden Bereichen und entfernt während der Behandlung Lebensmittel aus den Pausenräumen.
+7. Nach jeder Behandlung trägt der Auftragnehmer sie in das beim Auftraggeber geführte Kontrollbuch ein und stellt einen monatlichen Leistungsnachweis aus. Das Kontrollbuch enthält das Datum, die behandelten Bereiche, die eingesetzten Mittel und die Empfehlungen an den Auftraggeber.
+8. Meldet der Auftraggeber zwischen den planmäßigen Behandlungen Schädlingsbefall, kommt der Auftragnehmer innerhalb von 2 Arbeitstagen ohne Zusatzkosten zu einem zusätzlichen Einsatz.
+9. Die Vergütung beträgt 210,00 € monatlich bzw. 2.520,00 € für das Jahr {year:signed}, jeweils zzgl. 19 % USt.
+10. Der Auftraggeber zahlt monatlich innerhalb von 10 Arbeitstagen nach Erhalt des monatlichen Leistungsnachweises und der Rechnung.
+11. Der Auftragnehmer setzt seine Mittel so ein, dass Menschen und Waren des Auftraggebers nicht gefährdet werden, und ersetzt jeden Schaden, den seine Leistungen verursachen.
+12. Dieser Vertrag tritt mit Unterzeichnung in Kraft und gilt bis zum {validUntil:long}. Jede Partei kann ihn mit einer Frist von 30 Tagen schriftlich kündigen.
+
+Prätorius Hygieneservice GmbH	Wiesengrund GmbH
+______________	______________
+Rüdiger Lange, Geschäftsführer	Paul Schmidt, Geschäftsführer

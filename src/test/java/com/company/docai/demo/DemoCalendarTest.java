@@ -250,7 +250,7 @@ class DemoCalendarTest {
                 .allSatisfy(locale -> assertThatThrownBy(() -> createCalendar(locale))
                         .isInstanceOf(IllegalArgumentException.class)
                         .hasMessage("the locale '%s' is not a language with names of the months", locale));
-        assertThat(List.of("en", "ru", "ru-RU"))
+        assertThat(List.of("en", "ru", "ru-RU", "de", "es", "it"))
                 .allSatisfy(locale -> assertThatCode(() -> createCalendar(locale)).doesNotThrowAnyException());
     }
 

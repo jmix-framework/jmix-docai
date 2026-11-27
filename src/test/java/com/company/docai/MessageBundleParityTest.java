@@ -19,9 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class MessageBundleParityTest {
 
+    // beyond the keys of the application a bundle has only the texts of Jmix that the translation pack of its language
+    // lacks, in the block at its end; once the pack has one, it is deleted there, and the pack's text shows
     @Test
-    void everyBundleCarriesExactlyTheKeysOfTheEnglishOne() throws IOException {
+    void everyBundleCarriesTheKeysOfTheEnglishOneAndBeyondThemOnlyTheTextsOfJmixItsPackLacks() throws IOException {
         Set<String> english = keysOf(new ClassPathResource("com/company/docai/messages_en.properties"));
+        Set<String> jmix = textsOf("classpath*:io/jmix/**/messages.properties").keySet();
         Resource[] bundles = new PathMatchingResourcePatternResolver()
                 .getResources("classpath*:com/company/docai/messages_*.properties");
 
@@ -29,9 +32,25 @@ class MessageBundleParityTest {
         assertThat(bundles).hasSizeGreaterThan(1);
 
         for (Resource bundle : bundles) {
-            assertThat(keysOf(bundle))
+            Set<String> keys = keysOf(bundle);
+            Set<String> beyond = new HashSet<>(keys);
+            beyond.removeAll(english);
+
+            assertThat(keys)
                     .as(bundle.getFilename())
-                    .containsExactlyInAnyOrderElementsOf(english);
+                    .containsAll(english);
+
+            if (!beyond.isEmpty()) {
+                Set<String> pack = textsOf("classpath*:io/jmix/**/messages_" + languageOf(bundle) + ".properties")
+                        .keySet();
+
+                assertThat(beyond)
+                        .as("%s: keys beyond the English bundle that are no texts of Jmix", bundle.getFilename())
+                        .isSubsetOf(jmix);
+                assertThat(beyond)
+                        .as("%s: texts of Jmix that its translation pack has now", bundle.getFilename())
+                        .doesNotContainAnyElementsOf(pack);
+            }
         }
     }
 
@@ -39,7 +58,10 @@ class MessageBundleParityTest {
     void aTextOfJmixTheApplicationRewordsReadsDifferentlyInEveryLanguage() {
         Map<String, String> bundlesOfJmix = Map.of(
                 "en", "classpath*:io/jmix/**/messages.properties",
-                "ru", "classpath*:io/jmix/**/messages_ru.properties");
+                "ru", "classpath*:io/jmix/**/messages_ru.properties",
+                "de", "classpath*:io/jmix/**/messages_de.properties",
+                "es", "classpath*:io/jmix/**/messages_es.properties",
+                "it", "classpath*:io/jmix/**/messages_it.properties");
 
         bundlesOfJmix.forEach((language, pattern) -> {
             Map<String, Set<String>> jmix = textsOf(pattern);
@@ -60,6 +82,13 @@ class MessageBundleParityTest {
                 }
             }
         });
+    }
+
+    // messages_de.properties is German
+    private static String languageOf(Resource bundle) {
+        String name = String.valueOf(bundle.getFilename());
+
+        return name.substring("messages_".length(), name.length() - ".properties".length());
     }
 
     private static Set<String> keysOf(Resource bundle) {

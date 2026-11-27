@@ -1,0 +1,19 @@
+# ABNAHMEPROTOKOLL NR. 64
+## Wartung der Heizungsanlage, {issued:monthYear}
+
+Datum: {issued:long}
+Auftragnehmer: Wärmetechnik Lindner GmbH
+Auftraggeber: Wiesengrund GmbH
+Vertrag: Wartungsvertrag Nr. 42/{year:contract} vom {contract:long}
+Ort: Heizungsraum der Lagerhalle, Industriestraße 36, Halle 2, 30179 Hannover
+
+Der Auftragnehmer bestätigt, dass er vom Monatsersten bis zum {issued:long} folgende Leistungen erbracht hat; mit seiner Unterschrift bestätigt der Auftraggeber die Abnahme:
+1. Wartung der Heizungsanlage und des Heizungsraums	520,00 €
+Summe netto	520,00 €
+
+Erbrachte Leistungen: Inbetriebnahme der Kessel und der Heizungsanlage zur Heizperiode; wöchentliche Kontrolle von Kesseln und Brennern; Prüfung der Sicherheitseinrichtungen; Reinigung der Filter; Kontrolle von Anlagendruck und Vorlauftemperatur; Sichtprüfung von Heizkörpern, Steigleitungen und Absperrarmaturen; Einstellung der Umwälzpumpen; Einträge in das Kesselbuch.
+Alle Leistungen des Zeitraums wurden bis zum {issued:long} erbracht.
+
+Wärmetechnik Lindner GmbH	Wiesengrund GmbH
+______________	______________
+Volker Ellermann, Geschäftsführer	Stefan Schwan, Leiter Gebäudemanagement

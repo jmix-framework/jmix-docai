@@ -1,6 +1,8 @@
 package com.company.docai.demo;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -84,16 +86,21 @@ class DemoDataCheckTest {
 
     // the search by words for agricultural machinery finds nothing in the scene of the search by meaning
     @Test
-    void theTagsOfTheDemoSetsNameNoAgriculturalMachineryAndTheRussianOnesMirrorTheEnglishOnes() throws IOException {
-        List<List<String>> english = tagsOf("en");
-        List<List<String>> russian = tagsOf("ru");
-
-        assertThat(english.stream().flatMap(List::stream).distinct()).hasSize(7)
+    void theTagsOfTheEnglishSetNameNoAgriculturalMachinery() throws IOException {
+        assertThat(tagsOf("en").stream().flatMap(List::stream).distinct()).hasSize(7)
                 .noneMatch(tag -> tag.toLowerCase().contains("agricultur") || tag.toLowerCase().contains("machinery"));
-        assertThat(russian).hasSameSizeAs(english);
-        assertThat(russian.stream().map(List::size))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ru", "de", "es", "it"})
+    void theTagsOfEverySetMirrorTheEnglishOnes(String set) throws IOException {
+        List<List<String>> english = tagsOf("en");
+        List<List<String>> tags = tagsOf(set);
+
+        assertThat(tags).hasSameSizeAs(english);
+        assertThat(tags.stream().map(List::size))
                 .containsExactlyElementsOf(english.stream().map(List::size).toList());
-        assertThat(russian.stream().flatMap(List::stream).distinct()).hasSize(7);
+        assertThat(tags.stream().flatMap(List::stream).distinct()).hasSize(7);
     }
 
     @Test

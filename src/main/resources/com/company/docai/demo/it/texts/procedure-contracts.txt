@@ -1,0 +1,19 @@
+Procedura di approvazione dei contratti — Campoverde S.r.l.
+
+Approvata da Paolo Ferri, Amministratore Delegato, in data {approved:long}.
+
+1. La presente procedura si applica a tutti i contratti che Campoverde S.r.l. stipula con fornitori, appaltatori, prestatori di servizi e locatori.
+
+2. Il referente del contratto è il responsabile della funzione che ha bisogno dei beni o dei servizi. Il referente ottiene una bozza dalla controparte o la predispone partendo da un modello aziendale, la carica nel sistema di gestione documentale e la invia in revisione.
+
+3. L'ufficio legale esamina la bozza entro 3 giorni lavorativi: le parti e i poteri di firma, l'oggetto, i termini, le responsabilità e il recesso. L'ufficio legale lascia i propri commenti nel sistema di gestione documentale e il referente li risolve con la controparte.
+
+4. L'amministrazione verifica le condizioni economiche: il prezzo, il piano dei pagamenti e l'importo di eventuali acconti e depositi cauzionali.
+
+5. Dopo l'approvazione dell'ufficio legale e dell'amministrazione, il contratto è firmato dall'Amministratore Delegato.
+
+6. Ogni nuova bozza del contratto e la scansione della copia firmata sono caricate nel sistema di gestione documentale come nuove versioni dello stesso documento. Una nuova bozza non diventa un documento a sé: l'intera storia del contratto resta in un'unica scheda.
+
+7. I contratti sono conservati nella cartella «Contratti». Un contratto firmato passa allo stato «Attivo»; un contratto risolto o scaduto passa allo stato «Archiviato».
+
+8. L'amministrazione conserva gli originali cartacei firmati.

@@ -1,0 +1,32 @@
+Campoverde S.r.l.
+Via dei Giardini 12, 40121 Bologna
+
+Bologna, {issued:long}
+
+Gentile Sig.ra
+Giulia Fontana
+Via Mascarella 84
+40126 Bologna
+
+# LETTERA DI ASSUNZIONE
+
+Gentile Sig.ra Fontana,
+
+siamo lieti di comunicarLe la Sua assunzione presso Campoverde S.r.l. con la mansione di addetta agli acquisti nell'Ufficio acquisti, alle dipendenze di Laura Marchetti, Responsabile Acquisti. Le condizioni sono le seguenti.
+
+1. Data di assunzione: {hired:long}.
+2. Contratto: a tempo pieno e indeterminato, CCNL Terziario, Distribuzione e Servizi, 3° livello.
+3. Retribuzione annua lorda: € 32.200,00, suddivisa in 14 mensilità.
+4. Orario di lavoro: 40 ore settimanali, dal lunedì al venerdì.
+5. Periodo di prova: 60 giorni di lavoro effettivo.
+6. Il primo giorno Daniela Porta, Responsabile del personale, completerà con Lei la documentazione di assunzione e Le consegnerà copia della comunicazione obbligatoria di assunzione e l'informativa sul trattamento dei dati personali.
+7. Laura Marchetti predisporrà la Sua postazione di lavoro e illustrerà con Lei la descrizione della mansione.
+
+Le condizioni complete del rapporto di lavoro sono riportate nel contratto individuale di lavoro allegato, stipulato in data {issued:long}.
+
+Cordiali saluti,
+
+______________
+Paolo Ferri, Amministratore Delegato
+
+Per accettazione: ______________ Giulia Fontana	{issued:long}

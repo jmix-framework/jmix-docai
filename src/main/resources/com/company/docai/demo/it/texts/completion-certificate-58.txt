@@ -1,0 +1,24 @@
+# VERBALE DI FINE LAVORI N. 58
+## Rifacimento della copertura del magazzino
+
+Data: {issued:long}
+Appaltatore: Coperture Emiliane S.r.l., Via dell'Industria 37, 40138 Bologna
+Committente: Campoverde S.r.l., Via dei Giardini 12, 40121 Bologna
+Contratto: contratto d'appalto n. 15/{year:contract} stipulato in data {contract:long}
+Cantiere: copertura del magazzino, Via dei Magazzini 4, 40011 Anzola dell'Emilia (BO)
+
+L'Appaltatore dichiara e il Committente conferma che in data {issued:long} sono stati ultimati i seguenti lavori:
+1. Rimozione del vecchio manto di copertura, 420 m²	€ 1.400,00
+2. Ripristino e primerizzazione del piano di posa, 420 m²	€ 1.900,00
+3. Doppia membrana bituminosa applicata a fiamma, 420 m²	€ 7.900,00
+4. Sostituzione di grondaie e pluviali	€ 2.100,00
+5. Rimozione e smaltimento dei materiali di risulta	€ 500,00
+Importo contrattuale (IVA esclusa)	€ 13.800,00
+Acconto versato	€ 4.140,00
+Saldo da corrispondere	€ 9.660,00
+
+I lavori sono stati ultimati nei tempi contrattuali. Il sopralluogo e la prova di tenuta all'acqua non hanno rilevato infiltrazioni. La garanzia di 24 mesi sui lavori decorre dalla data del presente verbale. L'Appaltatore ha consegnato al Committente la garanzia del produttore della membrana e le schede tecniche dei prodotti.
+
+Coperture Emiliane S.r.l.	Campoverde S.r.l.
+______________	______________
+Tommaso Tornatore, Amministratore unico	Paolo Ferri, Amministratore Delegato

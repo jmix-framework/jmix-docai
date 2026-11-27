@@ -1,0 +1,13 @@
+# MASCHINENMIETVERTRAG NR. 27
+## Kettenbagger mit Fahrer
+
+Zwischen der Eisenmann Baumaschinenvermietung GmbH, Am Lindener Hafen 10, 30453 Hannover, vertreten durch den Geschäftsführer Karl Rieger (nachfolgend „Vermieter“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Mieter“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Vermieter vermietet dem Mieter einen 21-t-Kettenbagger mit 1,1-m³-Tieflöffel samt Fahrer für den Aushub des Fundaments einer Lagerhalle in der Industriestraße 7, 31303 Burgdorf.
+2. Mietzeit: vom {start:monthDay} bis {validUntil:long}. Mietpreis: 85,00 € je Motorstunde, mindestens 6.800,00 € für die Mietzeit (80 Motorstunden), jeweils zzgl. USt.
+3. Transport des Baggers per Tieflader: 270,00 € je Strecke. Den Kraftstoff zahlt der Mieter nach Verbrauch.
+4. Die Motorstunden werden am Betriebsstundenzähler des Baggers abgelesen und durch einen täglichen, von beiden Parteien unterschriebenen Tagesbericht bestätigt.
+
+Eisenmann Baumaschinenvermietung GmbH	Wiesengrund GmbH
+______________	______________
+Karl Rieger, Geschäftsführer	Paul Schmidt, Geschäftsführer

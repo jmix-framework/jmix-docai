@@ -1,0 +1,21 @@
+Cartiera Tramontana S.p.A.
+Via di Corticella 157, 40128 Bologna
+P.IVA e C.F. 09603083720
+
+# FATTURA N. 2045
+## Data: {issued:long}
+Cliente: Campoverde S.r.l., Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712
+Consegna: stesso indirizzo, in data {delivery:long}, trasporto compreso nel prezzo
+Rif.: contratto di fornitura n. 45 stipulato in data {contract:long}
+
+1. Carta per fotocopie A4, 80 g/m², 120 risme × € 5,30	€ 636,00
+2. Buste a sacco 229 × 324 mm con strip adesivo, 500 pz × € 0,26	€ 130,00
+3. Raccoglitori ad anelli, dorso 8 cm, 60 pz × € 2,90	€ 174,00
+Imponibile	€ 940,00
+IVA 22%	€ 206,80
+Totale fattura	€ 1.146,80
+
+Carta: punto di bianco 146 CIE, 500 fogli per risma, 5 risme per scatola. Buste: bianche. Raccoglitori: in cartone rivestito in PPL, 4 anelli.
+Scadenza: {due:long}
+Pagamento con bonifico bancario su DemoBanca S.p.A., IBAN IT00 X099 9902 4000 0900 0105 882. Indicare il numero della fattura nella causale.
+Copia di cortesia: la fattura elettronica è stata trasmessa tramite il Sistema di Interscambio (SdI).

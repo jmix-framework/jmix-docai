@@ -1,0 +1,19 @@
+# VERBALE DI REGOLARE ESECUZIONE N. 64
+## Manutenzione dell'impianto di riscaldamento, {issued:monthYear}
+
+Data: {issued:long}
+Fornitore: Termotecnica Felsinea S.r.l.
+Committente: Campoverde S.r.l.
+Contratto: contratto di manutenzione n. 42/{year:contract} stipulato in data {contract:long}
+Luogo: centrale termica del magazzino di Via del Commercio 36, capannone 2, 40138 Bologna
+
+Il Fornitore dichiara di aver eseguito dall'inizio del mese alla data del presente verbale i seguenti servizi; la firma del Committente ne attesta l'accettazione:
+1. Manutenzione dell'impianto di riscaldamento e della centrale termica	€ 520,00
+Totale (IVA esclusa)	€ 520,00
+
+Servizi eseguiti: avviamento stagionale delle caldaie e dell'impianto; controlli settimanali di caldaie e bruciatori; prove dei dispositivi di sicurezza; pulizia dei filtri; verifica della pressione e della temperatura dell'acqua dell'impianto; ispezione di radiatori, colonne montanti e valvole di intercettazione; regolazione delle pompe di circolazione; annotazioni sul libretto di impianto.
+Tutti i servizi del periodo sono stati completati in data {issued:long}.
+
+Termotecnica Felsinea S.r.l.	Campoverde S.r.l.
+______________	______________
+Vincenzo Elli, Amministratore unico	Stefano Bassi, Responsabile Servizi Generali

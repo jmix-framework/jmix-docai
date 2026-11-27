@@ -1,0 +1,16 @@
+Equipos del Guadalquivir, S.L.
+CIF B99681239
+Calle de Tucumán, 139, 41006 Sevilla
+
+# FACTURA N.º 2231
+## Fecha: {issued:long}
+Cliente: Vega Verde, S.L., CIF B99471205, calle del Jardín, 12, oficina 312, 47001 Valladolid
+Contrato: contrato de suministro n.º 52/{year:contract}, de fecha {contract:long}
+
+1. Cosechadora Tormes 785 con plataforma de cereal de 7,6 m, 1 a 172.000,00 €	172.000,00 €
+Base imponible	172.000,00 €
+IVA 21 %	36.120,00 €
+Total factura	208.120,00 €
+
+Vencimiento: {due:long}.
+Forma de pago: transferencia a la cuenta IBAN ES00 9999 0000 0000 0005 8823 de Banco Demo. Indique el número de factura en el concepto.

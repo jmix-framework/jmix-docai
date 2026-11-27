@@ -1,0 +1,32 @@
+Wiesengrund GmbH
+Gartenstraße 12, 30159 Hannover
+
+Hannover, {issued:long}
+
+Frau
+Lena Fischer
+Lindener Straße 84
+30449 Hannover
+
+# EINSTELLUNGSZUSAGE
+
+Sehr geehrte Frau Fischer,
+
+wir freuen uns, Ihnen die Stelle als Einkäuferin in der Abteilung Einkauf der Wiesengrund GmbH anzubieten. Sie berichten an Ellen Krüger, Leiterin Einkauf. Unser Angebot im Überblick:
+
+1. Eintrittsdatum: {hired:long}.
+2. Bruttojahresgehalt: 54.000 €, zahlbar in zwölf Monatsraten. Es handelt sich um eine Vollzeitstelle.
+3. Arbeitszeit: Montag bis Freitag.
+4. Probezeit: die ersten sechs Monate.
+5. Das Arbeitsverhältnis ist unbefristet; nach der Probezeit gelten die gesetzlichen Kündigungsfristen.
+6. An Ihrem ersten Arbeitstag erledigt Doris Peters, Personalleiterin, mit Ihnen die Einstellungsformalitäten, darunter die Angaben zu Steuer-ID, Sozialversicherung und Krankenkasse.
+7. Ellen Krüger richtet Ihren Arbeitsplatz ein und bespricht mit Ihnen Ihre Stellenbeschreibung.
+
+Alle Bedingungen Ihrer Anstellung finden Sie im beigefügten Arbeitsvertrag vom {issued:long}.
+
+Mit freundlichen Grüßen
+
+______________
+Paul Schmidt, Geschäftsführer
+
+Angenommen: ______________ Lena Fischer	{issued:long}

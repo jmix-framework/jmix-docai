@@ -1,0 +1,20 @@
+Ricambi Sud S.r.l.
+Viale degli Aviatori 22, 71122 Foggia (FG)
+P.IVA e C.F. 08528083740
+
+# FATTURA N. 1187
+## Data: {issued:long}
+Cliente: Campoverde S.r.l., Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712
+Rif.: contratto di fornitura n. 29/{year:contract} stipulato in data {contract:long}
+
+Ricambi per mietitrebbia Pievesi 1500:
+1. Cinghia di trasmissione della testata, 6 pz × € 42,00	€ 252,00
+2. Sezione di lama della barra falciante, 120 pz × € 3,20	€ 384,00
+3. Cuscinetto a sfere 6310-2RS, 12 pz × € 14,00	€ 168,00
+Imponibile	€ 804,00
+IVA 22%	€ 176,88
+Totale fattura	€ 980,88
+
+Scadenza: {due:long}
+Pagamento con bonifico bancario su DemoBanca S.p.A., IBAN IT00 X099 9902 4000 0900 0071 234. Indicare il numero della fattura nella causale.
+Copia di cortesia: la fattura elettronica è stata trasmessa tramite il Sistema di Interscambio (SdI).

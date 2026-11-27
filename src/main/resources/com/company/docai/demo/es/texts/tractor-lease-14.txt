@@ -1,0 +1,13 @@
+# CONTRATO DE ALQUILER N.º 14
+## Tractor polivalente, alquiler sin operador
+
+Este contrato de alquiler se celebra en Valladolid el {signed:long} entre Alquileres Puerta Norte, S.L., con CIF B99125440 y domicilio en carretera de Puerta Norte, 125, 47009 Valladolid (el «Arrendador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Arrendatario»).
+
+1. El Arrendador alquila al Arrendatario un tractor polivalente Duero 82 (n.º de serie 80512347) con motor diésel, junto con los aperos suspendidos para las labores de primavera, del {start:monthDay} al {validUntil:long}.
+2. Precio: 16,00 € por hora de motor, con un mínimo de 4.800,00 € por todo el periodo (300 horas de motor), más IVA.
+3. El Arrendatario paga cada mes, según las lecturas del cuentahoras, en los 5 días hábiles siguientes a la firma por ambas partes del parte mensual de uso.
+4. El Arrendador revisa el tractor cada 250 horas de motor a su cargo. El Arrendatario paga el combustible y los lubricantes.
+
+ALQUILERES PUERTA NORTE, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Marcos Lobo Ferrer, administrador	Pablo Herrero Gil, director general

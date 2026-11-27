@@ -1,0 +1,13 @@
+# CONTRATTO DI VIGILANZA N. 12
+## Telesorveglianza e pronto intervento
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Scudo Vigilanza S.r.l., istituto di vigilanza privata autorizzato dalla Prefettura di Bologna, con sede in Viale Aldo Moro 9, 40127 Bologna, P.IVA 00928153793, di seguito «Istituto», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Committente», si conviene quanto segue.
+
+1. L'Istituto svolge il servizio di telesorveglianza degli allarmi in due sedi del Committente: il magazzino di Via del Commercio 36, capannone 2, 40138 Bologna, e l'ufficio di Via dei Giardini 12, 40121 Bologna.
+2. In caso di allarme, l'Istituto invia sul posto una pattuglia entro 7 minuti, avvisa le forze dell'ordine se necessario e informa dell'evento il referente indicato dal Committente.
+3. Il servizio costa € 265,00 al mese per il magazzino ed € 155,00 al mese per l'ufficio, in tutto € 420,00 al mese oltre IVA.
+4. Il contratto è valido dal {start:long} al {validUntil:long}. Ciascuna parte può recedere con un preavviso di 30 giorni all'altra parte.
+
+Scudo Vigilanza S.r.l.	Campoverde S.r.l.
+______________	______________
+Alberto Volpi, Amministratore unico	Paolo Ferri, Amministratore Delegato

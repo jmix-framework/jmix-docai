@@ -1,0 +1,43 @@
+# CONTRATO MARCO DE SUMINISTRO N.º 3/{year:signed}
+
+Este contrato marco de suministro se celebra en Valladolid el {signed:long} entre Suministros Robledal, S.L., con CIF B99140588 y domicilio en avenida del Robledal, 14, 47008 Valladolid (el «Proveedor»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Comprador»).
+
+## 1. Objeto
+1.1 El Proveedor vende al Comprador los bienes relacionados en el anexo A según los pedidos que el Comprador realice en cada momento.
+1.2 La cantidad, el precio y la fecha de entrega de cada pedido se acuerdan en el pedido del Comprador y en la confirmación del Proveedor, que pasan a formar parte de este contrato.
+## 2. Pedidos y entrega
+2.1 El Comprador envía los pedidos por correo electrónico. El Proveedor confirma cada pedido en 2 días hábiles o comunica al Comprador que no puede atenderlo.
+2.2 Salvo que la confirmación del pedido diga otra cosa, el Proveedor entrega los bienes con sus propios camiones en el almacén del Comprador, avenida del Comercio, 36, nave 2, 47012 Valladolid. El transporte está incluido en el precio.
+2.3 La propiedad y el riesgo se transmiten al Comprador cuando este firma el albarán de entrega. El Comprador comprueba las cantidades el día de la entrega y la calidad en los 10 días hábiles siguientes.
+## 3. Precio y pago
+3.1 Los precios figuran en la confirmación del pedido e incluyen el embalaje y el transporte; el IVA se factura aparte. El Proveedor no puede cambiar el precio de un pedido confirmado.
+3.2 Salvo que la confirmación del pedido prevea un anticipo, el Comprador paga cada pedido en los 10 días hábiles siguientes a la firma del albarán de entrega.
+## 4. Calidad y garantía
+4.1 Los bienes deben ser nuevos, cumplir las especificaciones del fabricante e ir acompañados de su garantía y del manual de instrucciones.
+4.2 El plazo de garantía es de 12 meses desde la fecha del albarán de entrega. El Proveedor corrige a su cargo los defectos detectados en ese plazo en los 14 días siguientes al aviso.
+## 5. Responsabilidad, fuerza mayor y conflictos
+5.1 Si una entrega se retrasa, el Proveedor abona una penalización, y si un pago se retrasa, el Comprador abona un interés de demora, del 0,1 % de la cantidad vencida por cada día de retraso, hasta un máximo del 10 % de dicha cantidad.
+5.2 Ninguna de las partes responde del incumplimiento causado por fuerza mayor si lo comunica a la otra parte en un plazo de 5 días hábiles.
+5.3 Las partes intentarán resolver primero cualquier conflicto mediante negociación de buena fe, y la parte que reciba una reclamación por escrito responderá en 10 días hábiles. Un conflicto que no se resuelva en los 30 días siguientes a la reclamación podrá someterse a los Juzgados y Tribunales de Valladolid.
+## 6. Vigencia
+6.1 El contrato estará vigente del {signed:long} al {validUntil:long} y se prorrogará por un periodo igual salvo que una de las partes lo denuncie con al menos 30 días de antelación a su vencimiento.
+
+SUMINISTROS ROBLEDAL, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Carlos Andrés Peña, administrador	Pablo Herrero Gil, director general
+
+
+
+
+## Anexo A
+## al contrato marco de suministro n.º 3/{year:signed}, de fecha {signed:long}
+Bienes que el Comprador puede pedir en virtud de este contrato:
+1. Repuestos y consumibles para tractores y cosechadoras (filtros, correas, rodamientos, piezas de corte), según el catálogo del Proveedor.
+2. Abonadora arrastrada Arlanza TS8 de 8 t de capacidad, según la confirmación del pedido.
+3. Baterías de 12 V y 225 Ah para servicio pesado, según la confirmación del pedido.
+4. Aceites de motor y de transmisión en garrafas de 20 l y bidones de 208 l, según la confirmación del pedido.
+Los precios y las fechas de entrega se fijan en la confirmación de cada pedido.
+
+SUMINISTROS ROBLEDAL, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Carlos Andrés Peña, administrador	Pablo Herrero Gil, director general

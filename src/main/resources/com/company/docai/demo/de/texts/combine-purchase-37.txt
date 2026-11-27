@@ -1,0 +1,13 @@
+# KAUFVERTRAG NR. 37/{year:signed}
+## Mähdrescher
+
+Zwischen der Leinetal Maschinenhandel GmbH, Hildesheimer Straße 71, 31157 Sarstedt, vertreten durch den Geschäftsführer Oliver Wittmann (nachfolgend „Verkäufer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Käufer“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Verkäufer verkauft und der Käufer kauft einen neuen Mähdrescher Feldmeister 595 mit einem Getreideschneidwerk von 7,6 m Arbeitsbreite und einem Schneidwerkswagen.
+2. Der Kaufpreis beträgt 182.000,00 € zzgl. 19 % USt. Der Käufer leistet innerhalb von 5 Arbeitstagen nach Unterzeichnung dieses Vertrags eine Anzahlung von 30 %, 54.600,00 €, und zahlt den Restbetrag von 127.400,00 € innerhalb von 3 Arbeitstagen nach Unterzeichnung des Übergabeprotokolls.
+3. Der Verkäufer liefert den Mähdrescher bis spätestens {delivery:long} an den vom Käufer benannten Ort.
+4. Gewährleistung: 24 Monate oder 2.000 Motorstunden, je nachdem, was zuerst eintritt. Gewährleistungsreparaturen führt der Verkäufer innerhalb von 14 Tagen nach Anzeige des Mangels aus.
+
+Leinetal Maschinenhandel GmbH	Wiesengrund GmbH
+______________	______________
+Oliver Wittmann, Geschäftsführer	Paul Schmidt, Geschäftsführer

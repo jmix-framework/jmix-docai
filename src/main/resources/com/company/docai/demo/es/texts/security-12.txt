@@ -1,0 +1,13 @@
+# CONTRATO DE SERVICIOS DE SEGURIDAD N.º 12
+## Conexión a central receptora de alarmas y acuda
+
+Este contrato de servicios de seguridad se celebra en Valladolid el {signed:long} entre Seguridad Escudo, S.A., con CIF A99090215 y domicilio en avenida de Burgos, 9, 47009 Valladolid (la «Empresa de Seguridad»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+1. La Empresa de Seguridad conecta a su central receptora de alarmas dos instalaciones del Cliente: el almacén de avenida del Comercio, 36, nave 2, 47012 Valladolid, y la oficina de calle del Jardín, 12, oficina 312, 47001 Valladolid.
+2. Cuando salta una alarma, la Empresa de Seguridad envía un vigilante al lugar en un máximo de 7 minutos, avisa a la policía si es necesario e informa del incidente a la persona de contacto designada por el Cliente.
+3. La conexión y el servicio de acuda cuestan 265,00 € al mes por el almacén y 155,00 € al mes por la oficina, 420,00 € al mes en total, más IVA.
+4. El contrato estará vigente del {start:long} al {validUntil:long}. Cualquiera de las partes puede resolverlo con un preaviso de 30 días a la otra parte.
+
+SEGURIDAD ESCUDO, S.A.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Alonso Fuentes Gil, consejero delegado	Pablo Herrero Gil, director general

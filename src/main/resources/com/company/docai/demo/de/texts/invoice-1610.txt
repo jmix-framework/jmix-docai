@@ -1,0 +1,18 @@
+Firstwerk Bedachungen GmbH
+Gewerbestraße 37, 30179 Hannover
+USt-IdNr. DE999684230 · Amtsgericht Hannover HRB 216842
+
+# RECHNUNG NR. 1610
+## vom {issued:long}
+Rechnungsempfänger: Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover
+Vertrag: Werkvertrag Nr. 15/{year:contract} vom {contract:long}
+Bauvorhaben: Sanierung des Lagerhallendachs, Lagerstraße 4, 30880 Laatzen
+
+1. Sanierung des Lagerhallendachs, Schlussrechnung (70 %)	9.660,00 €
+Summe netto	9.660,00 €
+zzgl. 19 % USt.	1.835,40 €
+Rechnungsbetrag	11.495,40 €
+
+Die Arbeiten wurden am {completed:long} fertiggestellt und abgenommen. Der Werklohn beträgt 13.800,00 € netto, die Anzahlung von 30 % betrug 4.140,00 € netto; diese Rechnung umfasst die restlichen 70 %.
+Zahlbar bis {due:long} ohne Abzug.
+Bankverbindung: Demobank AG, IBAN DE00 0000 0000 9000 2143 67, BIC DEMODEXXXXX. Bitte geben Sie die Rechnungsnummer als Verwendungszweck an.

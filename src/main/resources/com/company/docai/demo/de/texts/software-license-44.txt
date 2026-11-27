@@ -1,0 +1,12 @@
+# SOFTWARELIZENZVERTRAG NR. 44
+
+Zwischen der Buchwald Software AG, Hamburger Allee 22, 30161 Hannover, vertreten durch den Vorstand Bernd Axt (nachfolgend „Lizenzgeber“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Lizenznehmer“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Lizenzgeber räumt dem Lizenznehmer das nicht ausschließliche Recht ein, Buchwald Finanzbuchhaltung auf 10 Arbeitsplätzen für 12 Monate zu nutzen, vom {start:long} bis {validUntil:long}.
+2. Die Lizenzgebühr beträgt 3.070,00 € (307,00 € je Arbeitsplatz) zzgl. 19 % USt., zahlbar innerhalb von 5 Arbeitstagen nach Unterzeichnung dieses Vertrags.
+3. Innerhalb von 2 Arbeitstagen nach Zahlungseingang sendet der Lizenzgeber dem Lizenznehmer das Installationspaket und die Lizenzschlüssel per E-Mail. Technischen Support leistet der Lizenzgeber an Arbeitstagen von 9:00 bis 18:00 Uhr.
+4. Der Lizenznehmer darf die Lizenzschlüssel nicht an Dritte weitergeben und die Software nicht auf mehr Arbeitsplätzen als lizenziert nutzen.
+
+Buchwald Software AG	Wiesengrund GmbH
+______________	______________
+Bernd Axt, Vorstand	Paul Schmidt, Geschäftsführer

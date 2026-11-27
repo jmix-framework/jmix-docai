@@ -1,0 +1,21 @@
+Cargo Rapido S.r.l.
+Via dei Noci 26, 40033 Casalecchio di Reno (BO)
+P.IVA e C.F. 01819093734
+
+# FATTURA N. 3318
+## Data: {issued:long}
+Cliente: Campoverde S.r.l., Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712
+Vostro ordine: {request:long}
+
+Servizio di trasloco eseguito in data {issued:long}, arredi e attrezzature d'ufficio (trasferimento del magazzino):
+1. Autocarro furgonato 7,5 m, 2 viaggi × € 215,00	€ 430,00
+2. Carico e scarico, 14 ore di manodopera × € 15,00	€ 210,00
+Imponibile	€ 640,00
+IVA 22%	€ 140,80
+Totale fattura	€ 780,80
+
+Il prezzo comprende l'imballaggio delle attrezzature d'ufficio con film estensibile, il fissaggio del carico e l'assicurazione della merce durante il trasporto. Il carico e lo scarico sono stati eseguiti da una squadra di quattro facchini.
+Scadenza: {due:long}
+Pagamento con bonifico bancario su DemoBanca S.p.A., IBAN IT00 X099 9902 4000 0900 0031 274. Indicare il numero della fattura nella causale.
+
+Pagata in data {paid:long}, bonifico n. 811.

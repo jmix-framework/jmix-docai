@@ -1,0 +1,19 @@
+Freigabeverfahren für Verträge — Wiesengrund GmbH
+
+Genehmigt von Paul Schmidt, Geschäftsführer, am {approved:long}.
+
+1. Dieses Verfahren gilt für alle Verträge, die die Wiesengrund GmbH mit Lieferanten, Auftragnehmern, Dienstleistern und Vermietern schließt.
+
+2. Vertragsverantwortlich ist die Leitung der Abteilung, die die Waren oder Leistungen benötigt. Der Vertragsverantwortliche erhält einen Entwurf von der anderen Partei oder erstellt ihn aus einer Vorlage des Unternehmens, lädt ihn in das Dokumentenmanagementsystem hoch und gibt ihn zur Prüfung weiter.
+
+3. Die Rechtsabteilung prüft den Entwurf innerhalb von 3 Arbeitstagen: die Parteien und die Vertretungsbefugnis der Unterzeichner, den Leistungsumfang, die Fristen, die Haftung und die Kündigung. Ihre Anmerkungen hinterlässt sie im Dokumentenmanagementsystem, und der Vertragsverantwortliche klärt sie mit der anderen Partei.
+
+4. Die Buchhaltung prüft die Zahlungsbedingungen: den Preis, den Zahlungsplan sowie die Höhe von Anzahlungen und Kautionen.
+
+5. Haben Rechtsabteilung und Buchhaltung einen Vertrag freigegeben, unterzeichnet ihn der Geschäftsführer.
+
+6. Jeder neue Entwurf eines Vertrags und der Scan des unterzeichneten Exemplars werden als neue Versionen desselben Dokuments in das Dokumentenmanagementsystem hochgeladen. Ein neuer Entwurf erhält kein eigenes Dokument: Die gesamte Historie des Vertrags bleibt in einer Karte.
+
+7. Verträge werden im Ordner „Verträge“ abgelegt. Ein unterzeichneter Vertrag erhält den Status „Aktiv“, ein gekündigter oder abgelaufener den Status „Archiviert“.
+
+8. Die unterzeichneten Originale in Papierform verwahrt die Buchhaltung.

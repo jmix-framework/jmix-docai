@@ -1,0 +1,45 @@
+# CONTRATO MARCO DE MANTENIMIENTO N.º 9/{year:signed}
+## Mantenimiento y reparación de una picadora de forraje y de equipos del almacén
+
+Este contrato marco de mantenimiento se celebra en Valladolid el {signed:long} entre Talleres Arévalo, S.L., con CIF B99360847 y domicilio en calle Mayor, 36, 47300 Peñafiel (Valladolid) (el «Prestador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+## 1. Objeto
+1.1 A petición del Cliente, el Prestador mantiene y repara los equipos relacionados en el anexo A: en primer lugar, la picadora de forraje autopropulsada del Cliente, que pica el maíz forrajero en las parcelas de su finca durante la cosecha.
+1.2 El tipo, el alcance y el coste de los trabajos de cada solicitud se recogen en una orden de trabajo, que pasa a formar parte de este contrato.
+## 2. Servicio
+2.1 El Cliente envía las solicitudes por teléfono o correo electrónico. El Prestador confirma cada solicitud en 4 horas.
+2.2 Un técnico de campo llega al lugar en las 24 horas siguientes a la confirmación de la solicitud. Si la reparación no puede hacerse allí, el equipo se traslada al taller del Prestador a cargo del Cliente.
+2.3 El mantenimiento programado sigue el plan del fabricante; las partes acuerdan el plan del año siguiente antes del 1 de marzo.
+2.4 Los trabajos terminados se recogen en una orden de trabajo firmada por ambas partes en los 3 días hábiles siguientes al aviso al Cliente de que el equipo está listo.
+## 3. Precios y pago
+3.1 La hora de mano de obra cuesta 29,00 €; cada desplazamiento dentro de la provincia de Valladolid tiene un recargo de 72,00 €. Los precios no incluyen el IVA.
+3.2 Los repuestos y consumibles se facturan aparte, según un presupuesto que el Cliente aprueba previamente. Las piezas sustituidas se devuelven al Cliente si este lo solicita.
+3.3 El Cliente paga en los 10 días hábiles siguientes a la firma de la orden de trabajo.
+## 4. Garantía y responsabilidad
+4.1 Los trabajos tienen una garantía de 6 meses; las piezas montadas, la del fabricante. El Prestador corrige gratuitamente cualquier defecto en 5 días hábiles.
+4.2 Si un técnico llega tarde, el Prestador abona una penalización del 0,1 % del importe de la orden de trabajo por cada día de retraso, hasta un máximo del 10 % de dicho importe.
+4.3 Si un pago se retrasa, el Cliente abona un interés de demora del 0,1 % de la cantidad vencida por cada día de retraso, hasta un máximo del 10 % de dicha cantidad.
+## 5. Otras condiciones
+5.1 Las partes mantienen la confidencialidad de las condiciones del contrato y de la información que reciban en virtud de él durante su vigencia y los 3 años siguientes.
+5.2 Las partes intentarán resolver primero cualquier conflicto mediante negociación de buena fe, y la parte que reciba una reclamación por escrito responderá en 10 días hábiles. Un conflicto que no se resuelva en los 30 días siguientes a la reclamación podrá someterse a los Juzgados y Tribunales de Valladolid.
+5.3 El contrato estará vigente del {signed:monthDay} al {validUntil:long} y se prorrogará por un periodo igual salvo que una de las partes lo denuncie con al menos 30 días de antelación a su vencimiento.
+
+TALLERES ARÉVALO, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Jacinto Prado Lucas, administrador	Pablo Herrero Gil, director general
+
+
+
+
+## Anexo A
+## al contrato marco de mantenimiento n.º 9/{year:signed}, de fecha {signed:long}
+Equipos incluidos:
+1. Picadora de forraje autopropulsada Tormes FH680, n.º de serie 680-0417: mantenimiento programado antes de la campaña y cada 250 horas de motor.
+2. Apilador eléctrico de conductor acompañante de 1,6 t, n.º de inventario 62: mantenimiento programado cada seis meses.
+3. Compresor de tornillo de 15 kW, n.º de inventario 71: mantenimiento programado cada 2.000 horas.
+4. Camión carrozado con 3,5 t de carga útil: mantenimiento según el plan del fabricante.
+La lista puede ampliarse por acuerdo escrito de las partes.
+
+TALLERES ARÉVALO, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Jacinto Prado Lucas, administrador	Pablo Herrero Gil, director general

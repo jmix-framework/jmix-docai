@@ -1,0 +1,22 @@
+ENTWURF
+# LIEFERVERTRAG NR. 61/{year:signed}
+## Bürobedarf
+
+Zwischen der Marktstraße Bürobedarf GmbH, Marktstraße 23, 30159 Hannover (nachfolgend „Lieferant“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover (nachfolgend „Käufer“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Lieferant verkauft dem Käufer Bürobedarf (nachfolgend „Ware“) nach Bestellung des Käufers.
+2. Zur Ware gehören Kugelschreiber, Bleistifte, Textmarker, Notizblöcke, Aktendeckel, Büroklammern, Hefter, Locher, Haftnotizen, Briefablagen und Schreibtisch-Organizer.
+3. Der Käufer bestellt per E-Mail und nennt Artikel, Mengen und gewünschten Liefertermin. Der Lieferant bestätigt jede Bestellung und stellt innerhalb von 1 Arbeitstag eine Rechnung aus.
+4. Es gelten die Preise der Preisliste des Lieferanten am Bestelltag. Der Lieferant darf seine Preisliste höchstens einmal im Quartal ändern und kündigt Änderungen dem Käufer mindestens 30 Tage im Voraus an.
+5. Der voraussichtliche Auftragswert dieses Vertrags beträgt 2.700,00 € pro Jahr zzgl. USt.
+6. Der Lieferant liefert die Ware innerhalb von 2 Arbeitstagen nach Bestätigung der Bestellung kostenfrei bis in das Büro des Käufers, Gartenstraße 12, 3. OG, 30159 Hannover.
+7. Der Käufer zahlt jede Bestellung innerhalb von 10 Arbeitstagen nach Lieferung, nach Erhalt der Rechnung und des unterzeichneten Lieferscheins.
+8. Der Käufer prüft Menge und Artikel bei Erhalt und vermerkt Fehlmengen oder Schäden auf dem Lieferschein; der Lieferant liefert fehlende Ware nach oder ersetzt mangelhafte Ware auf eigene Kosten innerhalb von 3 Arbeitstagen.
+9. Die Ware ist neu und in der Originalverpackung des Herstellers. Für Hefter, Locher und Schreibtisch-Organizer gilt eine Garantie von 12 Monaten ab Lieferung.
+10. Das Eigentum an der Ware geht mit Unterzeichnung des Lieferscheins auf den Käufer über.
+11. Bei Lieferverzug zahlt der Lieferant eine Vertragsstrafe von 0,1 % des Werts der nicht gelieferten Ware pro Tag; bei Zahlungsverzug zahlt der Käufer 0,1 % des rückständigen Betrags pro Tag.
+12. Dieser Vertrag tritt mit Unterzeichnung in Kraft und gilt bis zum {validUntil:long}.
+13. Es gilt deutsches Recht. Gerichtsstand ist Hannover.
+
+Marktstraße Bürobedarf GmbH	Wiesengrund GmbH
+______________	______________

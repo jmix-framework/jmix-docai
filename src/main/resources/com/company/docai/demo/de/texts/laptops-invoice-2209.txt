@@ -1,0 +1,17 @@
+Kalkhorst Computerhandel GmbH
+Calenberger Straße 21, 30169 Hannover
+USt-IdNr. DE999845361 · Amtsgericht Hannover HRB 208453
+
+# RECHNUNG NR. 2209
+## vom {issued:long}
+Rechnungsempfänger: Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover
+Bestellung Nr. 314 vom {request:long}
+
+1. Notebook 15,6 Zoll, 16 GB RAM, 512 GB SSD, 6 × 970,00 €	5.820,00 €
+2. Notebooktasche, 6 × 20,00 €	120,00 €
+Summe netto	5.940,00 €
+zzgl. 19 % USt.	1.128,60 €
+Rechnungsbetrag	7.068,60 €
+
+Zahlbar bis {due:long} ohne Abzug.
+Bankverbindung: Demobank AG, IBAN DE00 0000 0000 9000 0933 40, BIC DEMODEXXXXX. Bitte geben Sie die Rechnungsnummer als Verwendungszweck an.

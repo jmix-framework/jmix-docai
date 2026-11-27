@@ -1,0 +1,15 @@
+Wiesengrund GmbH
+# INTERNE MITTEILUNG NR. 41
+
+Datum: {issued:long}
+An: Paul Schmidt, Geschäftsführer
+Von: Stefan Schwan, Leiter Gebäudemanagement
+Betreff: Ersatz von zwei Dienstwagen
+
+Ich bitte um Freigabe für den Ersatz von zwei Dienstwagen.
+
+Die Fahrzeuge sind Baujahr 2014 und 2015 und haben 238.000 bzw. 214.000 km Laufleistung. Ihre Reparatur- und Wartungskosten betrugen im Jahr {year:issued-1} 4.290 € und haben in den ersten vier Monaten {year:issued} bereits 1.580 € erreicht. Unsere Versicherung hat die Prämie für beide Fahrzeuge erhöht.
+
+Ich schlage vor, zwei neue Kompaktwagen für jeweils höchstens 32.200 € netto zu kaufen und die alten zu verkaufen, was für beide zusammen etwa 7.220 € bringen dürfte. Die Lieferung der neuen Fahrzeuge sollte höchstens 30 Tage dauern.
+
+Bitte beauftragen Sie den Einkauf, bis zum {quotesBy:monthDay} Angebote von mindestens drei Autohäusern einzuholen.

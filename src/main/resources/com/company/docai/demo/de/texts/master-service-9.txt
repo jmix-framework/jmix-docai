@@ -1,0 +1,45 @@
+# RAHMENWARTUNGSVERTRAG NR. 9/{year:signed}
+## Wartung und Reparatur eines Feldhäckslers und der Lagertechnik
+
+Zwischen der Schermann Maschinenservice GmbH, Hauptstraße 36, 31515 Wunstorf, vertreten durch den Geschäftsführer Jakob Prokop (nachfolgend „Auftragnehmer“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Rahmenvertrag geschlossen:
+
+## 1. Gegenstand
+1.1 Der Auftragnehmer wartet und repariert auf Anforderung des Auftraggebers die in Anlage A aufgeführten Maschinen und Geräte, in erster Linie den selbstfahrenden Feldhäcksler des Auftraggebers, der während der Ernte auf den Feldern des Betriebs Silomais häckselt.
+1.2 Art, Umfang und Kosten der Arbeiten zu jeder Anforderung werden in einem Arbeitsauftrag festgehalten, der Bestandteil dieses Vertrags wird.
+## 2. Leistungserbringung
+2.1 Der Auftraggeber meldet Anforderungen telefonisch oder per E-Mail. Der Auftragnehmer bestätigt eine Anforderung innerhalb von 4 Stunden.
+2.2 Ein Servicetechniker ist innerhalb von 24 Stunden nach Bestätigung der Anforderung vor Ort. Ist eine Reparatur vor Ort nicht möglich, wird die Maschine auf Kosten des Auftraggebers in die Werkstatt des Auftragnehmers gebracht.
+2.3 Planmäßige Wartungen erfolgen nach den Vorgaben des Herstellers; den Wartungsplan für das Folgejahr vereinbaren die Parteien bis zum 1. März.
+2.4 Ausgeführte Arbeiten werden in einem Arbeitsauftrag festgehalten, den beide Parteien innerhalb von 3 Arbeitstagen nach der Fertigmeldung unterzeichnen.
+## 3. Preise und Zahlung
+3.1 Der Stundensatz beträgt 68,00 €; für einen Einsatz innerhalb der Region Hannover wird eine Anfahrtspauschale von 72,00 € berechnet. Alle Preise verstehen sich zzgl. USt.
+3.2 Ersatzteile und Verbrauchsmaterial werden gesondert nach einem vom Auftraggeber vorab freigegebenen Kostenvoranschlag berechnet. Ausgebaute Teile erhält der Auftraggeber auf Wunsch zurück.
+3.3 Der Auftraggeber zahlt innerhalb von 10 Arbeitstagen nach Unterzeichnung des Arbeitsauftrags.
+## 4. Gewährleistung und Haftung
+4.1 Die Gewährleistung für die Arbeiten beträgt 6 Monate; für eingebaute Teile gilt die Herstellergarantie. Mängel beseitigt der Auftragnehmer kostenlos innerhalb von 5 Arbeitstagen.
+4.2 Kommt ein Techniker verspätet, zahlt der Auftragnehmer eine Vertragsstrafe von 0,1 % des Auftragswerts pro Tag, höchstens 5 % dieses Werts.
+4.3 Bei Zahlungsverzug zahlt der Auftraggeber 0,1 % des rückständigen Betrags pro Tag, höchstens 5 % dieses Betrags.
+## 5. Sonstiges
+5.1 Die Parteien behandeln die Bedingungen dieses Vertrags und die im Rahmen des Vertrags erhaltenen Informationen während seiner Laufzeit und 3 Jahre danach vertraulich.
+5.2 Streitigkeiten versuchen die Parteien zunächst gütlich beizulegen; eine Partei, die eine schriftliche Streitmitteilung erhält, antwortet innerhalb von 10 Arbeitstagen. Ist ein Streit 30 Tage nach der Mitteilung nicht beigelegt, ist Gerichtsstand Hannover.
+5.3 Dieser Vertrag gilt vom {signed:monthDay} bis {validUntil:long} und verlängert sich um den gleichen Zeitraum, wenn ihn keine Partei spätestens 30 Tage vor Ablauf kündigt.
+
+Schermann Maschinenservice GmbH	Wiesengrund GmbH
+______________	______________
+Jakob Prokop, Geschäftsführer	Paul Schmidt, Geschäftsführer
+
+
+
+
+## Anlage A
+## zum Rahmenwartungsvertrag Nr. 9/{year:signed} vom {signed:long}
+Vertragsgegenstände:
+1. Selbstfahrender Feldhäcksler Feldmeister FH680, Seriennummer 680-0417: planmäßige Wartung vor der Saison und alle 250 Motorstunden.
+2. Elektro-Deichselstapler, 1,6 t Tragfähigkeit, Inventarnummer 62: planmäßige Wartung alle sechs Monate.
+3. Schraubenkompressor 15 kW, Inventarnummer 71: planmäßige Wartung alle 2.000 Betriebsstunden.
+4. Lkw mit Kofferaufbau, 3,5 t Nutzlast: Wartung nach den Vorgaben des Herstellers.
+Die Liste kann durch schriftliche Vereinbarung der Parteien erweitert werden.
+
+Schermann Maschinenservice GmbH	Wiesengrund GmbH
+______________	______________
+Jakob Prokop, Geschäftsführer	Paul Schmidt, Geschäftsführer

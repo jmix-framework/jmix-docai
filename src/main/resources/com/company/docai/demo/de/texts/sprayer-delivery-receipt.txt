@@ -1,0 +1,15 @@
+# ÜBERGABEPROTOKOLL
+## Selbstfahrende Pflanzenschutzspritze
+
+Datum: {issued:long}
+Verkäufer: Kreuzweg Maschinenhandel GmbH
+Käufer: Wiesengrund GmbH
+Vertrag: Kaufvertrag Nr. 24/{year:contract} vom {contract:long}
+
+Der Käufer bestätigt den Erhalt einer selbstfahrenden Feldspritze: 27 m Gestänge, 4.000 l Behälter, Dieselmotor, Seriennummer 2606-0417, Modelljahr {year:issued}, 11 Motorstunden.
+Im Lieferumfang: Terminal in der Kabine mit GPS-Lenksystem, ein Satz von 56 Düsen, die Übereinstimmungsbescheinigung des Herstellers, die Betriebsanleitung und zwei Schlüsselsätze.
+Die Spritze wurde bei der Übergabe probeweise in Betrieb genommen; Schäden oder Mängel wurden nicht festgestellt. Garantie: 12 Monate ab dem Datum dieses Protokolls.
+Kaufpreis: 143.000,00 € zzgl. USt.
+
+Übergeben: ______________ Viktor Sachs, Kreuzweg Maschinenhandel GmbH
+Übernommen: ______________ Jan Neumann, Leiter Maschinenpark, Wiesengrund GmbH

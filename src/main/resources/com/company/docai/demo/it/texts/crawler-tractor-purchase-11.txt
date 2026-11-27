@@ -1,0 +1,13 @@
+# CONTRATTO DI COMPRAVENDITA N. 11/{year:signed}
+## Trattore cingolato
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Trattori Porta Romana S.r.l., con sede in Via del Lavoro 41, 37135 Verona (VR), P.IVA 07601893751, di seguito «Venditore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Acquirente», si conviene quanto segue.
+
+1. Il Venditore vende e l'Acquirente acquista un trattore cingolato nuovo Ardena C75 per le lavorazioni principali del terreno, con motore diesel, anno modello {year:signed-1}, n. di telaio 7500931, in configurazione standard di fabbrica.
+2. Prezzo: € 48.700,00 oltre IVA. L'Acquirente paga il 50% entro 3 giorni lavorativi dalla firma del contratto e il restante 50% prima della spedizione.
+3. Il Venditore trasporta il trattore su carrellone, a proprie spese, nel luogo indicato dall'Acquirente entro il giorno {delivery:long}, insieme al certificato di conformità del costruttore, al manuale d'uso e manutenzione e a due mazzi di chiavi.
+4. Garanzia: 12 mesi o 1.500 ore motore, al primo dei due termini raggiunto.
+
+Trattori Porta Romana S.r.l.	Campoverde S.r.l.
+______________	______________
+Sergio Molinari, Amministratore unico	Paolo Ferri, Amministratore Delegato

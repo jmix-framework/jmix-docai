@@ -1,0 +1,17 @@
+Informática Calderón, S.L.
+CIF B99845361
+Calle de Calderón, 21, 47001 Valladolid
+
+# FACTURA N.º 2209
+## Fecha: {issued:long}
+Cliente: Vega Verde, S.L., CIF B99471205, calle del Jardín, 12, oficina 312, 47001 Valladolid
+Pedido de compra n.º 314, de fecha {request:long}
+
+1. Portátil de 15,6 pulgadas, 16 GB de RAM, SSD de 512 GB, 6 a 970,00 €	5.820,00 €
+2. Maletín para portátil, 6 a 20,00 €	120,00 €
+Base imponible	5.940,00 €
+IVA 21 %	1.247,40 €
+Total factura	7.187,40 €
+
+Vencimiento: {due:long}.
+Forma de pago: transferencia a la cuenta IBAN ES00 9999 0000 0000 0009 3340 de Banco Demo. Indique el número de factura en el concepto.

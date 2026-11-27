@@ -1,0 +1,20 @@
+Ersatzteile Süd GmbH
+Hafenstraße 22, 97082 Würzburg
+USt-IdNr. DE999518734 · Amtsgericht Würzburg HRB 15187
+
+# RECHNUNG NR. 1187
+## vom {issued:long}
+Rechnungsempfänger: Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover
+Vertrag: Liefervertrag Nr. 29/{year:contract} vom {contract:long}
+Lieferdatum: Rechnungsdatum
+
+Ersatzteile für den Mähdrescher Feldmeister 1500:
+1. Antriebsriemen Schneidwerk, 6 × 42,00 €	252,00 €
+2. Mähmesserklingen, 120 × 3,20 €	384,00 €
+3. Rillenkugellager 6310-2RS, 12 × 14,00 €	168,00 €
+Summe netto	804,00 €
+zzgl. 19 % USt.	152,76 €
+Rechnungsbetrag	956,76 €
+
+Zahlbar bis {due:long} ohne Abzug.
+Bankverbindung: Demobank AG, IBAN DE00 0000 0000 9000 0712 34, BIC DEMODEXXXXX. Bitte geben Sie die Rechnungsnummer als Verwendungszweck an.

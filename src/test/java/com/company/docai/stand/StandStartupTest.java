@@ -38,6 +38,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -133,16 +134,24 @@ class StandStartupTest {
         }).when(loader).loadIfEmpty(anyString());
 
         // a new container: no template has its marker
-        Files.delete(markerOf("en"));
-        Files.delete(markerOf("ru"));
+        for (String language : properties.templateLanguages()) {
+            Files.delete(markerOf(language));
+        }
+
         start();
 
-        assertThat(builds).containsExactly(
-                "en loads, ready: []",
-                "en is loaded",
-                "ru loads, ready: [en]",
-                "ru is loaded");
-        assertThat(readyLanguages()).containsExactly("en", "ru");
+        List<String> expected = new ArrayList<>();
+        List<String> ready = new ArrayList<>();
+
+        for (String language : properties.templateLanguages()) {
+            expected.add(language + " loads, ready: " + ready);
+            expected.add(language + " is loaded");
+            ready.add(language);
+        }
+
+        assertThat(properties.templateLanguages()).startsWith("en", "ru");
+        assertThat(builds).containsExactlyElementsOf(expected);
+        assertThat(readyLanguages()).containsExactlyElementsOf(properties.templateLanguages());
     }
 
     @Test
@@ -195,7 +204,7 @@ class StandStartupTest {
         verify(loader, never()).loadIfEmpty(anyString());
         verify(indexes, never()).renew(any());
         assertThat(scriptsModified()).isEqualTo(scripts);
-        assertThat(readyLanguages()).containsExactly("en", "ru");
+        assertThat(readyLanguages()).containsExactlyElementsOf(properties.templateLanguages());
     }
 
     @Test
@@ -216,7 +225,7 @@ class StandStartupTest {
         verify(loader, never()).loadIfEmpty("ru");
         assertThat(stale).doesNotExist();
         assertThat(markerOf("en")).isRegularFile();
-        assertThat(readyLanguages()).containsExactly("en", "ru");
+        assertThat(readyLanguages()).containsExactlyElementsOf(properties.templateLanguages());
     }
 
     // the indexes of a template are gone, as when OpenSearch has lost its data
@@ -230,7 +239,7 @@ class StandStartupTest {
 
         verify(loader).loadIfEmpty("ru");
         verify(loader, never()).loadIfEmpty("en");
-        assertThat(readyLanguages()).containsExactly("en", "ru");
+        assertThat(readyLanguages()).containsExactlyElementsOf(properties.templateLanguages());
     }
 
     @Test
@@ -307,9 +316,11 @@ class StandStartupTest {
         Files.delete(markerOf("en"));
         CompletableFuture<Void> started = startup.start();
 
-        // the start schedules the try once en has failed, and only then checks ru
+        // the start schedules the try once en has failed, and only then builds the templates after it
+        String last = properties.templateLanguages().getLast();
+
         await().atMost(START)
-                .until(() -> !triesOfTemplates().isEmpty() && copyFactory.isReady("ru"));
+                .until(() -> !triesOfTemplates().isEmpty() && copyFactory.isReady(last));
 
         List<? extends Trigger> tries = triesOfTemplates();
 
@@ -334,7 +345,7 @@ class StandStartupTest {
             scheduler.standby();
         }
 
-        assertThat(readyLanguages()).containsExactly("en", "ru");
+        assertThat(readyLanguages()).containsExactlyElementsOf(properties.templateLanguages());
         verify(loader, times(2)).loadIfEmpty("en");
     }
 

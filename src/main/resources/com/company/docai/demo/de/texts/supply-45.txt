@@ -1,0 +1,21 @@
+# LIEFERVERTRAG NR. 45
+## Büropapier und Bürobedarf
+
+Zwischen der Nordwind Papier GmbH, Nordring 157, 30179 Hannover, vertreten durch den Geschäftsführer Arthur Kramer (nachfolgend „Lieferant“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Käufer“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Im Jahr {year:signed} verkauft der Lieferant dem Käufer Büropapier und Bürobedarf (nachfolgend „Ware“) nach Bestellung des Käufers.
+2. Jede Bestellung und die Rechnung des Lieferanten nennen Artikel, Mengen und Preise. Es gelten die Preise der Preisliste des Lieferanten am Bestelltag.
+3. Der voraussichtliche Auftragswert dieses Vertrags beträgt 10.700,00 € zzgl. USt. Erreichen die Lieferungen diesen Betrag vor Vertragsende, schließen die Parteien eine Ergänzungsvereinbarung zu seiner Erhöhung.
+4. Der Käufer bestellt per E-Mail, der Lieferant bestätigt innerhalb von 1 Arbeitstag. Der Lieferant liefert die Ware mit eigenen Fahrzeugen innerhalb von 5 Arbeitstagen nach Bestellung in das Büro des Käufers, Gartenstraße 12, 3. OG, 30159 Hannover. Die Lieferung ist im Preis enthalten.
+5. Der Käufer zahlt jede Rechnung innerhalb von 20 Tagen nach Lieferung.
+6. Bis zum 10. eines jeden Monats sendet der Lieferant dem Käufer eine Abrechnung für den Vormonat.
+7. Das Eigentum an der Ware geht mit Unterzeichnung des Lieferscheins auf den Käufer über.
+8. Der Käufer prüft Menge und Artikel bei Erhalt und zeigt verdeckte Mängel innerhalb von 10 Tagen nach Lieferung an; mangelhafte Ware ersetzt der Lieferant auf eigene Kosten innerhalb von 5 Arbeitstagen.
+9. Kopierpapier wird in der Originalverpackung des Herstellers geliefert: A4, 80 g/m², Weiße mindestens CIE 161, 500 Blatt je Paket.
+10. Bei Lieferverzug zahlt der Lieferant eine Vertragsstrafe von 0,1 % des Werts der nicht gelieferten Ware pro Tag; bei Zahlungsverzug zahlt der Käufer 0,1 % des rückständigen Betrags pro Tag.
+11. Dieser Vertrag tritt mit Unterzeichnung in Kraft und gilt bis zum {validUntil:long}.
+12. Es gilt deutsches Recht. Gerichtsstand ist Hannover.
+
+Nordwind Papier GmbH	Wiesengrund GmbH
+______________	______________
+Arthur Kramer, Geschäftsführer	Paul Schmidt, Geschäftsführer

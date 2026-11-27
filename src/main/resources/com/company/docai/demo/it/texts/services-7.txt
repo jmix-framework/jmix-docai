@@ -1,0 +1,21 @@
+# CONTRATTO DI SERVIZI N. 7
+## Disinfestazione e controllo degli infestanti
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Igiene Ambientale Padana S.r.l., con sede in Via Larga 31, 40138 Bologna, P.IVA 06613183763, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Committente», si conviene quanto segue.
+
+1. Il Fornitore esegue ogni mese il servizio di disinfestazione nel magazzino e negli uffici del Committente, compresi il controllo degli insetti, il monitoraggio dei roditori e, quando necessario, la derattizzazione.
+2. Il servizio riguarda il magazzino di Via del Commercio 36, capannone 2, 40138 Bologna, e gli uffici di Via dei Giardini 12, 40121 Bologna.
+3. Gli interventi si svolgono una volta al mese, in una data concordata con il Committente con almeno 3 giorni lavorativi di anticipo: negli uffici fuori dall'orario di lavoro, nel magazzino senza interromperne l'attività.
+4. Il Fornitore utilizza attrezzature proprie e solo prodotti biocidi e presidi medico-chirurgici autorizzati dal Ministero della Salute. Lungo il perimetro del magazzino il Fornitore installa erogatori di esca inviolabili, ne tiene la planimetria e li controlla ogni mese.
+5. Gli interventi sono eseguiti da tecnici qualificati del Fornitore, formati sull'uso sicuro dei prodotti impiegati.
+6. Il Committente garantisce ai tecnici l'accesso a tutti i locali da trattare e, durante il trattamento, rimuove gli alimenti dalle aree ristoro.
+7. Dopo ogni intervento il Fornitore aggiorna il registro dei trattamenti, conservato presso il Committente, e rilascia un rapporto mensile di servizio. Nel registro sono indicati la data, i locali trattati, i prodotti utilizzati e le raccomandazioni al Committente.
+8. Se il Committente segnala la presenza di infestanti tra un intervento programmato e l'altro, il Fornitore esegue un intervento aggiuntivo entro 2 giorni lavorativi senza costi aggiuntivi.
+9. Il corrispettivo è di € 210,00 al mese, pari a € 2.520,00 per il {year:signed}, oltre IVA.
+10. Il Committente paga mensilmente, entro 10 giorni lavorativi dal ricevimento del rapporto mensile e della fattura.
+11. Il Fornitore impiega i prodotti in sicurezza per le persone e per le merci del Committente e risarcisce gli eventuali danni causati dal servizio.
+12. Il contratto entra in vigore alla data della sottoscrizione e resta valido fino al {validUntil:long}. Ciascuna parte può recedere con un preavviso scritto di almeno 30 giorni.
+
+Igiene Ambientale Padana S.r.l.	Campoverde S.r.l.
+______________	______________
+Ruggero Lani, Amministratore unico	Paolo Ferri, Amministratore Delegato

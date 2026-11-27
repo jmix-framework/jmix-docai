@@ -1,0 +1,13 @@
+# CONTRATTO DI COMPRAVENDITA N. 37/{year:signed}
+## Mietitrebbia
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Emiliana Trattori S.p.A., con sede in Via Emilia Levante 71, 40139 Bologna, P.IVA 05432313791, di seguito «Venditore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Acquirente», si conviene quanto segue.
+
+1. Il Venditore vende e l'Acquirente acquista una mietitrebbia nuova Pievesi 595 con testata da grano da 7,6 m e carrello per il trasporto della testata.
+2. Il prezzo è di € 182.000,00 oltre IVA. L'Acquirente versa un acconto del 30%, pari a € 54.600,00, entro 5 giorni lavorativi dalla firma del contratto e paga il saldo di € 127.400,00 entro 3 giorni lavorativi dalla firma del verbale di consegna.
+3. Il Venditore consegna la mietitrebbia nel luogo indicato dall'Acquirente entro il giorno {delivery:long}.
+4. Garanzia: 24 mesi o 2.000 ore motore, al primo dei due termini raggiunto. Il Venditore esegue le riparazioni in garanzia entro 14 giorni dalla segnalazione.
+
+Emiliana Trattori S.p.A.	Campoverde S.r.l.
+______________	______________
+Oliviero Bianchini, Amministratore Delegato	Paolo Ferri, Amministratore Delegato

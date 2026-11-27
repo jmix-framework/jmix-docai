@@ -1,0 +1,14 @@
+# CONTRATTO DI INSTALLAZIONE N. 22/{year:signed}
+## Impianto di irrigazione semovente a pivot centrale
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Acquachiara Irrigazione S.r.l., con sede in Via delle Fabbriche 15, 40069 Zola Predosa (BO), P.IVA 01186253721, di seguito «Installatore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Committente», si conviene quanto segue.
+
+1. L'Installatore monta un impianto di irrigazione a pivot Pluvia 7, con la relativa stazione di pompaggio, sull'appezzamento n. 7 della tenuta del Committente a Budrio (64 ettari), destinato a mais da insilato e prati poliennali; collega l'impianto alla presa d'acqua e alla rete elettrica e ne esegue la messa in servizio. L'impianto è fornito dal Committente.
+2. Il pivot è un impianto di irrigazione semovente: le sue campate su ruote, mosse da motori elettrici, ruotano attorno a un punto fisso e irrigano le colture con gli irrigatori per tutta la stagione irrigua, da maggio a settembre.
+3. I lavori si svolgono dal {workStart:monthDay} al {workEnd:long}. Una prova in campo e il verbale di fine lavori attestano che l'impianto è pronto per l'irrigazione.
+4. Il corrispettivo dei lavori è di € 26.400,00 oltre IVA. Il Committente versa un acconto del 50%, pari a € 13.200,00, entro 5 giorni lavorativi dalla firma del contratto e paga il saldo alla firma del verbale di fine lavori.
+5. Garanzia sui lavori: 12 mesi.
+
+Acquachiara Irrigazione S.r.l.	Campoverde S.r.l.
+______________	______________
+Andrea Tilli, Amministratore unico	Paolo Ferri, Amministratore Delegato

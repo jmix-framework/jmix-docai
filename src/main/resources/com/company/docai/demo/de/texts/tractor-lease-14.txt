@@ -1,0 +1,13 @@
+# MASCHINENMIETVERTRAG NR. 14
+## Traktor ohne Fahrer
+
+Zwischen der Nordtor Maschinenvermietung GmbH, Am Nordtor 125, 30419 Hannover, vertreten durch den Geschäftsführer Markus Wolf (nachfolgend „Vermieter“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Mieter“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Vermieter vermietet dem Mieter einen Traktor Brandauer 82 (Seriennummer 80512347) mit Dieselmotor samt Anbaugeräten für die Frühjahrsbestellung vom {start:monthDay} bis {validUntil:long}.
+2. Miete: 16,00 € je Motorstunde, mindestens 4.800,00 € für die Mietzeit (300 Motorstunden), jeweils zzgl. USt.
+3. Der Mieter zahlt monatlich nach dem Stand des Betriebsstundenzählers innerhalb von 5 Arbeitstagen, nachdem beide Parteien den monatlichen Nutzungsbericht unterzeichnet haben.
+4. Der Vermieter wartet den Traktor alle 250 Motorstunden auf eigene Kosten. Kraft- und Schmierstoffe zahlt der Mieter.
+
+Nordtor Maschinenvermietung GmbH	Wiesengrund GmbH
+______________	______________
+Markus Wolf, Geschäftsführer	Paul Schmidt, Geschäftsführer

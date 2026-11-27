@@ -1,0 +1,14 @@
+# VERBALE DI CONSEGNA N. 5
+## Spazzaneve a turbina
+
+Data: {issued:long}
+Venditore: Motogarden Emilia S.r.l.
+Acquirente: Campoverde S.r.l.
+Contratto: contratto di fornitura n. 2/{year:contract} stipulato in data {contract:long}
+
+L'Acquirente dichiara di aver ricevuto uno spazzaneve a turbina semovente a doppio stadio: larghezza di lavoro 76 cm, motore a benzina da 9 CV, avviamento elettrico, n. di serie 26-0114. Lo spazzaneve servirà a sgomberare il piazzale e la banchina di carico del magazzino di Via del Commercio 36, capannone 2, 40138 Bologna.
+In dotazione: 4 perni di sicurezza di ricambio, una lama raschiante, il manuale d'uso e il certificato di garanzia.
+Lo spazzaneve è stato provato alla consegna e non sono stati riscontrati difetti. Prezzo: € 1.640,00 oltre IVA. Garanzia: 12 mesi dalla data del presente verbale.
+
+Consegnato da: ______________ Enrico Mazzoni, Motogarden Emilia S.r.l.
+Ricevuto da: ______________ Stefano Bassi, Responsabile Servizi Generali, Campoverde S.r.l.

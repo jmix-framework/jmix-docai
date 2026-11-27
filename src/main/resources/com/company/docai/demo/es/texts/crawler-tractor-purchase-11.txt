@@ -1,0 +1,13 @@
+# CONTRATO DE COMPRAVENTA N.º 11/{year:signed}
+## Tractor de cadenas
+
+Este contrato de compraventa se celebra en Valladolid el {signed:long} entre Tractores Portillo, S.L., con CIF B99410276 y domicilio en avenida de la Ribera, 41, 50002 Zaragoza (el «Vendedor»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Comprador»).
+
+1. El Vendedor vende, y el Comprador compra, un tractor de cadenas nuevo Duero C75 para labores profundas, con motor diésel, modelo del año {year:signed-1}, n.º de serie 7500931, en configuración estándar de fábrica.
+2. Precio: 48.700,00 €, más IVA. El Comprador paga el 50 % en los 3 días hábiles siguientes a la firma del contrato y el 50 % antes de la expedición.
+3. El Vendedor transporta el tractor en góndola, a su cargo, hasta el lugar que indique el Comprador como muy tarde el {delivery:long}, con el certificado de origen del fabricante, el manual de instrucciones y dos juegos de llaves.
+4. Garantía: 12 meses o 1.500 horas de motor, lo que antes se cumpla.
+
+TRACTORES PORTILLO, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Sergio Millán Pozo, administrador	Pablo Herrero Gil, director general

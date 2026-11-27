@@ -1,0 +1,18 @@
+Aperos Orión, S.L.
+CIF B99009721
+Calle del Transporte, 18, 47400 Medina del Campo (Valladolid)
+
+# FACTURA N.º 405
+## Fecha: {issued:long}
+Cliente: Vega Verde, S.L., CIF B99471205, calle del Jardín, 12, oficina 312, 47001 Valladolid
+Contrato: contrato de suministro n.º 18/{year:contract}, de fecha {contract:long}
+
+1. Arado de vertedera Arlanza MP4 de cuatro cuerpos, 1 a 2.070,00 €	2.070,00 €
+2. Cultivador Arlanza FC13 de 4 m de anchura, 1 a 3.800,00 €	3.800,00 €
+Base imponible	5.870,00 €
+IVA 21 %	1.232,70 €
+Total factura	7.102,70 €
+
+El MP4 es un arado suspendido para la labor principal de las tierras; el FC13 es un cultivador para preparar el lecho de siembra en toda la anchura de trabajo.
+Vencimiento: {due:long}.
+Forma de pago: transferencia a la cuenta IBAN ES00 9999 0000 0000 0004 5671 de Banco Demo. Indique el número de factura en el concepto.

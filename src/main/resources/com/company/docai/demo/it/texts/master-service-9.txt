@@ -1,0 +1,45 @@
+# ACCORDO QUADRO DI ASSISTENZA N. 9/{year:signed}
+## Manutenzione e riparazione di una trinciacaricatrice e delle attrezzature di magazzino
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Officina Persicetana S.r.l., con sede in Via Roma 36, 40017 San Giovanni in Persiceto (BO), P.IVA 08885393732, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Committente», si conviene quanto segue.
+
+## 1. Oggetto
+1.1 Su richiesta del Committente, il Fornitore esegue la manutenzione e la riparazione dei mezzi elencati nell'Allegato A, in primo luogo della trinciacaricatrice semovente del Committente, che durante la raccolta trincia il mais da insilato sui campi della tenuta del Committente.
+1.2 Tipo, entità e costo degli interventi di ciascuna richiesta risultano da un ordine di lavoro, che costituisce parte integrante del presente accordo.
+## 2. Assistenza
+2.1 Il Committente invia le richieste per telefono o per e-mail. Il Fornitore conferma la richiesta entro 4 ore.
+2.2 Un tecnico dell'assistenza esterna interviene sul posto entro 24 ore dalla conferma della richiesta. Se la riparazione non può essere eseguita sul posto, il mezzo è trasportato all'officina del Fornitore a spese del Committente.
+2.3 La manutenzione programmata segue il piano del costruttore; le parti concordano il piano dell'anno successivo entro il 1° marzo.
+2.4 Gli interventi eseguiti risultano da un ordine di lavoro firmato da entrambe le parti entro 3 giorni lavorativi dalla comunicazione al Committente che il mezzo è pronto.
+## 3. Prezzi e pagamenti
+3.1 La tariffa della manodopera è di € 29,00 l'ora; un intervento nella provincia di Bologna comporta un diritto di chiamata di € 72,00. I prezzi si intendono IVA esclusa.
+3.2 Ricambi e materiali di consumo sono fatturati a parte, in base a un preventivo approvato in anticipo dal Committente. Su richiesta, le parti sostituite sono restituite al Committente.
+3.3 Il Committente paga entro 10 giorni lavorativi dalla firma dell'ordine di lavoro.
+## 4. Garanzia e responsabilità
+4.1 I lavori sono garantiti per 6 mesi; i ricambi installati godono della garanzia del costruttore. Il Fornitore elimina gratuitamente i difetti entro 5 giorni lavorativi.
+4.2 In caso di ritardo del tecnico, il Fornitore corrisponde una penale dello 0,1% del valore dell'ordine di lavoro per ogni giorno di ritardo, fino al 10% di tale valore.
+4.3 In caso di ritardato pagamento, il Committente corrisponde una penale dello 0,1% dell'importo scaduto per ogni giorno di ritardo, fino al 10% di tale importo.
+## 5. Altre condizioni
+5.1 Le parti mantengono riservati i termini del presente accordo e le informazioni ricevute in forza di esso per tutta la sua durata e nei 3 anni successivi.
+5.2 Le parti tentano anzitutto di risolvere ogni controversia in via amichevole; la parte che riceve una contestazione scritta risponde entro 10 giorni lavorativi. La controversia non risolta entro 30 giorni dalla contestazione è devoluta alla competenza esclusiva del Foro di Bologna.
+5.3 Il presente accordo è valido dal {signed:monthDay} al {validUntil:long} e si rinnova per un periodo di uguale durata, salvo disdetta di una delle parti comunicata almeno 30 giorni prima della scadenza.
+
+Officina Persicetana S.r.l.	Campoverde S.r.l.
+______________	______________
+Giacomo Procaccini, Amministratore unico	Paolo Ferri, Amministratore Delegato
+
+
+
+
+## Allegato A
+## all'accordo quadro di assistenza n. 9/{year:signed} stipulato in data {signed:long}
+Mezzi oggetto dell'accordo:
+1. Trinciacaricatrice semovente Pievesi TF680, n. di telaio 680-0417: manutenzione programmata prima della stagione e ogni 250 ore motore.
+2. Carrello stoccatore elettrico con portata di 1.600 kg, cespite n. 62: manutenzione programmata semestrale.
+3. Compressore d'aria a vite da 15 kW, cespite n. 71: manutenzione programmata ogni 2.000 ore.
+4. Autocarro furgonato con portata utile di 3.400 kg: manutenzione secondo il piano del costruttore.
+L'elenco può essere ampliato con accordo scritto delle parti.
+
+Officina Persicetana S.r.l.	Campoverde S.r.l.
+______________	______________
+Giacomo Procaccini, Amministratore unico	Paolo Ferri, Amministratore Delegato

@@ -1,0 +1,29 @@
+# BÜROMIETVERTRAG NR. 98
+
+Dieser Büromietvertrag (nachfolgend „Vertrag“) wird am {signed:long} zwischen der Leineufer Immobilien GmbH & Co. KG, Am Leineufer 3, 30169 Hannover (nachfolgend „Vermieter“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover (nachfolgend „Mieter“), geschlossen.
+
+1. Der Vermieter vermietet dem Mieter Büroflächen von 160 m² im 2. OG des Gebäudes Am Leineufer 3, 30169 Hannover (nachfolgend „Büro“), für die Verwaltung des Mieters.
+2. Der Vermieter übergibt das Büro am Tag des Vertragsschlusses mit der Einrichtung und Ausstattung, die im von beiden Parteien unterzeichneten Übergabeprotokoll aufgeführt ist.
+3. Die Mietzeit läuft vom {signed:long} bis {validUntil:long}.
+4. Die Miete beträgt 3.200,00 € monatlich, 38.400,00 € für die gesamte Mietzeit; sie ist umsatzsteuerfrei.
+5. Die Miete ist monatlich bis zum 10. des Monats fällig. Sie umfasst die Nebenkosten, die Reinigung der Gemeinschaftsflächen, die Bewachung des Gebäudes und zwei Stellplätze. Telefon und Internet zahlt der Mieter selbst.
+6. Der Mieter nutzt das Büro nur als Büro, hält es in gutem Zustand und beachtet die Brandschutzvorschriften und die Hausordnung.
+7. Der Vermieter gewährt den Mitarbeitern des Mieters rund um die Uhr Zugang zum Büro und hält Aufzüge, Heizung und Klimaanlage betriebsbereit.
+8. Bei verspäteter Zahlung der Miete zahlt der Mieter eine Vertragsstrafe von 0,1 % des rückständigen Betrags pro Tag.
+9. Die Parteien können diesen Vertrag durch schriftliche Vereinbarung vorzeitig beenden. Bei Vertragsende gibt der Mieter das Büro in dem Zustand zurück, in dem er es erhalten hat, abgesehen von der gewöhnlichen Abnutzung.
+
+Leineufer Immobilien GmbH & Co. KG	Wiesengrund GmbH
+______________	______________
+Simon Gerlach, Geschäftsführer	Paul Schmidt, Geschäftsführer
+
+## Aufhebungsvertrag
+
+Dieser Aufhebungsvertrag wird am {validUntil:long} zwischen der Leineufer Immobilien GmbH & Co. KG und der Wiesengrund GmbH geschlossen, die den Büromietvertrag Nr. 98 vom {signed:long} mit Wirkung zum {validUntil:long} aufheben.
+1. Der Mieter hat das Büro am {validUntil:long} in gutem Zustand, abgesehen von der gewöhnlichen Abnutzung, an den Vermieter zurückgegeben; dies ist im Rückgabeprotokoll festgehalten.
+2. Der Mieter hat die Miete für die gesamte Mietzeit vollständig bezahlt und schuldet aus dem Vertrag nichts mehr.
+3. Die Parteien verzichten gegenseitig auf alle Ansprüche aus dem Vertrag.
+4. Dieser Aufhebungsvertrag tritt mit Unterzeichnung in Kraft.
+
+Leineufer Immobilien GmbH & Co. KG	Wiesengrund GmbH
+______________	______________
+Simon Gerlach, Geschäftsführer	Paul Schmidt, Geschäftsführer

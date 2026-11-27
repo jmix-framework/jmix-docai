@@ -1,0 +1,15 @@
+Vega Verde, S.L.
+# NOTA INTERNA N.º 41
+
+Fecha: {issued:long}
+Para: Pablo Herrero Gil, director general
+De: Sergio Sanz Molina, jefe de servicios generales
+Asunto: sustitución de dos vehículos de empresa
+
+Solicito autorización para sustituir dos vehículos de empresa.
+
+Son modelos de 2014 y 2015, con 238.000 y 214.000 km. Sus gastos de reparación y mantenimiento fueron de 4.290 € en {year:issued-1} y ya alcanzan 1.580 € en los cuatro primeros meses de {year:issued}. Nuestra aseguradora ha subido la prima de ambos vehículos.
+
+Propongo comprar dos turismos compactos nuevos por un máximo de 32.200 € cada uno y vender los antiguos, por los que obtendríamos unos 7.220 € en total. La entrega de los nuevos vehículos no debería tardar más de 30 días.
+
+Ruego que Compras pida ofertas a al menos tres concesionarios antes del {quotesBy:monthDay}.

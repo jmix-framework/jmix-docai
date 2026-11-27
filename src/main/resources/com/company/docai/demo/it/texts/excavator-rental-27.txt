@@ -1,0 +1,13 @@
+# CONTRATTO DI NOLEGGIO N. 27
+## Escavatore cingolato con operatore
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Noleggi Ferropesante S.r.l., con sede in Via del Lavoro 100, 40127 Bologna, P.IVA 07465073755, di seguito «Noleggiante», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Cliente», si conviene quanto segue.
+
+1. Il Noleggiante concede a noleggio al Cliente un escavatore cingolato da 21 t con benna da 1,1 m³, con operatore, per lo scavo delle fondazioni di un magazzino in Via dell'Artigianato 7, 40010 Sala Bolognese (BO).
+2. Periodo di noleggio: dal {start:monthDay} al {validUntil:long}. Tariffa: € 35,00 per ora di funzionamento, con un minimo di € 2.800,00 per l'intero periodo (80 ore), oltre IVA.
+3. Trasporto dell'escavatore su carrellone: € 270,00 per tratta. Il carburante consumato è a carico del Cliente.
+4. Le ore di funzionamento risultano dal contaore dell'escavatore e sono confermate da un rapportino giornaliero firmato da entrambe le parti.
+
+Noleggi Ferropesante S.r.l.	Campoverde S.r.l.
+______________	______________
+Claudio Riva, Amministratore unico	Paolo Ferri, Amministratore Delegato

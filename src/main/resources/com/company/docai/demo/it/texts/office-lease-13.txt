@@ -1,0 +1,14 @@
+# CONTRATTO DI LOCAZIONE N. 13
+## Uffici al 3° piano, Via dei Giardini 12
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Immobiliare Giardini S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 00786663768, di seguito «Locatore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Conduttore», si conviene quanto segue.
+
+1. Il Locatore concede in locazione al Conduttore l'unità a uso ufficio di 240 m² al 3° piano dell'edificio di Via dei Giardini 12, 40121 Bologna.
+2. Durata della locazione: dal {start:long} al {validUntil:long}.
+3. Canone: € 6.930,00 al mese oltre IVA, comprensivo delle spese condominiali e della vigilanza dell'edificio, da pagare entro il giorno 5 di ciascun mese.
+4. Il Conduttore versa un deposito cauzionale pari a una mensilità di canone, € 6.930,00, entro 3 giorni lavorativi dalla firma del contratto.
+5. Il Conduttore non può apportare modifiche ai locali senza il consenso scritto del Locatore.
+
+Immobiliare Giardini S.r.l.	Campoverde S.r.l.
+______________	______________
+Guglielmo Gozzi, Amministratore unico	Paolo Ferri, Amministratore Delegato

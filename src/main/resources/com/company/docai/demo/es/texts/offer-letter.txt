@@ -1,0 +1,31 @@
+Vega Verde, S.L.
+Calle del Jardín, 12, oficina 312, 47001 Valladolid
+
+Valladolid, {issued:long}
+
+Sra. Lucía Martín Ruiz
+Calle de la Unión, 84, 2.º B
+47004 Valladolid
+
+# CARTA DE OFERTA DE EMPLEO
+
+Estimada Sra. Martín:
+
+Nos complace ofrecerle el puesto de técnica de compras en el Departamento de Compras de Vega Verde, S.L., bajo la dirección de Elisa Carrasco Vidal, directora de Compras. Las condiciones de nuestra oferta son las siguientes.
+
+1. Fecha de incorporación: {hired:long}.
+2. Salario bruto anual: 30.000 €, en 14 pagas. Contrato indefinido a jornada completa.
+3. Horario: de lunes a viernes.
+4. Periodo de prueba: los tres primeros meses de la relación laboral.
+5. Durante el periodo de prueba, tanto usted como la empresa pueden poner fin a la relación laboral sin preaviso ni indemnización.
+6. El primer día, Diana Puerta Lozano, técnica de RR. HH., completará con usted la documentación de su incorporación, incluida el alta en la Seguridad Social.
+7. Elisa Carrasco Vidal tendrá preparado su puesto de trabajo y repasará con usted la descripción de sus funciones.
+
+Las condiciones completas de su relación laboral figuran en el contrato de trabajo adjunto, de fecha {issued:long}.
+
+Atentamente,
+
+______________
+Pablo Herrero Gil, director general
+
+Acepto: ______________ Lucía Martín Ruiz	{issued:long}

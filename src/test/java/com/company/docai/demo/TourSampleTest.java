@@ -7,6 +7,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.time.ZoneOffset;
@@ -85,9 +87,25 @@ class TourSampleTest {
         }
     }
 
+    // the invoice is dated three days before today, May 17, 2027, in the long format of the set
+    @ParameterizedTest
+    @CsvSource({"de, Mai", "es, mayo", "it, maggio"})
+    void aGermanSpanishOrItalianInterfaceGetsTheSampleOfItsSet(String language, String may) throws IOException {
+        when(currentAuthentication.getLocale()).thenReturn(Locale.forLanguageTag(language));
+
+        assertThat(sample.fileName()).contains("2231").endsWith(".pdf").isNotEqualTo("Invoice 2231.pdf");
+
+        try (PDDocument document = Loader.loadPDF(sample.render())) {
+            assertThat(document.getNumberOfPages()).isEqualTo(1);
+            assertThat(textOf(document))
+                    .contains("2231", "17", may, "2027")
+                    .doesNotContain("INVOICE", "May 17");
+        }
+    }
+
     @Test
-    void anyOtherInterfaceGetsTheEnglishSample() throws IOException {
-        when(currentAuthentication.getLocale()).thenReturn(Locale.GERMANY);
+    void anInterfaceInALanguageWithoutASetGetsTheEnglishSample() throws IOException {
+        when(currentAuthentication.getLocale()).thenReturn(Locale.FRANCE);
 
         assertThat(sample.fileName()).isEqualTo("Invoice 2231.pdf");
         assertThat(text()).contains("INVOICE No. 2231");

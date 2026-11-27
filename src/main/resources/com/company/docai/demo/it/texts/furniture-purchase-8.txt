@@ -1,0 +1,16 @@
+# CONTRATTO DI FORNITURA N. 8
+## Arredi per la sala riunioni
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Arredo Ufficio Allegri S.r.l., con sede in Via Emilia Ponente 37, 40133 Bologna, P.IVA 01760313735, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Acquirente», si conviene quanto segue.
+
+1. Il Fornitore vende e l'Acquirente acquista i seguenti arredi:
+a) tavolo riunioni 360 × 120 cm: 1 pz a € 1.640,00;
+b) sedute da ufficio: 12 pz a € 195,00, per € 2.340,00;
+c) cassettiere schedari: 2 pz a € 510,00, per € 1.020,00.
+2. Il prezzo complessivo è di € 5.000,00 oltre IVA. L'Acquirente paga il 50% entro 3 giorni lavorativi dalla firma del contratto e il restante 50% dopo la firma del verbale di consegna.
+3. Il Fornitore consegna gli arredi al piano e li monta nella sala riunioni in Via dei Giardini 12, 40121 Bologna, entro il giorno {delivery:long}.
+4. Garanzia: 24 mesi.
+
+Arredo Ufficio Allegri S.r.l.	Campoverde S.r.l.
+______________	______________
+Enrico Sutti, Amministratore unico	Paolo Ferri, Amministratore Delegato

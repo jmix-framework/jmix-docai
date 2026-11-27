@@ -20,7 +20,6 @@ import java.util.Map;
 public class TourSample {
 
     private static final String DESCRIPTION = "tour-sample.json";
-    private static final String RUSSIAN = "ru";
     private static final String ENGLISH = "en";
 
     private final DemoPdf pdf;
@@ -70,8 +69,13 @@ public class TourSample {
         }
     }
 
+    // the set of the language of the interface, or the English one for a language without a set of its own
     private String set() {
-        return RUSSIAN.equals(currentAuthentication.getLocale().getLanguage()) ? RUSSIAN : ENGLISH;
+        String language = currentAuthentication.getLocale().getLanguage();
+
+        boolean hasSet = new ClassPathResource(DemoSet.LOCATION.formatted(language) + DESCRIPTION).exists();
+
+        return hasSet ? language : ENGLISH;
     }
 
     private static Description description(String set) {

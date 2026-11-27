@@ -1,0 +1,19 @@
+Procedimiento de aprobación de contratos — Vega Verde, S.L.
+
+Aprobado por Pablo Herrero Gil, director general, el {approved:long}.
+
+1. Este procedimiento se aplica a todos los contratos que Vega Verde, S.L. firma con proveedores, contratistas, prestadores de servicios y arrendadores.
+
+2. El responsable del contrato es el jefe del departamento que necesita los bienes o los servicios. El responsable obtiene un borrador de la otra parte o lo prepara a partir de un modelo de la empresa, lo sube al sistema de gestión documental y lo envía a revisión.
+
+3. La asesoría jurídica revisa el borrador en 3 días hábiles: las partes y las facultades de los firmantes, el objeto, los plazos, la responsabilidad y la resolución. La asesoría jurídica deja sus comentarios en el sistema de gestión documental, y el responsable del contrato los resuelve con la otra parte.
+
+4. Contabilidad revisa las condiciones de pago: el precio, el calendario de pagos y los importes de los anticipos y las fianzas.
+
+5. Cuando la asesoría jurídica y Contabilidad han aprobado un contrato, lo firma el director general.
+
+6. Cada nuevo borrador de un contrato y el escaneo del ejemplar firmado se suben al sistema de gestión documental como nuevas versiones del mismo documento. Un nuevo borrador no recibe un documento propio: todo el historial del contrato se queda en una sola ficha.
+
+7. Los contratos se guardan en la carpeta «Contratos». Un contrato firmado recibe el estado «Vigente»; uno resuelto o vencido, el estado «Archivado».
+
+8. Contabilidad conserva los originales firmados en papel.

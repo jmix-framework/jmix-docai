@@ -1,0 +1,43 @@
+# ACCORDO QUADRO DI FORNITURA N. 3/{year:signed}
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Rurale Forniture S.r.l., con sede in Via di Saliceto 14, 40128 Bologna, P.IVA 01471043795, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Acquirente», si conviene quanto segue.
+
+## 1. Oggetto
+1.1 Il Fornitore vende all'Acquirente le merci elencate nell'Allegato A in base agli ordini di acquisto che l'Acquirente emette di volta in volta.
+1.2 Quantità, prezzo e data di consegna di ciascun ordine sono concordati nell'ordine di acquisto dell'Acquirente e nella conferma d'ordine del Fornitore, che costituiscono parte integrante del presente accordo.
+## 2. Ordini e consegne
+2.1 L'Acquirente invia gli ordini per e-mail. Il Fornitore conferma l'ordine entro 2 giorni lavorativi oppure comunica all'Acquirente di non poterlo evadere.
+2.2 Salvo diversa indicazione nella conferma d'ordine, il Fornitore consegna la merce con mezzi propri al magazzino dell'Acquirente in Via del Commercio 36, capannone 2, 40138 Bologna. Il trasporto è compreso nel prezzo.
+2.3 La proprietà della merce e i relativi rischi passano all'Acquirente alla firma del documento di trasporto. L'Acquirente controlla le quantità il giorno della consegna e la qualità entro 10 giorni lavorativi.
+## 3. Prezzi e pagamenti
+3.1 I prezzi sono indicati nella conferma d'ordine, IVA esclusa, e comprendono imballaggio e trasporto. Il Fornitore non può modificare il prezzo di un ordine confermato.
+3.2 Salvo che la conferma d'ordine preveda un acconto, l'Acquirente paga ciascun ordine entro 10 giorni lavorativi dalla firma del documento di trasporto.
+## 4. Qualità e garanzia
+4.1 La merce deve essere nuova, conforme alle specifiche del costruttore e corredata della garanzia del costruttore e del manuale d'uso.
+4.2 La garanzia dura 12 mesi dalla data di consegna. Il Fornitore elimina a proprie spese i difetti riscontrati in tale periodo entro 14 giorni dalla segnalazione.
+## 5. Responsabilità, forza maggiore e controversie
+5.1 In caso di ritardo nella consegna il Fornitore, e in caso di ritardo nel pagamento l'Acquirente, corrispondono una penale dello 0,1% dell'importo scaduto per ogni giorno di ritardo, fino al 10% di tale importo.
+5.2 Nessuna delle parti risponde dell'inadempimento dovuto a cause di forza maggiore, se ne informa l'altra parte entro 5 giorni lavorativi.
+5.3 Le parti tentano anzitutto di risolvere ogni controversia in via amichevole; la parte che riceve una contestazione scritta risponde entro 10 giorni lavorativi. La controversia non risolta entro 30 giorni dalla contestazione è devoluta alla competenza esclusiva del Foro di Bologna.
+## 6. Durata
+6.1 Il presente accordo è valido dal giorno {signed:long} al {validUntil:long} e si rinnova per un periodo di uguale durata, salvo disdetta di una delle parti comunicata almeno 30 giorni prima della scadenza.
+
+Rurale Forniture S.r.l.	Campoverde S.r.l.
+______________	______________
+Carlo Andreoli, Amministratore unico	Paolo Ferri, Amministratore Delegato
+
+
+
+
+## Allegato A
+## all'accordo quadro di fornitura n. 3/{year:signed} stipulato in data {signed:long}
+Merci che l'Acquirente può ordinare in base al presente accordo:
+1. Ricambi e materiali di consumo per trattori e mietitrebbie (filtri, cinghie, cuscinetti, organi di taglio), secondo il catalogo del Fornitore.
+2. Spandiconcime trainato Colombari TS8, capacità 8 t, secondo la conferma d'ordine.
+3. Batterie per mezzi pesanti da 12 V e 180 Ah, secondo la conferma d'ordine.
+4. Oli motore e per trasmissioni in taniche da 20 litri e fusti da 200 litri, secondo la conferma d'ordine.
+Prezzi e date di consegna sono stabiliti nella conferma di ciascun ordine di acquisto.
+
+Rurale Forniture S.r.l.	Campoverde S.r.l.
+______________	______________
+Carlo Andreoli, Amministratore unico	Paolo Ferri, Amministratore Delegato

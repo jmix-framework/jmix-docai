@@ -1,0 +1,21 @@
+# CONTRATTO DI FORNITURA N. 45
+## Carta e cancelleria per l'ufficio
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Cartiera Tramontana S.p.A., con sede in Via di Corticella 157, 40128 Bologna, P.IVA 09603083720, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Acquirente», si conviene quanto segue.
+
+1. Nel corso del {year:signed} il Fornitore vende all'Acquirente carta e articoli di cancelleria per ufficio (di seguito «Merce») in base agli ordini dell'Acquirente.
+2. Ciascun ordine e la relativa fattura del Fornitore indicano gli articoli, le quantità e i prezzi. I prezzi sono quelli del listino del Fornitore in vigore alla data dell'ordine.
+3. Il valore stimato del contratto è di € 10.700,00 oltre IVA. Se le forniture raggiungono tale importo prima della scadenza, le parti firmano un atto integrativo per aumentarlo.
+4. L'Acquirente invia gli ordini per e-mail e il Fornitore li conferma entro 1 giorno lavorativo. Il Fornitore consegna la Merce con mezzi propri all'ufficio dell'Acquirente in Via dei Giardini 12, 40121 Bologna, entro 5 giorni lavorativi dall'ordine. Il trasporto è compreso nel prezzo.
+5. L'Acquirente paga ciascuna fattura entro 20 giorni dalla consegna.
+6. Entro il giorno 10 di ogni mese il Fornitore invia all'Acquirente l'estratto conto del mese precedente.
+7. La proprietà della Merce passa all'Acquirente alla firma del documento di trasporto.
+8. L'Acquirente controlla quantità e articoli alla consegna e denuncia i vizi occulti entro 10 giorni dalla consegna; il Fornitore sostituisce a proprie spese la Merce difettosa entro 5 giorni lavorativi.
+9. La carta per fotocopie è fornita nella confezione originale del produttore: formato A4, 80 g/m², punto di bianco non inferiore a 146 CIE, 500 fogli per risma.
+10. In caso di ritardo nella consegna, il Fornitore corrisponde una penale dello 0,1% del valore della Merce non consegnata per ogni giorno di ritardo; in caso di ritardato pagamento, l'Acquirente corrisponde una penale dello 0,1% dell'importo scaduto per ogni giorno di ritardo.
+11. Il contratto entra in vigore alla data della sottoscrizione e resta valido fino al {validUntil:long}.
+12. Il contratto è regolato dalla legge italiana. Per ogni controversia è competente il Foro di Bologna.
+
+Cartiera Tramontana S.p.A.	Campoverde S.r.l.
+______________	______________
+Arturo Crivelli, Amministratore Delegato	Paolo Ferri, Amministratore Delegato

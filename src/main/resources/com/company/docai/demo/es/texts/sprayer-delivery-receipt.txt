@@ -1,0 +1,15 @@
+# ACTA DE ENTREGA
+## Pulverizador autopropulsado
+
+Fecha: {issued:long}
+Vendedor: Equipos Cruce de Caminos, S.L.
+Comprador: Vega Verde, S.L.
+Contrato: contrato de compraventa n.º 24/{year:contract}, de fecha {contract:long}
+
+El Comprador declara haber recibido un pulverizador autopropulsado para tratamientos de cultivos: barra de 27 m, depósito de 4.000 l, motor diésel, n.º de serie 2606-0417, año de fabricación {year:issued}, 11 horas de motor.
+Incluye: terminal en cabina con guiado GPS, un juego de 56 boquillas, el certificado de origen del fabricante, el manual de instrucciones y dos juegos de llaves.
+El pulverizador se probó en la entrega; no se detectaron daños ni defectos. Garantía: 12 meses desde la fecha de esta acta.
+Precio de compra: 143.000,00 €, más IVA.
+
+Entregado por: ______________ Víctor Zamora Gil, Equipos Cruce de Caminos, S.L.
+Recibido por: ______________ Iván Nieto Prieto, responsable de flota, Vega Verde, S.L.

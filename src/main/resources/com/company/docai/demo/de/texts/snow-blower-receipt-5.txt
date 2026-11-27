@@ -1,0 +1,14 @@
+# ÜBERGABEPROTOKOLL NR. 5
+## Schneefräse
+
+Datum: {issued:long}
+Verkäufer: Gartenland Motorgeräte GmbH
+Käufer: Wiesengrund GmbH
+Vertrag: Liefervertrag Nr. 2/{year:contract} vom {contract:long}
+
+Der Käufer bestätigt den Erhalt einer zweistufigen Schneefräse mit Radantrieb: 76 cm Räumbreite, Benzinmotor 6,6 kW (9 PS), Elektrostart, Seriennummer 26-0114. Die Schneefräse räumt den Hof und die Laderampe der Lagerhalle Industriestraße 36, Halle 2, 30179 Hannover.
+Im Lieferumfang: 4 Ersatz-Scherbolzen, eine Ersatz-Schürfleiste, die Bedienungsanleitung und die Garantiekarte.
+Die Schneefräse wurde bei der Übergabe probeweise in Betrieb genommen; Mängel wurden nicht festgestellt. Preis: 1.640,00 € zzgl. USt. Garantie: 12 Monate ab dem Datum dieses Protokolls.
+
+Übergeben: ______________ Erik Martens, Gartenland Motorgeräte GmbH
+Übernommen: ______________ Stefan Schwan, Leiter Gebäudemanagement, Wiesengrund GmbH

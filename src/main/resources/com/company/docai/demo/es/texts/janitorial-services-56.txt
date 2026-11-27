@@ -1,0 +1,13 @@
+# CONTRATO DE LIMPIEZA N.º 56
+## Limpieza diaria de la oficina
+
+Este contrato de servicios de limpieza se celebra en Valladolid el {signed:long} entre Limpiezas Brillo, S.L., con CIF B99520743 y domicilio en avenida de Salamanca, 52, 47014 Valladolid (el «Prestador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+1. Todos los días laborables, de 18:00 a 21:00, el Prestador limpia la oficina del Cliente, de 240 m², en calle del Jardín, 12, oficina 312, 47001 Valladolid: friega los suelos, quita el polvo, limpia los aseos y saca la basura.
+2. El Prestador aporta los equipos y productos de limpieza; el Cliente compra el papel secamanos y el jabón de manos de los aseos.
+3. El precio es de 870,00 € al mes, más IVA. El Prestador factura mensualmente, y el Cliente paga cada factura antes del día 10 del mes siguiente.
+4. El contrato estará vigente del {start:long} al {validUntil:long}.
+
+LIMPIEZAS BRILLO, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Tamara Escobar Díez, administradora	Pablo Herrero Gil, director general

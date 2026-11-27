@@ -1,0 +1,20 @@
+# PERSONALVERMITTLUNGSVERTRAG NR. 33/{year:signed}
+
+Zwischen der Talentbrücke Personalberatung GmbH, Georgstraße 58, 30159 Hannover, vertreten durch die Geschäftsführerin Natalie Kohl (nachfolgend „Agentur“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Die Agentur sucht und prüft im Auftrag des Auftraggebers Bewerber für dessen offene Stellen.
+2. Jeder Suchauftrag nennt die Stelle, die Anforderungen an den Bewerber, die Aufgaben, die Arbeitsbedingungen und den Gehaltsrahmen. Die Agentur bestätigt einen Suchauftrag innerhalb von 2 Arbeitstagen.
+3. Die Agentur spricht Bewerber an, führt erste Interviews, holt Referenzen ein und sendet dem Auftraggeber innerhalb von 10 Arbeitstagen nach Bestätigung des Suchauftrags die Unterlagen von mindestens drei Bewerbern. Über jede Einstellung entscheidet der Auftraggeber.
+4. Der Auftraggeber teilt der Agentur seine Entscheidung zu jedem Bewerber innerhalb von 5 Arbeitstagen nach dem Vorstellungsgespräch mit.
+5. Das Honorar der Agentur beträgt 15 % des Bruttojahresgrundgehalts des eingestellten Bewerbers im ersten Jahr. Es wird nur für einen Bewerber fällig, der die Arbeit beim Auftraggeber aufnimmt.
+6. Das voraussichtliche Auftragsvolumen dieses Vertrags beträgt 20.000,00 € zzgl. USt.
+7. Die Agentur stellt ihr Honorar bei Arbeitsantritt des Bewerbers in Rechnung; der Auftraggeber zahlt die Rechnung innerhalb von 10 Arbeitstagen.
+8. Kündigt ein eingestellter Bewerber innerhalb von 3 Monaten nach Arbeitsantritt oder wird ihm in dieser Zeit gekündigt, sucht die Agentur kostenlos einen Ersatz. Kein kostenloser Ersatz erfolgt, wenn die Stelle wegfällt oder der Auftraggeber die Arbeitsbedingungen ändert.
+9. Datenschutz. Die Agentur verarbeitet die personenbezogenen Daten der Bewerber nach der DSGVO und dem BDSG, holt vor der Weitergabe der Daten eines Bewerbers an den Auftraggeber dessen Einwilligung ein und gibt die Daten an niemanden sonst weiter. Der Auftraggeber verwendet die erhaltenen personenbezogenen Daten nur für Einstellungsentscheidungen und schützt sie angemessen.
+10. Jede Partei behandelt die Bedingungen dieses Vertrags und die Informationen über die andere Partei, die sie im Rahmen des Vertrags erhält, vertraulich.
+11. Während der Laufzeit dieses Vertrags und 12 Monate danach wirbt die Agentur die von ihr an den Auftraggeber vermittelten Mitarbeiter nicht für andere Kunden ab.
+12. Dieser Vertrag tritt mit Unterzeichnung in Kraft und gilt bis zum {validUntil:long}.
+
+Talentbrücke Personalberatung GmbH	Wiesengrund GmbH
+______________	______________
+Natalie Kohl, Geschäftsführerin	Paul Schmidt, Geschäftsführer

@@ -1,0 +1,12 @@
+# CONTRATO DE MANTENIMIENTO DE CARRETILLA ELEVADORA N.º 49
+
+Este contrato de mantenimiento se celebra en Valladolid el {signed:long} entre Carretillas Elevo Servicio, S.L., con CIF B99750126 y domicilio en avenida del Ferrocarril, 75, 47012 Valladolid (el «Prestador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Cliente»).
+
+1. El Prestador mantiene y repara la carretilla elevadora de 3 t del Cliente (n.º de inventario 114), que se utiliza en el almacén de avenida del Comercio, 36, nave 2, 47012 Valladolid.
+2. El mantenimiento preventivo se realiza cada 250 horas del cuentahoras de la carretilla, a 205,00 € por revisión, más IVA.
+3. El Prestador realiza las reparaciones no programadas en los 2 días hábiles siguientes al aviso del Cliente, a 27,00 € por hora de mano de obra, más IVA. Los repuestos se facturan aparte, según un presupuesto que el Cliente aprueba previamente.
+4. El contrato estará vigente del {signed:long} al {validUntil:long}.
+
+CARRETILLAS ELEVO SERVICIO, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Diego Calvo Herrera, administrador	Pablo Herrero Gil, director general

@@ -1,0 +1,17 @@
+# BEDARFSANFORDERUNG NR. 29
+## Beschaffung von Geräten für die Rasenpflege
+
+Datum: {issued:long}
+An: Ellen Krüger, Leiterin Einkauf
+Von: Stefan Schwan, Leiter Gebäudemanagement
+Kostenstelle: Außenanlagen
+
+Bitte beschaffen Sie Folgendes für die Rasenfläche an der Lagerhalle Industriestraße 36, Halle 2, 30179 Hannover (rund 600 m²):
+1. Benzin-Rasenmäher mit Radantrieb, 51 cm, 2 × 432,00 €	864,00 €
+2. Gartenschlauch, verstärkt, 25 m, 6 × 27,00 €	162,00 €
+3. Rasensprenger mit Anschlussstücken, 6 Sets × 9,00 €	54,00 €
+Summe	1.080,00 €
+
+Die Bewässerung beginnt Anfang Mai, daher müssen die Artikel bis zum {neededBy:long} eintreffen.
+
+Angefordert: ______________ Stefan Schwan

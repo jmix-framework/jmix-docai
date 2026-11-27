@@ -1,0 +1,13 @@
+# KRANAUFTRAG NR. 212
+
+Datum: {issued:long}
+Kranunternehmen: Kranservice Seeblick GmbH
+Auftraggeber: Wiesengrund GmbH
+Vertrag: Dienstleistungsvertrag Nr. 28 vom {contract:long}
+
+Bitte stellen Sie am {service:long} von 8:00 bis 17:00 Uhr einen 30-t-Autokran mit 28 m Teleskopausleger, um Lüftungsgeräte auf das Dach der Lagerhalle Industriestraße 36, Halle 2, 30179 Hannover zu heben.
+Das schwerste Gerät wiegt 3,2 t; die benötigte Ausladung beträgt bis zu 18 m. Der Stundensatz beträgt 145,00 € zzgl. USt., berechnet werden mindestens 4 Stunden. Der Auftraggeber sorgt für die Zufahrt und eine ebene Aufstellfläche für die Abstützungen.
+Ansprechpartner vor Ort: Daniel Ott, Lagerleiter, Tel. 0511 555-0112.
+
+Auftraggeber: ______________ Stefan Schwan, Leiter Gebäudemanagement, Wiesengrund GmbH
+Angenommen: ______________ Nils Becker, Disponent, Kranservice Seeblick GmbH

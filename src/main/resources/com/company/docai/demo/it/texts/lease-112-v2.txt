@@ -1,0 +1,55 @@
+BOZZA	{edition2:long}
+# CONTRATTO DI LOCAZIONE N. 112
+## Immobile a uso magazzino
+
+Con la presente scrittura privata, stipulata a Bologna in data ______________, tra Ponente Immobiliare S.r.l., con sede in Via dei Magazzini 2, 40011 Anzola dell'Emilia (BO), P.IVA 05908303714, di seguito «Locatore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Conduttore», si conviene quanto segue.
+
+## 1. Oggetto
+1.1 Il Locatore concede in locazione al Conduttore un magazzino di 420 m² in Via dei Magazzini 4, 40011 Anzola dell'Emilia (BO) (di seguito «Immobile»).
+1.2 L'Immobile è riscaldato e ha un'altezza utile di 6 m, un portone sezionale e una rampa di carico. Il Conduttore utilizza l'Immobile come magazzino di merci e attrezzature.
+1.3 Il Locatore dichiara di essere proprietario dell'Immobile e di avere il diritto di concederlo in locazione.
+1.4 Il Locatore consegna l'Immobile al Conduttore il primo giorno della locazione e le parti firmano il verbale di consegna.
+## 2. Durata
+2.1 La locazione ha durata dal {start:long} al {validUntil:long}. La durata è pattuita in ragione delle esigenze transitorie del Conduttore, ai sensi dell'art. 27, comma 5, della Legge 392/1978.
+2.2 Se non è inadempiente, il Conduttore può rinnovare la locazione per un nuovo periodo dandone comunicazione scritta al Locatore almeno 30 giorni prima della scadenza.
+## 3. Canone e pagamenti
+3.1 Il canone di locazione è di € 4.300,00 al mese oltre IVA.
+3.2 Il canone complessivo per l'intera durata (12 mesi) è di € 51.600,00 oltre IVA.
+3.3 Il canone si paga mensilmente in via anticipata, entro il giorno 5 di ciascun mese, con bonifico sul conto corrente del Locatore. Il primo pagamento è dovuto entro il {firstPayment:long}.
+3.4 Entro 5 giorni lavorativi dalla firma del contratto, il Conduttore versa un deposito cauzionale pari a una mensilità di canone, € 4.300,00. Il Locatore restituisce il deposito entro 10 giorni lavorativi dalla riconsegna dell'Immobile oppure, se le parti lo concordano, lo imputa al canone dell'ultimo mese.
+3.5 Le utenze (energia elettrica, riscaldamento, acqua e fognatura) non sono comprese nel canone: il Conduttore le paga a parte, in base alle letture dei contatori, su fattura del Locatore.
+3.6 Il canone resta invariato per tutta la durata della locazione.
+## 4. Uso e manutenzione
+4.1 Il Locatore garantisce al Conduttore l'accesso all'Immobile 24 ore su 24, 7 giorni su 7, e l'accesso dei mezzi pesanti ai portoni del magazzino, e mantiene in efficienza gli impianti dell'edificio.
+4.2 Il Conduttore utilizza l'Immobile solo come magazzino e rispetta la normativa antincendio. Alla scadenza riconsegna l'Immobile nello stato in cui l'ha ricevuto, salvo il normale deterioramento d'uso.
+4.3 Il Conduttore esegue a proprie spese le piccole riparazioni ed esegue modifiche o migliorie solo con il consenso scritto del Locatore.
+4.4 Il Conduttore può sublocare l'Immobile solo con il consenso scritto del Locatore.
+## 5. Ritardato pagamento e forza maggiore
+5.1 In caso di ritardo nel pagamento del canone, il Conduttore corrisponde una penale pari allo 0,2% dell'importo scaduto per ogni giorno di ritardo.
+5.2 Nessuna delle parti risponde dell'inadempimento dovuto a cause di forza maggiore.
+## 6. Disposizioni finali
+6.1 Il contratto può essere risolto anticipatamente per accordo scritto tra le parti o negli altri casi previsti dalla legge.
+6.2 Il contratto è regolato dalla legge italiana. Per ogni controversia è competente in via esclusiva il Foro di Bologna.
+6.3 Il Locatore provvede alla registrazione del contratto presso l'Agenzia delle Entrate; l'imposta di registro è a carico delle parti in misura uguale.
+
+Ponente Immobiliare S.r.l.	Campoverde S.r.l.
+______________	______________
+
+## Allegato A — Piano dei pagamenti del canone
+al contratto di locazione n. 112
+
+Il canone di ciascun mese è dovuto entro le seguenti date:
+Scadenza	Importo
+{firstPayment:long}	€ 4.300,00
+{pay2:long}	€ 4.300,00
+{pay3:long}	€ 4.300,00
+{pay4:long}	€ 4.300,00
+{pay5:long}	€ 4.300,00
+{pay6:long}	€ 4.300,00
+{pay7:long}	€ 4.300,00
+{pay8:long}	€ 4.300,00
+{pay9:long}	€ 4.300,00
+{pay10:long}	€ 4.300,00
+{pay11:long}	€ 4.300,00
+{pay12:long}	€ 4.300,00
+Totale (IVA esclusa)	€ 51.600,00

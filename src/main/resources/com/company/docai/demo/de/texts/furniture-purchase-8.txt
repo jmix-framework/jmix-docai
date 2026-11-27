@@ -1,0 +1,16 @@
+# KAUFVERTRAG NR. 8
+## Möbel für den Besprechungsraum
+
+Zwischen der Allee Büromöbel GmbH, Allerweg 37, 30449 Hannover, vertreten durch den Geschäftsführer Heinrich Sutter (nachfolgend „Lieferant“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Käufer“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Lieferant verkauft und der Käufer kauft folgende Möbel:
+a) Konferenztisch, 360 × 120 cm: 1 Stück zu 1.640,00 €;
+b) Bürostühle: 12 Stück zu je 195,00 €, zusammen 2.340,00 €;
+c) Aktenschränke: 2 Stück zu je 510,00 €, zusammen 1.020,00 €.
+2. Der Gesamtpreis beträgt 5.000,00 € zzgl. 19 % USt. Der Käufer zahlt 50 % innerhalb von 3 Arbeitstagen nach Unterzeichnung dieses Vertrags und 50 % nach Unterzeichnung des Übergabeprotokolls.
+3. Der Lieferant liefert die Möbel bis spätestens {delivery:long} frei Verwendungsstelle und montiert sie im Besprechungsraum, Gartenstraße 12, 3. OG, 30159 Hannover.
+4. Gewährleistung: 24 Monate.
+
+Allee Büromöbel GmbH	Wiesengrund GmbH
+______________	______________
+Heinrich Sutter, Geschäftsführer	Paul Schmidt, Geschäftsführer

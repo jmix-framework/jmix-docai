@@ -1,0 +1,13 @@
+# CONTRATO DE SUMINISTRO DE GRUPO ELECTRÓGENO N.º 19
+## Grupo electrógeno diésel de emergencia con instalación
+
+Este contrato de suministro se celebra en Valladolid el {signed:long} entre Energía de Reserva, S.L., con CIF B99310694 y domicilio en carretera de Soria, 31, 47012 Valladolid (el «Proveedor»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Comprador»).
+
+1. El Proveedor vende e instala, y el Comprador compra, un grupo electrógeno diésel de emergencia de 60 kW (75 kVA) en cabina insonorizada, con un cuadro de conmutación automática que lo arranca cuando falla el suministro de red. El grupo alimentará el almacén de avenida del Comercio, 36, nave 2, 47012 Valladolid.
+2. Precio: 20.800,00 €, más IVA. El Comprador paga un anticipo del 50 %, 10.400,00 €, en los 3 días hábiles siguientes a la firma del contrato, y el resto tras la firma del acta de recepción.
+3. El Proveedor entrega el grupo, lo instala sobre una bancada de hormigón y lo conecta en los 30 días hábiles siguientes al pago del anticipo.
+4. Garantía: 12 meses o 1.000 horas de motor, lo que antes se cumpla.
+
+ENERGÍA DE RESERVA, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Gregorio Plaza Rubio, administrador	Pablo Herrero Gil, director general

@@ -1,0 +1,53 @@
+# CONTRATO DE ARRENDAMIENTO N.º 112
+
+Este contrato de arrendamiento para uso distinto del de vivienda (el «Contrato») se celebra en Valladolid el {signed:long} entre Inmobiliaria Poniente, S.L., con CIF B99327180 y domicilio en camino del Almacén, 2, 47195 Arroyo de la Encomienda (Valladolid) (el «Arrendador»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Arrendatario»).
+
+## 1. Inmueble
+1.1 El Arrendador arrienda al Arrendatario una nave de almacén de 420 m² situada en camino del Almacén, 4, 47195 Arroyo de la Encomienda (Valladolid) (el «Inmueble»).
+1.2 El Inmueble tiene calefacción, una altura libre de 6 m, un muelle de carga con puerta seccional y una rampa. El Arrendatario lo destina a almacén de mercancías y equipos.
+1.3 El Arrendador declara que es propietario del Inmueble y que tiene derecho a arrendarlo.
+1.4 El Arrendador entrega el Inmueble el primer día de vigencia del Contrato, y las partes firman un acta de entrega que recoge su estado.
+## 2. Duración
+2.1 El Contrato estará vigente del {start:long} al {validUntil:long}.
+2.2 Si el Arrendatario está al corriente de sus obligaciones, puede prorrogar el Contrato por un nuevo periodo comunicándolo por escrito al Arrendador con al menos 30 días de antelación a su vencimiento.
+## 3. Renta y pagos
+3.1 La renta es de 4.300,00 € al mes, más el IVA correspondiente.
+3.2 La renta total del periodo de vigencia (12 meses) asciende a 51.600,00 €, más IVA.
+3.3 La renta se paga por meses anticipados, dentro de los cinco primeros días de cada mes, mediante transferencia a la cuenta bancaria del Arrendador. El primer pago vence el {firstPayment:long}.
+3.4 En los 5 días hábiles siguientes a la firma del Contrato, el Arrendatario entrega una fianza de dos mensualidades de renta, 8.600,00 €. El Arrendador la devuelve en los 30 días siguientes a la devolución del Inmueble.
+3.5 Los suministros (electricidad, calefacción, agua y alcantarillado) no están incluidos en la renta; el Arrendatario los paga aparte, según la lectura de los contadores, contra factura del Arrendador.
+3.6 La renta no se actualiza durante la vigencia del Contrato.
+## 4. Uso y reparaciones
+4.1 El Arrendador garantiza al Arrendatario el acceso al Inmueble las 24 horas del día y el acceso de camiones a las puertas del almacén, y mantiene en buen estado las instalaciones del edificio.
+4.2 El Arrendatario usa el Inmueble solo como almacén y cumple la normativa de protección contra incendios. Al terminar el Contrato, devuelve el Inmueble en el estado en que lo recibió, salvo el desgaste por el uso normal.
+4.3 El Arrendatario hace a su cargo las pequeñas reparaciones y solo realiza obras o mejoras con el consentimiento escrito del Arrendador.
+4.4 El Arrendatario solo puede subarrendar el Inmueble con el consentimiento escrito del Arrendador.
+## 5. Demora y fuerza mayor
+5.1 Si el Arrendatario se retrasa en el pago de la renta, abona una penalización del 0,2 % de la cantidad vencida por cada día de retraso.
+5.2 Ninguna de las partes responde del incumplimiento causado por fuerza mayor.
+## 6. Disposiciones generales
+6.1 El Contrato puede resolverse anticipadamente por acuerdo escrito de las partes o en los demás casos previstos por la ley.
+6.2 El Contrato se rige por la Ley 29/1994, de Arrendamientos Urbanos, y, en lo no previsto, por el Código Civil. Las partes se someten a los Juzgados y Tribunales de Valladolid.
+
+INMOBILIARIA PONIENTE, S.L.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Gonzalo Vélez Soto, administrador	Pablo Herrero Gil, director general
+
+## Anexo A. Calendario de pagos de la renta
+al contrato de arrendamiento n.º 112
+
+La renta de cada mes del periodo de vigencia se paga, como muy tarde, en estas fechas (importes sin IVA):
+Fecha de vencimiento	Importe
+{firstPayment:long}	4.300,00 €
+{pay2:long}	4.300,00 €
+{pay3:long}	4.300,00 €
+{pay4:long}	4.300,00 €
+{pay5:long}	4.300,00 €
+{pay6:long}	4.300,00 €
+{pay7:long}	4.300,00 €
+{pay8:long}	4.300,00 €
+{pay9:long}	4.300,00 €
+{pay10:long}	4.300,00 €
+{pay11:long}	4.300,00 €
+{pay12:long}	4.300,00 €
+Total	51.600,00 €

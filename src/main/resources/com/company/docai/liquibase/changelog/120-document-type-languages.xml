@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        logicalFilePath="com/company/docai/liquibase/changelog/120-document-type-languages.xml">
+
+    <!-- the names of the document types of 070-document-types.xml, their fields and the kinds of contract in German,
+         Spanish and Italian; each value is written whole, with the English and the Russian names it had -->
+    <changeSet id="1" author="jmix-docai" context="!cuba" dbms="postgresql, mssql, hsqldb, h2">
+        <update tableName="DYNAT_CATEGORY">
+            <column name="LOCALE_NAMES" value="en=Contract&#10;ru=Договор&#10;de=Vertrag&#10;es=Contrato&#10;it=Contratto"/>
+            <where>ID = '8e1c6a52-3f0d-4b7a-9c21-5d4e7f8a1b01'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Contract number&#10;ru=Номер договора&#10;de=Vertragsnummer&#10;es=Número de contrato&#10;it=Numero del contratto"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000001'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Contract kind&#10;ru=Вид договора&#10;de=Vertragsart&#10;es=Tipo de contrato&#10;it=Tipo di contratto"/>
+            <column name="ENUMERATION_LOCALES" value="en/supply=Supply&#10;ru/supply=Поставка&#10;de/supply=Lieferung&#10;es/supply=Suministro&#10;it/supply=Fornitura&#10;en/lease=Lease&#10;ru/lease=Аренда&#10;de/lease=Miete&#10;es/lease=Arrendamiento&#10;it/lease=Locazione&#10;en/work=Construction&#10;ru/work=Подряд&#10;de/work=Werkvertrag&#10;es/work=Obra&#10;it/work=Appalto&#10;en/services=Services&#10;ru/services=Услуги&#10;de/services=Dienstleistungen&#10;es/services=Servicios&#10;it/services=Servizi&#10;en/leasing=Finance lease&#10;ru/leasing=Лизинг&#10;de/leasing=Leasing&#10;es/leasing=Leasing financiero&#10;it/leasing=Leasing"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000002'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Counterparty&#10;ru=Контрагент&#10;de=Vertragspartner&#10;es=Contraparte&#10;it=Controparte"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000003'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Amount&#10;ru=Сумма&#10;de=Betrag&#10;es=Importe&#10;it=Importo"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000004'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Valid until&#10;ru=Действует до&#10;de=Gültig bis&#10;es=Vigente hasta&#10;it=Valido fino al"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000005'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY">
+            <column name="LOCALE_NAMES" value="en=Invoice&#10;ru=Счёт&#10;de=Rechnung&#10;es=Factura&#10;it=Fattura"/>
+            <where>ID = '8e1c6a52-3f0d-4b7a-9c21-5d4e7f8a1b02'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Invoice number&#10;ru=Номер счёта&#10;de=Rechnungsnummer&#10;es=Número de factura&#10;it=Numero fattura"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000006'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Supplier&#10;ru=Поставщик&#10;de=Lieferant&#10;es=Proveedor&#10;it=Fornitore"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000007'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Amount&#10;ru=Сумма&#10;de=Betrag&#10;es=Importe&#10;it=Importo"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000008'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Due date&#10;ru=Оплатить до&#10;de=Fällig am&#10;es=Fecha de vencimiento&#10;it=Scadenza"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000009'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY">
+            <column name="LOCALE_NAMES" value="en=Completion certificate&#10;ru=Акт выполненных работ&#10;de=Abnahmeprotokoll&#10;es=Acta de recepción&#10;it=Verbale di collaudo"/>
+            <where>ID = '8e1c6a52-3f0d-4b7a-9c21-5d4e7f8a1b03'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Vendor&#10;ru=Исполнитель&#10;de=Auftragnehmer&#10;es=Contratista&#10;it=Appaltatore"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f0000000a'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Amount&#10;ru=Сумма&#10;de=Betrag&#10;es=Importe&#10;it=Importo"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f0000000b'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Completed on&#10;ru=Дата окончания работ&#10;de=Fertiggestellt am&#10;es=Fecha de finalización&#10;it=Data di completamento"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f0000000c'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Contract No.&#10;ru=Договор-основание&#10;de=Vertrag Nr.&#10;es=Contrato n.º&#10;it=Contratto n."/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f0000000d'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY">
+            <column name="LOCALE_NAMES" value="en=HR document&#10;ru=Кадровый документ&#10;de=Personaldokument&#10;es=Documento de personal&#10;it=Documento del personale"/>
+            <where>ID = '8e1c6a52-3f0d-4b7a-9c21-5d4e7f8a1b04'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Employee&#10;ru=Сотрудник&#10;de=Mitarbeiter&#10;es=Empleado&#10;it=Dipendente"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f0000000e'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Department&#10;ru=Подразделение&#10;de=Abteilung&#10;es=Departamento&#10;it=Reparto"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f0000000f'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Hire date&#10;ru=Дата приёма&#10;de=Eintrittsdatum&#10;es=Fecha de alta&#10;it=Data di assunzione"/>
+            <where>ID = '5c2d7e94-1a3b-4f6c-8d0e-2b9f00000010'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="2" author="jmix-docai" context="!cuba" dbms="oracle, mysql, mariadb">
+        <update tableName="DYNAT_CATEGORY">
+            <column name="LOCALE_NAMES" value="en=Contract&#10;ru=Договор&#10;de=Vertrag&#10;es=Contrato&#10;it=Contratto"/>
+            <where>ID = '8e1c6a523f0d4b7a9c215d4e7f8a1b01'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Contract number&#10;ru=Номер договора&#10;de=Vertragsnummer&#10;es=Número de contrato&#10;it=Numero del contratto"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000001'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Contract kind&#10;ru=Вид договора&#10;de=Vertragsart&#10;es=Tipo de contrato&#10;it=Tipo di contratto"/>
+            <column name="ENUMERATION_LOCALES" value="en/supply=Supply&#10;ru/supply=Поставка&#10;de/supply=Lieferung&#10;es/supply=Suministro&#10;it/supply=Fornitura&#10;en/lease=Lease&#10;ru/lease=Аренда&#10;de/lease=Miete&#10;es/lease=Arrendamiento&#10;it/lease=Locazione&#10;en/work=Construction&#10;ru/work=Подряд&#10;de/work=Werkvertrag&#10;es/work=Obra&#10;it/work=Appalto&#10;en/services=Services&#10;ru/services=Услуги&#10;de/services=Dienstleistungen&#10;es/services=Servicios&#10;it/services=Servizi&#10;en/leasing=Finance lease&#10;ru/leasing=Лизинг&#10;de/leasing=Leasing&#10;es/leasing=Leasing financiero&#10;it/leasing=Leasing"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000002'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Counterparty&#10;ru=Контрагент&#10;de=Vertragspartner&#10;es=Contraparte&#10;it=Controparte"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000003'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Amount&#10;ru=Сумма&#10;de=Betrag&#10;es=Importe&#10;it=Importo"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000004'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Valid until&#10;ru=Действует до&#10;de=Gültig bis&#10;es=Vigente hasta&#10;it=Valido fino al"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000005'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY">
+            <column name="LOCALE_NAMES" value="en=Invoice&#10;ru=Счёт&#10;de=Rechnung&#10;es=Factura&#10;it=Fattura"/>
+            <where>ID = '8e1c6a523f0d4b7a9c215d4e7f8a1b02'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Invoice number&#10;ru=Номер счёта&#10;de=Rechnungsnummer&#10;es=Número de factura&#10;it=Numero fattura"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000006'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Supplier&#10;ru=Поставщик&#10;de=Lieferant&#10;es=Proveedor&#10;it=Fornitore"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000007'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Amount&#10;ru=Сумма&#10;de=Betrag&#10;es=Importe&#10;it=Importo"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000008'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Due date&#10;ru=Оплатить до&#10;de=Fällig am&#10;es=Fecha de vencimiento&#10;it=Scadenza"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000009'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY">
+            <column name="LOCALE_NAMES" value="en=Completion certificate&#10;ru=Акт выполненных работ&#10;de=Abnahmeprotokoll&#10;es=Acta de recepción&#10;it=Verbale di collaudo"/>
+            <where>ID = '8e1c6a523f0d4b7a9c215d4e7f8a1b03'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Vendor&#10;ru=Исполнитель&#10;de=Auftragnehmer&#10;es=Contratista&#10;it=Appaltatore"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f0000000a'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Amount&#10;ru=Сумма&#10;de=Betrag&#10;es=Importe&#10;it=Importo"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f0000000b'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Completed on&#10;ru=Дата окончания работ&#10;de=Fertiggestellt am&#10;es=Fecha de finalización&#10;it=Data di completamento"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f0000000c'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Contract No.&#10;ru=Договор-основание&#10;de=Vertrag Nr.&#10;es=Contrato n.º&#10;it=Contratto n."/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f0000000d'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY">
+            <column name="LOCALE_NAMES" value="en=HR document&#10;ru=Кадровый документ&#10;de=Personaldokument&#10;es=Documento de personal&#10;it=Documento del personale"/>
+            <where>ID = '8e1c6a523f0d4b7a9c215d4e7f8a1b04'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Employee&#10;ru=Сотрудник&#10;de=Mitarbeiter&#10;es=Empleado&#10;it=Dipendente"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f0000000e'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Department&#10;ru=Подразделение&#10;de=Abteilung&#10;es=Departamento&#10;it=Reparto"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f0000000f'</where>
+        </update>
+        <update tableName="DYNAT_CATEGORY_ATTR">
+            <column name="LOCALE_NAMES" value="en=Hire date&#10;ru=Дата приёма&#10;de=Eintrittsdatum&#10;es=Fecha de alta&#10;it=Data di assunzione"/>
+            <where>ID = '5c2d7e941a3b4f6c8d0e2b9f00000010'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,13 @@
+# BEWACHUNGSVERTRAG NR. 12
+## Alarmaufschaltung und Intervention
+
+Zwischen der Schild Sicherheitsdienst GmbH, Silberstraße 9, 30655 Hannover, vertreten durch den Geschäftsführer Alexander Fuchs (nachfolgend „Sicherheitsdienst“), und der Wiesengrund GmbH, Gartenstraße 12, 30159 Hannover, vertreten durch den Geschäftsführer Paul Schmidt (nachfolgend „Auftraggeber“), wird am {signed:long} folgender Vertrag geschlossen:
+
+1. Der Sicherheitsdienst schaltet die Alarmanlagen von zwei Objekten des Auftraggebers auf seine Notruf- und Serviceleitstelle auf: die Lagerhalle Industriestraße 36, Halle 2, 30179 Hannover, und das Büro Gartenstraße 12, 3. OG, 30159 Hannover.
+2. Bei Alarm entsendet der Sicherheitsdienst innerhalb von 15 Minuten eine Interventionsstreife zum Objekt, verständigt bei Bedarf die Polizei und meldet den Vorfall dem benannten Ansprechpartner des Auftraggebers.
+3. Aufschaltung und Intervention kosten 265,00 € monatlich für die Lagerhalle und 155,00 € monatlich für das Büro, zusammen 420,00 € monatlich zzgl. USt.
+4. Dieser Vertrag gilt vom {start:long} bis {validUntil:long}. Jede Partei kann ihn mit einer Frist von 30 Tagen kündigen.
+
+Schild Sicherheitsdienst GmbH	Wiesengrund GmbH
+______________	______________
+Alexander Fuchs, Geschäftsführer	Paul Schmidt, Geschäftsführer

@@ -1,0 +1,21 @@
+# CONTRATO DE SUMINISTRO N.º 45
+## Papel y material de oficina
+
+Este contrato de suministro se celebra en Valladolid el {signed:long} entre Papelera del Norte, S.A., con CIF A99259406 y domicilio en calle de la Industria, 157, nave 6, 47012 Valladolid (el «Proveedor»), y Vega Verde, S.L., con CIF B99471205 y domicilio en calle del Jardín, 12, oficina 312, 47001 Valladolid (el «Comprador»).
+
+1. Durante {year:signed}, el Proveedor vende al Comprador papel y material de oficina (los «Productos») según los pedidos del Comprador.
+2. Cada pedido y la factura del Proveedor indican los artículos, las cantidades y los precios del pedido. Los precios son los de la tarifa del Proveedor vigente en la fecha del pedido.
+3. El importe estimado del contrato es de 10.700,00 €, más IVA. Si los suministros alcanzan esta cantidad antes del vencimiento del contrato, las partes firman una adenda para ampliarla.
+4. El Comprador hace los pedidos por correo electrónico, y el Proveedor los confirma en 1 día hábil. El Proveedor entrega los Productos con sus propios vehículos en la oficina del Comprador, calle del Jardín, 12, oficina 312, 47001 Valladolid, en los 5 días hábiles siguientes al pedido. El transporte está incluido en el precio.
+5. El Comprador paga cada factura en los 20 días siguientes a la entrega.
+6. Antes del día 10 de cada mes, el Proveedor envía al Comprador un extracto del mes anterior.
+7. La propiedad de los Productos se transmite al Comprador cuando este firma el albarán de entrega.
+8. El Comprador comprueba la cantidad y los artículos al recibirlos y comunica los defectos ocultos en los 10 días siguientes a la entrega; el Proveedor sustituye a su cargo los Productos defectuosos en un plazo de 5 días hábiles.
+9. El papel para fotocopiadora se entrega en el embalaje del fabricante: formato A4, 80 g/m², blancura mínima del 92 %, 500 hojas por paquete.
+10. Si una entrega se retrasa, el Proveedor abona una penalización del 0,1 % del valor de los Productos no entregados por cada día de retraso; si un pago se retrasa, el Comprador abona un interés de demora del 0,1 % de la cantidad vencida por cada día de retraso.
+11. El contrato entra en vigor en la fecha de su firma y estará vigente hasta el {validUntil:long}.
+12. El contrato se rige por la legislación española. Las partes se someten a los Juzgados y Tribunales de Valladolid.
+
+PAPELERA DEL NORTE, S.A.	VEGA VERDE, S.L.
+Fdo.: ______________	Fdo.: ______________
+Arturo Cruz Benito, consejero delegado	Pablo Herrero Gil, director general

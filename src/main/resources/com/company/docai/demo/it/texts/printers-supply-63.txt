@@ -1,0 +1,15 @@
+# CONTRATTO DI FORNITURA N. 63
+## Stampanti multifunzione per l'ufficio
+
+Con la presente scrittura privata, stipulata a Bologna in data {signed:long}, tra Sistemi Ufficio Borgonuovo S.r.l., con sede in Via Borgonuovo 18, 40125 Bologna, P.IVA 02233073799, di seguito «Fornitore», e Campoverde S.r.l., con sede in Via dei Giardini 12, 40121 Bologna, P.IVA 05260183712, in persona dell'Amministratore Delegato Paolo Ferri, di seguito «Acquirente», si conviene quanto segue.
+
+1. Il Fornitore vende e l'Acquirente acquista le seguenti stampanti multifunzione:
+a) a colori, formato A3, 30 pagine al minuto: 2 pz a € 1.400,00, per € 2.800,00;
+b) in bianco e nero, formato A4, 40 pagine al minuto: 5 pz a € 356,00, per € 1.780,00.
+2. Il prezzo complessivo è di € 4.580,00 oltre IVA. L'Acquirente paga entro 5 giorni lavorativi dalla firma del verbale di consegna.
+3. Il Fornitore consegna le stampanti in Via dei Giardini 12, 40121 Bologna, entro 10 giorni lavorativi dalla firma del contratto. Il prezzo comprende la consegna in ufficio e la configurazione in rete.
+4. Garanzia: 12 mesi; il Fornitore ripara o sostituisce una stampante difettosa entro 10 giorni lavorativi.
+
+Sistemi Ufficio Borgonuovo S.r.l.	Campoverde S.r.l.
+______________	______________
+Leonardo Varani, Amministratore unico	Paolo Ferri, Amministratore Delegato

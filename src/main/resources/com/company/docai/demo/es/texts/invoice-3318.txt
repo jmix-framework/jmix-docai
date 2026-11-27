@@ -1,0 +1,21 @@
+Transportes Rápidos Esla, S.L.
+CIF B99918764
+Calle del Nogal, 26, local 14, 47320 Tudela de Duero (Valladolid)
+
+# FACTURA N.º 3318
+## Fecha: {issued:long}
+Cliente: Vega Verde, S.L., CIF B99471205, calle del Jardín, 12, oficina 312, 47001 Valladolid
+Su pedido: {request:long}
+
+Servicio de mudanza del {issued:long}, mobiliario y equipos de oficina (traslado del almacén):
+1. Camión carrozado de 8 m, 2 viajes a 215,00 €	430,00 €
+2. Carga y descarga, 14 horas de mano de obra a 15,00 €	210,00 €
+Base imponible	640,00 €
+IVA 21 %	134,40 €
+Total factura	774,40 €
+
+El precio incluye el embalaje con film de los equipos de oficina, la sujeción de la carga y el seguro de la mercancía durante el transporte. La carga y la descarga las realizó un equipo de cuatro operarios.
+Vencimiento: {due:long}.
+Forma de pago: transferencia a la cuenta IBAN ES00 9999 0000 0000 0003 1274 de Banco Demo. Indique el número de factura en el concepto.
+
+Pagada el {paid:long} mediante transferencia bancaria.
