@@ -22,6 +22,8 @@
         </menu>
     </menu>
 
+    <item id="about" view="AboutView" title="msg://com.company.docai/menu.about.title" icon="INFO_CIRCLE"/>
+
     <menu id="security" visible="false"/>
     <menu id="dynat" visible="false"/>
     <menu id="aitls" visible="false"/>
