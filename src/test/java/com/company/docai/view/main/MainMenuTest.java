@@ -18,8 +18,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The main menu of the administrator: under the folders, the trash and one closed group with the views of the
- * administrator.
+ * The main menu of the administrator: under the folders, the trash, one closed group with the views of the
+ * administrator and About.
  */
 @UiTest
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -45,7 +45,7 @@ class MainMenuTest {
     }
 
     @Test
-    void underTheFoldersStandTheTrashAndTheClosedAdministration() {
+    void underTheFoldersStandTheTrashTheClosedAdministrationAndAbout() {
         viewNavigators.view(UiTestUtils.getCurrentView(), MainView.class).navigate();
         JmixListMenu menu = TestMenus.listMenu("menu");
         ListMenu.MenuItem administration = menu.getMenuItem("administration");
@@ -53,7 +53,7 @@ class MainMenuTest {
         assertThat(menu.getMenuItems())
                 .filteredOn(ListMenu.MenuItem::isVisible)
                 .extracting(ListMenu.MenuItem::getId)
-                .containsExactly("TrashView", "administration");
+                .containsExactly("TrashView", "administration", "about");
         assertThat(administration).isNotNull();
         assertThat(((ListMenu.MenuBarItem) administration).isOpened()).isFalse();
         // the root of the folder tree opens the repository

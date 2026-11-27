@@ -16,8 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The main menu of an employee: the folders lead to the repository, the trash stands under them, and only the
- * administrator has the administration.
+ * The main menu of an employee: the folders lead to the repository, the trash and About stand under them, and only
+ * the administrator has the administration.
  */
 @UiTest(authenticator = EmployeeUiTestAuthenticator.class, initialView = MainView.class)
 @SpringBootTest(classes = {DocAiApplication.class, FlowuiTestAssistConfiguration.class})
@@ -27,10 +27,11 @@ class EmployeeMainMenuTest {
     private AiChatService chatService;
 
     @Test
-    void anEmployeeHasTheTrashButNoAdministrationInTheMenu() {
+    void anEmployeeHasTheTrashAndAboutButNoAdministrationInTheMenu() {
         JmixListMenu menu = TestMenus.listMenu("menu");
 
         assertThat(menu.getMenuItem("TrashView")).isNotNull();
+        assertThat(menu.getMenuItem("about")).isNotNull();
         assertThat(menu.getMenuItem("administration")).isNull();
         assertThat(menu.getMenuItem("documentTypes")).isNull();
         assertThat(menu.getMenuItem("Tag.list")).isNull();
